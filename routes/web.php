@@ -10,6 +10,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DataFeedController;
+use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JenisBahanController;
 use App\Http\Controllers\TransactionController;
@@ -45,8 +46,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::resource('jenis-bahan', JenisBahanController::class);
     Route::resource('unit', UnitController::class);
-    // Route::get('/jenis-bahan', [JenisBahanController::class, 'index'])->name('jenis-bahan.index');
-    // Route::get('/jenis-bahan/create', [JenisBahanController::class, 'create'])->name('jenis-bahan.create');
+    Route::resource('purchases', PurchaseController::class);
+
 
 
     Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('analytics');

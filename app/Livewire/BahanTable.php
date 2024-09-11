@@ -19,7 +19,7 @@ class BahanTable extends Component
         $bahans = Bahan::with('jenisBahan', 'dataUnit')
         ->where('nama_bahan', 'like', '%' . $this->search . '%')
         ->orWhere('kode_bahan', 'like', '%' . $this->search . '%')
-        ->paginate(5);
+        ->paginate($this->perPage);
 
         return view('livewire.bahan-table', [
             'bahans' => $bahans

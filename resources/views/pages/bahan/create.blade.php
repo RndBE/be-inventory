@@ -50,7 +50,7 @@
                     <div class="border-b border-gray-900/10 pb-12">
                         <div class="p-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
 
-                            <div class="sm:col-span-2 sm:col-start-1">
+                            {{-- <div class="sm:col-span-2 sm:col-start-1">
                             <label for="kode_bahan" class="block text-sm font-medium leading-6 text-gray-900">Kode Bahan</label>
                             <div class="mt-2">
                                 <input value="{{ old('kode_bahan') }}" type="text" name="kode_bahan" id="kode_bahan" autocomplete="address-level2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
@@ -58,7 +58,7 @@
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            </div>
+                            </div> --}}
 
                             <div class="sm:col-span-2">
                             <label for="nama_bahan" class="block text-sm font-medium leading-6 text-gray-900">Nama Bahan</label>
@@ -85,7 +85,7 @@
                             </div>
                             </div>
 
-                            <div class="sm:col-span-2 sm:col-start-1">
+                            <div class="sm:col-span-2">
                             <label for="stok_awal" class="block text-sm font-medium leading-6 text-gray-900">Stok Awal</label>
                             <div class="mt-2">
                                 <input value="{{ old('stok_awal') }}" type="number" name="stok_awal" id="stok_awal" autocomplete="address-level2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
@@ -95,7 +95,7 @@
                             </div>
                             </div>
 
-                            <div class="sm:col-span-2">
+                            <div class="sm:col-span-2 sm:col-start-1">
                             <label for="total_stok" class="block text-sm font-medium leading-6 text-gray-900">Total Stok</label>
                             <div class="mt-2">
                                 <input value="{{ old('total_stok') }}" type="number" name="total_stok" id="total_stok" autocomplete="address-level1" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
@@ -120,7 +120,7 @@
                             </div>
                             </div>
 
-                            <div class="col-span-full">
+                            <div class="sm:col-span-2">
                             <label for="penempatan" class="block text-sm font-medium leading-6 text-gray-900">Penempatan</label>
                             <div class="mt-2">
                                 <input value="{{ old('penempatan') }}" type="text" name="penempatan" id="penempatan" autocomplete="street-address" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">

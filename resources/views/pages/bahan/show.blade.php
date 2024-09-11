@@ -18,7 +18,7 @@
             <!-- Modal body -->
             <div class="pt-0 p-5">
                 <div class="p-4">
-                    <img class="rounded-lg mx-auto block" src="{{ $gambar ? asset('storage/' . $gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $nama_bahan }}" />
+                    <img class="rounded-lg mx-auto block" src="{{ $gambar ? asset('images/' . $gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $nama_bahan }}" />
                     <ul class="my-4 space-y-3">
                         <li><h6>Kode Bahan: {{ $kode_bahan }}</h6></li>
                         <li><h6>Jenis Bahan: {{ $jenis_bahan_id }}</h6></li>

@@ -47,8 +47,11 @@
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                     <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $bahans->firstItem() + $index }}</div></td>
                     <td class="px-6 py-4">
-                        <!-- Menampilkan gambar -->
-                        <img src="{{ $row->gambar ? asset('storage/' . $row->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $row->nama_bahan }}" class="h-auto w-24 rounded-lg">
+                        <img src="{{ $row->gambar ? asset('images/' . $row->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $row->nama_bahan }}" class="h-auto w-24 rounded-lg">
+                        {{-- @php
+                            dd(asset('images/' . $row->gambar));
+                        @endphp --}}
+
                     </td>
                     <td class="px-6 py-3">{{ $row->kode_bahan }}</td>
                     <td class="px-6 py-3">{{ $row->nama_bahan }}</td>

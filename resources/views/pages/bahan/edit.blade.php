@@ -54,7 +54,7 @@
                             <div class="sm:col-span-2 sm:col-start-1">
                             <label for="kode_bahan" class="block text-sm font-medium leading-6 text-gray-900">Kode Bahan</label>
                             <div class="mt-2">
-                                <input value="{{ old('kode_bahan', $bahan->kode_bahan) }}" type="text" name="kode_bahan" id="kode_bahan" autocomplete="address-level2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <input type="text" name="kode_bahan" id="kode_bahan" value="{{ old('kode_bahan', $bahan->kode_bahan) }}" disabled class="block w-full rounded-md border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                 @error('kode_bahan')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -91,7 +91,7 @@
                             <div class="sm:col-span-2 sm:col-start-1">
                             <label for="stok_awal" class="block text-sm font-medium leading-6 text-gray-900">Stok Awal</label>
                             <div class="mt-2">
-                                <input value="{{ old('stok_awal', $bahan->stok_awal) }}" type="number" name="stok_awal" id="stok_awal" autocomplete="address-level2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <input value="{{ old('stok_awal', $bahan->stok_awal) }}" disabled type="number" name="stok_awal" id="stok_awal" autocomplete="address-level2" class="block w-full rounded-md border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                 @error('stok_awal')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -101,7 +101,7 @@
                             <div class="sm:col-span-2">
                             <label for="total_stok" class="block text-sm font-medium leading-6 text-gray-900">Total Stok</label>
                             <div class="mt-2">
-                                <input value="{{ old('total_stok', $bahan->total_stok) }}" type="number" name="total_stok" id="total_stok" autocomplete="address-level1" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <input value="{{ old('total_stok', $bahan->total_stok) }}" disabled type="number" name="total_stok" id="total_stok" autocomplete="address-level1" class="block w-full rounded-md border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                 @error('total_stok')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -172,7 +172,7 @@
                             <div class="sm:col-span-2 sm:col-start-1">
                             <div class="mt-2">
                                 @if($bahan->gambar)
-                                    <img src="{{ asset('storage/' . $bahan->gambar) }}" alt="Gambar Bahan" class="mb-4 h-32 w-auto">
+                                    <img src="{{ asset('images/' . $bahan->gambar) }}" alt="Gambar Bahan" class="mb-4 h-32 w-auto">
                                 @else
                                     <p>Tidak ada gambar tersedia.</p>
                                 @endif

@@ -29,7 +29,6 @@ class BahanController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'kode_bahan' => 'required|unique:bahan',
             'nama_bahan' => 'required|string|max:255',
             'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
             'stok_awal' => 'required|integer',
@@ -37,19 +36,28 @@ class BahanController extends Controller
             'unit_id' => 'required|exists:unit,id',
             'kondisi' => 'required|string|max:100',
             'penempatan' => 'required|string|max:255',
-            'gambar' => 'nullable|image|mimes:jpg,jpeg,png',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
-        // dd($request->all());
-        // Upload gambar jika ada
+
+        // Generate unique kode_bahan
+        $kode_bahan = strtoupper(uniqid());
+
+        // If there's an uploaded file, handle the file upload
         if ($request->hasFile('gambar')) {
-            $filePath = $request->file('gambar')->store('uploads/bahan', 'public');
-            $validated['gambar'] = $filePath;
+            $fileName = time() . '_' . $request->file('gambar')->getClientOriginalName();
+            $filePath = $request->file('gambar')->move(public_path('images/bahan'), $fileName);
+            $validated['gambar'] = 'bahan/' . $fileName;
         }
 
+        // Add the generated kode_bahan to the validated data
+        $validated['kode_bahan'] = $kode_bahan;
+
+        // Create the new Bahan record
         Bahan::create($validated);
 
         return redirect()->route('bahan.index')->with('success', 'Bahan berhasil ditambahkan.');
     }
+
 
     // Menampilkan formulir edit bahan
     public function edit($id)
@@ -66,7 +74,6 @@ class BahanController extends Controller
         $bahan = Bahan::findOrFail($id);
 
         $validated = $request->validate([
-            'kode_bahan' => ['required', Rule::unique('bahan')->ignore($bahan->id)],
             'nama_bahan' => 'required|string|max:255',
             'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
             'stok_awal' => 'required|integer',
@@ -77,17 +84,18 @@ class BahanController extends Controller
             'gambar' => 'nullable|image|max:2048',
         ]);
         // dd($validated);
-
+        // Jika ada file gambar yang di-upload, proses penyimpanan
         if ($request->hasFile('gambar')) {
             // Hapus gambar lama jika ada
-            if ($bahan->gambar) {
-                Storage::delete('public/' . $bahan->gambar);
+            if ($bahan->gambar && file_exists(public_path('images/' . $bahan->gambar))) {
+                unlink(public_path('images/' . $bahan->gambar));
             }
-            // Simpan gambar baru
-
-
-            $imagePath = $request->file('gambar')->store('images', 'public');
-            $validated['gambar'] = $imagePath;
+            $fileName = time() . '_' . $request->file('gambar')->getClientOriginalName();
+            $filePath = $request->file('gambar')->move(public_path('images/bahan'), $fileName);
+            $validated['gambar'] = 'bahan/' . $fileName;
+        } else {
+            // Jika tidak ada gambar baru, pertahankan gambar lama
+            $validated['gambar'] = $bahan->gambar;
         }
 
         $bahan->update($validated);
@@ -99,12 +107,10 @@ class BahanController extends Controller
     public function destroy($id)
     {
         $bahan = Bahan::findOrFail($id);
-
-        // Hapus gambar dari storage jika ada
-        if ($bahan->gambar && Storage::exists('public/' . $bahan->gambar)) {
-            Storage::delete('public/' . $bahan->gambar);
+        // Hapus gambar dari penyimpanan jika ada
+        if ($bahan->gambar && file_exists(public_path('images/' . $bahan->gambar))) {
+            unlink(public_path('images/' . $bahan->gambar));
         }
-
         // Hapus data dari database
         $bahan->delete();
 

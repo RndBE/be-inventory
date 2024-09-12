@@ -10,8 +10,15 @@ class PurchaseDetail extends Model
     use HasFactory;
     protected $guarded = [];
     protected $table = 'purchase_details';
+
     public function purchase()
     {
         return $this->belongsTo(Purchase::class);
+    }
+
+
+    public function dataBahan()
+    {
+        return $this->belongsTo(Bahan::class);
     }
 }

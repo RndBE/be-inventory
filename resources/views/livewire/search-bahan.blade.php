@@ -30,13 +30,11 @@
             <div class="card position-absolute mt-1" style="z-index: 20;left: 0;right: 0;border: 0;">
                 <div class="card-body shadow">
                     <ul class="list-group list-group-flush">
-                        @foreach($search_results as $result)
-                            <li class="list-group-item list-group-item-action">
-                                <a wire:click="resetQuery" wire:click.prevent="selectBahan({{ $result }})" href="#">
-                                    {{ $result->nama_bahan }} | {{ $result->kode_bahan }}
-                                </a>
-                            </li>
+                        <!-- In your search-bahan.blade.php -->
+                        @foreach($search_results as $bahan)
+                            <li wire:click="selectBahan({{ $bahan->id }})" class="cursor-pointer">{{ $bahan->nama_bahan }}</li>
                         @endforeach
+
                         @if($search_results->count() >= $how_many)
                              <li class="list-group-item list-group-item-action text-center">
                                  <a wire:click.prevent="loadMore" class="btn btn-primary btn-sm" href="#">

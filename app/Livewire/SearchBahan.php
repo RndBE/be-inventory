@@ -44,9 +44,10 @@ class SearchBahan extends Component
         $this->search_results = Collection::empty();
     }
 
-    public function selectBahan($product)
+    public function selectBahan($bahanId)
     {
-        $this->dispatch('bahanSelected', $product);
+        $bahan = Bahan::find($bahanId);
+        $this->dispatch('bahanSelected', $bahan);
     }
 
 }

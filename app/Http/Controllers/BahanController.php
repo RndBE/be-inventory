@@ -76,8 +76,8 @@ class BahanController extends Controller
         $validated = $request->validate([
             'nama_bahan' => 'required|string|max:255',
             'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
-            'stok_awal' => 'required|integer',
-            'total_stok' => 'required|integer',
+            // 'stok_awal' => 'required|integer',
+            // 'total_stok' => 'required|integer',
             'unit_id' => 'required|exists:unit,id',
             'kondisi' => 'required|string|max:255',
             'penempatan' => 'required|string|max:255',

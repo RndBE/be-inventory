@@ -46,8 +46,13 @@ class SearchBahan extends Component
 
     public function selectBahan($bahanId)
     {
-        $bahan = Bahan::find($bahanId);
+        $bahan = Bahan::with('dataUnit')->find($bahanId);
+
+        // Emit event untuk mengirim data bahan yang dipilih
         $this->dispatch('bahanSelected', $bahan);
+
+        // Reset query setelah memilih bahan
+        $this->resetQuery();
     }
 
 }

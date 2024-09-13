@@ -8,14 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class PurchaseDetail extends Model
 {
     use HasFactory;
-    protected $guarded = [];
     protected $table = 'purchase_details';
+    protected $guarded = [];
+
 
     public function purchase()
     {
         return $this->belongsTo(Purchase::class);
     }
-
 
     public function dataBahan()
     {

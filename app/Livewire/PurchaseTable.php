@@ -11,6 +11,7 @@ class PurchaseTable extends Component
     use WithPagination;
     public $search = "";
     public $perPage = 5;
+    public $id_purchases;
     public function render()
     {
         $purchases = Purchase::with('details')->orderBy('id', 'desc')
@@ -20,6 +21,11 @@ class PurchaseTable extends Component
         return view('livewire.purchase-table', [
             'purchases' => $purchases,
         ]);
+    }
+
+    public function deletePurchases(int $id)
+    {
+        $this->id_purchases = $id;
     }
 
     public function updatingSearch()

@@ -1,52 +1,81 @@
 @section('title', 'Detail Transaksi Bahan Masuk | BE INVENTORY')
 <x-app-layout>
     <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
-
-        <!-- Dashboard actions -->
-        <div class="sm:flex sm:justify-between sm:items-center mb-8">
-
-            <!-- Left: Title -->
-            <div class="mb-4 sm:mb-0">
-                <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Detail Transaksi Bahan Masuk</h1>
-            </div>
-
-            <!-- Right: Actions -->
-            <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
-                <nav class="flex" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                    <li class="inline-flex items-center">
-                    <a href="{{ route('dashboard') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
-                        <svg class="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
-                        </svg>
-                        Dashboard
-                    </a>
-                    </li>
-                    <li>
-                        <div class="flex items-center">
-                            <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-                            </svg>
-                            <a href="{{ route('purchases.index') }}" class="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white">Bahan Masuk</a>
-                        </div>
-                    </li>
-                    <li aria-current="page">
-                    <div class="flex items-center">
-                        <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-                        </svg>
-                        <span class="ms-1 text-sm font-medium text-gray-500 md:ms-2 dark:text-gray-400">Detail Transaksi</span>
+        <article class="overflow-hidden">
+            <div class="bg-white rounded-b-md">
+                <div class="p-9">
+                    <div class="space-y-6 text-slate-700">
+                        <img class="object-cover h-12" src="{{ asset('images/logo_be2.png') }}" />
                     </div>
-                    </li>
-                </ol>
-                </nav>
+                </div>
+                <div class="p-9">
+                    <div class="flex w-full">
+                        <div class="grid grid-cols-4 gap-12">
+                            <div class="text-sm font-light text-slate-500">
+                                <p class="text-sm font-normal text-slate-700">Detail Transaksi:</p>
+                            </div>
+                            <div class="text-sm font-light text-slate-500">
+                                <p class="text-sm font-normal text-slate-700">Divisi:</p>
+                                <p class="text-sm font-normal text-slate-700">Purchasing</p>
+                            </div>
+                            <div class="text-sm font-light text-slate-500">
+                                <p class="text-sm font-normal text-slate-700">Kode Transaksi:</p>
+                                <p>{{ $kode_transaksi }}</p>
+                                <p class="mt-2 text-sm font-normal text-slate-700">Tanggal Transaksi</p>
+                                <p>{{ \Carbon\Carbon::parse($tgl_masuk)->format('d F Y H:i:s') }}</p> <!-- Format tanggal -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-9">
+                    <div class="flex flex-col mx-0 mt-8">
+                        <table class="min-w-full divide-y divide-slate-500">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-normal text-slate-700 sm:pl-6 md:pl-0">Gambar</th>
+                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-normal text-slate-700 sm:pl-6 md:pl-0">Nama Bahan</th>
+                                    <th scope="col" class="hidden py-3.5 px-3 text-right text-sm font-normal text-slate-700 sm:table-cell">Quantity</th>
+                                    <th scope="col" class="hidden py-3.5 px-3 text-right text-sm font-normal text-slate-700 sm:table-cell">Unit Price</th>
+                                    <th scope="col" class="py-3.5 pl-3 pr-4 text-right text-sm font-normal text-slate-700 sm:pr-6 md:pr-0">Sub Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($purchaseDetails as $detail)
+                                <tr class="border-b border-slate-200">
+                                    <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
+                                        <img src="{{ $detail->dataBahan->gambar ? asset('images/' . $detail->dataBahan->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $detail->dataBahan->nama_bahan }}" class="h-auto w-24 rounded-lg">
+                                    </td>
+                                    <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
+                                        <div class="font-medium text-slate-700">{{ $detail->dataBahan->nama_bahan }}</div>
+                                    </td>
+                                    <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $detail->qty }} {{ $detail->dataBahan->dataUnit->nama ?? 'N/A' }}</span></td>
+                                    <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">Rp. {{ number_format($detail->unit_price, 2) }}</td>
+                                    <td class="py-4 pl-3 pr-4 text-sm text-right text-slate-500 sm:pr-6 md:pr-0">Rp. {{ number_format($detail->sub_total, 2) }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th scope="row" colspan="4" class="hidden pt-6 pl-6 pr-3 text-sm font-light text-right text-slate-500 sm:table-cell md:pl-0">Total Harga</th>
+                                    <th scope="row" class="pt-6 pl-4 pr-3 text-sm font-light text-left text-slate-500 sm:hidden">Total Harga</th>
+                                    <td class="pt-6 pl-3 pr-4 text-sm text-right text-slate-500 sm:pr-6 md:pr-0">Rp. {{ number_format($purchaseDetails->sum('sub_total'), 2) }}</td>
+                                </tr>
+                                <!-- Tambahkan baris untuk Discount, Tax, dan Total jika perlu -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-9 p-9">
+                    <div class="border-t pt-9 border-slate-200">
+                        <div class="mt-2 flex items-center justify-end gap-x-6">
+                            <a href="{{ route('purchases.index') }}" type="button" class="text-sm font-semibold leading-6 text-gray-900">Kembali</a>
+                            <button class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Print</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <div class="w-full bg-white border border-gray-200 rounded-lg shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
-
-        </div>
-
-
+        </article>
     </div>
 </x-app-layout>

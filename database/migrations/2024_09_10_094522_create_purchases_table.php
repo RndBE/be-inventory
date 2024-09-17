@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('purchases', function (Blueprint $table) {
             $table->id();
-            $table->date('tgl_masuk');
+            $table->dateTime('tgl_masuk');
             $table->string('kode_transaksi')->unique();
             $table->timestamps();
         });

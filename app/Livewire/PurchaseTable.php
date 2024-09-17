@@ -14,7 +14,7 @@ class PurchaseTable extends Component
     public $id_purchases;
     public function render()
     {
-        $purchases = Purchase::with('details')->orderBy('id', 'desc')
+        $purchases = Purchase::with('purchaseDetails')->orderBy('id', 'desc')
         ->where('tgl_masuk', 'like', '%' . $this->search . '%')
             ->paginate($this->perPage);
 

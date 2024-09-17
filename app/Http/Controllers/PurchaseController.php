@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Purchase;
 use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
+use App\Models\Bahan;
 use Illuminate\Support\Facades\Validator;
 
 class PurchaseController extends Controller
@@ -13,17 +14,20 @@ class PurchaseController extends Controller
     public function index()
     {
         // Menampilkan semua transaksi barang masuk
-        $purchases = Purchase::with('details')->get();
+        $purchases = Purchase::with('purchaseDetails')->get();
         return view('pages.purchases.index', compact('purchases'));
     }
 
     public function show($id)
     {
-        // $units = Unit::all();
-        // $jenisBahan = JenisBahan::all();
-        // $bahan = Bahan::findOrFail($id);
-        return view('pages.purchases.show');
+        $purchase = Purchase::with('purchaseDetails.dataBahan.dataUnit')->findOrFail($id); // Mengambil detail pembelian
+        return view('pages.purchases.show', [
+            'kode_transaksi' => $purchase->kode_transaksi,
+            'tgl_masuk' => $purchase->tgl_masuk, // Ambil tanggal transaksi
+            'purchaseDetails' => $purchase->purchaseDetails, // Ambil detail pembelian
+        ]);
     }
+
 
     public function create()
     {
@@ -41,12 +45,12 @@ class PurchaseController extends Controller
             'tgl_masuk' => $request->tgl_masuk,
             'cartItems' => $cartItems
         ], [
-            'tgl_masuk' => 'required', // Ubah validasi jika perlu
+            'tgl_masuk' => 'required|date_format:Y-m-d',
             'cartItems' => 'required|array',
-            'cartItems.*.id' => 'required|integer', // Menambahkan validasi item cart
-            'cartItems.*.qty' => 'required|integer|min:1', // Menambahkan validasi qty
-            'cartItems.*.unit_price' => 'required', // Menambahkan validasi unit_price
-            'cartItems.*.sub_total' => 'required', // Menambahkan validasi sub_total
+            'cartItems.*.id' => 'required|integer', 
+            'cartItems.*.qty' => 'required|integer|min:1', 
+            'cartItems.*.unit_price' => 'required',
+            'cartItems.*.sub_total' => 'required', 
         ]);
 
         if ($validator->fails()) {
@@ -62,6 +66,7 @@ class PurchaseController extends Controller
         // Simpan data pembelian
         $purchase = new Purchase();
         $purchase->kode_transaksi = $kode_transaksi;
+        $tgl_masuk = $request->tgl_masuk . ' ' . now()->setTimezone('Asia/Jakarta')->format('H:i:s');
         $purchase->tgl_masuk = $tgl_masuk; // Gunakan tanggal yang sudah diformat
         $purchase->save();
 
@@ -74,6 +79,13 @@ class PurchaseController extends Controller
                 'unit_price' => $item['unit_price'],
                 'sub_total' => $item['sub_total'],
             ]);
+
+            // Update total_stok
+            $bahan = Bahan::find($item['id']); // Pastikan Anda memiliki model Bahan
+            if ($bahan) {
+                $bahan->total_stok += $item['qty']; // Tambahkan qty ke total_stok
+                $bahan->save(); // Simpan perubahan
+            }
         }
 
         return redirect()->route('purchases.index')->with('success', 'Pembelian berhasil disimpan!');
@@ -81,14 +93,28 @@ class PurchaseController extends Controller
 
     public function destroy(Request $request, $id)
     {
-
+        // Temukan transaksi pembelian
         $data = Purchase::find($id);
-        $purchases = $data->delete();
-        if (!$purchases) {
-            return redirect()->back()->with('gagal', 'menghapus');
+
+        if (!$data) {
+            return redirect()->back()->with('gagal', 'Transaksi tidak ditemukan.');
         }
+
+        // Ambil detail pembelian untuk mengurangi stok
+        $purchaseDetails = $data->purchaseDetails; // Pastikan relasi sudah didefinisikan di model Purchase
+
+        // Kurangi total_stok berdasarkan detail pembelian
+        foreach ($purchaseDetails as $detail) {
+            $bahan = Bahan::find($detail->bahan_id); // Temukan bahan berdasarkan bahan_id
+            if ($bahan) {
+                $bahan->total_stok -= $detail->qty; // Kurangi qty dari total_stok
+                $bahan->save(); // Simpan perubahan
+            }
+        }
+        // Hapus transaksi pembelian
+        $data->delete();
+
         return redirect()->route('purchases.index')->with('success', 'Bahan Masuk berhasil dihapus.');
     }
-
 
 }

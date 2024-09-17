@@ -30,8 +30,8 @@
                 <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $purchases->firstItem() + $index }}</div></td>
                 <td class="px-6 py-3">{{ $purchase->kode_transaksi }}</td>
                 <td class="px-6 py-3">{{ $purchase->tgl_masuk }}</td>
-                <td class="px-6 py-3">{{ $purchase->details->sum('qty') }}</td>
-                <td class="px-6 py-3">Rp {{ number_format($purchase->details->sum('sub_total'), 2, ',', '.') }}</td>
+                <td class="px-6 py-3">{{ $purchase->purchaseDetails->sum('qty') }}</td>
+                <td class="px-6 py-3">Rp {{ number_format($purchase->purchaseDetails->sum('sub_total'), 2, ',', '.') }}</td>
                 <td class="px-6 py-4">
                     <div class="row flex space-x-2">
                     <a href="{{ route('purchases.show', $purchase->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600 focus:text-white focus:bg-blue-600 focus:border-blue-600">

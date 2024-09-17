@@ -32,7 +32,7 @@
                     <ul class="list-group list-group-flush">
                         <!-- In your search-bahan.blade.php -->
                         @foreach($search_results as $bahan)
-                            <li wire:click="selectBahan({{ $bahan->id }})" class="cursor-pointer">{{ $bahan->nama_bahan }}</li>
+                            <li wire:click="selectBahan({{ $bahan->id }})" class="cursor-pointer">{{ $bahan->nama_bahan }} | {{ $bahan->kode_bahan }}</li>
                         @endforeach
 
                         @if($search_results->count() >= $how_many)

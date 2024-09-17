@@ -19,6 +19,6 @@ class PurchaseDetail extends Model
 
     public function dataBahan()
     {
-        return $this->belongsTo(Bahan::class);
+        return $this->belongsTo(Bahan::class, 'bahan_id');
     }
 }

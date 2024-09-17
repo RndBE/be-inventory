@@ -22,7 +22,7 @@ class Bahan extends Model
         return $this->belongsTo(Unit::class, 'unit_id');
     }
 
-    public function dataPurchaseDetail()
+    public function purchaseDetails()
     {
         return $this->hasMany(PurchaseDetail::class);
     }

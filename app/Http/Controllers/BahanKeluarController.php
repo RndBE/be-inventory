@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bahan;
+use App\Models\StokRnd;
 use App\Models\BahanKeluar;
 use App\Models\StokProduksi;
 use Illuminate\Http\Request;
@@ -100,6 +101,7 @@ class BahanKeluarController extends Controller
         // Jika status baru adalah 'Disetujui', kurangi total stok
         if ($validated['status'] === 'Disetujui') {
             $details = BahanKeluarDetails::where('bahan_keluar_id', $id)->get();
+            $bahanKeluar = BahanKeluar::find($id); // Ambil data BahanKeluar untuk memeriksa divisi
 
             foreach ($details as $detail) {
                 $bahan = Bahan::find($detail->bahan_id);
@@ -107,14 +109,24 @@ class BahanKeluarController extends Controller
                     $bahan->total_stok -= $detail->qty; // Kurangi stok
                     $bahan->save();
 
-                    // Masukkan ke stok produksi
-                    $stokProduksi = new StokProduksi();
-                    $stokProduksi->bahan_id = $detail->bahan_id;
-                    $stokProduksi->total_stok = $detail->qty; // Atur qty sesuai detail
-                    $stokProduksi->save();
+                    // Cek divisi dan simpan ke stok yang sesuai
+                    if ($bahanKeluar->divisi === 'Produksi') {
+                        // Masukkan ke stok produksi
+                        $stokProduksi = new StokProduksi();
+                        $stokProduksi->bahan_id = $detail->bahan_id;
+                        $stokProduksi->total_stok = $detail->qty; // Atur qty sesuai detail
+                        $stokProduksi->save();
+                    } elseif ($bahanKeluar->divisi === 'RnD') {
+                        // Masukkan ke stok RnD
+                        $stokPnd = new StokRnd();
+                        $stokPnd->bahan_id = $detail->bahan_id;
+                        $stokPnd->total_stok = $detail->qty; // Atur qty sesuai detail
+                        $stokPnd->save();
+                    }
                 }
             }
         }
+
 
         return redirect()->route('bahan-keluars.index')->with('success', 'Status berhasil diubah.');
     }

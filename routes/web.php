@@ -4,18 +4,19 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\BahanController;
-use App\Http\Controllers\BahanKeluarController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\StokRndController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JenisBahanController;
-use App\Http\Controllers\StokProduksiController;
+use App\Http\Controllers\BahanKeluarController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\StokProduksiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +52,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::resource('purchases', PurchaseController::class);
     Route::resource('bahan-keluars', BahanKeluarController::class);
     Route::resource('stok-produksis', StokProduksiController::class);
+    Route::resource('stok-rnds', StokRndController::class);
 
 
 

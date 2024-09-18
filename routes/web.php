@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\BahanController;
+use App\Http\Controllers\BahanKeluarController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\InvoiceController;
@@ -47,6 +48,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::resource('jenis-bahan', JenisBahanController::class);
     Route::resource('unit', UnitController::class);
     Route::resource('purchases', PurchaseController::class);
+    Route::resource('bahan-keluars', BahanKeluarController::class);
 
 
 

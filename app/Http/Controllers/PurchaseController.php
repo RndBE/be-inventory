@@ -47,10 +47,10 @@ class PurchaseController extends Controller
         ], [
             'tgl_masuk' => 'required|date_format:Y-m-d',
             'cartItems' => 'required|array',
-            'cartItems.*.id' => 'required|integer', 
-            'cartItems.*.qty' => 'required|integer|min:1', 
+            'cartItems.*.id' => 'required|integer',
+            'cartItems.*.qty' => 'required|integer|min:1',
             'cartItems.*.unit_price' => 'required',
-            'cartItems.*.sub_total' => 'required', 
+            'cartItems.*.sub_total' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -59,14 +59,11 @@ class PurchaseController extends Controller
 
         // Menghasilkan kode transaksi
         $kode_transaksi = 'KBM - ' . strtoupper(uniqid());
-
-        // Konversi format tanggal
-        $tgl_masuk = $request->tgl_masuk;
+        $tgl_masuk = $request->tgl_masuk . ' ' . now()->setTimezone('Asia/Jakarta')->format('H:i:s');
 
         // Simpan data pembelian
         $purchase = new Purchase();
         $purchase->kode_transaksi = $kode_transaksi;
-        $tgl_masuk = $request->tgl_masuk . ' ' . now()->setTimezone('Asia/Jakarta')->format('H:i:s');
         $purchase->tgl_masuk = $tgl_masuk; // Gunakan tanggal yang sudah diformat
         $purchase->save();
 

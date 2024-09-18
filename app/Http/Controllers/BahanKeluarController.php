@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bahan;
 use App\Models\BahanKeluar;
+use App\Models\StokProduksi;
 use Illuminate\Http\Request;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\Validator;
@@ -17,24 +18,14 @@ class BahanKeluarController extends Controller
         return view('pages.bahan-keluars.index', compact('bahan_keluars'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('pages.bahan-keluars.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //dd($request->all());
-        // Decode cartItems dari JSON string menjadi array
         $cartItems = json_decode($request->cartItems, true);
-
-        // Lakukan validasi setelah cartItems di-decode
         $validator = Validator::make([
             'tgl_keluar' => $request->tgl_keluar,
             'divisi' => $request->divisi,
@@ -57,7 +48,6 @@ class BahanKeluarController extends Controller
         $kode_transaksi = 'KBK - ' . strtoupper(uniqid());
         $tgl_keluar = $request->tgl_keluar . ' ' . now()->setTimezone('Asia/Jakarta')->format('H:i:s');
 
-
         // Simpan data pembelian
         $bahan_keluar = new BahanKeluar();
         $bahan_keluar->kode_transaksi = $kode_transaksi;
@@ -78,12 +68,9 @@ class BahanKeluarController extends Controller
             ]);
         }
 
-        return redirect()->route('bahan-keluars.index')->with('success', 'Permintaan berhasil ditambahkan!');
+        return redirect()->back()->with('success', 'Permintaan berhasil ditambahkan!');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         $bahankeluar = BahanKeluar::with('bahanKeluarDetails.dataBahan.dataUnit')->findOrFail($id); // Mengambil detail pembelian
@@ -119,6 +106,12 @@ class BahanKeluarController extends Controller
                 if ($bahan) {
                     $bahan->total_stok -= $detail->qty; // Kurangi stok
                     $bahan->save();
+
+                    // Masukkan ke stok produksi
+                    $stokProduksi = new StokProduksi();
+                    $stokProduksi->bahan_id = $detail->bahan_id;
+                    $stokProduksi->total_stok = $detail->qty; // Atur qty sesuai detail
+                    $stokProduksi->save();
                 }
             }
         }

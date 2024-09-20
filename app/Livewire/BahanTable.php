@@ -16,30 +16,37 @@ class BahanTable extends Component
 
     public function render()
     {
-        $bahans = Bahan::with('jenisBahan', 'dataUnit')
+        $bahans = Bahan::with('jenisBahan', 'dataUnit', 'purchaseDetails')
         ->where('nama_bahan', 'like', '%' . $this->search . '%')
-        ->orWhere('kode_bahan', 'like', '%' . $this->search . '%')
-        ->paginate($this->perPage);
+            ->orWhere('kode_bahan', 'like', '%' . $this->search . '%')
+            ->paginate($this->perPage);
+
+        // Calculate total stock
+        foreach ($bahans as $bahan) {
+            $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
+        }
 
         return view('livewire.bahan-table', [
             'bahans' => $bahans
         ]);
     }
 
+
     public function showBahan(int $id)
     {
-        $Data = Bahan::findOrFail($id);
+        $Data = Bahan::with('purchaseDetails')->findOrFail($id);
         $this->id_bahan = $id;
         $this->kode_bahan = $Data->kode_bahan;
         $this->nama_bahan = $Data->nama_bahan;
         $this->jenis_bahan_id = $Data->jenisBahan->nama ?? 'N/A';
         $this->stok_awal = $Data->stok_awal;
-        $this->total_stok = $Data->total_stok;
+        $this->total_stok = $Data->purchaseDetails->sum('sisa');
         $this->penempatan = $Data->penempatan;
         $this->kondisi = $Data->kondisi;
         $this->unit_id = $Data->dataUnit->nama ?? 'N/A';
         $this->gambar = $Data->gambar;
     }
+
 
     public function deleteBahan(int $id)
     {

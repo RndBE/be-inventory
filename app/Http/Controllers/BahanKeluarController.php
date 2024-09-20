@@ -26,6 +26,8 @@ class BahanKeluarController extends Controller
 
     public function store(Request $request)
     {
+
+        dd($request->all());
         $cartItems = json_decode($request->cartItems, true);
         $validator = Validator::make([
             'tgl_keluar' => $request->tgl_keluar,
@@ -37,7 +39,7 @@ class BahanKeluarController extends Controller
             'cartItems' => 'required|array',
             'cartItems.*.id' => 'required|integer',
             'cartItems.*.qty' => 'required|integer|min:1',
-            'cartItems.*.unit_price' => 'required',
+            'cartItems.*.details' => 'required|array',
             'cartItems.*.sub_total' => 'required',
         ]);
 
@@ -45,27 +47,40 @@ class BahanKeluarController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Menghasilkan kode transaksi
+        // Generate transaction code
         $kode_transaksi = 'KBK - ' . strtoupper(uniqid());
         $tgl_keluar = $request->tgl_keluar . ' ' . now()->setTimezone('Asia/Jakarta')->format('H:i:s');
 
-        // Simpan data pembelian
+        // Save main keluar data
         $bahan_keluar = new BahanKeluar();
         $bahan_keluar->kode_transaksi = $kode_transaksi;
         $bahan_keluar->tgl_keluar = $tgl_keluar;
         $bahan_keluar->divisi = $request->divisi;
-
         $bahan_keluar->status = 'Belum disetujui';
         $bahan_keluar->save();
 
-        // Simpan item pembelian dari cart yang sudah didecode
+        // Group items by bahan_id and aggregate quantities
+        $groupedItems = [];
         foreach ($cartItems as $item) {
+            if (!isset($groupedItems[$item['id']])) {
+                $groupedItems[$item['id']] = [
+                    'qty' => 0,
+                    'details' => $item['details'], // Assuming you want to keep the same unit price
+                    'sub_total' => 0,
+                ];
+            }
+            $groupedItems[$item['id']]['qty'] += $item['qty'];
+            $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
+        }
+
+        // Save the details
+        foreach ($groupedItems as $bahan_id => $details) {
             BahanKeluarDetails::create([
                 'bahan_keluar_id' => $bahan_keluar->id,
-                'bahan_id' => $item['id'],
-                'qty' => $item['qty'],
-                'unit_price' => $item['unit_price'],
-                'sub_total' => $item['sub_total'],
+                'bahan_id' => $bahan_id,
+                'qty' => $details['qty'],
+                'details' => json_encode($details['details']), // Save as JSON
+                'sub_total' => $details['sub_total'],
             ]);
         }
 
@@ -106,8 +121,6 @@ class BahanKeluarController extends Controller
             foreach ($details as $detail) {
                 $bahan = Bahan::find($detail->bahan_id);
                 if ($bahan) {
-                    $bahan->total_stok -= $detail->qty; // Kurangi stok
-                    $bahan->save();
 
                     // Cek divisi dan simpan ke stok yang sesuai
                     if ($bahanKeluar->divisi === 'Produksi') {
@@ -126,15 +139,10 @@ class BahanKeluarController extends Controller
                 }
             }
         }
-
-
         return redirect()->route('bahan-keluars.index')->with('success', 'Status berhasil diubah.');
     }
 
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         // Temukan transaksi pembelian

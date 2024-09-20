@@ -3,17 +3,19 @@
 namespace App\Livewire;
 
 use App\Models\Bahan;
+use App\Models\PurchaseDetail;
 use Livewire\Component;
 use Illuminate\Support\Collection;
 
-class SearchBahan extends Component
+class SearchBahanMasuk extends Component
 {
 
     public $query;
     public $search_results;
     public $how_many;
 
-    public function mount() {
+    public function mount()
+    {
         $this->query = '';
         $this->how_many = 5;
         $this->search_results = Collection::empty();
@@ -21,7 +23,7 @@ class SearchBahan extends Component
 
     public function render()
     {
-        return view('livewire.search-bahan');
+        return view('livewire.search-bahan-masuk');
     }
 
     public function updatedQuery()
@@ -61,5 +63,6 @@ class SearchBahan extends Component
         // Reset query setelah memilih bahan
         $this->resetQuery();
     }
+
 
 }

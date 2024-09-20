@@ -62,7 +62,7 @@
         </div>
 
         <div class="w-full bg-white border border-gray-200 rounded-lg shadow sm:p-2 dark:bg-gray-800 dark:border-gray-700 mb-4">
-            <livewire:search-bahan/>
+            <livewire:search-bahan-masuk/>
         </div>
 
         <div class="w-full bg-white border border-gray-200 rounded-lg p-4 shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
@@ -87,6 +87,7 @@
                                         <option value="Produksi">Produksi</option>
                                         <option value="RnD">RnD</option>
                                     </select>
+                                    <p class="text-red-500 text-sm mt-1"><sup>*</sup>Divisi wajib diisi</p>
                                     @error('divisi')
                                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -104,6 +105,7 @@
                                         </div>
                                         <input datepicker-autoselect-today datepicker-buttons datepicker-format="yyyy-mm-dd" value="{{ old('tgl_keluar') }}"  name="tgl_keluar" id="datepicker-autohide" datepicker datepicker-autohide type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 py-1.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date">
                                     </div>
+                                    <p class="text-red-500 text-sm mt-1"><sup>*</sup>Tanggal wajib diisi</p>
                                     @error('tgl_keluar')
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
@@ -130,26 +132,26 @@
             });
         }, 3000); // 5000 ms = 5 detik
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Atur waktu delay dalam milidetik (contoh: 5000 = 5 detik)
+            const delay = 5000;
+
+            // Menghilangkan alert sukses
+            const successAlert = document.getElementById('successAlert');
+            if (successAlert) {
+                setTimeout(() => {
+                    successAlert.style.display = 'none';
+                }, delay);
+            }
+
+            // Menghilangkan alert error
+            const errorAlert = document.getElementById('errorAlert');
+            if (errorAlert) {
+                setTimeout(() => {
+                    errorAlert.style.display = 'none';
+                }, delay);
+            }
+        });
+    </script>
 </x-app-layout>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Atur waktu delay dalam milidetik (contoh: 5000 = 5 detik)
-        const delay = 5000;
-
-        // Menghilangkan alert sukses
-        const successAlert = document.getElementById('successAlert');
-        if (successAlert) {
-            setTimeout(() => {
-                successAlert.style.display = 'none';
-            }, delay);
-        }
-
-        // Menghilangkan alert error
-        const errorAlert = document.getElementById('errorAlert');
-        if (errorAlert) {
-            setTimeout(() => {
-                errorAlert.style.display = 'none';
-            }, delay);
-        }
-    });
-</script>

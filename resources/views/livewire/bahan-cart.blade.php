@@ -6,7 +6,7 @@
                     <tr>
                         <th scope="col" class="px-6 py-3">Bahan</th>
                         <th scope="col" class="px-6 py-3">Unit Price</th>
-                        <th scope="col" class="px-6 py-3">Stok</th>
+                        {{-- <th scope="col" class="px-6 py-3">Stok</th> --}}
                         <th scope="col" class="px-6 py-3">Qty</th>
                         <th scope="col" class="px-6 py-3">Sub Total</th>
                         <th scope="col" class="px-6 py-3">Action</th>
@@ -25,8 +25,8 @@
                                     <span class="cursor-pointer" wire:click="editItem({{ $item->id }})">Rp. {{ number_format($unit_price[$item->id] ?? 0, 0, ',', '.') }}</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $item->total_stok }} {{ is_array($item->data_unit) ? $item->data_unit['nama'] : $item->data_unit->nama }}</span></td>
+                            {{-- <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                                <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $item->total_stok }} {{ is_array($item->data_unit) ? $item->data_unit['nama'] : $item->data_unit->nama }}</span></td> --}}
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
                                     <button wire:click="decreaseQuantity({{ $item->id }})" class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button">

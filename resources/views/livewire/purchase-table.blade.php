@@ -11,7 +11,7 @@
         </a>
     </div>
 
-    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+    <table class="w-full text-sm text-right rtl:text-right text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
                 <th scope="col" class="p-4">
@@ -19,7 +19,8 @@
                 </th>
                 <th scope="col" class="px-6 py-3">Kode Transaksi</th>
                 <th scope="col" class="px-6 py-3">Tanggal Masuk</th>
-                <th scope="col" class="px-6 py-3">Total Item</th>
+                <th scope="col" class="px-6 py-3">Keterangan | Sisa</th>
+                {{-- <th scope="col" class="px-6 py-3">Total Item</th> --}}
                 <th scope="col" class="px-6 py-3">Total Harga</th>
                 <th scope="col" class="px-6 py-3">Aksi</th>
             </tr>
@@ -30,7 +31,18 @@
                 <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $purchases->firstItem() + $index }}</div></td>
                 <td class="px-6 py-3">{{ $purchase->kode_transaksi }}</td>
                 <td class="px-6 py-3">{{ $purchase->tgl_masuk }}</td>
-                <td class="px-6 py-3">{{ $purchase->purchaseDetails->sum('qty') }}</td>
+                <td class="px-6 py-3">
+                    @if($purchase->purchaseDetails->isNotEmpty())
+                        @foreach($purchase->purchaseDetails as $detail)
+                            <div>
+                                {{ $detail->dataBahan->nama_bahan }} | <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $detail->sisa }} {{ $detail->dataBahan->dataUnit->nama}}</span>
+                            </div>
+                        @endforeach
+                    @else
+                        N/A
+                    @endif
+                </td>
+                {{-- <td class="px-6 py-3">{{ $purchase->purchaseDetails->sum('qty') }}</td> --}}
                 <td class="px-6 py-3">Rp {{ number_format($purchase->purchaseDetails->sum('sub_total'), 2, ',', '.') }}</td>
                 <td class="px-6 py-4">
                     <div class="row flex space-x-2">

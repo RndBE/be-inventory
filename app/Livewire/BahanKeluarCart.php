@@ -9,8 +9,8 @@ class BahanKeluarCart extends Component
 {
     public $cart = [];
     public $qty = [];
-    public $unit_price = [];
-    public $unit_price_raw = [];
+    public $details = [];
+    public $details_raw = [];
     public $subtotals = [];
     public $totalharga = 0;
     public $editingItemId = 0;
@@ -22,14 +22,6 @@ class BahanKeluarCart extends Component
         if (is_array($bahan)) {
             $bahan = (object) $bahan;
         }
-        $bahanData = Bahan::find($bahan->id); 
-        if ($bahanData) {
-            if ($bahanData->total_stok <= 0) {
-                return;
-            }
-        } else {
-            return;
-        }
         // Cek apakah bahan sudah ada di keranjang
         $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
         if ($existingItemKey !== false) {
@@ -38,9 +30,7 @@ class BahanKeluarCart extends Component
         } else {
             // Jika bahan belum ada, tambahkan ke keranjang
             $this->cart[] = $bahan;
-            $this->qty[$bahan->id] = 0; // Set kuantitas menjadi 1
-            $this->unit_price_raw[$bahan->id] = 0;
-            $this->unit_price[$bahan->id] = 0;
+            $this->qty[$bahan->id] = null;
         }
         // Hitung subtotal untuk item yang ditambahkan atau diperbarui
         $this->calculateSubTotal($bahan->id);
@@ -49,7 +39,7 @@ class BahanKeluarCart extends Component
 
     public function calculateSubTotal($itemId)
     {
-        $unitPrice = isset($this->unit_price[$itemId]) ? intval($this->unit_price[$itemId]) : 0;
+        $unitPrice = isset($this->details[$itemId]) ? intval($this->details[$itemId]) : 0;
         $qty = isset($this->qty[$itemId]) ? intval($this->qty[$itemId]) : 0;
 
         $this->subtotals[$itemId] = $unitPrice * $qty;
@@ -89,8 +79,8 @@ class BahanKeluarCart extends Component
     public function formatToRupiah($itemId)
     {
         // Pastikan untuk menghapus 'Rp.' dan mengonversi ke integer
-        $this->unit_price[$itemId] = intval(str_replace(['.', ' '], '', $this->unit_price_raw[$itemId]));
-        $this->unit_price_raw[$itemId] = $this->unit_price[$itemId];
+        $this->details[$itemId] = intval(str_replace(['.', ' '], '', $this->details_raw[$itemId]));
+        $this->details_raw[$itemId] = $this->details[$itemId];
         $this->calculateSubTotal($itemId); // Hitung subtotal setelah format
         $this->editingItemId = null; // Reset ID setelah selesai
     }
@@ -99,19 +89,69 @@ class BahanKeluarCart extends Component
     {
         $item = Bahan::find($itemId);
         if ($item) {
-            if ($this->qty[$itemId] > $item->total_stok) {
-                $this->qty[$itemId] = $item->total_stok;
-            } elseif ($this->qty[$itemId] < 0) {
-                $this->qty[$itemId] = 0;
+            $requestedQty = $this->qty[$itemId];
+
+            // Ambil semua purchase details yang memiliki sisa > 0 untuk item ini
+            $purchaseDetails = $item->purchaseDetails()
+            ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+            ->where('sisa', '>', 0)
+            ->orderBy('purchases.tgl_masuk', 'asc')
+            ->select('purchase_details.*', 'purchases.kode_transaksi') // Include kode_transaksi_masuk
+            ->get();
+
+
+            $totalAvailable = $purchaseDetails->sum('sisa');
+
+            // Jika permintaan melebihi total sisa yang tersedia
+            if ($requestedQty > $totalAvailable) {
+                $this->qty[$itemId] = $totalAvailable; // Atur kuantitas ke total sisa
+            } elseif ($requestedQty < 0) {
+                $this->qty[$itemId] = null; // Atur kuantitas ke 0
+            } else {
+                // Kuantitas yang diminta valid, biarkan seperti itu
+                $this->qty[$itemId] = $requestedQty;
             }
-            $this->calculateSubTotal($itemId);
+
+            // Perbarui unit price dan hitung subtotal berdasarkan kuantitas
+            $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
         }
     }
+
+    protected function updateUnitPriceAndSubtotal($itemId, $qty, $purchaseDetails)
+    {
+        $remainingQty = $qty;
+        $totalPrice = 0;
+        $this->details_raw[$itemId] = []; // Reset for item
+        $this->details[$itemId] = []; // Reset array details for this item
+
+        foreach ($purchaseDetails as $purchaseDetail) {
+            if ($remainingQty <= 0) break;
+
+            $availableQty = $purchaseDetail->sisa;
+
+            if ($availableQty > 0) {
+                $toTake = min($availableQty, $remainingQty);
+                $totalPrice += $toTake * $purchaseDetail->unit_price;
+
+                // Store unit price as [kode_transaksi_masuk, qty, details]
+                $this->details[$itemId][] = [
+                    'kode_transaksi' => $purchaseDetail->kode_transaksi, // Assuming this is the column name
+                    'qty' => $toTake,
+                    'details' => $purchaseDetail->unit_price
+                ];
+                $remainingQty -= $toTake;
+            }
+        }
+
+        $this->subtotals[$itemId] = $totalPrice;
+        $this->calculateTotalHarga();
+    }
+
 
     public function editItem($itemId)
     {
         $this->editingItemId = $itemId; // Set ID item yang sedang diedit
-        $this->unit_price_raw[$itemId] = $this->unit_price[$itemId]; // Ambil nilai untuk diedit
+        $this->details_raw[$itemId] = $this->details[$itemId]; // Ambil nilai untuk diedit
     }
 
     public function saveUnitPrice($itemId)
@@ -131,15 +171,18 @@ class BahanKeluarCart extends Component
         $this->calculateTotalHarga();
     }
 
+
     public function getCartItemsForStorage()
     {
         $items = [];
         foreach ($this->cart as $item) {
+            $itemId = $item->id;
+
             $items[] = [
-                'id' => $item->id,
-                'qty' => $this->qty[$item->id],
-                'unit_price' => $this->unit_price_raw[$item->id],
-                'sub_total' => $this->subtotals[$item->id],
+                'id' => $itemId,
+                'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
+                'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
+                'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
             ];
         }
         return $items;

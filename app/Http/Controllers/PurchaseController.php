@@ -73,16 +73,10 @@ class PurchaseController extends Controller
                 'purchase_id' => $purchase->id,
                 'bahan_id' => $item['id'],
                 'qty' => $item['qty'],
+                'sisa' => $item['qty'],
                 'unit_price' => $item['unit_price'],
                 'sub_total' => $item['sub_total'],
             ]);
-
-            // Update total_stok
-            $bahan = Bahan::find($item['id']); // Pastikan Anda memiliki model Bahan
-            if ($bahan) {
-                $bahan->total_stok += $item['qty']; // Tambahkan qty ke total_stok
-                $bahan->save(); // Simpan perubahan
-            }
         }
 
         return redirect()->route('purchases.index')->with('success', 'Pembelian berhasil disimpan!');
@@ -95,18 +89,6 @@ class PurchaseController extends Controller
 
         if (!$data) {
             return redirect()->back()->with('gagal', 'Transaksi tidak ditemukan.');
-        }
-
-        // Ambil detail pembelian untuk mengurangi stok
-        $purchaseDetails = $data->purchaseDetails; // Pastikan relasi sudah didefinisikan di model Purchase
-
-        // Kurangi total_stok berdasarkan detail pembelian
-        foreach ($purchaseDetails as $detail) {
-            $bahan = Bahan::find($detail->bahan_id); // Temukan bahan berdasarkan bahan_id
-            if ($bahan) {
-                $bahan->total_stok -= $detail->qty; // Kurangi qty dari total_stok
-                $bahan->save(); // Simpan perubahan
-            }
         }
         // Hapus transaksi pembelian
         $data->delete();

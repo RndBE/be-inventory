@@ -32,7 +32,6 @@ class BahanController extends Controller
             'nama_bahan' => 'required|string|max:255',
             'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
             'stok_awal' => 'required|integer',
-            'total_stok' => 'nullable|integer',
             'unit_id' => 'required|exists:unit,id',
             'kondisi' => 'required|string|max:100',
             'penempatan' => 'required|string|max:255',
@@ -64,9 +63,13 @@ class BahanController extends Controller
     {
         $units = Unit::all();
         $jenisBahan = JenisBahan::all();
-        $bahan = Bahan::findOrFail($id);
-        return view('pages.bahan.edit', compact('bahan','units','jenisBahan'));
+        $bahan = Bahan::with('jenisBahan', 'dataUnit', 'purchaseDetails')->findOrFail($id);
+        $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
+        return view('pages.bahan.edit',
+            compact('bahan', 'units', 'jenisBahan')
+        );
     }
+
 
     // Memproses pembaruan bahan
     public function update(Request $request, $id)
@@ -76,8 +79,6 @@ class BahanController extends Controller
         $validated = $request->validate([
             'nama_bahan' => 'required|string|max:255',
             'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
-            // 'stok_awal' => 'required|integer',
-            // 'total_stok' => 'required|integer',
             'unit_id' => 'required|exists:unit,id',
             'kondisi' => 'required|string|max:255',
             'penempatan' => 'required|string|max:255',

@@ -2,7 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Models\Bahan;
 use Livewire\Component;
+use Illuminate\Support\Facades\Session;
 
 class BahanCart extends Component
 {
@@ -15,7 +17,14 @@ class BahanCart extends Component
     public $editingItemId = null;
 
     protected $listeners = ['bahanSelected' => 'addToCart'];
-
+    public function mount()
+    {
+        // Load cart from session if it exists
+        $this->cart = Session::get('cart', []);
+        $this->qty = Session::get('qty', []);
+        $this->subtotals = Session::get('subtotals', []);
+        $this->totalharga = array_sum($this->subtotals);
+    }
     public function addToCart($bahan)
     {
         if (is_array($bahan)) {
@@ -35,6 +44,17 @@ class BahanCart extends Component
         }
         // Hitung subtotal untuk item yang ditambahkan atau diperbarui
         $this->calculateSubTotal($bahan->id);
+
+        $this->updateSession();
+    }
+
+    public function updateSession()
+    {
+        // Store cart data in session
+        Session::put('cart', $this->cart);
+        Session::put('qty', $this->qty);
+        Session::put('subtotals', $this->subtotals);
+        Session::put('totalharga', $this->totalharga);
     }
 
     public function calculateSubTotal($itemId)
@@ -108,21 +128,24 @@ class BahanCart extends Component
         unset($this->subtotals[$itemId]);
         // Hitung ulang total harga setelah penghapusan
         $this->calculateTotalHarga();
+        $this->updateSession();
     }
 
     public function getCartItemsForStorage()
     {
         $items = [];
         foreach ($this->cart as $item) {
+            $itemId = $item->id; // Store the item ID for reuse
             $items[] = [
-                'id' => $item->id,
-                'qty' => $this->qty[$item->id],
-                'unit_price' => $this->unit_price_raw[$item->id],
-                'sub_total' => $this->subtotals[$item->id],
+                'id' => $itemId,
+                'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
+                'unit_price' => isset($this->unit_price_raw[$itemId]) ? $this->unit_price_raw[$itemId] : 0,
+                'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
             ];
         }
         return $items;
     }
+
 
 
     public function render()

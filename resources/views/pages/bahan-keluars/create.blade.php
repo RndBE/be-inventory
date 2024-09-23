@@ -13,6 +13,7 @@
                     <span class="font-medium">{{ session('success') }}</span>
                 </div>
             </div>
+
         @endif
 
         @if (session('error'))
@@ -33,7 +34,7 @@
 
             <!-- Left: Title -->
             <div class="mb-4 sm:mb-0">
-                <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Pengajuan Bahan</h1>
+                <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Bahan Keluar</h1>
             </div>
 
             <!-- Right: Actions -->
@@ -53,7 +54,7 @@
                         <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                         </svg>
-                        <span class="ms-1 text-sm font-medium text-gray-500 md:ms-2 dark:text-gray-400">Pengajuan Bahan</span>
+                        <span class="ms-1 text-sm font-medium text-gray-500 md:ms-2 dark:text-gray-400">Bahan Keluar</span>
                     </div>
                     </li>
                 </ol>
@@ -89,7 +90,7 @@
                                     </select>
                                     <p class="text-red-500 text-sm mt-1"><sup>*</sup>Divisi wajib diisi</p>
                                     @error('divisi')
-                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
                                 </div>
                             </div>

@@ -76,6 +76,7 @@
                                         </div>
                                         <input datepicker-autoselect-today datepicker-buttons datepicker-format="yyyy-mm-dd" value="{{ old('tgl_masuk') }}"  name="tgl_masuk" id="datepicker-autohide" datepicker datepicker-autohide type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 py-1.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date">
                                     </div>
+                                    <p class="text-red-500 text-sm mt-1"><sup>*</sup>Tanggal wajib diisi</p>
                                     @error('tgl_masuk')
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
@@ -87,8 +88,8 @@
                 </div>
 
                 <div class="mt-2 flex items-center justify-end gap-x-6">
-                    <a href="{{ route('purchases.index') }}" type="button" class="text-sm font-semibold leading-6 text-gray-900">Cancel</a>
-                    <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Save</button>
+                    <a href="{{ route('purchases.index') }}" type="button" class="text-sm font-semibold leading-6 text-gray-900">Kembali</a>
+                    <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
                 </div>
             </form>
         </div>

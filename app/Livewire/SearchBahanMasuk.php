@@ -13,6 +13,7 @@ class SearchBahanMasuk extends Component
     public $query;
     public $search_results;
     public $how_many;
+    public $selectedIndex = -1;
 
     public function mount()
     {
@@ -29,16 +30,21 @@ class SearchBahanMasuk extends Component
     public function updatedQuery()
     {
         $this->search_results = Bahan::with('dataUnit', 'purchaseDetails')
-        ->where('nama_bahan', 'like', '%' . $this->query . '%')
-            ->orWhere('kode_bahan', 'like', '%' . $this->query . '%')
-            ->take($this->how_many)
+        ->where(function ($query) {
+            $query->where('nama_bahan', 'like', '%' . $this->query . '%')
+                ->orWhere('kode_bahan', 'like', '%' . $this->query . '%');
+        })
             ->get();
 
-        // Calculate total stock for each result
-        foreach ($this->search_results as $bahan) {
+        // Hitung total stok untuk setiap hasil dan filter hanya yang total_stok > 0
+        $this->search_results = $this->search_results->filter(function ($bahan) {
             $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
-        }
+            return $bahan->total_stok > 0; // Hanya ambil yang total_stok tidak sama dengan 0
+        })->take($this->how_many);
+
+        $this->selectedIndex = -1;
     }
+
 
     public function loadMore()
     {
@@ -62,6 +68,41 @@ class SearchBahanMasuk extends Component
 
         // Reset query setelah memilih bahan
         $this->resetQuery();
+    }
+
+    public function selectNext()
+    {
+        if ($this->selectedIndex < $this->search_results->count() - 1) {
+            $this->selectedIndex++;
+        } else {
+            $this->selectedIndex = 0; // Kembali ke atas jika sudah di bawah
+        }
+        foreach ($this->search_results as $bahan) {
+            $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
+        }
+    }
+
+    public function selectPrevious()
+    {
+        if ($this->selectedIndex > 0) {
+            $this->selectedIndex--;
+        } else {
+            $this->selectedIndex = $this->search_results->count() - 1; // Kembali ke bawah jika sudah di atas
+        }
+        foreach ($this->search_results as $bahan) {
+            $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
+        }
+    }
+
+
+    public function selectCurrent()
+    {
+        foreach ($this->search_results as $bahan) {
+            $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
+        }
+        if ($this->selectedIndex >= 0 && $this->selectedIndex < $this->search_results->count()) {
+            $this->selectBahan($this->search_results[$this->selectedIndex]->id);
+        }
     }
 
 

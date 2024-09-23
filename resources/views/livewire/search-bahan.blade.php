@@ -8,7 +8,7 @@
                             <i class="bi bi-search text-primary"></i>
                         </div>
                     </div>
-                    <input wire:keydown.escape="resetQuery"
+                    <input autofocus wire:keydown.escape="resetQuery"
                         wire:keydown.up="selectPrevious"
                         wire:keydown.down="selectNext"
                         wire:keydown.enter="selectCurrent"

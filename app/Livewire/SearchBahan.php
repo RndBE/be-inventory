@@ -71,6 +71,8 @@ class SearchBahan extends Component
     {
         if ($this->selectedIndex < $this->search_results->count() - 1) {
             $this->selectedIndex++;
+        } else {
+            $this->selectedIndex = 0; // Kembali ke atas jika sudah di bawah
         }
         foreach ($this->search_results as $bahan) {
             $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
@@ -81,19 +83,22 @@ class SearchBahan extends Component
     {
         if ($this->selectedIndex > 0) {
             $this->selectedIndex--;
+        } else {
+            $this->selectedIndex = $this->search_results->count() - 1; // Kembali ke bawah jika sudah di atas
         }
         foreach ($this->search_results as $bahan) {
             $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
         }
     }
 
+
     public function selectCurrent()
     {
-        if ($this->selectedIndex >= 0 && $this->selectedIndex < $this->search_results->count()) {
-            $this->selectBahan($this->search_results[$this->selectedIndex]->id);
-        }
         foreach ($this->search_results as $bahan) {
             $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
+        }
+        if ($this->selectedIndex >= 0 && $this->selectedIndex < $this->search_results->count()) {
+            $this->selectBahan($this->search_results[$this->selectedIndex]->id);
         }
     }
 

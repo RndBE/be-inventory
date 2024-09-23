@@ -17,23 +17,46 @@ class BahanKeluarCart extends Component
 
     protected $listeners = ['bahanSelected' => 'addToCart'];
 
+    public function mount()
+    {
+        // Load cart items from session if they exist
+        $this->loadCartFromSession();
+    }
+
     public function addToCart($bahan)
     {
         if (is_array($bahan)) {
             $bahan = (object) $bahan;
         }
-        // Cek apakah bahan sudah ada di keranjang
+
         $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
         if ($existingItemKey !== false) {
-            // Jika bahan sudah ada, tingkatkan kuantitas
             $this->qty[$bahan->id]++;
         } else {
-            // Jika bahan belum ada, tambahkan ke keranjang
             $this->cart[] = $bahan;
             $this->qty[$bahan->id] = null;
         }
-        // Hitung subtotal untuk item yang ditambahkan atau diperbarui
+
+        // Save to session
+        $this->saveCartToSession();
         $this->calculateSubTotal($bahan->id);
+    }
+    protected function saveCartToSession()
+    {
+        session()->put('cartItems', $this->getCartItemsForStorage());
+    }
+
+    protected function loadCartFromSession()
+    {
+        if (session()->has('cartItems')) {
+            $storedItems = session()->get('cartItems');
+            foreach ($storedItems as $storedItem) {
+                $this->cart[] = (object) ['id' => $storedItem['id'], 'nama_bahan' => Bahan::find($storedItem['id'])->nama_bahan];
+                $this->qty[$storedItem['id']] = $storedItem['qty'];
+                $this->subtotals[$storedItem['id']] = $storedItem['sub_total'];
+            }
+            $this->calculateTotalHarga();
+        }
     }
 
 
@@ -179,6 +202,7 @@ class BahanKeluarCart extends Component
         unset($this->subtotals[$itemId]);
         // Hitung ulang total harga setelah penghapusan
         $this->calculateTotalHarga();
+        $this->saveCartToSession();
     }
 
 

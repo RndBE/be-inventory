@@ -57,12 +57,16 @@ class BahanKeluarCart extends Component
 
     public function increaseQuantity($itemId)
     {
-        $item = Bahan::find($itemId); // Ganti dengan model yang sesuai
-        if ($item && $item->total_stok > 0) {
-            // Cek apakah kuantitas saat ini kurang dari total_stok
-            if (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $item->total_stok) {
+        $item = Bahan::find($itemId); // Temukan item berdasarkan ID
+        if ($item) {
+            // Ambil total stok dari purchaseDetails berdasarkan sisa
+            $totalStok = $item->purchaseDetails()->where('sisa', '>', 0)->sum('sisa');
+
+            // Cek apakah ada stok yang tersedia dan apakah kuantitas yang diminta lebih kecil dari total stok
+            if ($totalStok > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $totalStok)) {
+                // Tambah kuantitas jika belum melebihi stok yang tersedia
                 $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
-                $this->calculateSubTotal($itemId); // Panggil untuk menghitung subtotal
+                $this->updateQuantity($itemId); // Panggil updateQuantity untuk menghitung ulang subtotal dan total harga
             }
         }
     }
@@ -70,11 +74,17 @@ class BahanKeluarCart extends Component
 
     public function decreaseQuantity($itemId)
     {
+        // Cek apakah kuantitas untuk item tersebut sudah diatur dan lebih besar dari 1
         if (isset($this->qty[$itemId]) && $this->qty[$itemId] > 1) {
-            $this->qty[$itemId]--;
-            $this->calculateSubTotal($itemId); // Panggil untuk menghitung subtotal
+            $this->qty[$itemId]--; // Kurangi kuantitas sebesar 1
+            $this->updateQuantity($itemId); // Panggil updateQuantity untuk memperbarui subtotal dan total harga
+        } elseif (isset($this->qty[$itemId]) && $this->qty[$itemId] == 1) {
+            // Jika kuantitas adalah 1, setel ke nol
+            $this->qty[$itemId] = 0;
+            $this->updateQuantity($itemId); // Tetap panggil updateQuantity untuk mengupdate subtotal
         }
     }
+
 
     public function formatToRupiah($itemId)
     {

@@ -7,6 +7,7 @@ use App\Models\StokRnd;
 use App\Models\BahanKeluar;
 use App\Models\StokProduksi;
 use Illuminate\Http\Request;
+use App\Models\PurchaseDetail;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\Validator;
 
@@ -27,7 +28,7 @@ class BahanKeluarController extends Controller
     public function store(Request $request)
     {
 
-        dd($request->all());
+        //dd($request->all());
         $cartItems = json_decode($request->cartItems, true);
         $validator = Validator::make([
             'tgl_keluar' => $request->tgl_keluar,
@@ -100,47 +101,90 @@ class BahanKeluarController extends Controller
 
     public function update(Request $request, string $id)
     {
+        // Validasi input
         $validated = $request->validate([
             'status' => 'required',
         ]);
 
+        // Temukan data BahanKeluar berdasarkan ID
         $data = BahanKeluar::find($id);
-        $oldStatus = $data->status; // Menyimpan status lama
+        $oldStatus = $data->status;
+
+        // Ambil detail bahan keluar
+        $details = BahanKeluarDetails::where('bahan_keluar_id', $id)->get();
+
+        // Cek apakah ada 'sisa' yang <= 0
+        foreach ($details as $detail) {
+            // Cari berdasarkan bahan_id di tabel purchase_details
+            $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)->first();
+
+            if ($purchaseDetail && $purchaseDetail->sisa <= 0) {
+                return redirect()->back()->with('error', 'Tidak dapat mengubah status karena sisa bahan sudah habis.');
+            }
+        }
+
+        // Update status bahan keluar
         $data->status = $validated['status'];
         $bahanKeluarUpdated = $data->save();
 
         if (!$bahanKeluarUpdated) {
-            return redirect()->back()->with('errors', 'Gagal merubah data');
+            return redirect()->back()->with('error', 'Gagal merubah data');
         }
 
-        // Jika status baru adalah 'Disetujui', kurangi total stok
+        // Jika status baru adalah 'Disetujui', lakukan proses pengurangan stok
         if ($validated['status'] === 'Disetujui') {
-            $details = BahanKeluarDetails::where('bahan_keluar_id', $id)->get();
-            $bahanKeluar = BahanKeluar::find($id); // Ambil data BahanKeluar untuk memeriksa divisi
-
+            $bahanKeluar = BahanKeluar::find($id);
             foreach ($details as $detail) {
                 $bahan = Bahan::find($detail->bahan_id);
                 if ($bahan) {
-
-                    // Cek divisi dan simpan ke stok yang sesuai
+                    // Cek divisi dan tambahkan stok sesuai divisi
                     if ($bahanKeluar->divisi === 'Produksi') {
-                        // Masukkan ke stok produksi
-                        $stokProduksi = new StokProduksi();
-                        $stokProduksi->bahan_id = $detail->bahan_id;
-                        $stokProduksi->total_stok = $detail->qty; // Atur qty sesuai detail
+                        $stokProduksi = StokProduksi::where('bahan_id', $detail->bahan_id)->first();
+                        if ($stokProduksi) {
+                            $stokProduksi->total_stok += $detail->qty;
+                        } else {
+                            $stokProduksi = new StokProduksi();
+                            $stokProduksi->bahan_id = $detail->bahan_id;
+                            $stokProduksi->total_stok = $detail->qty;
+                        }
                         $stokProduksi->save();
                     } elseif ($bahanKeluar->divisi === 'RnD') {
-                        // Masukkan ke stok RnD
-                        $stokPnd = new StokRnd();
-                        $stokPnd->bahan_id = $detail->bahan_id;
-                        $stokPnd->total_stok = $detail->qty; // Atur qty sesuai detail
-                        $stokPnd->save();
+                        $stokRnd = StokRnd::where('bahan_id', $detail->bahan_id)->first();
+                        if ($stokRnd) {
+                            $stokRnd->total_stok += $detail->qty;
+                        } else {
+                            $stokRnd = new StokRnd();
+                            $stokRnd->bahan_id = $detail->bahan_id;
+                            $stokRnd->total_stok = $detail->qty;
+                        }
+                        $stokRnd->save();
+                    }
+
+                    // Kurangi sisa di purchase_detail
+                    $transactionDetails = json_decode($detail->details, true);
+                    if (is_array($transactionDetails)) {
+                        foreach ($transactionDetails as $transaksiDetail) {
+                            $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)
+                                ->whereHas('purchase', function ($query) use ($transaksiDetail) {
+                                    $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
+                                })->first();
+
+                            if ($purchaseDetail) {
+                                $purchaseDetail->sisa -= $transaksiDetail['qty'];
+                                if ($purchaseDetail->sisa < 0) {
+                                    $purchaseDetail->sisa = 0;
+                                }
+                                $purchaseDetail->save();
+                            }
+                        }
                     }
                 }
             }
         }
+
         return redirect()->route('bahan-keluars.index')->with('success', 'Status berhasil diubah.');
     }
+
 
 
     public function destroy(string $id)
@@ -151,20 +195,8 @@ class BahanKeluarController extends Controller
         if (!$data) {
             return redirect()->back()->with('gagal', 'Transaksi tidak ditemukan.');
         }
-
-        $bahanKeluarDetails = $data->bahanKeluarDetails;
-
-        if ($data->status == 'Disetujui') {
-            foreach ($bahanKeluarDetails as $detail) {
-                $bahan = Bahan::find($detail->bahan_id);
-                if ($bahan) {
-                    $bahan->total_stok += $detail->qty;
-                    $bahan->save();
-                }
-            }
-        }
         $data->delete();
 
-        return redirect()->route('bahan-keluars.index')->with('success', 'Bahan Masuk berhasil dihapus.');
+        return redirect()->route('bahan-keluars.index')->with('success', 'Bahan Keluar berhasil dihapus.');
     }
 }

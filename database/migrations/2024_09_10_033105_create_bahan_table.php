@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('nama_bahan');
             $table->unsignedBigInteger('jenis_bahan_id'); // Foreign key untuk jenis bahan
             $table->integer('stok_awal');
-            $table->integer('total_stok')->nullable();
             $table->unsignedBigInteger('unit_id'); // Foreign key untuk unit
             $table->string('kondisi');
             $table->string('penempatan');

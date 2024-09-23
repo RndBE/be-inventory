@@ -41,8 +41,4 @@
             </div>
         </div>
     </section>
-
-    <div class="px-6 py-4">
-        {{ $stokRnds->links() }}
-    </div>
 </div>

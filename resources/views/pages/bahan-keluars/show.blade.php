@@ -60,7 +60,7 @@
                                                     $unitPrices = json_decode($detail->details);
                                                 @endphp
                                                 @foreach($unitPrices as $priceDetail)
-                                                    {{ $priceDetail->qty }} x Rp. {{ number_format($priceDetail->details, 2) }}<br>
+                                                    {{ $priceDetail->qty }} x Rp. {{ number_format($priceDetail->unit_price, 2) }}<br>
                                                 @endforeach
                                             </td>
                                             <td class="py-4 pl-3 pr-4 text-sm text-right text-slate-500 sm:pr-6 md:pr-0">

@@ -170,7 +170,7 @@ class BahanKeluarCart extends Component
                 $this->details[$itemId][] = [
                     'kode_transaksi' => $purchaseDetail->kode_transaksi, // Assuming this is the column name
                     'qty' => $toTake,
-                    'details' => $purchaseDetail->unit_price
+                    'unit_price' => $purchaseDetail->unit_price
                 ];
                 $remainingQty -= $toTake;
             }

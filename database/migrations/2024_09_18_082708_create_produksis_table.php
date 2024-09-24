@@ -13,10 +13,13 @@ return new class extends Migration
     {
         Schema::create('produksis', function (Blueprint $table) {
             $table->id();
-            $table->dateTime('tgl_produksi');
             $table->string('kode_produksi')->unique();
+            $table->dateTime('mulai_produksi');
+            $table->dateTime('selesai_produksi')->nullable();
             $table->string('nama_produk');
-            $table->integer('jumlah_produk');
+            $table->string('jenis_produksi');
+            $table->integer('jml_produksi');
+            $table->string('status');
             $table->timestamps();
         });
     }

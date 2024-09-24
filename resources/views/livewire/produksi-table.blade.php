@@ -17,9 +17,14 @@
                 <th scope="col" class="p-4">
                     No
                 </th>
-                <th scope="col" class="px-6 py-3">Kode Transaksi</th>
-                <th scope="col" class="px-6 py-3">Tanggal Masuk</th>
-                <th scope="col" class="px-6 py-3">Total Item</th>
+                <th scope="col" class="px-6 py-3">Kode Produksi</th>
+                <th scope="col" class="px-6 py-3">Mulai Produksi</th>
+                <th scope="col" class="px-6 py-3">Selesai Produksi</th>
+                <th scope="col" class="px-6 py-3">Nama Produk</th>
+                <th scope="col" class="px-6 py-3">Jenis Produksi</th>
+                <th scope="col" class="px-6 py-3">Jumlah Produksi</th>
+                {{-- <th scope="col" class="px-6 py-3">Total Item</th> --}}
+                <th scope="col" class="px-6 py-3">Status</th>
                 {{-- <th scope="col" class="px-6 py-3">Total Harga</th> --}}
                 <th scope="col" class="px-6 py-3">Aksi</th>
             </tr>
@@ -28,15 +33,20 @@
             @forelse($produksis as $index => $produksi)
             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $produksis->firstItem() + $index }}</div></td>
-                <td class="px-6 py-3">{{ $produksi->kode_produksi }}</td>
-                <td class="px-6 py-3">{{ $produksi->tgl_produksi }}</td>
-                <td class="px-6 py-3">{{ $produksi->produksiDetails->sum('qty') }}</td>
+                <td class="px-6 py-3"><strong><u><a href="{{ route('produksis.show', $produksi->id) }}">{{ $produksi->kode_produksi }}</a></u></strong></td>
+                <td class="px-6 py-3">{{ $produksi->mulai_produksi }}</td>
+                <td class="px-6 py-3">{{ $produksi->selesai_produksi }}</td>
+                <td class="px-6 py-3">{{ $produksi->nama_produk }}</td>
+                <td class="px-6 py-3">{{ $produksi->jenis_produksi }}</td>
+                <td class="px-6 py-3">{{ $produksi->jml_produksi }}</td>
+                {{-- <td class="px-6 py-3">{{ $produksi->produksiDetails->sum('qty') }}</td> --}}
+                <td class="px-6 py-3">{{ $produksi->status }}</td>
                 {{-- <td class="px-6 py-3">Rp {{ number_format($produksi->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
                 <td class="px-6 py-4">
                     <div class="row flex space-x-2">
-                    <a href="{{ route('produksis.show', $produksi->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600 focus:text-white focus:bg-blue-600 focus:border-blue-600">
+                    {{-- <a href="{{ route('produksis.show', $produksi->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600 focus:text-white focus:bg-blue-600 focus:border-blue-600">
                         <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/><path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                    </a>
+                    </a> --}}
                     <button wire:click="deleteProduksis({{$produksi->id}})" data-modal-target="deletepurchases-modal" data-modal-toggle="deletepurchases-modal" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 active:border-red-600 active:text-white active:bg-red-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
                         <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>

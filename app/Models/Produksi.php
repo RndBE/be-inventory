@@ -12,8 +12,8 @@ class Produksi extends Model
     protected $table = 'produksis';
     protected $guarded = [];
 
-    public function produksisDetails()
+    public function produksiDetails()
     {
-        return $this->hasMany(DetailProduksi::class);
+        return $this->hasMany(ProduksiDetails::class);
     }
 }

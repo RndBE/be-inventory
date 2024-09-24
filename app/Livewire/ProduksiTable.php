@@ -15,7 +15,7 @@ class ProduksiTable extends Component
     public function render()
     {
         $produksis = Produksi::with('produksiDetails')->orderBy('id', 'desc')
-        ->where('tgl_produksi', 'like', '%' . $this->search . '%')
+        ->where('mulai_produksi', 'like', '%' . $this->search . '%')
             ->paginate($this->perPage);
 
         return view('livewire.produksi-table', [

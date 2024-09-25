@@ -106,84 +106,76 @@ class BahanKeluarController extends Controller
             'status' => 'required',
         ]);
 
-        // Temukan data BahanKeluar berdasarkan ID
-        $data = BahanKeluar::find($id);
-        $oldStatus = $data->status;
-
-        // Ambil detail bahan keluar
-        $details = BahanKeluarDetails::where('bahan_keluar_id', $id)->get();
-
-        // Cek apakah ada 'sisa' yang <= 0
-        foreach ($details as $detail) {
-            // Cari berdasarkan bahan_id di tabel purchase_details
-            $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)->first();
-
-            if ($purchaseDetail && $purchaseDetail->sisa <= 0) {
-                return redirect()->back()->with('error', 'Tidak dapat mengubah status karena sisa bahan sudah habis.');
-            }
-        }
-
-        // Update status bahan keluar
-        $data->status = $validated['status'];
-        $bahanKeluarUpdated = $data->save();
-
-        if (!$bahanKeluarUpdated) {
-            return redirect()->back()->with('error', 'Gagal merubah data');
-        }
-
-        // Jika status baru adalah 'Disetujui', lakukan proses pengurangan stok
-        if ($validated['status'] === 'Disetujui') {
-            $bahanKeluar = BahanKeluar::find($id);
+        try {
+            // Temukan data BahanKeluar berdasarkan ID
+            $data = BahanKeluar::find($id);
+            // Ambil detail bahan keluar
+            $details = BahanKeluarDetails::where('bahan_keluar_id', $id)->get();
+            // Cek apakah ada 'sisa' yang <= 0
             foreach ($details as $detail) {
-                $bahan = Bahan::find($detail->bahan_id);
-                if ($bahan) {
-                    // Cek divisi dan tambahkan stok sesuai divisi
-                    if ($bahanKeluar->divisi === 'Produksi') {
-                        $stokProduksi = StokProduksi::where('bahan_id', $detail->bahan_id)->first();
-                        if ($stokProduksi) {
-                            $stokProduksi->total_stok += $detail->qty;
-                        } else {
-                            $stokProduksi = new StokProduksi();
-                            $stokProduksi->bahan_id = $detail->bahan_id;
-                            $stokProduksi->total_stok = $detail->qty;
-                        }
-                        $stokProduksi->save();
-                    } elseif ($bahanKeluar->divisi === 'RnD') {
-                        $stokRnd = StokRnd::where('bahan_id', $detail->bahan_id)->first();
-                        if ($stokRnd) {
-                            $stokRnd->total_stok += $detail->qty;
-                        } else {
-                            $stokRnd = new StokRnd();
-                            $stokRnd->bahan_id = $detail->bahan_id;
-                            $stokRnd->total_stok = $detail->qty;
-                        }
-                        $stokRnd->save();
-                    }
+                // Cari berdasarkan bahan_id di tabel purchase_details
+                $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)->first();
+                if ($purchaseDetail && $purchaseDetail->sisa <= 0) {
+                    throw new \Exception('Tidak dapat mengubah status karena sisa bahan sudah habis.');
+                }
+            }
 
-                    // Kurangi sisa di purchase_detail
-                    $transactionDetails = json_decode($detail->details, true);
-                    if (is_array($transactionDetails)) {
-                        foreach ($transactionDetails as $transaksiDetail) {
-                            $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)
-                                ->whereHas('purchase', function ($query) use ($transaksiDetail) {
-                                    $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
-                                })->first();
+            // Jika status baru adalah 'Disetujui', lakukan proses pengurangan stok
+            if ($validated['status'] === 'Disetujui') {
+                $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                $data->tgl_keluar = $tgl_keluar;
 
-                            if ($purchaseDetail) {
-                                $purchaseDetail->sisa -= $transaksiDetail['qty'];
-                                if ($purchaseDetail->sisa < 0) {
-                                    $purchaseDetail->sisa = 0;
+                foreach ($details as $detail) {
+                    $bahan = Bahan::find($detail->bahan_id);
+                    if ($bahan) {
+                        // Kurangi sisa di purchase_detail
+                        $transactionDetails = json_decode($detail->details, true);
+                        if (is_array($transactionDetails)) {
+                            foreach ($transactionDetails as $transaksiDetail) {
+                                $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)
+                                    ->whereHas('purchase', function ($query) use ($transaksiDetail) {
+                                        $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
+                                    })->first();
+
+                                if ($purchaseDetail) {
+                                    $purchaseDetail->sisa -= $transaksiDetail['qty'];
+                                    if ($purchaseDetail->sisa < 0) {
+                                        $purchaseDetail->sisa = 0;
+                                    }
+                                    $purchaseDetail->save();
                                 }
-                                $purchaseDetail->save();
                             }
                         }
                     }
                 }
             }
+            // Jika status baru adalah 'Ditolak', set tgl_keluar ke null
+            if ($validated['status'] === 'Ditolak') {
+                $data->tgl_keluar = null;
+            }
+            // Simpan status dan perubahan hanya jika semua operasi berhasil
+            $data->status = $validated['status'];
+            $data->save();
+        } catch (\Exception $e) {
+            // Ambil pesan error dan tentukan kolom yang bermasalah
+            $errorMessage = $e->getMessage();
+
+            // Tentukan kolom yang menyebabkan error
+            $errorColumn = '';
+            if (strpos($errorMessage, 'tgl_keluar') !== false) {
+                $errorColumn = 'tgl_keluar';
+            } elseif (strpos($errorMessage, 'status') !== false) {
+                $errorColumn = 'status';
+            } // Anda dapat menambahkan kolom lain yang perlu diperiksa
+
+            // Berikan pesan yang lebih informatif
+            return redirect()->back()->with('error', "Terjadi kesalahan pada kolom: $errorColumn. Pesan error: $errorMessage");
         }
 
         return redirect()->route('bahan-keluars.index')->with('success', 'Status berhasil diubah.');
     }
+
+
 
 
 

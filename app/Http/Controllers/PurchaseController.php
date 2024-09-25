@@ -93,7 +93,7 @@ class PurchaseController extends Controller
         // Hapus transaksi pembelian
         $data->delete();
 
-        return redirect()->route('purchases.index')->with('success', 'Bahan Masuk berhasil dihapus.');
+        return redirect()->route('purchases.index')->with('success', 'Transaksi berhasil dihapus.');
     }
 
 }

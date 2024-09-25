@@ -163,6 +163,14 @@ class ProduksiController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Temukan transaksi pembelian
+        $data = Produksi::find($id);
+
+        if (!$data) {
+            return redirect()->back()->with('gagal', 'Produksi tidak ditemukan.');
+        }
+        // Hapus transaksi pembelian
+        $data->delete();
+        return redirect()->route('produksis.index')->with('success', 'Produksi berhasil dihapus.');
     }
 }

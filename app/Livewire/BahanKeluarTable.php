@@ -29,7 +29,7 @@ class BahanKeluarTable extends Component
         } else {
             $this->filter = $value;
         }
-        $this->resetPage(); 
+        $this->resetPage();
     }
 
     public function showBahanKeluar(int $id)

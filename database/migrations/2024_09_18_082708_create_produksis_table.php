@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('produksis', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('bahan_keluar_id')->constrained('bahan_keluars')->onDelete('cascade');
             $table->string('kode_produksi')->unique();
             $table->dateTime('mulai_produksi');
             $table->dateTime('selesai_produksi')->nullable();

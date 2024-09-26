@@ -88,6 +88,7 @@ class ProduksiController extends Controller
         $kode_produksi = 'PR - ' . $formatted_number_produksi;
 
         $produksi = new Produksi();
+        $produksi->bahan_keluar_id = $bahan_keluar->id;
         $produksi->kode_produksi = $kode_produksi;
         $produksi->nama_produk = $request->nama_produk;
         $produksi->jml_produksi = $request->jml_produksi;
@@ -133,44 +134,40 @@ class ProduksiController extends Controller
 
     public function show(string $id)
     {
-        $Produksi = Produksi::with('produksiDetails.dataBahan')->findOrFail($id); // Mengambil detail pembelian
-        return view('pages.produksis.show', [
-            'kode_produksi' => $Produksi->kode_produksi,
-            'mulai_produksi' => $Produksi->mulai_produksi,
-            'nama_produk' => $Produksi->nama_produk,
-            'produksiDetails' => $Produksi->produksiDetails,
+        
+    }
+
+    public function edit(string $id)
+    {
+        $produksi = Produksi::with('produksiDetails.dataBahan')->findOrFail($id);
+        return view('pages.produksis.edit', [
+            'produksiId' => $produksi->id,
+            'produksi' => $produksi,
+            'id' => $id
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        // Temukan transaksi pembelian
-        $data = Produksi::find($id);
-
-        if (!$data) {
+        // Temukan transaksi produksi
+        $produksi = Produksi::find($id);
+        if (!$produksi) {
             return redirect()->back()->with('gagal', 'Produksi tidak ditemukan.');
         }
-        // Hapus transaksi pembelian
-        $data->delete();
-        return redirect()->route('produksis.index')->with('success', 'Produksi berhasil dihapus.');
+        // Temukan bahan keluar yang terkait dengan produksi
+        $bahanKeluar = BahanKeluar::find($produksi->bahan_keluar_id);
+        // Hapus produksi
+        $produksi->delete();
+        // Jika bahan keluar ditemukan, hapus juga
+        if ($bahanKeluar) {
+            $bahanKeluar->delete();
+        }
+        return redirect()->route('produksis.index')->with('success', 'Produksi dan bahan keluar terkait berhasil dihapus.');
     }
+
 }

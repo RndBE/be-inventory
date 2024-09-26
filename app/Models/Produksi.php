@@ -16,4 +16,9 @@ class Produksi extends Model
     {
         return $this->hasMany(ProduksiDetails::class);
     }
+
+    public function bahanKeluar()
+    {
+        return $this->belongsTo(BahanKeluar::class);
+    }
 }

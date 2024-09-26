@@ -15,6 +15,7 @@ class BahanKeluarTable extends Component
     $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails;
     public $filter = 'semua';
     public $totalHarga;
+    public $isModalOpen = false;
 
     public function mount()
     {
@@ -24,11 +25,11 @@ class BahanKeluarTable extends Component
     public function setFilter($value)
     {
         if ($value === 'semua') {
-            $this->filter = null; // Resetting to null to show all
+            $this->filter = null;
         } else {
-            $this->filter = $value; // Set the filter for other statuses
+            $this->filter = $value;
         }
-        $this->resetPage(); // Reset pagination when filter changes
+        $this->resetPage(); 
     }
 
     public function showBahanKeluar(int $id)
@@ -40,6 +41,12 @@ class BahanKeluarTable extends Component
         $this->divisi = $Data->divisi;
         $this->status = $Data->status;
         $this->bahanKeluarDetails  = $Data->bahanKeluarDetails;
+        $this->isModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isModalOpen = false;
     }
 
     public function calculateTotalHarga()

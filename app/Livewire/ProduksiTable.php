@@ -14,7 +14,7 @@ class ProduksiTable extends Component
     public $id_produksis;
     public function render()
     {
-        $produksis = Produksi::with('produksiDetails')->orderBy('id', 'desc')
+        $produksis = Produksi::with(['produksiDetails', 'bahanKeluar'])->orderBy('id', 'desc')
         ->where('mulai_produksi', 'like', '%' . $this->search . '%')
             ->paginate($this->perPage);
 

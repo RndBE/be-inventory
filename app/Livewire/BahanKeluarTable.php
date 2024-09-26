@@ -30,6 +30,7 @@ class BahanKeluarTable extends Component
             $this->filter = $value;
         }
         $this->resetPage();
+        $this->isModalOpen = true;
     }
 
     public function showBahanKeluar(int $id)
@@ -83,11 +84,13 @@ class BahanKeluarTable extends Component
         $Data = BahanKeluar::findOrFail($id);
         $this->id_bahan_keluars = $id;
         $this->status = $Data->status;
+        $this->isModalOpen = true;
     }
 
     public function deleteBahanKeluars(int $id)
     {
         $this->id_bahan_keluars = $id;
+        $this->isModalOpen = true;
     }
 
     public function updatingSearch()

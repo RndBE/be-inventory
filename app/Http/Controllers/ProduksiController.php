@@ -177,20 +177,19 @@ class ProduksiController extends Controller
 
     public function destroy(string $id)
     {
-        // Temukan transaksi produksi
         $produksi = Produksi::find($id);
         if (!$produksi) {
             return redirect()->back()->with('gagal', 'Produksi tidak ditemukan.');
         }
-        // Temukan bahan keluar yang terkait dengan produksi
+        if ($produksi->status !== 'Konfirmasi') {
+            return redirect()->back()->with('gagal', 'Produksi hanya dapat dihapus jika statusnya "Konfirmasi".');
+        }
         $bahanKeluar = BahanKeluar::find($produksi->bahan_keluar_id);
-        // Hapus produksi
         $produksi->delete();
-        // Jika bahan keluar ditemukan, hapus juga
         if ($bahanKeluar) {
             $bahanKeluar->delete();
         }
-        return redirect()->route('produksis.index')->with('success', 'Produksi dan bahan keluar terkait berhasil dihapus.');
+        return redirect()->back()->with('success', 'Produksi dan bahan keluar terkait berhasil dihapus.');
     }
 
 }

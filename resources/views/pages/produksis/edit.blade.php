@@ -151,7 +151,6 @@
                         <livewire:search-bahan-masuk/>
                     @endif
                     <livewire:edit-bahan-produksi-cart :produksiId="$produksiId" />
-
                 </div>
             </form>
         </div>

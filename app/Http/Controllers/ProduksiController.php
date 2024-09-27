@@ -157,6 +157,24 @@ class ProduksiController extends Controller
         //
     }
 
+    public function updateStatus($id)
+    {
+        // Temukan produksi berdasarkan id
+        $produksi = Produksi::findOrFail($id);
+        // Cek apakah status bahan keluar sudah "Disetujui" dan produksi belum selesai
+        if ($produksi->bahanKeluar->status === 'Disetujui' && $produksi->status !== 'Selesai') {
+            // Update status produksi menjadi "Selesai"
+            $produksi->status = 'Selesai';
+            // Simpan perubahan
+            $produksi->save();
+            // Redirect kembali ke halaman produksi dengan pesan sukses
+            return redirect()->back()->with('success', 'Produksi telah selesai.');
+        }
+        // Jika status bahan keluar belum disetujui atau produksi sudah selesai, tampilkan pesan error
+        return redirect()->back()->with('error', 'Produksi tidak bisa diupdate ke selesai.');
+    }
+
+
     public function destroy(string $id)
     {
         // Temukan transaksi produksi

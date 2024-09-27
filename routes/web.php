@@ -56,6 +56,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::resource('stok-produksis', StokProduksiController::class);
     Route::resource('stok-rnds', StokRndController::class);
     Route::resource('produksis', ProduksiController::class);
+    Route::put('produksis/{produksi}/selesai', [ProduksiController::class, 'updateStatus'])->name('produksis.updateStatus');
 
 
 

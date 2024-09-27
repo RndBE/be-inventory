@@ -15,7 +15,7 @@ class EditBahanProduksiCart extends Component
     public $subtotals = [];
     public $totalharga = 0;
     public $editingItemId = 0;
-    public $produksiId; 
+    public $produksiId, $status;
 
     protected $listeners = ['bahanSelected' => 'addToCart'];
 
@@ -31,6 +31,7 @@ class EditBahanProduksiCart extends Component
         $produksi = Produksi::with('produksiDetails.dataBahan')->find($this->produksiId);
 
         if ($produksi) {
+            $this->status = $produksi->status;
             foreach ($produksi->produksiDetails as $detail) {
                 $this->cart[] = $detail->dataBahan;
                 $this->qty[$detail->dataBahan->id] = $detail->qty;

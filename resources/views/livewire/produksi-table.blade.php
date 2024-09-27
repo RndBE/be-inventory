@@ -34,7 +34,7 @@
             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $produksis->firstItem() + $index }}</div></td>
                 <td class="px-6 py-3">
-                    @if($produksi->status_bahan_keluar === 'Disetujui')
+                    @if($produksi->bahanKeluar->status === 'Disetujui')
                         <strong><u><a href="{{ route('produksis.edit', $produksi->id) }}">{{ $produksi->kode_produksi }}</a></u></strong>
                     @else
                         <span class="text-gray-500">{{ $produksi->kode_produksi }}</span>

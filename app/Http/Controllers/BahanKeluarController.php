@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bahan;
 use App\Models\StokRnd;
+use App\Models\Produksi;
 use App\Models\BahanKeluar;
 use App\Models\StokProduksi;
 use Illuminate\Http\Request;
@@ -147,6 +148,12 @@ class BahanKeluarController extends Controller
                             }
                         }
                     }
+                }
+                // Ubah status di tabel produksi menjadi 'Dalam Proses'
+                $produksi = Produksi::where('bahan_keluar_id', $id)->first();
+                if ($produksi) {
+                    $produksi->status = 'Dalam Proses';
+                    $produksi->save();
                 }
             }
             // Jika status baru adalah 'Ditolak', set tgl_keluar ke null

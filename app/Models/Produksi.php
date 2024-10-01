@@ -14,7 +14,7 @@ class Produksi extends Model
 
     public function produksiDetails()
     {
-        return $this->hasMany(ProduksiDetails::class);
+        return $this->hasMany(ProduksiDetails::class, 'produksi_id', 'id');
     }
 
     public function bahanKeluar()

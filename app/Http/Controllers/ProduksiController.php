@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Produksi;
+use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
-use App\Models\BahanKeluarDetails;
 use App\Models\DetailProduksi;
-use App\Models\Produksi;
 use App\Models\ProduksiDetails;
+use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\Validator;
 
 class ProduksiController extends Controller
@@ -152,10 +153,78 @@ class ProduksiController extends Controller
     }
 
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            $cartItems = json_decode($request->cartItems, true);
+            //dd($request->all());
+            $produksi = Produksi::findOrFail($id);
+
+            // Validasi input
+            $validator = Validator::make([
+                'nama_produk' => $request->nama_produk,
+                'jml_produksi' => $request->jml_produksi,
+                'mulai_produksi' => $request->mulai_produksi,
+                'jenis_produksi' => $request->jenis_produksi,
+                'cartItems' => $cartItems
+            ], [
+                'nama_produk' => 'required',
+                'jml_produksi' => 'required',
+                'mulai_produksi' => 'required',
+                'jenis_produksi' => 'required',
+                'cartItems' => 'required|array',
+                'cartItems.*.id' => 'required|integer',
+                'cartItems.*.qty' => 'nullable|integer',
+                'cartItems.*.details' => 'nullable|array',
+                'cartItems.*.sub_total' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                dd($validator->errors()->all());
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            // Update data produksi
+            $produksi->update([
+                'nama_produk' => $request->nama_produk,
+                'jml_produksi' => $request->jml_produksi,
+                'mulai_produksi' => $request->mulai_produksi,
+                'jenis_produksi' => $request->jenis_produksi,
+            ]);
+
+            $groupedItems = [];
+            foreach ($cartItems as $item) {
+                if (!isset($groupedItems[$item['id']])) {
+                    $groupedItems[$item['id']] = [
+                        'qty' => 0,
+                        'details' => $item['details'],
+                        'sub_total' => 0,
+                    ];
+                }
+                $groupedItems[$item['id']]['qty'] += $item['qty'];
+                $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
+            }
+
+            foreach ($groupedItems as $bahan_id => $details) {
+                ProduksiDetails::updateOrCreate([
+                    'produksi_id' => $produksi->id,
+                    'bahan_id' => $bahan_id,
+                ], [
+                    'qty' => $details['qty'],
+                    'details' => json_encode($details['details']),
+                    'sub_total' => $details['sub_total'],
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Produksi berhasil diperbarui!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+        }
     }
+
+
+
+
 
     public function updateStatus($id)
     {

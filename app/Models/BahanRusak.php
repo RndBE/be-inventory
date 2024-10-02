@@ -11,5 +11,9 @@ class BahanRusak extends Model
 
     protected $table = 'bahan_rusaks';
     protected $guarded = [];
-    
+
+    public function bahanRusakDetails()
+    {
+        return $this->hasMany(BahanRusakDetails::class);
+    }
 }

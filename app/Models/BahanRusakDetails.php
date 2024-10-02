@@ -11,4 +11,14 @@ class BahanRusakDetails extends Model
 
     protected $table = 'bahan_rusak_details';
     protected $guarded = [];
+
+    public function bahanRusak()
+    {
+        return $this->belongsTo(BahanRusak::class);
+    }
+
+    public function dataBahan()
+    {
+        return $this->belongsTo(Bahan::class, 'bahan_id');
+    }
 }

@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bahan;
 use App\Models\Produksi;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
 use App\Models\DetailProduksi;
+use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
+use App\Models\BahanRusakDetails;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\Validator;
 
@@ -156,34 +159,26 @@ class ProduksiController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            dd($request->all());
-            $cartItems = json_decode($request->cartItems, true);
+            //dd($request->all());
+            $cartItems = json_decode($request->cartItems, true) ?? [];
+            $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
+
+            // Find the existing production entry
             $produksi = Produksi::findOrFail($id);
 
-            // Validasi input
-            $validator = Validator::make([
-                'nama_produk' => $request->nama_produk,
-                'jml_produksi' => $request->jml_produksi,
-                'mulai_produksi' => $request->mulai_produksi,
-                'jenis_produksi' => $request->jenis_produksi,
-                'cartItems' => $cartItems
-            ], [
+            // Validate input
+            $validator = Validator::make($request->all(), [
                 'nama_produk' => 'required',
                 'jml_produksi' => 'required',
                 'mulai_produksi' => 'required',
                 'jenis_produksi' => 'required',
-                'cartItems' => 'required|array',
-                'cartItems.*.id' => 'required|integer',
-                'cartItems.*.qty' => 'nullable|integer',
-                'cartItems.*.details' => 'nullable|array',
-                'cartItems.*.sub_total' => 'required',
             ]);
 
             if ($validator->fails()) {
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
-            // Update data produksi
+            // Update production data
             $produksi->update([
                 'nama_produk' => $request->nama_produk,
                 'jml_produksi' => $request->jml_produksi,
@@ -191,83 +186,138 @@ class ProduksiController extends Controller
                 'jenis_produksi' => $request->jenis_produksi,
             ]);
 
-            foreach ($cartItems as $item) {
-                $bahan_id = $item['id'];
-                $qty = $item['qty']; // Total quantity for this item
-                $sub_total = $item['sub_total'];
-                $details = $item['details'];
+            // Process cartItems if available
+            if (!empty($cartItems)) {
+                foreach ($cartItems as $item) {
+                    $bahan_id = $item['id'];
+                    $qty = $item['qty'] ?? 0; // Default to 0 if not set
+                    $sub_total = $item['sub_total'] ?? 0; // Default to 0 if not set
+                    $details = $item['details'] ?? []; // Default to empty array if not set
 
-                // Check if there's an existing ProduksiDetails entry for this bahan_id
-                $existingDetail = ProduksiDetails::where('produksi_id', $produksi->id)
-                    ->where('bahan_id', $bahan_id)
-                    ->first();
+                    // Check if there's an existing ProduksiDetails entry for this bahan_id
+                    $existingDetail = ProduksiDetails::where('produksi_id', $produksi->id)
+                        ->where('bahan_id', $bahan_id)
+                        ->first();
 
-                if ($existingDetail) {
-                    // Decode existing details
-                    $existingDetailsArray = json_decode($existingDetail->details, true);
+                    if ($existingDetail) {
+                        // Decode existing details
+                        $existingDetailsArray = json_decode($existingDetail->details, true) ?? [];
 
-                    // Initialize total quantity for this detail
-                    $totalQty = $existingDetail->qty;
+                        // Initialize total quantity for this detail
+                        $totalQty = $existingDetail->qty;
 
-                    // Update quantities for matching kode_transaksi
-                    foreach ($details as $newDetail) {
-                        $found = false;
+                        // Update quantities for matching kode_transaksi
+                        foreach ($details as $newDetail) {
+                            $found = false;
 
-                        foreach ($existingDetailsArray as &$existingDetailItem) {
-                            if ($existingDetailItem['kode_transaksi'] === $newDetail['kode_transaksi'] && $existingDetailItem['unit_price'] === $newDetail['unit_price']) {
-                                $existingDetailItem['qty'] += $newDetail['qty']; // Increase quantity in details
-                                $found = true;
-                                break;
+                            foreach ($existingDetailsArray as &$existingDetailItem) {
+                                if ($existingDetailItem['kode_transaksi'] === $newDetail['kode_transaksi'] && $existingDetailItem['unit_price'] === $newDetail['unit_price']) {
+                                    $existingDetailItem['qty'] += $newDetail['qty']; // Increase quantity in details
+                                    $found = true;
+                                    break;
+                                }
                             }
+
+                            // If not found, add as a new entry
+                            if (!$found) {
+                                $existingDetailsArray[] = $newDetail;
+                            }
+
+                            // Add newDetail qty to totalQty
+                            $totalQty += $newDetail['qty'];
                         }
 
-                        // If not found, add as a new entry
-                        if (!$found) {
-                            $existingDetailsArray[] = $newDetail;
-                        }
-
-                        // Add newDetail qty to totalQty
-                        $totalQty += $newDetail['qty'];
-                    }
-
-                    // Update the existing detail with new quantities
-                    $existingDetail->details = json_encode($existingDetailsArray);
-                    $existingDetail->qty = $totalQty; // Update the total qty
-                    $existingDetail->sub_total += $sub_total; // Update subtotal
-                    $existingDetail->save();
-                } else {
-                    // If no existing detail, create a new one
-                    ProduksiDetails::create([
-                        'produksi_id' => $produksi->id,
-                        'bahan_id' => $bahan_id,
-                        'qty' => $qty, // Set initial qty
-                        'details' => json_encode($details),
-                        'sub_total' => $sub_total,
-                    ]);
-                }
-                // Handle damaged materials
-                foreach ($details as $detail) {
-                    if (isset($detail['is_damaged']) && $detail['is_damaged']) {
-                        // Insert into bahan_rusak table
-                        BahanRusak::create([
-                            'bahan_id' => $bahan_id,
-                            'qty' => $detail['qty'],
-                            'unit_price' => $detail['unit_price'],
-                        ]);
-
-                        // Decrease the quantity in produksiDetails
-                        $existingDetail->qty -= $detail['qty'];
-                        $existingDetail->sub_total -= $detail['qty'] * $detail['unit_price'];
+                        // Update the existing detail with new quantities
+                        $existingDetail->details = json_encode($existingDetailsArray);
+                        $existingDetail->qty = $totalQty; // Update the total qty
+                        $existingDetail->sub_total += $sub_total; // Update subtotal
                         $existingDetail->save();
+                    } else {
+                        // If no existing detail, create a new one
+                        ProduksiDetails::create([
+                            'produksi_id' => $produksi->id,
+                            'bahan_id' => $bahan_id,
+                            'qty' => $qty, // Set initial qty
+                            'details' => json_encode($details),
+                            'sub_total' => $sub_total,
+                        ]);
+                    }
+                    foreach ($details as $newDetail) {
+                        $purchaseDetail = PurchaseDetail::where('bahan_id', $bahan_id)
+                            ->whereHas('purchase', function ($query) use ($newDetail) {
+                                $query->where('kode_transaksi', $newDetail['kode_transaksi']);
+                            })->first();
+
+                        if ($purchaseDetail) {
+                            $purchaseDetail->sisa -= $newDetail['qty'];
+                            if ($purchaseDetail->sisa < 0) {
+                                $purchaseDetail->sisa = 0;
+                            }
+                            $purchaseDetail->save();
+                        }
                     }
                 }
             }
+
+            // Save bahan rusak if available
+            if (!empty($bahanRusak)) {
+                // Create a new entry in the bahan_rusaks table
+                $bahanRusakRecord = BahanRusak::create([
+                    'tgl_masuk' => now(),
+                    'kode_transaksi' => uniqid('TRX_'), // You can customize the transaction code as needed
+                ]);
+
+                foreach ($bahanRusak as $item) {
+                    $bahan_id = $item['id'];
+                    $qtyRusak = $item['qty'] ?? 0; // Default to 0 if not set
+                    $unit_price = $item['unit_price'] ?? 0; // Default to 0 if not set
+                    $sub_total = $qtyRusak * $unit_price;
+
+                    // Create entry in the bahan_rusak_details table
+                    BahanRusakDetails::create([
+                        'bahan_rusak_id' => $bahanRusakRecord->id,
+                        'bahan_id' => $bahan_id,
+                        'qty' => $qtyRusak,
+                        'sisa' => $qtyRusak,
+                        'unit_price' => $unit_price,
+                        'sub_total' => $sub_total,
+                    ]);
+                // Update ProduksiDetails by subtracting the qty of rusak
+                $produksiDetail = ProduksiDetails::where('produksi_id', $produksi->id)
+                    ->where('bahan_id', $bahan_id)
+                    ->first();
+
+                if ($produksiDetail) {
+                    $produksiDetail->qty -= $qtyRusak; // Reduce the quantity
+
+                    $reducedSubTotal = $qtyRusak * $unit_price;
+                    $produksiDetail->sub_total -= $reducedSubTotal;
+                    // Decode existing details to update qty
+                    $existingDetailsArray = json_decode($produksiDetail->details, true) ?? [];
+
+                    foreach ($existingDetailsArray as &$detail) {
+                        if ($detail['unit_price'] === $unit_price) {
+                            $detail['qty'] -= $qtyRusak; // Reduce qty based on rusak
+                        }
+                    }
+
+                    $produksiDetail->details = json_encode($existingDetailsArray); // Update details
+                    $produksiDetail->save(); // Save changes
+
+                    // Check if qty becomes zero and delete if necessary
+                    if ($produksiDetail->qty <= 0) {
+                        $produksiDetail->delete(); // Delete the entry
+                    }
+                }
+            }
+        }
 
             return redirect()->back()->with('success', 'Produksi berhasil diperbarui!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
     }
+
 
 
 

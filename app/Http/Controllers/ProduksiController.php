@@ -156,8 +156,8 @@ class ProduksiController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
-            //dd($request->all());
             $produksi = Produksi::findOrFail($id);
 
             // Validasi input
@@ -180,7 +180,6 @@ class ProduksiController extends Controller
             ]);
 
             if ($validator->fails()) {
-                dd($validator->errors()->all());
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
@@ -192,28 +191,76 @@ class ProduksiController extends Controller
                 'jenis_produksi' => $request->jenis_produksi,
             ]);
 
-            $groupedItems = [];
             foreach ($cartItems as $item) {
-                if (!isset($groupedItems[$item['id']])) {
-                    $groupedItems[$item['id']] = [
-                        'qty' => 0,
-                        'details' => $item['details'],
-                        'sub_total' => 0,
-                    ];
-                }
-                $groupedItems[$item['id']]['qty'] += $item['qty'];
-                $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
-            }
+                $bahan_id = $item['id'];
+                $qty = $item['qty']; // Total quantity for this item
+                $sub_total = $item['sub_total'];
+                $details = $item['details'];
 
-            foreach ($groupedItems as $bahan_id => $details) {
-                ProduksiDetails::updateOrCreate([
-                    'produksi_id' => $produksi->id,
-                    'bahan_id' => $bahan_id,
-                ], [
-                    'qty' => $details['qty'],
-                    'details' => json_encode($details['details']),
-                    'sub_total' => $details['sub_total'],
-                ]);
+                // Check if there's an existing ProduksiDetails entry for this bahan_id
+                $existingDetail = ProduksiDetails::where('produksi_id', $produksi->id)
+                    ->where('bahan_id', $bahan_id)
+                    ->first();
+
+                if ($existingDetail) {
+                    // Decode existing details
+                    $existingDetailsArray = json_decode($existingDetail->details, true);
+
+                    // Initialize total quantity for this detail
+                    $totalQty = $existingDetail->qty;
+
+                    // Update quantities for matching kode_transaksi
+                    foreach ($details as $newDetail) {
+                        $found = false;
+
+                        foreach ($existingDetailsArray as &$existingDetailItem) {
+                            if ($existingDetailItem['kode_transaksi'] === $newDetail['kode_transaksi'] && $existingDetailItem['unit_price'] === $newDetail['unit_price']) {
+                                $existingDetailItem['qty'] += $newDetail['qty']; // Increase quantity in details
+                                $found = true;
+                                break;
+                            }
+                        }
+
+                        // If not found, add as a new entry
+                        if (!$found) {
+                            $existingDetailsArray[] = $newDetail;
+                        }
+
+                        // Add newDetail qty to totalQty
+                        $totalQty += $newDetail['qty'];
+                    }
+
+                    // Update the existing detail with new quantities
+                    $existingDetail->details = json_encode($existingDetailsArray);
+                    $existingDetail->qty = $totalQty; // Update the total qty
+                    $existingDetail->sub_total += $sub_total; // Update subtotal
+                    $existingDetail->save();
+                } else {
+                    // If no existing detail, create a new one
+                    ProduksiDetails::create([
+                        'produksi_id' => $produksi->id,
+                        'bahan_id' => $bahan_id,
+                        'qty' => $qty, // Set initial qty
+                        'details' => json_encode($details),
+                        'sub_total' => $sub_total,
+                    ]);
+                }
+                // Handle damaged materials
+                foreach ($details as $detail) {
+                    if (isset($detail['is_damaged']) && $detail['is_damaged']) {
+                        // Insert into bahan_rusak table
+                        BahanRusak::create([
+                            'bahan_id' => $bahan_id,
+                            'qty' => $detail['qty'],
+                            'unit_price' => $detail['unit_price'],
+                        ]);
+
+                        // Decrease the quantity in produksiDetails
+                        $existingDetail->qty -= $detail['qty'];
+                        $existingDetail->sub_total -= $detail['qty'] * $detail['unit_price'];
+                        $existingDetail->save();
+                    }
+                }
             }
 
             return redirect()->back()->with('success', 'Produksi berhasil diperbarui!');
@@ -221,6 +268,8 @@ class ProduksiController extends Controller
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
     }
+
+
 
 
 

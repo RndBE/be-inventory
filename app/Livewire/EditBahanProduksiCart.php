@@ -10,64 +10,38 @@ class EditBahanProduksiCart extends Component
 {
     public $cart = [];
     public $qty = [];
-    public $kode_transaksi = [];
     public $details = [];
     public $details_raw = [];
     public $subtotals = [];
     public $totalharga = 0;
     public $editingItemId = 0;
-    public $produksiId, $status;
-    public $bahanRusak = []; // Menyimpan bahan yang rusak
-
+    public $produksiId;
+    public $produksiDetails = [];
+    public $bahanRusak = [];
 
     protected $listeners = ['bahanSelected' => 'addToCart'];
 
     public function mount($produksiId)
     {
         $this->produksiId = $produksiId;
-        // $this->loadCartFromSession();
-        $this->loadMaterials();
+        $this->loadProduksi();
+        $this->loadCartFromSession();
     }
-
-    public function loadMaterials()
+    public function loadProduksi()
     {
-        $produksi = Produksi::with('produksiDetails.dataBahan')->find($this->produksiId);
+        $produksi = Produksi::with('produksiDetails')->find($this->produksiId);
 
         if ($produksi) {
-            $this->status = $produksi->status;
-            $this->details = []; // Reset details
-
             foreach ($produksi->produksiDetails as $detail) {
-                $this->cart[] = $detail->dataBahan; // Mengambil data bahan
-                $this->kode_transaksi[$detail->dataBahan->id] = $detail->kode_transaksi;
-                $this->qty[$detail->dataBahan->id] = $detail->qty;
-                $this->subtotals[$detail->bahan_id] = $detail->sub_total;
-
-                // Decode the details JSON string
-                $decodedDetails = json_decode($detail->details, true); // Decode JSON to associative array
-
-                // Tambahkan details berdasarkan bahan_id
-                if (is_array($decodedDetails)) {
-                    foreach ($decodedDetails as $item) {
-                        // Periksa apakah item memiliki kode_transaksi dan unit_price
-                        if (isset($item['kode_transaksi'], $item['qty'], $item['unit_price'])) {
-                            // Simpan details berdasarkan bahan_id
-                            $this->details[$detail->bahan_id][] = [
-                                'kode_transaksi' => $item['kode_transaksi'],
-                                'qty' => $item['qty'],
-                                'unit_price' => $item['unit_price'],
-                            ];
-                        }
-                    }
-                }
+                $this->produksiDetails[] = [
+                    'bahan' => Bahan::find($detail->bahan_id),
+                    'qty' => $detail->qty,
+                    'sub_total' => $detail->sub_total,
+                    'details' => json_decode($detail->details, true),
+                ];
             }
-
-            // Menghitung total harga
-            $this->totalharga = array_sum($this->subtotals);
         }
     }
-
-
 
     public function addToCart($bahan)
     {
@@ -84,43 +58,38 @@ class EditBahanProduksiCart extends Component
         }
 
         // Save to session
-        // $this->saveCartToSession();
+        $this->saveCartToSession();
         $this->calculateSubTotal($bahan->id);
     }
-    // protected function saveCartToSession()
-    // {
-    //     session()->put('cartItems', $this->getCartItemsForStorage());
-    // }
+    protected function saveCartToSession()
+    {
+        session()->put('cartItems', $this->getCartItemsForStorage());
+    }
 
-    // protected function loadCartFromSession()
-    // {
-    //     if (session()->has('cartItems')) {
-    //         $storedItems = session()->get('cartItems');
-    //         foreach ($storedItems as $storedItem) {
-    //             $this->cart[] = (object) ['id' => $storedItem['id'], 'nama_bahan' => Bahan::find($storedItem['id'])->nama_bahan];
-    //             $this->qty[$storedItem['id']] = $storedItem['qty'];
-    //             $this->subtotals[$storedItem['id']] = $storedItem['sub_total'];
-    //         }
-    //         $this->calculateTotalHarga();
-    //     }
-    // }
+    protected function loadCartFromSession()
+    {
+        if (session()->has('cartItems')) {
+            $storedItems = session()->get('cartItems');
+            foreach ($storedItems as $storedItem) {
+                $this->cart[] = (object) ['id' => $storedItem['id'], 'nama_bahan' => Bahan::find($storedItem['id'])->nama_bahan];
+                $this->qty[$storedItem['id']] = $storedItem['qty'];
+                $this->subtotals[$storedItem['id']] = $storedItem['sub_total'];
+            }
+            $this->calculateTotalHarga();
+        }
+    }
 
 
     public function calculateSubTotal($itemId)
     {
-        $subTotal = 0;
+        $unitPrice = isset($this->details[$itemId]) ? intval($this->details[$itemId]) : 0;
+        $qty = isset($this->qty[$itemId]) ? intval($this->qty[$itemId]) : 0;
 
-        // Hitung subtotal berdasarkan semua details untuk item tersebut
-        if (isset($this->details[$itemId])) {
-            foreach ($this->details[$itemId] as $detail) {
-                $subTotal += $detail['qty'] * $detail['unit_price'];
-            }
-        }
+        $this->subtotals[$itemId] = $unitPrice * $qty;
 
-        $this->subtotals[$itemId] = $subTotal;
+        // Hitung total harga setelah memperbarui subtotal
         $this->calculateTotalHarga();
     }
-
 
 
     public function calculateTotalHarga()
@@ -135,7 +104,7 @@ class EditBahanProduksiCart extends Component
         if ($item) {
             // Ambil total stok dari purchaseDetails berdasarkan sisa
             $totalStok = $item->purchaseDetails()->where('sisa', '>', 0)->sum('sisa');
-            // dd($totalStok);
+
             // Cek apakah ada stok yang tersedia dan apakah kuantitas yang diminta lebih kecil dari total stok
             if ($totalStok > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $totalStok)) {
                 // Tambah kuantitas jika belum melebihi stok yang tersedia
@@ -144,6 +113,7 @@ class EditBahanProduksiCart extends Component
             }
         }
     }
+
 
     public function decreaseQuantity($itemId)
     {
@@ -158,129 +128,6 @@ class EditBahanProduksiCart extends Component
         }
     }
 
-    public function decreaseQuantityPerPrice($itemId, $unitPrice)
-    {
-        // Periksa apakah item ada dalam details
-        if (isset($this->details[$itemId])) {
-            foreach ($this->details[$itemId] as $key => $detail) {
-                if ($detail['unit_price'] == $unitPrice) {
-                    // Cek apakah qty lebih dari 1 sebelum menguranginya
-                    if ($detail['qty'] > 1) {
-                        // Kurangi qty
-                        $this->details[$itemId][$key]['qty']--;
-
-                        // Cek apakah bahan rusak sudah ada
-                        $found = false;
-                        foreach ($this->bahanRusak as &$rusak) {
-                            if ($rusak['id'] == $itemId && $rusak['unit_price'] == $unitPrice) {
-                                // Jika ada, tambahkan qty
-                                $rusak['qty']++;
-                                $found = true;
-                                break;
-                            }
-                        }
-
-                        // Jika tidak ditemukan, tambahkan ke bahan rusak
-                        if (!$found) {
-                            $this->bahanRusak[] = [
-                                'id' => $itemId,
-                                'unit_price' => $unitPrice,
-                                'qty' => 1 // Tambahkan 1 ke bahan rusak
-                            ];
-                        }
-                    } else {
-                        // Jika qty 1 atau lebih kecil, hapus item dari details
-                        unset($this->details[$itemId][$key]);
-
-                        // Cek apakah bahan rusak sudah ada
-                        $found = false;
-                        foreach ($this->bahanRusak as &$rusak) {
-                            if ($rusak['id'] == $itemId && $rusak['unit_price'] == $unitPrice) {
-                                // Jika ada, tambahkan qty
-                                $rusak['qty'] += 1; // Tambahkan 1 ke bahan rusak
-                                $found = true;
-                                break;
-                            }
-                        }
-
-                        // Jika tidak ditemukan, tambahkan ke bahan rusak
-                        if (!$found) {
-                            $this->bahanRusak[] = [
-                                'id' => $itemId,
-                                'unit_price' => $unitPrice,
-                                'qty' => 1 // Tambahkan 1 ke bahan rusak
-                            ];
-                        }
-                    }
-                    break; // Keluar dari loop setelah menemukan detail yang sesuai
-                }
-            }
-
-            // Jika sudah tidak ada details, hapus dari array utama
-            if (empty($this->details[$itemId])) {
-                unset($this->details[$itemId]);
-            }
-
-            // Update qty di array qty berdasarkan details yang tersisa
-            $this->qty[$itemId] = isset($this->details[$itemId])
-                ? array_sum(array_column($this->details[$itemId], 'qty'))
-                : 0; // Atur ke 0 jika tidak ada details
-
-            // Hitung subtotal setelah pengurangan qty
-            $this->calculateSubTotal($itemId);
-        }
-    }
-
-    public function returnToProduction($itemId, $unitPrice)
-    {
-        // Tambahkan kembali 1 unit bahan ke cart bahan produksi
-        if (!isset($this->details[$itemId])) {
-            $this->details[$itemId] = []; // Inisialisasi jika belum ada
-        }
-
-        // Cek jika item sudah ada, tambahkan qty
-        $found = false;
-        foreach ($this->details[$itemId] as &$detail) {
-            if ($detail['unit_price'] == $unitPrice) {
-                $detail['qty']++; // Tambahkan 1 unit
-                $found = true;
-                break;
-            }
-        }
-
-        // Jika item belum ada, tambahkan sebagai item baru
-        if (!$found) {
-            $this->details[$itemId][] = [
-                'unit_price' => $unitPrice,
-                'qty' => 1 // Tambahkan 1 unit
-            ];
-        }
-
-        // Hapus dari bahan rusak dan update qty dan unit price jika perlu
-        foreach ($this->bahanRusak as $key => &$rusak) {
-            if ($rusak['id'] == $itemId) {
-                // Update unit price jika berbeda
-                if ($rusak['unit_price'] != $unitPrice) {
-                    $rusak['unit_price'] = $unitPrice; // Update unit price
-                }
-                // Kurangi qty bahan rusak
-                $rusak['qty']--;
-                // Jika qty menjadi 0, hapus dari bahan rusak
-                if ($rusak['qty'] <= 0) {
-                    unset($this->bahanRusak[$key]);
-                }
-                break; // Keluar setelah menghapus
-            }
-        }
-
-        // Update qty di array qty berdasarkan details yang tersisa
-        $this->qty[$itemId] = isset($this->details[$itemId])
-            ? array_sum(array_column($this->details[$itemId], 'qty'))
-            : 0; // Atur ke 0 jika tidak ada details
-
-        // Hitung subtotal setelah pengembalian
-        $this->calculateSubTotal($itemId);
-    }
 
     public function formatToRupiah($itemId)
     {
@@ -375,7 +222,93 @@ class EditBahanProduksiCart extends Component
         unset($this->subtotals[$itemId]);
         // Hitung ulang total harga setelah penghapusan
         $this->calculateTotalHarga();
-        // $this->saveCartToSession();
+        $this->saveCartToSession();
+    }
+
+    public function decreaseQuantityPerPrice($itemId, $unitPrice)
+    {
+        foreach ($this->produksiDetails as &$detail) {
+            if ($detail['bahan']->id === $itemId) {
+                // Check for each detail entry with the specific unit price
+                foreach ($detail['details'] as &$d) {
+                    if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
+                        // Check if the item is already in the damaged materials
+                        $found = false;
+                        foreach ($this->bahanRusak as &$rusak) {
+                            if ($rusak['id'] === $itemId && $rusak['unit_price'] === $unitPrice) {
+                                // If found, just increment the qty
+                                $rusak['qty'] += 1;
+                                $found = true;
+                                break; // Exit the loop once we find it
+                            }
+                        }
+
+                        // If not found, add a new entry to damaged materials
+                        if (!$found) {
+                            $this->bahanRusak[] = [
+                                'id' => $itemId,
+                                'qty' => 1, // Add one item
+                                'unit_price' => $unitPrice,
+                            ];
+                        }
+
+                        // Decrease the quantity and update subtotal
+                        $d['qty'] -= 1; // Decrease by 1
+                        $detail['sub_total'] -= $unitPrice; // Update subtotal by unit price
+
+                        // If quantity goes to zero, set it to zero
+                        if ($d['qty'] < 0) {
+                            $d['qty'] = 0; // Ensure it doesn't go negative
+                        }
+
+                        break; // Exit once we find the right price
+                    }
+                }
+                break; // Exit the loop once we found and updated the item
+            }
+        }
+
+        // Recalculate total prices
+        $this->calculateTotalHarga();
+    }
+
+    public function returnToProduction($itemId, $unitPrice, $qty)
+    {
+        // Find the index of the item in the damaged materials
+        foreach ($this->bahanRusak as $key => $rusak) {
+            if ($rusak['id'] === $itemId && $rusak['unit_price'] === $unitPrice) {
+                // Return the quantity to production
+                // Adjust the quantity in the damaged materials
+                $this->bahanRusak[$key]['qty'] -= $qty;
+
+                // If the quantity goes to zero, remove the item from the damaged materials
+                if ($this->bahanRusak[$key]['qty'] <= 0) {
+                    unset($this->bahanRusak[$key]); // Remove the item
+                }
+
+                // Update the quantity in produksiDetails
+                $foundInDetails = false;
+                foreach ($this->produksiDetails as &$detail) {
+                    if ($detail['bahan']->id === $itemId) {
+                        // Check for each detail entry with the specific unit price
+                        foreach ($detail['details'] as &$d) {
+                            if ($d['unit_price'] === $unitPrice) {
+                                // Increase the quantity and update the subtotal
+                                $d['qty'] += $qty; // Increase quantity
+                                $detail['sub_total'] += $unitPrice * $qty; // Update subtotal
+                                $foundInDetails = true;
+                                break; // Exit once we find the right price
+                            }
+                        }
+                    }
+                    if ($foundInDetails) {
+                        break; // Exit outer loop if found
+                    }
+                }
+                break;
+            }
+        }
+        $this->calculateTotalHarga();
     }
 
 
@@ -395,11 +328,31 @@ class EditBahanProduksiCart extends Component
         return $items;
     }
 
+    public function getCartItemsForBahanRusak()
+    {
+        $bahanRusak = []; // Initialize an array to hold the cart items for bahan rusak
+
+        foreach ($this->bahanRusak as $rusak) {
+            $bahanRusak[] = [
+                'id' => $rusak['id'],
+                'qty' => $rusak['qty'],
+                'unit_price' => $rusak['unit_price'],
+                'sub_total' => $rusak['qty'] * $rusak['unit_price'],
+            ];
+        }
+
+        return $bahanRusak;
+    }
+
 
     public function render()
     {
+        $produksiTotal = array_sum(array_column($this->produksiDetails, 'sub_total'));
+
         return view('livewire.edit-bahan-produksi-cart', [
             'cartItems' => $this->cart,
+            'produksiDetails' => $this->produksiDetails,
+            'produksiTotal' => $produksiTotal,
             'bahanRusak' => $this->bahanRusak,
         ]);
     }

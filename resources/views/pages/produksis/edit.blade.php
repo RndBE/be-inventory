@@ -150,10 +150,7 @@
                     @if ($produksi->status !== 'Selesai')
                         <livewire:search-bahan-masuk/>
                     @endif
-                    <h1><strong>Kebutuhan Bahan</strong></h1>
                     <livewire:edit-bahan-produksi-cart :produksiId="$produksiId" />
-                    <h1><strong>Bahan Rusak</strong></h1>
-                    
                 </div>
             </form>
         </div>

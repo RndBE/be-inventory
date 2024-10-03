@@ -112,43 +112,50 @@ class BahanKeluarController extends Controller
             $data = BahanKeluar::find($id);
             // Ambil detail bahan keluar
             $details = BahanKeluarDetails::where('bahan_keluar_id', $id)->get();
-            // Cek apakah ada 'sisa' yang <= 0
-            foreach ($details as $detail) {
-                // Cari berdasarkan bahan_id di tabel purchase_details
-                $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)->first();
-                if ($purchaseDetail && $purchaseDetail->sisa <= 0) {
-                    throw new \Exception('Tidak dapat mengubah status karena sisa bahan sudah habis.');
-                }
-            }
 
-            // Jika status baru adalah 'Disetujui', lakukan proses pengurangan stok
+            // Jika status baru adalah 'Disetujui', lakukan pengecekan dan pengurangan stok
             if ($validated['status'] === 'Disetujui') {
                 $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                 $data->tgl_keluar = $tgl_keluar;
 
                 foreach ($details as $detail) {
-                    $bahan = Bahan::find($detail->bahan_id);
-                    if ($bahan) {
-                        // Kurangi sisa di purchase_detail
-                        $transactionDetails = json_decode($detail->details, true);
-                        if (is_array($transactionDetails)) {
-                            foreach ($transactionDetails as $transaksiDetail) {
-                                $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)
-                                    ->whereHas('purchase', function ($query) use ($transaksiDetail) {
-                                        $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
-                                    })->first();
+                    // Ambil detail transaksi dari kolom 'details' yang berbentuk JSON
+                    $transactionDetails = json_decode($detail->details, true);
+                    if (is_array($transactionDetails)) {
+                        foreach ($transactionDetails as $transaksiDetail) {
+                            // Cari purchase_detail berdasarkan bahan_id, kode_transaksi, dan unit_price
+                            $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)
+                                ->whereHas('purchase', function ($query) use ($transaksiDetail) {
+                                    $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
+                                })
+                                ->where('unit_price', $transaksiDetail['unit_price']) // Pengecekan unit_price
+                                ->first();
 
-                                if ($purchaseDetail) {
-                                    $purchaseDetail->sisa -= $transaksiDetail['qty'];
-                                    if ($purchaseDetail->sisa < 0) {
-                                        $purchaseDetail->sisa = 0;
-                                    }
-                                    $purchaseDetail->save();
+                            // Jika purchase_detail ditemukan, lakukan pengecekan sisa stok
+                            if ($purchaseDetail) {
+                                // Cek jika permintaan qty melebihi stok saat ini
+                                if ($transaksiDetail['qty'] > $purchaseDetail->sisa) {
+                                    throw new \Exception('Tolak pengajuan, Lakukan pengajuan bahan kembali!');
                                 }
+
+                                // Cek apakah sisa bahan sudah habis
+                                if ($purchaseDetail->sisa <= 0) {
+                                    throw new \Exception('Tidak dapat mengubah status karena sisa bahan sudah habis.');
+                                }
+
+                                // Kurangi stok hanya jika permintaan qty <= stok
+                                $purchaseDetail->sisa -= $transaksiDetail['qty'];
+                                if ($purchaseDetail->sisa < 0) {
+                                    $purchaseDetail->sisa = 0;
+                                }
+                                $purchaseDetail->save();
+                            } else {
+                                throw new \Exception('Purchase detail tidak ditemukan untuk bahan: ' . $detail->bahan_id);
                             }
                         }
                     }
                 }
+
                 // Ubah status di tabel produksi menjadi 'Dalam Proses'
                 $produksi = Produksi::where('bahan_keluar_id', $id)->first();
                 if ($produksi) {
@@ -156,13 +163,16 @@ class BahanKeluarController extends Controller
                     $produksi->save();
                 }
             }
+
             // Jika status baru adalah 'Ditolak', set tgl_keluar ke null
             if ($validated['status'] === 'Ditolak') {
                 $data->tgl_keluar = null;
             }
+
             // Simpan status dan perubahan hanya jika semua operasi berhasil
             $data->status = $validated['status'];
             $data->save();
+
         } catch (\Exception $e) {
             // Ambil pesan error dan tentukan kolom yang bermasalah
             $errorMessage = $e->getMessage();
@@ -173,7 +183,7 @@ class BahanKeluarController extends Controller
                 $errorColumn = 'tgl_keluar';
             } elseif (strpos($errorMessage, 'status') !== false) {
                 $errorColumn = 'status';
-            } // Anda dapat menambahkan kolom lain yang perlu diperiksa
+            }
 
             // Berikan pesan yang lebih informatif
             return redirect()->back()->with('error', "Terjadi kesalahan pada kolom: $errorColumn. Pesan error: $errorMessage");
@@ -181,6 +191,7 @@ class BahanKeluarController extends Controller
 
         return redirect()->route('bahan-keluars.index')->with('success', 'Status berhasil diubah.');
     }
+
 
 
 

@@ -1,4 +1,5 @@
 <div>
+    @if($produksiStatus !== 'Selesai')
     <div class="border-b border-gray-900/10">
         <h1><strong>Kebutuhan Bahan</strong></h1>
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
@@ -67,6 +68,7 @@
             </table>
         </div>
     </div>
+    @endif
 
     <div class="border-b border-gray-900/10">
         <h1 class="mt-6"><strong>Bahan Saat Ini</strong></h1>
@@ -88,14 +90,16 @@
                             <div class="flex flex-col space-y-2">
                                 <div class="flex justify-end items-center">
                                     <p>{{ $d['qty'] }} x {{ number_format($d['unit_price'], 0, ',', '.') }}</p>
-                                    <button wire:click="decreaseQuantityPerPrice({{ $detail['bahan']->id }}, {{ $d['unit_price'] }})"
-                                        class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-                                        type="button">
-                                        <span class="sr-only">Decrease Quantity</span>
-                                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"/>
-                                        </svg>
-                                    </button>
+                                    @if($produksiStatus !== 'Selesai')
+                                        <button wire:click="decreaseQuantityPerPrice({{ $detail['bahan']->id }}, {{ $d['unit_price'] }})"
+                                            class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                                            type="button">
+                                            <span class="sr-only">Decrease Quantity</span>
+                                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"/>
+                                            </svg>
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                             @endforeach
@@ -119,7 +123,7 @@
             </table>
         </div>
     </div>
-
+    @if($produksiStatus !== 'Selesai')
     <div class="border-b border-gray-900/10">
         <h1 class="mt-6"><strong>Bahan Rusak</strong></h1>
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
@@ -155,6 +159,7 @@
             </table>
         </div>
     </div>
+    @endif
 
 
 

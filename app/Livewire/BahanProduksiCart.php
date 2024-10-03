@@ -20,7 +20,7 @@ class BahanProduksiCart extends Component
     public function mount()
     {
         // Load cart items from session if they exist
-        $this->loadCartFromSession();
+        // $this->loadCartFromSession();
     }
 
     public function addToCart($bahan)
@@ -38,26 +38,26 @@ class BahanProduksiCart extends Component
         }
 
         // Save to session
-        $this->saveCartToSession();
+        // $this->saveCartToSession();
         $this->calculateSubTotal($bahan->id);
     }
-    protected function saveCartToSession()
-    {
-        session()->put('cartItems', $this->getCartItemsForStorage());
-    }
+    // protected function saveCartToSession()
+    // {
+    //     session()->put('cartItems', $this->getCartItemsForStorage());
+    // }
 
-    protected function loadCartFromSession()
-    {
-        if (session()->has('cartItems')) {
-            $storedItems = session()->get('cartItems');
-            foreach ($storedItems as $storedItem) {
-                $this->cart[] = (object) ['id' => $storedItem['id'], 'nama_bahan' => Bahan::find($storedItem['id'])->nama_bahan];
-                $this->qty[$storedItem['id']] = $storedItem['qty'];
-                $this->subtotals[$storedItem['id']] = $storedItem['sub_total'];
-            }
-            $this->calculateTotalHarga();
-        }
-    }
+    // protected function loadCartFromSession()
+    // {
+    //     if (session()->has('cartItems')) {
+    //         $storedItems = session()->get('cartItems');
+    //         foreach ($storedItems as $storedItem) {
+    //             $this->cart[] = (object) ['id' => $storedItem['id'], 'nama_bahan' => Bahan::find($storedItem['id'])->nama_bahan];
+    //             $this->qty[$storedItem['id']] = $storedItem['qty'];
+    //             $this->subtotals[$storedItem['id']] = $storedItem['sub_total'];
+    //         }
+    //         $this->calculateTotalHarga();
+    //     }
+    // }
 
 
     public function calculateSubTotal($itemId)

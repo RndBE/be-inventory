@@ -79,7 +79,7 @@
                             </div>
 
                             <div class="flex items-center">
-                                <label for="nama_produk" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk</label>
+                                <label for="nama_produk" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk<sup class="text-red-500 text-base">*</sup></label>
                                 <input type="text" name="nama_produk" id="nama_produk" placeholder="" class="block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
                                 @error('nama_produk')
                                     <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
@@ -87,7 +87,7 @@
                             </div>
 
                             <div class="flex items-center">
-                                <label for="jml_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi</label>
+                                <label for="jml_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
                                 <input type="number" name="jml_produksi"  id="jml_produksi" placeholder="" class="block rounded-md border-0 w-3/4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
                                 @error('jml_produksi')
                                     <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
@@ -95,7 +95,7 @@
                             </div>
 
                             <div class="flex items-center">
-                                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Produksi</label>
+                                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Produksi<sup class="text-red-500 text-base">*</sup></label>
                                 <div class="relative w-3/4 mr-2">
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                         <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -110,7 +110,7 @@
                             </div>
 
                             <div class="flex items-center">
-                                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jenis Produksi</label>
+                                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jenis Produksi<sup class="text-red-500 text-base">*</sup></label>
                                 <div class="relative w-3/4 mr-2">
                                     <div class="flex flex-wrap">
                                         <div class="flex items-center me-4">
@@ -126,6 +126,18 @@
                                 @error('jenis_produksi')
                                     <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                 @enderror
+                            </div>
+
+                            <div class="flex items-center">
+                                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
+                                <div class="relative w-3/4 mr-2">
+                                    <div class="flex flex-wrap">
+                                        <div class="flex items-center me-4">
+                                            <p class="text-red-500 text-sm"><sup>*</sup>) Wajib diisi</p>
+                                        </div>
+
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

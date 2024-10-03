@@ -300,28 +300,41 @@ class ProduksiController extends Controller
                     ->where('bahan_id', $bahan_id)
                     ->first();
 
-                if ($produksiDetail) {
-                    $produksiDetail->qty -= $qtyRusak; // Reduce the quantity
+                    if ($produksiDetail) {
+                        // Decode existing details (which is in JSON format)
+                        $existingDetailsArray = json_decode($produksiDetail->details, true) ?? [];
 
-                    $reducedSubTotal = $qtyRusak * $unit_price;
-                    $produksiDetail->sub_total -= $reducedSubTotal;
-                    // Decode existing details to update qty
-                    $existingDetailsArray = json_decode($produksiDetail->details, true) ?? [];
+                        foreach ($existingDetailsArray as $key => &$detail) {
+                            if ($detail['unit_price'] === $unit_price) {
+                                $detail['qty'] -= $qtyRusak; // Reduce qty based on rusak
 
-                    foreach ($existingDetailsArray as &$detail) {
-                        if ($detail['unit_price'] === $unit_price) {
-                            $detail['qty'] -= $qtyRusak; // Reduce qty based on rusak
+                                // Remove detail if qty becomes 0
+                                if ($detail['qty'] <= 0) {
+                                    unset($existingDetailsArray[$key]); // Remove detail with qty 0
+                                }
+                            }
+                        }
+
+                        // Re-encode the updated details array
+                        $produksiDetail->details = json_encode(array_values($existingDetailsArray)); // Reindex array keys and save
+
+                        // Recalculate the total qty and sub_total from details
+                        $newTotalQty = array_sum(array_column($existingDetailsArray, 'qty'));
+                        $newSubTotal = array_sum(array_map(function ($detail) {
+                            return $detail['qty'] * $detail['unit_price'];
+                        }, $existingDetailsArray));
+
+                        $produksiDetail->qty = $newTotalQty; // Update total quantity
+                        $produksiDetail->sub_total = $newSubTotal; // Update subtotal
+
+                        // Save changes if there are remaining details or qty
+                        if ($newTotalQty > 0) {
+                            $produksiDetail->save();
+                        } else {
+                            // Delete the produksi detail if total qty is 0
+                            $produksiDetail->delete();
                         }
                     }
-
-                    $produksiDetail->details = json_encode($existingDetailsArray); // Update details
-                    $produksiDetail->save(); // Save changes
-
-                    // Check if qty becomes zero and delete if necessary
-                    if ($produksiDetail->qty <= 0) {
-                        $produksiDetail->delete(); // Delete the entry
-                    }
-                }
             }
         }
 
@@ -346,6 +359,7 @@ class ProduksiController extends Controller
         if ($produksi->bahanKeluar->status === 'Disetujui' && $produksi->status !== 'Selesai') {
             // Update status produksi menjadi "Selesai"
             $produksi->status = 'Selesai';
+            $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             // Simpan perubahan
             $produksi->save();
             // Redirect kembali ke halaman produksi dengan pesan sukses

@@ -167,6 +167,13 @@ class BahanKeluarController extends Controller
             // Jika status baru adalah 'Ditolak', set tgl_keluar ke null
             if ($validated['status'] === 'Ditolak') {
                 $data->tgl_keluar = null;
+
+                $produksi = Produksi::where('bahan_keluar_id', $id)->first();
+                if ($produksi) {
+                    // Ubah status di tabel produksi menjadi 'Ditolak'
+                    $produksi->status = 'Ditolak';
+                    $produksi->save();
+                }
             }
 
             // Simpan status dan perubahan hanya jika semua operasi berhasil

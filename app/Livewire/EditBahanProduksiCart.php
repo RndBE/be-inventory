@@ -18,6 +18,7 @@ class EditBahanProduksiCart extends Component
     public $produksiId;
     public $produksiDetails = [];
     public $bahanRusak = [];
+    public $produksiStatus;
 
     protected $listeners = ['bahanSelected' => 'addToCart'];
 
@@ -25,13 +26,14 @@ class EditBahanProduksiCart extends Component
     {
         $this->produksiId = $produksiId;
         $this->loadProduksi();
-        $this->loadCartFromSession();
+        // $this->loadCartFromSession();
     }
     public function loadProduksi()
     {
         $produksi = Produksi::with('produksiDetails')->find($this->produksiId);
 
         if ($produksi) {
+            $this->produksiStatus = $produksi->status;
             foreach ($produksi->produksiDetails as $detail) {
                 $this->produksiDetails[] = [
                     'bahan' => Bahan::find($detail->bahan_id),
@@ -58,26 +60,26 @@ class EditBahanProduksiCart extends Component
         }
 
         // Save to session
-        $this->saveCartToSession();
+        // $this->saveCartToSession();
         $this->calculateSubTotal($bahan->id);
     }
-    protected function saveCartToSession()
-    {
-        session()->put('cartItems', $this->getCartItemsForStorage());
-    }
+    // protected function saveCartToSession()
+    // {
+    //     session()->put('cartItems', $this->getCartItemsForStorage());
+    // }
 
-    protected function loadCartFromSession()
-    {
-        if (session()->has('cartItems')) {
-            $storedItems = session()->get('cartItems');
-            foreach ($storedItems as $storedItem) {
-                $this->cart[] = (object) ['id' => $storedItem['id'], 'nama_bahan' => Bahan::find($storedItem['id'])->nama_bahan];
-                $this->qty[$storedItem['id']] = $storedItem['qty'];
-                $this->subtotals[$storedItem['id']] = $storedItem['sub_total'];
-            }
-            $this->calculateTotalHarga();
-        }
-    }
+    // protected function loadCartFromSession()
+    // {
+    //     if (session()->has('cartItems')) {
+    //         $storedItems = session()->get('cartItems');
+    //         foreach ($storedItems as $storedItem) {
+    //             $this->cart[] = (object) ['id' => $storedItem['id'], 'nama_bahan' => Bahan::find($storedItem['id'])->nama_bahan];
+    //             $this->qty[$storedItem['id']] = $storedItem['qty'];
+    //             $this->subtotals[$storedItem['id']] = $storedItem['sub_total'];
+    //         }
+    //         $this->calculateTotalHarga();
+    //     }
+    // }
 
 
     public function calculateSubTotal($itemId)

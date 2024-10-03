@@ -246,14 +246,27 @@ class ProduksiController extends Controller
                         $purchaseDetail = PurchaseDetail::where('bahan_id', $bahan_id)
                             ->whereHas('purchase', function ($query) use ($newDetail) {
                                 $query->where('kode_transaksi', $newDetail['kode_transaksi']);
-                            })->first();
+                            })
+                            ->where('unit_price', $newDetail['unit_price']) // Pengecekan unit_price
+                            ->first();
 
                         if ($purchaseDetail) {
+                            // Cek apakah permintaan qty melebihi sisa stok
+                            if ($newDetail['qty'] > $purchaseDetail->sisa) {
+                                throw new \Exception('Permintaan qty melebihi sisa stok pada bahan: ' . $bahan_id);
+                            }
+
+                            // Kurangi stok sesuai qty permintaan
                             $purchaseDetail->sisa -= $newDetail['qty'];
+
+                            // Jika sisa stok kurang dari 0, set sisa menjadi 0
                             if ($purchaseDetail->sisa < 0) {
                                 $purchaseDetail->sisa = 0;
                             }
+
                             $purchaseDetail->save();
+                        } else {
+                            throw new \Exception('Purchase detail tidak ditemukan untuk bahan: ' . $bahan_id);
                         }
                     }
                 }
@@ -263,7 +276,7 @@ class ProduksiController extends Controller
             if (!empty($bahanRusak)) {
                 // Create a new entry in the bahan_rusaks table
                 $bahanRusakRecord = BahanRusak::create([
-                    'tgl_masuk' => now(),
+                    'tgl_masuk' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
                     'kode_transaksi' => uniqid('TRX_'), // You can customize the transaction code as needed
                 ]);
 

@@ -16,6 +16,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JenisBahanController;
 use App\Http\Controllers\BahanKeluarController;
+use App\Http\Controllers\BahanRusakController;
 use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\StokProduksiController;
@@ -57,7 +58,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::resource('stok-rnds', StokRndController::class);
     Route::resource('produksis', ProduksiController::class);
     Route::put('produksis/{produksi}/selesai', [ProduksiController::class, 'updateStatus'])->name('produksis.updateStatus');
-
+    Route::resource('bahan-rusaks', BahanRusakController::class);
 
 
 

@@ -14,6 +14,6 @@ class BahanSetengahjadi extends Model
 
     public function bahanSetengahjadiDetails()
     {
-        return $this->hasMany(BahanRusakDetails::class);
+        return $this->hasMany(BahanSetengahjadiDetails::class);
     }
 }

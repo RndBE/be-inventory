@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('nama_produk');
             $table->string('jenis_produksi');
             $table->integer('jml_produksi');
+            $table->foreignId('unit_id')->constrained('unit');
             $table->string('status');
             $table->timestamps();
         });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Unit;
 use App\Models\Bahan;
 use App\Models\Produksi;
 use App\Models\BahanRusak;
@@ -11,7 +12,10 @@ use App\Models\DetailProduksi;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
 use App\Models\BahanRusakDetails;
+use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
+use Illuminate\Support\Facades\DB;
+use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
 
 class ProduksiController extends Controller
@@ -29,7 +33,8 @@ class ProduksiController extends Controller
      */
     public function create()
     {
-        return view('pages.produksis.create');
+        $units = Unit::all();
+        return view('pages.produksis.create', compact('units'));
     }
 
     /**
@@ -37,19 +42,21 @@ class ProduksiController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all());
+        //dd($request->all());
         $cartItems = json_decode($request->cartItems, true);
         $validator = Validator::make([
             'nama_produk' => $request->nama_produk,
             'jml_produksi' => $request->jml_produksi,
             'mulai_produksi' => $request->mulai_produksi,
             'jenis_produksi' => $request->jenis_produksi,
+            'unit_id' => $request->unit_id,
             'cartItems' => $cartItems
         ], [
             'nama_produk' => 'required',
             'jml_produksi' => 'required',
             'mulai_produksi' => 'required',
             'jenis_produksi' => 'required',
+            'unit_id' => 'required',
             'cartItems' => 'required|array',
             'cartItems.*.id' => 'required|integer',
             'cartItems.*.qty' => 'required|integer|min:1',
@@ -96,6 +103,7 @@ class ProduksiController extends Controller
         $produksi->kode_produksi = $kode_produksi;
         $produksi->nama_produk = $request->nama_produk;
         $produksi->jml_produksi = $request->jml_produksi;
+        $produksi->unit_id = $request->unit_id;
         $produksi->mulai_produksi = $request->mulai_produksi;
         $produksi->jenis_produksi = $request->jenis_produksi;
         $produksi->status = 'Konfirmasi';
@@ -143,6 +151,7 @@ class ProduksiController extends Controller
 
     public function edit(string $id)
     {
+        $units = Unit::all();
         $produksi = Produksi::with(['produksiDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
         if ($produksi->bahanKeluar->status != 'Disetujui') {
             return redirect()->back()->with('error', 'Produksi belum disetujui. Anda tidak dapat mengakses halaman tersebut.');
@@ -151,6 +160,7 @@ class ProduksiController extends Controller
         return view('pages.produksis.edit', [
             'produksiId' => $produksi->id,
             'produksi' => $produksi,
+            'units' => $units,
             'id' => $id
         ]);
     }
@@ -172,6 +182,7 @@ class ProduksiController extends Controller
                 'jml_produksi' => 'required',
                 'mulai_produksi' => 'required',
                 'jenis_produksi' => 'required',
+                'unit_id' => 'required',
             ]);
 
             if ($validator->fails()) {
@@ -184,6 +195,7 @@ class ProduksiController extends Controller
                 'jml_produksi' => $request->jml_produksi,
                 'mulai_produksi' => $request->mulai_produksi,
                 'jenis_produksi' => $request->jenis_produksi,
+                'unit_id' => $request->unit_id,
             ]);
 
             // Process cartItems if available
@@ -277,7 +289,7 @@ class ProduksiController extends Controller
                 // Create a new entry in the bahan_rusaks table
                 $bahanRusakRecord = BahanRusak::create([
                     'tgl_masuk' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
-                    'kode_transaksi' => uniqid('TRX_'), // You can customize the transaction code as needed
+                    'kode_transaksi' => $produksi->kode_produksi, // You can customize the transaction code as needed
                 ]);
 
                 foreach ($bahanRusak as $item) {
@@ -344,30 +356,54 @@ class ProduksiController extends Controller
         }
     }
 
-
-
-
-
-
-
-
     public function updateStatus($id)
     {
         // Temukan produksi berdasarkan id
         $produksi = Produksi::findOrFail($id);
         // Cek apakah status bahan keluar sudah "Disetujui" dan produksi belum selesai
         if ($produksi->bahanKeluar->status === 'Disetujui' && $produksi->status !== 'Selesai') {
-            // Update status produksi menjadi "Selesai"
-            $produksi->status = 'Selesai';
-            $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-            // Simpan perubahan
-            $produksi->save();
-            // Redirect kembali ke halaman produksi dengan pesan sukses
-            return redirect()->back()->with('success', 'Produksi telah selesai.');
+            // Proses update berdasarkan jenis produksi
+            if ($produksi->jenis_produksi === 'Produk Setengah Jadi') {
+                try {
+                    // Mulai transaksi database
+                    DB::beginTransaction();
+                    // Masukkan data ke dalam tabel bahan_setengahjadi
+                    $bahanSetengahJadi = new BahanSetengahjadi();
+                    $bahanSetengahJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                    $bahanSetengahJadi->kode_transaksi = $produksi->kode_produksi;
+                    $bahanSetengahJadi->save();
+
+                    // Simpan detail Produk Setengah Jadi
+                    foreach ($produksi->produksiDetails as $detail) {
+                        $bahanSetengahJadiDetail = new BahanSetengahjadiDetails();
+                        $bahanSetengahJadiDetail->bahan_setengahjadi_id = $bahanSetengahJadi->id;
+                        $bahanSetengahJadiDetail->nama_produk = $produksi->nama_produk;
+                        $bahanSetengahJadiDetail->qty = $produksi->jml_produksi;
+                        $bahanSetengahJadiDetail->sisa = $produksi->jml_produksi;
+                        $bahanSetengahJadiDetail->unit_price = $detail->sub_total;
+                        $bahanSetengahJadiDetail->sub_total = $detail->sub_total * $detail->qty;
+                        $bahanSetengahJadiDetail->save();
+                    }
+
+                    // Jika semua penyimpanan berhasil, update status produksi menjadi "Selesai"
+                    $produksi->status = 'Selesai';
+                    $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                    $produksi->save();
+                    // Commit transaksi
+                    DB::commit();
+                    // Redirect dengan pesan sukses
+                    return redirect()->back()->with('success', 'Produksi telah selesai.');
+                } catch (\Exception $e) {
+                    // Rollback jika ada kesalahan
+                    DB::rollBack();
+                    $errorMessage = $e->getMessage();
+                    return redirect()->back()->with('error', "Terjadi kesalahan saat menyelesaikan produksi. $errorMessage");
+                }
+            }
         }
-        // Jika status bahan keluar belum disetujui atau produksi sudah selesai, tampilkan pesan error
         return redirect()->back()->with('error', 'Produksi tidak bisa diupdate ke selesai.');
     }
+
 
 
     public function destroy(string $id)

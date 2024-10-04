@@ -86,17 +86,17 @@
                                 @enderror
                             </div>
 
-                            <div class="flex items-center">
+                            {{-- <div class="flex items-center">
                                 <label for="jml_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
                                 <input type="number" name="jml_produksi"  id="jml_produksi" placeholder="" class="block rounded-md border-0 w-3/4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
                                 @error('jml_produksi')
                                     <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                 @enderror
-                            </div>
+                            </div> --}}
 
                             <div class="flex items-center">
                                 <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Produksi<sup class="text-red-500 text-base">*</sup></label>
-                                <div class="relative w-3/4 mr-2">
+                                <div class="relative w-3/4">
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                         <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
@@ -129,16 +129,35 @@
                             </div>
 
                             <div class="flex items-center">
+                                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
+                                <div class="relative w-3/4">
+                                    <div class="flex item-center">
+                                        <input type="number" name="jml_produksi"  id="jml_produksi" placeholder="" class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
+                                        <select id="unit_id" name="unit_id" autocomplete="country-name" class="block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
+                                            <option value="" disabled selected>Pilih Satuan Unit</option>
+                                            @foreach($units as $unit)
+                                                <option value="{{ $unit->id }}" {{ old('unit_id') == $unit->id ? 'selected' : '' }}>{{ $unit->nama }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                @error('unit_id')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                                @error('jenis_produksi')
+                                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="flex items-center">
                                 <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
                                 <div class="relative w-3/4 mr-2">
-                                    <div class="flex flex-wrap">
-                                        <div class="flex items-center me-4">
-                                            <p class="text-red-500 text-sm"><sup>*</sup>) Wajib diisi</p>
-                                        </div>
-
+                                    <div class="flex items-center me-4">
+                                        <p class="text-red-500 text-sm"><sup>*</sup>) Wajib diisi</p>
                                     </div>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                     <livewire:search-bahan-masuk/>
@@ -170,4 +189,5 @@
             });
         }, 3000); // 3000 ms = 3 detik
     </script>
+
 </x-app-layout>

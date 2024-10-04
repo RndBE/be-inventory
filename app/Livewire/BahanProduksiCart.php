@@ -202,7 +202,6 @@ class BahanProduksiCart extends Component
         unset($this->subtotals[$itemId]);
         // Hitung ulang total harga setelah penghapusan
         $this->calculateTotalHarga();
-        $this->saveCartToSession();
     }
 
 

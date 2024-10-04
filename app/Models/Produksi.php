@@ -21,4 +21,8 @@ class Produksi extends Model
     {
         return $this->belongsTo(BahanKeluar::class);
     }
+    public function dataUnit()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id');
+    }
 }

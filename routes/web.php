@@ -61,6 +61,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('produksis/{produksi}/selesai', [ProduksiController::class, 'updateStatus'])->name('produksis.updateStatus');
     Route::resource('bahan-rusaks', BahanRusakController::class);
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
+    Route::resource('bahan-jadis', BahanJadiController::class);
 
 
 

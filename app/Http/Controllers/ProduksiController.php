@@ -391,7 +391,7 @@ class ProduksiController extends Controller
                         $bahanSetengahJadiDetail->qty = $produksi->jml_produksi;
                         $bahanSetengahJadiDetail->sisa = $produksi->jml_produksi;
                         $bahanSetengahJadiDetail->unit_id = $produksi->unit_id;
-                        $bahanSetengahJadiDetail->unit_price = $detail->sub_total;
+                        $bahanSetengahJadiDetail->unit_price = $detail->sub_total / $produksi->jml_produksi;
                         $bahanSetengahJadiDetail->sub_total = $detail->sub_total * $detail->qty;
                         if ($imageName) {
                             $bahanSetengahJadiDetail->gambar = $imageName;

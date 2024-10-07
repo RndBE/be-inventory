@@ -33,13 +33,16 @@
                     @if($produksi->bahanKeluar->status === 'Disetujui' && $produksi->status !== 'Selesai')
                         <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
                         <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Update</button>
-                        <form action="{{ route('produksis.updateStatus', $produksi->id) }}" method="POST">
+                        {{-- <form action="{{ route('produksis.updateStatus', $produksi->id) }}" method="POST">
                             @csrf
                             @method('PUT')
                             <button type="submit" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500">
                                 Selesai
                             </button>
-                        </form>
+                        </form> --}}
+                        <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
+                            Selesai
+                        </button>
                     @elseif ($produksi->status === 'Selesai')
                         <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                     @else
@@ -171,6 +174,19 @@
                                 <div class="relative w-3/4 mr-2">
                                     <div class="flex flex-wrap">
                                         <div class="flex items-center me-4">
+
+
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center">
+                                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
+                                <div class="relative w-3/4 mr-2">
+                                    <div class="flex flex-wrap">
+                                        <div class="flex items-center me-4">
                                             <p class="text-red-500 text-sm"><sup>*</sup>) Wajib diisi</p>
                                         </div>
 
@@ -187,6 +203,7 @@
             </form>
         </div>
     </div>
+    @include('pages.produksis.selesai')
     <script>
         document.getElementById('saveButton').addEventListener('click', function() {
             document.getElementById('produksiForm').submit();

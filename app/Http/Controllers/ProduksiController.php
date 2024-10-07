@@ -202,9 +202,9 @@ class ProduksiController extends Controller
             if (!empty($cartItems)) {
                 foreach ($cartItems as $item) {
                     $bahan_id = $item['id'];
-                    $qty = $item['qty'] ?? 0; // Default to 0 if not set
-                    $sub_total = $item['sub_total'] ?? 0; // Default to 0 if not set
-                    $details = $item['details'] ?? []; // Default to empty array if not set
+                    $qty = $item['qty'] ?? 0;
+                    $sub_total = $item['sub_total'] ?? 0;
+                    $details = $item['details'] ?? [];
 
                     // Check if there's an existing ProduksiDetails entry for this bahan_id
                     $existingDetail = ProduksiDetails::where('produksi_id', $produksi->id)
@@ -356,10 +356,20 @@ class ProduksiController extends Controller
         }
     }
 
-    public function updateStatus($id)
+    public function updateStatus(Request $request, $id)
     {
-        // Temukan produksi berdasarkan id
+        //dd($request->all());
         $produksi = Produksi::findOrFail($id);
+        $imageName = null;
+        if ($request->hasFile('gambar')) {
+            $request->validate([
+                'gambar' => 'image|mimes:jpg,jpeg,png|max:2048',
+            ]);
+
+            $image = $request->file('gambar');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $path = $image->storeAs('bahan-setengah-jadi', $imageName, 'public');
+        }
         // Cek apakah status bahan keluar sudah "Disetujui" dan produksi belum selesai
         if ($produksi->bahanKeluar->status === 'Disetujui' && $produksi->status !== 'Selesai') {
             // Proses update berdasarkan jenis produksi
@@ -380,8 +390,12 @@ class ProduksiController extends Controller
                         $bahanSetengahJadiDetail->nama_produk = $produksi->nama_produk;
                         $bahanSetengahJadiDetail->qty = $produksi->jml_produksi;
                         $bahanSetengahJadiDetail->sisa = $produksi->jml_produksi;
+                        $bahanSetengahJadiDetail->unit_id = $produksi->unit_id;
                         $bahanSetengahJadiDetail->unit_price = $detail->sub_total;
                         $bahanSetengahJadiDetail->sub_total = $detail->sub_total * $detail->qty;
+                        if ($imageName) {
+                            $bahanSetengahJadiDetail->gambar = $imageName;
+                        }
                         $bahanSetengahJadiDetail->save();
                     }
 

@@ -17,7 +17,7 @@ export default defineConfig({
     optimizeDeps: {
         include: ["@tailwindConfig"],
     },
-    // server: {
-    //     host: "192.168.3.209",
-    // },
+    server: {
+        host: "192.168.3.106",
+    },
 });

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('bahan_setengahjadi_id')->constrained('bahan_setengahjadis')->onDelete('cascade');
             $table->string('nama_produk');
+            $table->string('gambar');
             $table->integer('qty');
             $table->integer('sisa');
             $table->foreignId('unit_id')->constrained('unit');

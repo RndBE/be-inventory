@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Unit;
 use App\Models\Bahan;
 use App\Models\Produksi;
+use App\Models\BahanJadi;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
 use App\Models\DetailProduksi;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
+use App\Models\BahanJadiDetails;
 use App\Models\BahanRusakDetails;
 use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
@@ -360,58 +362,119 @@ class ProduksiController extends Controller
     {
         //dd($request->all());
         $produksi = Produksi::findOrFail($id);
-        $imageName = null;
-        if ($request->hasFile('gambar')) {
-            $request->validate([
-                'gambar' => 'image|mimes:jpg,jpeg,png|max:2048',
-            ]);
-
-            $image = $request->file('gambar');
-            $imageName = time() . '_' . $image->getClientOriginalName();
-            $path = $image->storeAs('bahan-setengah-jadi', $imageName, 'public');
-        }
-        // Cek apakah status bahan keluar sudah "Disetujui" dan produksi belum selesai
         if ($produksi->bahanKeluar->status === 'Disetujui' && $produksi->status !== 'Selesai') {
             // Proses update berdasarkan jenis produksi
             if ($produksi->jenis_produksi === 'Produk Setengah Jadi') {
                 try {
                     // Mulai transaksi database
                     DB::beginTransaction();
+                    $imageName = null;
+                    if ($request->hasFile('gambar')) {
+                        $request->validate([
+                            'gambar' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+                        ], [
+                            'gambar.required' => 'Gambar wajib diunggah sebelum melanjutkan.',
+                        ]);
+
+                        $image = $request->file('gambar');
+                        $imageName = time() . '_' . $image->getClientOriginalName();
+                        $path = $image->storeAs('bahan-setengah-jadi', $imageName, 'public');
+                    }
+
                     // Masukkan data ke dalam tabel bahan_setengahjadi
                     $bahanSetengahJadi = new BahanSetengahjadi();
                     $bahanSetengahJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                     $bahanSetengahJadi->kode_transaksi = $produksi->kode_produksi;
                     $bahanSetengahJadi->save();
 
-                    // Simpan detail Produk Setengah Jadi
-                    foreach ($produksi->produksiDetails as $detail) {
-                        $bahanSetengahJadiDetail = new BahanSetengahjadiDetails();
-                        $bahanSetengahJadiDetail->bahan_setengahjadi_id = $bahanSetengahJadi->id;
-                        $bahanSetengahJadiDetail->nama_produk = $produksi->nama_produk;
-                        $bahanSetengahJadiDetail->qty = $produksi->jml_produksi;
-                        $bahanSetengahJadiDetail->sisa = $produksi->jml_produksi;
-                        $bahanSetengahJadiDetail->unit_id = $produksi->unit_id;
-                        $bahanSetengahJadiDetail->unit_price = $detail->sub_total / $produksi->jml_produksi;
-                        $bahanSetengahJadiDetail->sub_total = $detail->sub_total * $detail->qty;
-                        if ($imageName) {
-                            $bahanSetengahJadiDetail->gambar = $imageName;
-                        }
-                        $bahanSetengahJadiDetail->save();
+                    $produksiTotal = $produksi->produksiDetails->sum('sub_total');
+
+                    $bahanSetengahJadiDetail = new BahanSetengahjadiDetails();
+                    $bahanSetengahJadiDetail->bahan_setengahjadi_id = $bahanSetengahJadi->id;
+                    $bahanSetengahJadiDetail->nama_produk = $produksi->nama_produk;
+                    $bahanSetengahJadiDetail->qty = $produksi->jml_produksi;
+                    $bahanSetengahJadiDetail->sisa = $produksi->jml_produksi;
+                    $bahanSetengahJadiDetail->unit_id = $produksi->unit_id;
+                    $bahanSetengahJadiDetail->unit_price = $produksiTotal / $produksi->jml_produksi;
+                    $bahanSetengahJadiDetail->sub_total = $produksiTotal;
+                    if ($imageName) {
+                        $bahanSetengahJadiDetail->gambar = $imageName;
                     }
+                    $bahanSetengahJadiDetail->save();
 
                     // Jika semua penyimpanan berhasil, update status produksi menjadi "Selesai"
                     $produksi->status = 'Selesai';
                     $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                     $produksi->save();
+
                     // Commit transaksi
                     DB::commit();
+
                     // Redirect dengan pesan sukses
                     return redirect()->back()->with('success', 'Produksi telah selesai.');
                 } catch (\Exception $e) {
                     // Rollback jika ada kesalahan
                     DB::rollBack();
                     $errorMessage = $e->getMessage();
-                    return redirect()->back()->with('error', "Terjadi kesalahan saat menyelesaikan produksi. $errorMessage");
+                    return redirect()->back()->with('error', "Wajib unggah gambar produk.");
+                }
+            }
+
+            // Kondisi untuk jenis produksi 'Bahan Jadi'
+            if ($produksi->jenis_produksi === 'Produk Jadi') {
+                try {
+                    // Mulai transaksi database
+                    DB::beginTransaction();
+                    $imageName = null;
+                    if ($request->hasFile('gambar')) {
+                        $request->validate([
+                            'gambar' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+                        ], [
+                            'gambar.required' => 'Gambar wajib diunggah sebelum melanjutkan.',
+                        ]);
+
+                        $image = $request->file('gambar');
+                        $imageName = time() . '_' . $image->getClientOriginalName();
+                        $path = $image->storeAs('bahan-jadi', $imageName, 'public');
+                    }
+
+                    // Masukkan data ke dalam tabel bahan_jadi
+                    $bahanJadi = new BahanJadi();
+                    $bahanJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                    $bahanJadi->kode_transaksi = $produksi->kode_produksi;
+                    $bahanJadi->save();
+
+                    $produksiTotal = $produksi->produksiDetails->sum('sub_total');
+
+                    $bahanJadiDetail = new BahanJadiDetails();
+                    $bahanJadiDetail->bahan_jadi_id = $bahanJadi->id;
+                    $bahanJadiDetail->nama_produk = $produksi->nama_produk;
+                    $bahanJadiDetail->qty = $produksi->jml_produksi;
+                    $bahanJadiDetail->sisa = $produksi->jml_produksi;
+                    $bahanJadiDetail->unit_id = $produksi->unit_id;
+                    $bahanJadiDetail->unit_price = $produksiTotal / $produksi->jml_produksi;
+                    $bahanJadiDetail->sub_total = $produksiTotal;
+
+                    if ($imageName) {
+                        $bahanJadiDetail->gambar = $imageName;
+                    }
+                    $bahanJadiDetail->save();
+
+                    // Jika semua penyimpanan berhasil, update status produksi menjadi "Selesai"
+                    $produksi->status = 'Selesai';
+                    $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                    $produksi->save();
+
+                    // Commit transaksi
+                    DB::commit();
+
+                    // Redirect dengan pesan sukses
+                    return redirect()->back()->with('success', 'Produksi Bahan Jadi telah selesai.');
+                } catch (\Exception $e) {
+                    // Rollback jika ada kesalahan
+                    DB::rollBack();
+                    $errorMessage = $e->getMessage();
+                    return redirect()->back()->with('error', "Wajib unggah gambar produk.");
                 }
             }
         }

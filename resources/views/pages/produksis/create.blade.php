@@ -160,7 +160,8 @@
 
                         </div>
                     </div>
-                    <livewire:search-bahan-masuk/>
+                    {{-- <livewire:search-bahan-masuk/> --}}
+                    <livewire:search-bahan-produksi/>
                     <livewire:bahan-produksi-cart/>
                 </div>
                 <div class="mt-2 flex items-center justify-end gap-x-6">

@@ -33,8 +33,8 @@ class BahanProduksiCart extends Component
         }
 
         // Tentukan apakah ini bahan atau bahan setengah jadi
-        $bahanId = isset($bahan->id) ? $bahan->id : $bahan->bahan_setengahjadi_id;
-
+        $bahanId = isset($bahan->id) ? $bahan->id : $bahan->bahan_id;
+        // dd($bahanId);
         // Cek apakah bahan sudah ada di cart
         $existingItemKey = array_search($bahanId, array_column($this->cart, 'id'));
 
@@ -81,7 +81,9 @@ class BahanProduksiCart extends Component
         }
 
         // Check if the item is from Bahan Setengahjadi (semi-finished material)
-        $setengahJadiItem = BahanSetengahjadiDetails::find($itemId);
+        $setengahJadiItem = BahanSetengahjadiDetails::with('bahanSetengahjadi')
+        ->where('bahan_id', $itemId) // Find by bahan_id as it's foreign key
+        ->first();
         if ($setengahJadiItem) {
             $availableQty = $setengahJadiItem->sisa;
 
@@ -109,7 +111,10 @@ class BahanProduksiCart extends Component
     {
         // Initialize requested quantity
         $requestedQty = $this->qty[$itemId] ?? 0;
-        $setengahJadiItem = BahanSetengahjadiDetails::find($itemId);
+        $setengahJadiItem = BahanSetengahjadiDetails::with('bahanSetengahjadi')
+        ->where('bahan_id', $itemId) // Find by bahan_id as it's foreign key
+        ->first();
+        //dd($setengahJadiItem);
         $item = Bahan::find($itemId);
 
         if ($setengahJadiItem) {
@@ -122,9 +127,18 @@ class BahanProduksiCart extends Component
                 $this->qty[$itemId] = $requestedQty;
             }
             $this->subtotals[$itemId] = $setengahJadiItem->unit_price * $this->qty[$itemId];
+
+            $this->details[$itemId] = [];
+            $this->details[$itemId][] = [
+                'kode_transaksi' => $setengahJadiItem->bahanSetengahjadi->kode_transaksi, // Assuming the relationship
+                'qty' => $this->qty[$itemId],
+                'unit_price' => $setengahJadiItem->unit_price
+            ];
+
             $this->calculateTotalHarga();
 
-        }elseif ($item) {
+        }
+        elseif ($item) {
             $purchaseDetails = $item->purchaseDetails()
                 ->where('sisa', '>', 0)
                 ->with(['purchase' => function ($query) {
@@ -161,7 +175,7 @@ class BahanProduksiCart extends Component
 
                 // Store unit price as [kode_transaksi_masuk, qty, details]
                 $this->details[$itemId][] = [
-                    'kode_transaksi' => $purchaseDetail->kode_transaksi, // Assuming this is the column name
+                    'kode_transaksi' => $purchaseDetail->purchase->kode_transaksi, // Assuming this is the column name
                     'qty' => $toTake,
                     'unit_price' => $purchaseDetail->unit_price
                 ];

@@ -48,19 +48,27 @@ class SearchBahanProduksi extends Component
             });
 
         // Pencarian di tabel Bahan Setengah Jadi Details
-        $bahanSetengahJadiResults = BahanSetengahjadiDetails::with('bahanSetengahjadi', 'dataUnit')
-            ->where('nama_produk', 'like', '%' . $this->query . '%')
-            ->get()
-            ->map(function ($bahanSetengahJadi) {
-                return (object) [
-                    'type' => 'setengahjadi',
-                    'id' => $bahanSetengahJadi->id,
-                    'nama' => $bahanSetengahJadi->nama_produk,
-                    'kode' => $bahanSetengahJadi->bahanSetengahjadi->kode_transaksi,
-                    'stok' => $bahanSetengahJadi->qty,
-                    'unit' => $bahanSetengahJadi->dataUnit->nama,
-                ];
-            });
+        $bahanSetengahJadiResults = Bahan::with('dataUnit', 'bahanSetengahjadiDetails')
+        ->whereHas('bahanSetengahjadiDetails', function ($query) {
+            $query->where('sisa', '>', 0); // Ensure there is some quantity in stock
+        })
+        ->where(function ($query) {
+            $query->where('nama_bahan', 'like', '%' . $this->query . '%')
+                ->orWhere('kode_bahan', 'like', '%' . $this->query . '%');
+        })
+        ->get()
+        ->map(function ($bahanSetengahJadi) {
+            // Calculate the total stock from bahan_setengahjadi_details (sum of 'sisa')
+            $totalSisa = $bahanSetengahJadi->bahanSetengahjadiDetails->sum('sisa');
+            return (object) [
+                'type' => 'setengahjadi',
+                'id' => $bahanSetengahJadi->id,
+                'nama' => $bahanSetengahJadi->nama_bahan,
+                'kode' => $bahanSetengahJadi->kode_bahan,
+                'stok' => $totalSisa,
+                'unit' => $bahanSetengahJadi->dataUnit->nama,
+            ];
+        });
 
         // Gabungkan hasil dari kedua tabel
         $this->search_results = collect(array_merge($bahanResults->toArray(), $bahanSetengahJadiResults->toArray()));
@@ -76,18 +84,37 @@ class SearchBahanProduksi extends Component
 
     public function selectBahan($bahanId)
     {
-        // Cek apakah ID ada di hasil pencarian dari Bahan Setengah Jadi atau Bahan
-        $bahanSetengahJadi = BahanSetengahjadiDetails::with('bahanSetengahjadi', 'dataUnit')->find($bahanId);
+        // Cek apakah ID ada di hasil pencarian dari Bahan Setengah Jadi
+        $bahanSetengahJadiDetail = BahanSetengahjadiDetails::with('bahanSetengahjadi')
+            ->where('bahan_id', $bahanId) // Find by bahan_id as it's foreign key
+            ->first();
 
-        if ($bahanSetengahJadi) {
+        if ($bahanSetengahJadiDetail) {
             // Emit event untuk mengirim data bahan setengah jadi yang dipilih
-            $this->dispatch('bahanSetengahJadiSelected', $bahanSetengahJadi);
+            $bahanSetengahJadiData = (object) [
+                'id' => $bahanSetengahJadiDetail->bahan_id,
+                'nama' => $bahanSetengahJadiDetail->dataBahan->nama_bahan, // Ensure this property exists
+                'kode' => $bahanSetengahJadiDetail->bahanSetengahjadi->kode_bahan,
+                'stok' => $bahanSetengahJadiDetail->sisa,
+                'unit' => $bahanSetengahJadiDetail->dataBahan->dataUnit->nama,
+            ];
+            $this->dispatch('bahanSetengahJadiSelected', $bahanSetengahJadiData);
         } else {
             // Jika tidak ditemukan, cari di tabel Bahan
-            $bahan = Bahan::with('dataUnit')->find($bahanId);
+            $bahan = Bahan::with('dataUnit')
+                ->where('id', $bahanId)
+                ->first();
+
             if ($bahan) {
-                // Emit event untuk mengirim data bahan yang dipilih
-                $this->dispatch('bahanSelected', $bahan);
+                // dispatch event untuk mengirim data bahan yang dipilih
+                $bahanData = (object) [
+                    'id' => $bahan->id,
+                    'nama' => $bahan->nama_bahan, // Use 'nama' instead of 'nama_bahan'
+                    'kode' => $bahan->kode_bahan,
+                    'stok' => $bahan->purchaseDetails->sum('sisa'),
+                    'unit' => $bahan->dataUnit->nama,
+                ];
+                $this->dispatch('bahanSelected', $bahanData);
             } else {
                 // Jika tidak ditemukan di kedua tabel
                 session()->flash('message', 'Bahan tidak ditemukan.');

@@ -7,44 +7,23 @@
                 </svg>
                 <span class="sr-only">Close modal</span>
             </button>
-            <div class="p-4 md:p-5 justify-between">
+            <div class="p-4 md:p-5 text-center">
                 <form action="{{ route('produksis.updateStatus', $produksi->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
-                    <div class="pt-6 pb-6 flex flex-col">
-                        <div>
-                            <input name="gambar" onchange="loadFile(event)" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file">
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">PNG, JPG or JPEG (MAX. 2 MB).</p>
-                        </div>
-                        <div class="mt-4 flex justify-center">
-                            <img id='preview_img' class="h-40 w-lg rounded-lg" src="{{ asset('images/image-4@2x.jpg') }}" alt="image">
-                        </div>
-                    </div>
 
-                    <div class="flex justify-between">
+                        <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                        </svg>
+                        <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Apakah anda yakin akan memproduksi bahan tersebut?</h3>
+
                         <button data-modal-hide="selesai-modal" type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
                             Simpan
                         </button>
                         <button data-modal-hide="selesai-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Batal</button>
-                    </div>
+
                 </form>
             </div>
         </div>
     </div>
 </div>
-<script>
-    var loadFile = function(event) {
-
-        var input = event.target;
-        var file = input.files[0];
-        var type = file.type;
-
-        var output = document.getElementById('preview_img');
-
-
-        output.src = URL.createObjectURL(event.target.files[0]);
-        output.onload = function() {
-            URL.revokeObjectURL(output.src)
-        }
-    };
-</script>

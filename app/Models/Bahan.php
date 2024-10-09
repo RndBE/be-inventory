@@ -21,10 +21,15 @@ class Bahan extends Model
     {
         return $this->belongsTo(Unit::class, 'unit_id');
     }
-    
+
     public function purchaseDetails()
     {
         return $this->hasMany(PurchaseDetail::class, 'bahan_id'); // adjust if necessary
+    }
+
+    public function bahanSetengahjadiDetails()
+    {
+        return $this->hasMany(BahanSetengahjadiDetails::class, 'bahan_id');
     }
 
     public function firstPurchaseDetail()

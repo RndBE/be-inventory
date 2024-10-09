@@ -42,9 +42,9 @@
                 </td>
                 <td class="px-6 py-3">{{ $produksi->mulai_produksi }}</td>
                 <td class="px-6 py-3">{{ $produksi->selesai_produksi }}</td>
-                <td class="px-6 py-3">{{ $produksi->nama_produk }}</td>
+                <td class="px-6 py-3">{{ $produksi->dataBahan->nama_bahan }}</td>
                 <td class="px-6 py-3">{{ $produksi->jenis_produksi }}</td>
-                <td class="px-6 py-3">{{ $produksi->jml_produksi }}</td>
+                <td class="px-6 py-3"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $produksi->jml_produksi }} {{ $produksi->dataBahan->dataUnit->nama }}</span></td>
                 {{-- <td class="px-6 py-3">{{ $produksi->produksiDetails->sum('qty') }}</td> --}}
                 <td class="px-6 py-3">{{ $produksi->status }}</td>
                 {{-- <td class="px-6 py-3">Rp {{ number_format($produksi->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}

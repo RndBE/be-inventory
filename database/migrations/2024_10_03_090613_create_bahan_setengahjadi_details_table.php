@@ -14,11 +14,9 @@ return new class extends Migration
         Schema::create('bahan_setengahjadi_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('bahan_setengahjadi_id')->constrained('bahan_setengahjadis')->onDelete('cascade');
-            $table->string('nama_produk');
-            $table->string('gambar');
+            $table->foreignId('bahan_id')->constrained('bahan');
             $table->integer('qty');
             $table->integer('sisa');
-            $table->foreignId('unit_id')->constrained('unit');
             $table->integer('unit_price');
             $table->integer('sub_total');
             $table->timestamps();

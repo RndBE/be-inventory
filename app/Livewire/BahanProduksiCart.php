@@ -42,9 +42,8 @@ class BahanProduksiCart extends Component
             // Tambahkan quantity jika sudah ada di cart
             $this->qty[$bahanId]++;
         } else {
-            // Tambahkan bahan baru ke cart
             $this->cart[] = $bahan;
-            $this->qty[$bahanId] = 1; // Inisialisasi qty
+            $this->qty[$bahanId] = null;
         }
 
         // Hitung subtotal untuk bahan ini
@@ -69,16 +68,26 @@ class BahanProduksiCart extends Component
 
     public function increaseQuantity($itemId)
     {
+        // Check if the item is from Bahan (raw material)
         $item = Bahan::find($itemId);
         if ($item) {
-            // Ambil total stok dari purchaseDetails berdasarkan sisa
+            // Get total available stock
             $totalStok = $item->purchaseDetails()->where('sisa', '>', 0)->sum('sisa');
 
-            // Cek apakah ada stok yang tersedia dan apakah kuantitas yang diminta lebih kecil dari total stok
             if ($totalStok > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $totalStok)) {
-                // Tambah kuantitas jika belum melebihi stok yang tersedia
                 $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
-                $this->updateQuantity($itemId); // Panggil updateQuantity untuk menghitung ulang subtotal dan total harga
+                $this->updateQuantity($itemId); // Update subtotal and total price
+            }
+        }
+
+        // Check if the item is from Bahan Setengahjadi (semi-finished material)
+        $setengahJadiItem = BahanSetengahjadiDetails::find($itemId);
+        if ($setengahJadiItem) {
+            $availableQty = $setengahJadiItem->sisa;
+
+            if ($availableQty > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $availableQty)) {
+                $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
+                $this->updateQuantity($itemId); // Update subtotal and total price
             }
         }
     }
@@ -96,49 +105,14 @@ class BahanProduksiCart extends Component
         }
     }
 
-    public function formatToRupiah($itemId)
-    {
-        // Pastikan untuk menghapus 'Rp.' dan mengonversi ke integer
-        $this->details[$itemId] = intval(str_replace(['.', ' '], '', $this->details_raw[$itemId]));
-        $this->details_raw[$itemId] = $this->details[$itemId];
-        $this->calculateSubTotal($itemId); // Hitung subtotal setelah format
-        $this->editingItemId = null; // Reset ID setelah selesai
-    }
-
     public function updateQuantity($itemId)
     {
-        // First, check if the item is from Bahan (raw material)
-        $item = Bahan::find($itemId);
-        if ($item) {
-            $requestedQty = $this->qty[$itemId];
-            // dd($requestedQty);
-
-            // Fetch all purchase details that have remaining stock for the raw material
-            $purchaseDetails = $item->purchaseDetails()
-                ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
-                ->where('sisa', '>', 0)
-                ->orderBy('purchases.tgl_masuk', 'asc')
-                ->select('purchase_details.*', 'purchases.kode_transaksi') // Include kode_transaksi_masuk
-                ->get();
-
-            $totalAvailable = $purchaseDetails->sum('sisa');
-
-            // If requested quantity exceeds available stock
-            if ($requestedQty > $totalAvailable) {
-                $this->qty[$itemId] = $totalAvailable; // Set quantity to total available stock
-            } elseif ($requestedQty < 0) {
-                $this->qty[$itemId] = null; // Set quantity to 0 if it's negative
-            } else {
-                $this->qty[$itemId] = $requestedQty; // Valid requested quantity
-            }
-
-            // Update unit price and calculate subtotal based on quantity for raw material
-            $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
-        }
-
+        // Initialize requested quantity
+        $requestedQty = $this->qty[$itemId] ?? 0;
         $setengahJadiItem = BahanSetengahjadiDetails::find($itemId);
+        $item = Bahan::find($itemId);
+
         if ($setengahJadiItem) {
-            $requestedQty = $this->qty[$itemId];
             $availableQty = $setengahJadiItem->sisa;
             if ($requestedQty > $availableQty) {
                 $this->qty[$itemId] = $availableQty;
@@ -147,12 +121,27 @@ class BahanProduksiCart extends Component
             } else {
                 $this->qty[$itemId] = $requestedQty;
             }
-
             $this->subtotals[$itemId] = $setengahJadiItem->unit_price * $this->qty[$itemId];
             $this->calculateTotalHarga();
+
+        }elseif ($item) {
+            $purchaseDetails = $item->purchaseDetails()
+                ->where('sisa', '>', 0)
+                ->with(['purchase' => function ($query) {
+                    $query->orderBy('tgl_masuk', 'asc');
+                }])->get();
+
+            $totalAvailable = $purchaseDetails->sum('sisa');
+            if ($requestedQty > $totalAvailable) {
+                $this->qty[$itemId] = $totalAvailable;
+            } elseif ($requestedQty < 0) {
+                $this->qty[$itemId] = null;
+            } else {
+                $this->qty[$itemId] = $requestedQty;
+            }
+            $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
         }
     }
-
 
     protected function updateUnitPriceAndSubtotal($itemId, $qty, $purchaseDetails)
     {
@@ -182,6 +171,15 @@ class BahanProduksiCart extends Component
 
         $this->subtotals[$itemId] = $totalPrice;
         $this->calculateTotalHarga();
+    }
+
+    public function formatToRupiah($itemId)
+    {
+        // Pastikan untuk menghapus 'Rp.' dan mengonversi ke integer
+        $this->details[$itemId] = intval(str_replace(['.', ' '], '', $this->details_raw[$itemId]));
+        $this->details_raw[$itemId] = $this->details[$itemId];
+        $this->calculateSubTotal($itemId); // Hitung subtotal setelah format
+        $this->editingItemId = null; // Reset ID setelah selesai
     }
 
     public function editItem($itemId)

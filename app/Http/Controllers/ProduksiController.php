@@ -36,7 +36,11 @@ class ProduksiController extends Controller
     public function create()
     {
         $units = Unit::all();
-        return view('pages.produksis.create', compact('units'));
+        $bahanProduksi = Bahan::whereHas('jenisBahan', function ($query) {
+            $query->where('nama', 'like', '%Produksi%');
+        })->get();
+
+        return view('pages.produksis.create', compact('units', 'bahanProduksi'));
     }
 
     /**
@@ -47,18 +51,16 @@ class ProduksiController extends Controller
         //dd($request->all());
         $cartItems = json_decode($request->cartItems, true);
         $validator = Validator::make([
-            'nama_produk' => $request->nama_produk,
+            'bahan_id' => $request->bahan_id,
             'jml_produksi' => $request->jml_produksi,
             'mulai_produksi' => $request->mulai_produksi,
             'jenis_produksi' => $request->jenis_produksi,
-            'unit_id' => $request->unit_id,
             'cartItems' => $cartItems
         ], [
-            'nama_produk' => 'required',
+            'bahan_id' => 'required',
             'jml_produksi' => 'required',
             'mulai_produksi' => 'required',
             'jenis_produksi' => 'required',
-            'unit_id' => 'required',
             'cartItems' => 'required|array',
             'cartItems.*.id' => 'required|integer',
             'cartItems.*.qty' => 'required|integer|min:1',
@@ -103,9 +105,8 @@ class ProduksiController extends Controller
         $produksi = new Produksi();
         $produksi->bahan_keluar_id = $bahan_keluar->id;
         $produksi->kode_produksi = $kode_produksi;
-        $produksi->nama_produk = $request->nama_produk;
+        $produksi->bahan_id = $request->bahan_id;
         $produksi->jml_produksi = $request->jml_produksi;
-        $produksi->unit_id = $request->unit_id;
         $produksi->mulai_produksi = $request->mulai_produksi;
         $produksi->jenis_produksi = $request->jenis_produksi;
         $produksi->status = 'Konfirmasi';
@@ -154,6 +155,9 @@ class ProduksiController extends Controller
     public function edit(string $id)
     {
         $units = Unit::all();
+        $bahanProduksi = Bahan::whereHas('jenisBahan', function ($query) {
+            $query->where('nama', 'like', '%Produksi%');
+        })->get();
         $produksi = Produksi::with(['produksiDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
         if ($produksi->bahanKeluar->status != 'Disetujui') {
             return redirect()->back()->with('error', 'Produksi belum disetujui. Anda tidak dapat mengakses halaman tersebut.');
@@ -161,6 +165,7 @@ class ProduksiController extends Controller
 
         return view('pages.produksis.edit', [
             'produksiId' => $produksi->id,
+            'bahanProduksi' => $bahanProduksi,
             'produksi' => $produksi,
             'units' => $units,
             'id' => $id
@@ -180,11 +185,10 @@ class ProduksiController extends Controller
 
             // Validate input
             $validator = Validator::make($request->all(), [
-                'nama_produk' => 'required',
+                'bahan_id' => 'required',
                 'jml_produksi' => 'required',
                 'mulai_produksi' => 'required',
                 'jenis_produksi' => 'required',
-                'unit_id' => 'required',
             ]);
 
             if ($validator->fails()) {
@@ -193,11 +197,10 @@ class ProduksiController extends Controller
 
             // Update production data
             $produksi->update([
-                'nama_produk' => $request->nama_produk,
+                'bahan_id' => $request->bahan_id,
                 'jml_produksi' => $request->jml_produksi,
                 'mulai_produksi' => $request->mulai_produksi,
                 'jenis_produksi' => $request->jenis_produksi,
-                'unit_id' => $request->unit_id,
             ]);
 
             // Process cartItems if available
@@ -368,18 +371,6 @@ class ProduksiController extends Controller
                 try {
                     // Mulai transaksi database
                     DB::beginTransaction();
-                    $imageName = null;
-                    if ($request->hasFile('gambar')) {
-                        $request->validate([
-                            'gambar' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-                        ], [
-                            'gambar.required' => 'Gambar wajib diunggah sebelum melanjutkan.',
-                        ]);
-
-                        $image = $request->file('gambar');
-                        $imageName = time() . '_' . $image->getClientOriginalName();
-                        $path = $image->storeAs('bahan-setengah-jadi', $imageName, 'public');
-                    }
 
                     // Masukkan data ke dalam tabel bahan_setengahjadi
                     $bahanSetengahJadi = new BahanSetengahjadi();
@@ -391,15 +382,11 @@ class ProduksiController extends Controller
 
                     $bahanSetengahJadiDetail = new BahanSetengahjadiDetails();
                     $bahanSetengahJadiDetail->bahan_setengahjadi_id = $bahanSetengahJadi->id;
-                    $bahanSetengahJadiDetail->nama_produk = $produksi->nama_produk;
+                    $bahanSetengahJadiDetail->bahan_id = $produksi->bahan_id;
                     $bahanSetengahJadiDetail->qty = $produksi->jml_produksi;
                     $bahanSetengahJadiDetail->sisa = $produksi->jml_produksi;
-                    $bahanSetengahJadiDetail->unit_id = $produksi->unit_id;
                     $bahanSetengahJadiDetail->unit_price = $produksiTotal / $produksi->jml_produksi;
                     $bahanSetengahJadiDetail->sub_total = $produksiTotal;
-                    if ($imageName) {
-                        $bahanSetengahJadiDetail->gambar = $imageName;
-                    }
                     $bahanSetengahJadiDetail->save();
 
                     // Jika semua penyimpanan berhasil, update status produksi menjadi "Selesai"
@@ -425,18 +412,6 @@ class ProduksiController extends Controller
                 try {
                     // Mulai transaksi database
                     DB::beginTransaction();
-                    $imageName = null;
-                    if ($request->hasFile('gambar')) {
-                        $request->validate([
-                            'gambar' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-                        ], [
-                            'gambar.required' => 'Gambar wajib diunggah sebelum melanjutkan.',
-                        ]);
-
-                        $image = $request->file('gambar');
-                        $imageName = time() . '_' . $image->getClientOriginalName();
-                        $path = $image->storeAs('bahan-jadi', $imageName, 'public');
-                    }
 
                     // Masukkan data ke dalam tabel bahan_jadi
                     $bahanJadi = new BahanJadi();
@@ -448,16 +423,11 @@ class ProduksiController extends Controller
 
                     $bahanJadiDetail = new BahanJadiDetails();
                     $bahanJadiDetail->bahan_jadi_id = $bahanJadi->id;
-                    $bahanJadiDetail->nama_produk = $produksi->nama_produk;
+                    $bahanJadiDetail->bahan_id = $produksi->bahan_id;
                     $bahanJadiDetail->qty = $produksi->jml_produksi;
                     $bahanJadiDetail->sisa = $produksi->jml_produksi;
-                    $bahanJadiDetail->unit_id = $produksi->unit_id;
                     $bahanJadiDetail->unit_price = $produksiTotal / $produksi->jml_produksi;
                     $bahanJadiDetail->sub_total = $produksiTotal;
-
-                    if ($imageName) {
-                        $bahanJadiDetail->gambar = $imageName;
-                    }
                     $bahanJadiDetail->save();
 
                     // Jika semua penyimpanan berhasil, update status produksi menjadi "Selesai"
@@ -474,7 +444,7 @@ class ProduksiController extends Controller
                     // Rollback jika ada kesalahan
                     DB::rollBack();
                     $errorMessage = $e->getMessage();
-                    return redirect()->back()->with('error', "Wajib unggah gambar produk.");
+                    return redirect()->back()->with('error', "Wajib unggah gambar produk.".$errorMessage);
                 }
             }
         }

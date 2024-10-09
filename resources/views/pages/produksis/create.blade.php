@@ -79,20 +79,17 @@
                             </div>
 
                             <div class="flex items-center">
-                                <label for="nama_produk" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk<sup class="text-red-500 text-base">*</sup></label>
-                                <input type="text" name="nama_produk" id="nama_produk" placeholder="" class="block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
-                                @error('nama_produk')
+                                <label for="bahan_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk<sup class="text-red-500 text-base">*</sup></label>
+                                <select name="bahan_id" id="bahan_id" class="block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
+                                    <option value="">-- Pilih Bahan --</option>
+                                    @foreach($bahanProduksi as $bahan)
+                                        <option value="{{ $bahan->id }}">{{ $bahan->nama_bahan }}</option>
+                                    @endforeach
+                                </select>
+                                @error('bahan_id')
                                     <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                 @enderror
                             </div>
-
-                            {{-- <div class="flex items-center">
-                                <label for="jml_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
-                                <input type="number" name="jml_produksi"  id="jml_produksi" placeholder="" class="block rounded-md border-0 w-3/4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
-                                @error('jml_produksi')
-                                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                                @enderror
-                            </div> --}}
 
                             <div class="flex items-center">
                                 <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Produksi<sup class="text-red-500 text-base">*</sup></label>
@@ -133,18 +130,9 @@
                                 <div class="relative w-3/4">
                                     <div class="flex item-center">
                                         <input type="number" name="jml_produksi"  id="jml_produksi" placeholder="" class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
-                                        <select id="unit_id" name="unit_id" autocomplete="country-name" class="block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
-                                            <option value="" disabled selected>Pilih Satuan Unit</option>
-                                            @foreach($units as $unit)
-                                                <option value="{{ $unit->id }}" {{ old('unit_id') == $unit->id ? 'selected' : '' }}>{{ $unit->nama }}</option>
-                                            @endforeach
-                                        </select>
                                     </div>
                                 </div>
-                                @error('unit_id')
-                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                                @error('jenis_produksi')
+                                @error('jml_produksi')
                                     <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                 @enderror
                             </div>

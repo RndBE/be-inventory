@@ -93,24 +93,18 @@
                                 <input type="text" id="kode_produksi" value="{{ $produksi->kode_produksi }}" disabled class="block rounded-md w-3/4 border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 sm:text-sm sm:leading-6">
                             </div>
 
-                            <!-- Nama Produk -->
                             <div class="flex items-center">
-                                <label for="nama_produk" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk<sup class="text-red-500 text-base">*</sup></label>
-                                <input type="text" name="nama_produk" id="nama_produk" value="{{ $produksi->nama_produk }}" class="block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required>
-
-                                @error('nama_produk')
-                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                <label for="bahan_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk<sup class="text-red-500 text-base">*</sup></label>
+                                <select name="bahan_id" id="bahan_id" class="block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
+                                    <option value="">-- Pilih Bahan --</option>
+                                    @foreach($bahanProduksi as $bahan)
+                                        <option value="{{ $bahan->id }}" {{ old('bahan_id', $produksi->bahan_id) == $bahan->id ? 'selected' : '' }}>{{ $bahan->nama_bahan }}</option>
+                                    @endforeach
+                                </select>
+                                @error('bahan_id')
+                                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                 @enderror
                             </div>
-
-                            {{-- <!-- Jumlah Produksi -->
-                            <div class="flex items-center">
-                                <label for="jml_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
-                                <input type="number" name="jml_produksi" id="jml_produksi" value="{{ $produksi->jml_produksi }}" class="block rounded-md border-0 w-3/4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required>
-                                @error('jml_produksi')
-                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div> --}}
 
                             <!-- Mulai Produksi -->
                             <div class="flex items-center">
@@ -121,7 +115,7 @@
                                             <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
                                         </svg>
                                     </div>
-                                    <input type="text" name="mulai_produksi" id="datetimepicker" value="{{ $produksi->mulai_produksi }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }}>
+                                    <input type="text" name="mulai_produksi" id="datetimepicker" value="{{ $produksi->mulai_produksi }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required>
                                 </div>
                                 @error('mulai_produksi')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -153,33 +147,11 @@
                                 <div class="relative w-3/4">
                                     <div class="flex item-center">
                                         <input type="number" name="jml_produksi" value="{{ $produksi->jml_produksi }}"  id="jml_produksi" placeholder="" class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
-                                        <select id="unit_id" name="unit_id" autocomplete="country-name" class="block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
-                                            <option value="" disabled selected>Pilih Satuan Unit</option>
-                                            @foreach($units as $unit)
-                                                <option value="{{ $unit->id }}" {{ old('unit_id', $produksi->unit_id) == $unit->id ? 'selected' : '' }}>{{ $unit->nama }}</option>
-                                            @endforeach
-                                        </select>
                                     </div>
                                 </div>
-                                @error('unit_id')
-                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                                @error('jenis_produksi')
+                                @error('jml_produksi')
                                     <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                 @enderror
-                            </div>
-
-                            <div class="flex items-center">
-                                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
-                                <div class="relative w-3/4 mr-2">
-                                    <div class="flex flex-wrap">
-                                        <div class="flex items-center me-4">
-
-
-                                        </div>
-
-                                    </div>
-                                </div>
                             </div>
 
                             <div class="flex items-center">

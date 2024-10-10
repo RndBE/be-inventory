@@ -68,31 +68,24 @@ class BahanProduksiCart extends Component
 
     public function increaseQuantity($itemId)
     {
-        // Check if the item is from Bahan (raw material)
         $item = Bahan::find($itemId);
         if ($item) {
-            // Get total available stock
-            $totalStok = $item->purchaseDetails()->where('sisa', '>', 0)->sum('sisa');
-
-            if ($totalStok > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $totalStok)) {
-                $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
-                $this->updateQuantity($itemId); // Update subtotal and total price
-            }
-        }
-
-        // Check if the item is from Bahan Setengahjadi (semi-finished material)
-        $setengahJadiItem = BahanSetengahjadiDetails::with('bahanSetengahjadi')
-        ->where('bahan_id', $itemId) // Find by bahan_id as it's foreign key
-        ->first();
-        if ($setengahJadiItem) {
-            $availableQty = $setengahJadiItem->sisa;
-
-            if ($availableQty > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $availableQty)) {
-                $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
-                $this->updateQuantity($itemId); // Update subtotal and total price
+            if ($item->jenisBahan->nama !== 'Produksi') {
+                $totalStok = $item->purchaseDetails()->where('sisa', '>', 0)->sum('sisa');
+                if ($totalStok > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $totalStok)) {
+                    $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
+                    $this->updateQuantity($itemId);
+                }
+            } elseif ($item->jenisBahan->nama === 'Produksi') {
+                $totalStok = $item->bahanSetengahjadiDetails()->where('sisa', '>', 0)->sum('sisa');
+                if ($totalStok > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $totalStok)) {
+                    $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
+                    $this->updateQuantity($itemId);
+                }
             }
         }
     }
+
 
     public function decreaseQuantity($itemId)
     {
@@ -109,60 +102,83 @@ class BahanProduksiCart extends Component
 
     public function updateQuantity($itemId)
     {
-        // Initialize requested quantity
         $requestedQty = $this->qty[$itemId] ?? 0;
-        $setengahJadiItem = BahanSetengahjadiDetails::with('bahanSetengahjadi')
-        ->where('bahan_id', $itemId) // Find by bahan_id as it's foreign key
-        ->first();
-        //dd($setengahJadiItem);
         $item = Bahan::find($itemId);
 
-        if ($setengahJadiItem) {
-            $availableQty = $setengahJadiItem->sisa;
-            if ($requestedQty > $availableQty) {
-                $this->qty[$itemId] = $availableQty;
-            } elseif ($requestedQty < 0) {
-                $this->qty[$itemId] = null;
-            } else {
-                $this->qty[$itemId] = $requestedQty;
+        if ($item) {
+            if ($item->jenisBahan->nama === 'Produksi') {
+                $bahanSetengahjadiDetails = $item->bahanSetengahjadiDetails()
+                    ->where('sisa', '>', 0)
+                    ->with(['bahanSetengahjadi' => function ($query) {
+                        $query->orderBy('tgl_masuk', 'asc');
+                    }])->get();
+
+                $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
+                if ($requestedQty > $totalAvailable) {
+                    $this->qty[$itemId] = $totalAvailable;
+                } elseif ($requestedQty < 0) {
+                    $this->qty[$itemId] = null;
+                } else {
+                    $this->qty[$itemId] = $requestedQty;
+                }
+                $this->updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $this->qty[$itemId], $bahanSetengahjadiDetails);
             }
-            $this->subtotals[$itemId] = $setengahJadiItem->unit_price * $this->qty[$itemId];
 
-            $this->details[$itemId] = [];
-            $this->details[$itemId][] = [
-                'kode_transaksi' => $setengahJadiItem->bahanSetengahjadi->kode_transaksi, // Assuming the relationship
-                'qty' => $this->qty[$itemId],
-                'unit_price' => $setengahJadiItem->unit_price
-            ];
+            elseif ($item->jenisBahan->nama !== 'Produksi') {
+                $purchaseDetails = $item->purchaseDetails()
+                    ->where('sisa', '>', 0)
+                    ->with(['purchase' => function ($query) {
+                        $query->orderBy('tgl_masuk', 'asc');
+                    }])->get();
 
-            $this->calculateTotalHarga();
-
-        }
-        elseif ($item) {
-            $purchaseDetails = $item->purchaseDetails()
-                ->where('sisa', '>', 0)
-                ->with(['purchase' => function ($query) {
-                    $query->orderBy('tgl_masuk', 'asc');
-                }])->get();
-
-            $totalAvailable = $purchaseDetails->sum('sisa');
-            if ($requestedQty > $totalAvailable) {
-                $this->qty[$itemId] = $totalAvailable;
-            } elseif ($requestedQty < 0) {
-                $this->qty[$itemId] = null;
-            } else {
-                $this->qty[$itemId] = $requestedQty;
+                $totalAvailable = $purchaseDetails->sum('sisa');
+                if ($requestedQty > $totalAvailable) {
+                    $this->qty[$itemId] = $totalAvailable;
+                } elseif ($requestedQty < 0) {
+                    $this->qty[$itemId] = null;
+                } else {
+                    $this->qty[$itemId] = $requestedQty;
+                }
+                $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
             }
-            $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
         }
+    }
+
+    protected function updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $qty, $bahanSetengahjadiDetails)
+    {
+        $remainingQty = $qty;
+        $totalPrice = 0;
+        $this->details_raw[$itemId] = [];
+        $this->details[$itemId] = [];
+
+        foreach ($bahanSetengahjadiDetails as $bahanSetengahjadiDetail) {
+            if ($remainingQty <= 0) break;
+
+            $availableQty = $bahanSetengahjadiDetail->sisa;
+
+            if ($availableQty > 0) {
+                $toTake = min($availableQty, $remainingQty);
+                $totalPrice += $toTake * $bahanSetengahjadiDetail->unit_price;
+
+                $this->details[$itemId][] = [
+                    'kode_transaksi' => $bahanSetengahjadiDetail->bahanSetengahjadi->kode_transaksi,
+                    'qty' => $toTake,
+                    'unit_price' => $bahanSetengahjadiDetail->unit_price
+                ];
+                $remainingQty -= $toTake;
+            }
+        }
+
+        $this->subtotals[$itemId] = $totalPrice;
+        $this->calculateTotalHarga();
     }
 
     protected function updateUnitPriceAndSubtotal($itemId, $qty, $purchaseDetails)
     {
         $remainingQty = $qty;
         $totalPrice = 0;
-        $this->details_raw[$itemId] = []; // Reset for item
-        $this->details[$itemId] = []; // Reset array details for this item
+        $this->details_raw[$itemId] = [];
+        $this->details[$itemId] = [];
 
         foreach ($purchaseDetails as $purchaseDetail) {
             if ($remainingQty <= 0) break;
@@ -173,9 +189,8 @@ class BahanProduksiCart extends Component
                 $toTake = min($availableQty, $remainingQty);
                 $totalPrice += $toTake * $purchaseDetail->unit_price;
 
-                // Store unit price as [kode_transaksi_masuk, qty, details]
                 $this->details[$itemId][] = [
-                    'kode_transaksi' => $purchaseDetail->purchase->kode_transaksi, // Assuming this is the column name
+                    'kode_transaksi' => $purchaseDetail->purchase->kode_transaksi,
                     'qty' => $toTake,
                     'unit_price' => $purchaseDetail->unit_price
                 ];

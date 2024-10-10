@@ -17,7 +17,7 @@
                         <input type="hidden" name="cartItems" value="{{ json_encode($this->getCartItemsForStorage()) }}">
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama ?? $item->nama_bahan }}</td>
                             <td class="px-6 py-4 text-right flex justify-end">
                                 <div class="flex items-center">
                                     <button wire:click="decreaseQuantity({{ $item->id }})"
@@ -42,7 +42,7 @@
                                     </button>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><span><strong>Rp.</strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><span><strong></strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span></td>
                             <td class="px-6 py-4 text-right flex justify-end">
                                 <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline" wire:click.prevent="removeItem({{ $item->id }})">
                                     <svg class="w-6 h-6 text-red-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
@@ -54,9 +54,6 @@
                     @endforeach
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
-                        <td class="px-6 py-4 text-right text-black">
-                            <strong></strong>
-                        </td>
                         <td class="px-6 py-4 text-right text-black">
                             <strong>Total Harga</strong>
                         </td>

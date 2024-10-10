@@ -259,13 +259,32 @@ class ProduksiController extends Controller
                             'sub_total' => $sub_total,
                         ]);
                     }
+
                     foreach ($details as $newDetail) {
                         $purchaseDetail = PurchaseDetail::where('bahan_id', $bahan_id)
                             ->whereHas('purchase', function ($query) use ($newDetail) {
                                 $query->where('kode_transaksi', $newDetail['kode_transaksi']);
                             })
                             ->where('unit_price', $newDetail['unit_price']) // Pengecekan unit_price
+                            ->whereHas('dataBahan', function ($query) {
+                                $query->whereHas('jenisBahan', function ($query) {
+                                    $query->where('nama', '!=', 'Produksi'); // Mengecek jenisBahan !== 'Produksi'
+                                });
+                            })
                             ->first();
+
+                        $bahanSetengahjadiDetail = BahanSetengahjadiDetails::where('bahan_id', $bahan_id)
+                            ->whereHas('bahanSetengahjadi', function ($query) use ($newDetail) {
+                                $query->where('kode_transaksi', $newDetail['kode_transaksi']);
+                            })
+                            ->where('unit_price', $newDetail['unit_price']) // Pengecekan unit_price
+                            ->whereHas('dataBahan', function ($query) {
+                                $query->whereHas('jenisBahan', function ($query) {
+                                    $query->where('nama', 'Produksi');
+                                });
+                            })
+                            ->first();
+
 
                         if ($purchaseDetail) {
                             // Cek apakah permintaan qty melebihi sisa stok
@@ -282,6 +301,21 @@ class ProduksiController extends Controller
                             }
 
                             $purchaseDetail->save();
+                        }elseif ($bahanSetengahjadiDetail) {
+                            // Cek apakah permintaan qty melebihi sisa stok
+                            if ($newDetail['qty'] > $bahanSetengahjadiDetail->sisa) {
+                                throw new \Exception('Permintaan qty melebihi sisa stok pada bahan: ' . $bahan_id);
+                            }
+
+                            // Kurangi stok sesuai qty permintaan
+                            $bahanSetengahjadiDetail->sisa -= $newDetail['qty'];
+
+                            // Jika sisa stok kurang dari 0, set sisa menjadi 0
+                            if ($bahanSetengahjadiDetail->sisa < 0) {
+                                $bahanSetengahjadiDetail->sisa = 0;
+                            }
+
+                            $bahanSetengahjadiDetail->save();
                         } else {
                             throw new \Exception('Purchase detail tidak ditemukan untuk bahan: ' . $bahan_id);
                         }
@@ -291,10 +325,19 @@ class ProduksiController extends Controller
 
             // Save bahan rusak if available
             if (!empty($bahanRusak)) {
-                // Create a new entry in the bahan_rusaks table
+                $lastTransaction = BahanRusak::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
+                if ($lastTransaction) {
+                    $last_transaction_number = intval(substr($lastTransaction->kode_transaksi, 6));
+                } else {
+                    $last_transaction_number = 0;
+                }
+                $new_transaction_number = $last_transaction_number + 1;
+                $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
+                $kode_transaksi = 'BR - ' . $formatted_number;
+
                 $bahanRusakRecord = BahanRusak::create([
                     'tgl_masuk' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
-                    'kode_transaksi' => $produksi->kode_produksi, // You can customize the transaction code as needed
+                    'kode_transaksi' => $kode_transaksi,
                 ]);
 
                 foreach ($bahanRusak as $item) {
@@ -403,7 +446,7 @@ class ProduksiController extends Controller
                     // Rollback jika ada kesalahan
                     DB::rollBack();
                     $errorMessage = $e->getMessage();
-                    return redirect()->back()->with('error', "Wajib unggah gambar produk.");
+                    return redirect()->back()->with('error', "Gagal update status produksi.".$errorMessage);
                 }
             }
 
@@ -444,7 +487,7 @@ class ProduksiController extends Controller
                     // Rollback jika ada kesalahan
                     DB::rollBack();
                     $errorMessage = $e->getMessage();
-                    return redirect()->back()->with('error', "Wajib unggah gambar produk.".$errorMessage);
+                    return redirect()->back()->with('error', "Gagal update status produksi.".$errorMessage);
                 }
             }
         }

@@ -168,7 +168,7 @@
                         </div>
                     </div>
                     @if ($produksi->status !== 'Selesai')
-                        <livewire:search-bahan-masuk/>
+                        <livewire:search-bahan-produksi/>
                     @endif
                     <livewire:edit-bahan-produksi-cart :produksiId="$produksiId" />
                 </div>

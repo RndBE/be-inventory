@@ -95,7 +95,7 @@
 
                             <div class="flex items-center">
                                 <label for="bahan_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk<sup class="text-red-500 text-base">*</sup></label>
-                                <select name="bahan_id" id="bahan_id" class="block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
+                                <select name="bahan_id" id="bahan_id" class="block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} autofocus required>
                                     <option value="">-- Pilih Bahan --</option>
                                     @foreach($bahanProduksi as $bahan)
                                         <option value="{{ $bahan->id }}" {{ old('bahan_id', $produksi->bahan_id) == $bahan->id ? 'selected' : '' }}>{{ $bahan->nama_bahan }}</option>
@@ -146,7 +146,7 @@
                                 <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
                                 <div class="relative w-3/4">
                                     <div class="flex item-center">
-                                        <input type="number" name="jml_produksi" value="{{ $produksi->jml_produksi }}"  id="jml_produksi" placeholder="" class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
+                                        <input type="number" name="jml_produksi" value="{{ $produksi->jml_produksi }}"  id="jml_produksi" placeholder="" class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required>
                                     </div>
                                 </div>
                                 @error('jml_produksi')

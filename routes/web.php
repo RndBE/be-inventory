@@ -21,6 +21,7 @@ use App\Http\Controllers\BahanKeluarController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\StokProduksiController;
 use App\Http\Controllers\BahanSetengahjadiController;
+use App\Http\Controllers\ProdukProduksiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,62 +63,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::resource('bahan-rusaks', BahanRusakController::class);
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
     Route::resource('bahan-jadis', BahanJadiController::class);
+    Route::resource('produk-produksis', ProdukProduksiController::class);
 
 
 
     Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('analytics');
     Route::get('/dashboard/fintech', [DashboardController::class, 'fintech'])->name('fintech');
-    Route::get('/ecommerce/customers', [CustomerController::class, 'index'])->name('customers');
-    Route::get('/ecommerce/orders', [OrderController::class, 'index'])->name('orders');
-    Route::get('/ecommerce/invoices', [InvoiceController::class, 'index'])->name('invoices');
-    Route::get('/ecommerce/shop', function () {
-        return view('pages/ecommerce/shop');
-    })->name('shop');
-    Route::get('/ecommerce/shop-2', function () {
-        return view('pages/ecommerce/shop-2');
-    })->name('shop-2');
-    Route::get('/ecommerce/product', function () {
-        return view('pages/ecommerce/product');
-    })->name('product');
-    Route::get('/ecommerce/cart', function () {
-        return view('pages/ecommerce/cart');
-    })->name('cart');
-    Route::get('/ecommerce/cart-2', function () {
-        return view('pages/ecommerce/cart-2');
-    })->name('cart-2');
-    Route::get('/ecommerce/cart-3', function () {
-        return view('pages/ecommerce/cart-3');
-    })->name('cart-3');
-    Route::get('/ecommerce/pay', function () {
-        return view('pages/ecommerce/pay');
-    })->name('pay');
-    Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns');
-    Route::get('/community/users-tabs', [MemberController::class, 'indexTabs'])->name('users-tabs');
-    Route::get('/community/users-tiles', [MemberController::class, 'indexTiles'])->name('users-tiles');
-    Route::get('/community/profile', function () {
-        return view('pages/community/profile');
-    })->name('profile');
-    Route::get('/community/feed', function () {
-        return view('pages/community/feed');
-    })->name('feed');
-    Route::get('/community/forum', function () {
-        return view('pages/community/forum');
-    })->name('forum');
-    Route::get('/community/forum-post', function () {
-        return view('pages/community/forum-post');
-    })->name('forum-post');
-    Route::get('/community/meetups', function () {
-        return view('pages/community/meetups');
-    })->name('meetups');
-    Route::get('/community/meetups-post', function () {
-        return view('pages/community/meetups-post');
-    })->name('meetups-post');
-    Route::get('/finance/cards', function () {
-        return view('pages/finance/credit-cards');
-    })->name('credit-cards');
-    Route::get('/finance/transactions', [TransactionController::class, 'index01'])->name('transactions');
-    Route::get('/finance/transaction-details', [TransactionController::class, 'index02'])->name('transaction-details');
-    Route::get('/job/job-listing', [JobController::class, 'index'])->name('job-listing');
+
     Route::get('/job/job-post', function () {
         return view('pages/job/job-post');
     })->name('job-post');

@@ -53,7 +53,7 @@
                             <div class="col-span-1 col-start-1">
                                 <label for="kode_bahan" class="block text-sm font-medium leading-6 text-gray-900">Nama Produk</label>
                                 <div class="mt-2">
-                                    <input value="{{ old('nama_bahan') }}" type="text" name="nama_bahan" id="nama_bahan" autocomplete="address-level1" class="border-b lock w-full border-0 py-1 text-gray-900 text-5xl leading-6">
+                                    <input value="{{ old('nama_bahan') }}" type="text" name="nama_bahan" id="nama_bahan" autocomplete="address-level1" class="border-b lock w-full border-0 py-1 text-gray-900 text-4xl leading-6">
                                     @error('nama_bahan')
                                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -92,8 +92,8 @@
                 <livewire:bahan-cart/>
 
                 <div class="mt-6 p-2 flex items-center justify-end gap-x-6">
-                    <a href="{{ route('bahan.index') }}" type="button" class="text-sm font-semibold leading-6 text-gray-900">Cancel</a>
-                    <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Save</button>
+                    <a href="{{ route('produk-produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
+                    <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
                 </div>
             </form>
         </div>

@@ -44,10 +44,10 @@
                                 @foreach($bahanJadiDetails as $detail)
                                 <tr class="border-b border-slate-200">
                                     <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
-                                        <img src="{{ $detail->gambar ? Storage::url('bahan-jadi/' . $detail->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $detail->nama_bahan }}" class="h-auto w-24 rounded-lg">
+                                        <img src="{{ $detail->dataBahan->gambar ? asset('images/' . $detail->dataBahan->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $detail->dataBahan->nama_bahan }}" class="h-auto w-24 rounded-lg">
                                     </td>
                                     <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
-                                        <div class="font-medium text-slate-700">{{ $detail->nama_produk }}</div>
+                                        <div class="font-medium text-slate-700">{{ $detail->dataBahan->nama_bahan }}</div>
                                     </td>
                                     <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $detail->qty }} {{ $detail->dataUnit->nama ?? 'N/A' }}</span></td>
                                     <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">Rp. {{ number_format($detail->unit_price, 2) }}</td>

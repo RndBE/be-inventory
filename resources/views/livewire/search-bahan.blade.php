@@ -1,4 +1,4 @@
-<div class="relative">
+<div class="relative p-4">
     <div class="card mb-0 border-0 shadow-sm bg-white">
         <div class="card-body">
             <div class="form-group mb-0">

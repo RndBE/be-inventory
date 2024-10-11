@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <div wire:loading class="card absolute mt-1 border-0 left-4 right-4 z-10 bg-white shadow-lg p-4">
+    <div wire:loading class="card absolute mt-1 border-0 left-0 right-0 z-10 bg-white shadow-lg">
         <div class="card-body shadow">
             <div class="flex justify-center">
                 <div class="spinner-border text-primary" role="status">
@@ -34,14 +34,17 @@
     @if(!empty($query))
         <div wire:click="resetQuery" class="fixed w-full h-full left-0 top-0 z-10"></div>
         @if($search_results->isNotEmpty())
-            <div class="card absolute mt-1 left-4 right-4 rounded-lg border-0 z-20 bg-white shadow-lg">
+            <div class="card absolute mt-1 left-0 right-0 border-0 z-20 bg-white shadow-lg">
                 <div class="card-body shadow">
                     <ul class="list-group list-group-flush">
                         <!-- List Hasil Pencarian -->
                         @foreach($search_results as $index => $bahan)
                             <li wire:click="selectBahan({{ $bahan->id }})"
                                 class="cursor-pointer {{ $selectedIndex === $index ? 'bg-blue-100 text-blue-900' : 'hover:bg-blue-50' }} p-2">
-                                {{ $bahan->nama_bahan }} | {{ $bahan->kode_bahan }}
+                                {{ $bahan->nama_bahan }} | {{ $bahan->kode_bahan }} |
+                                <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-400">
+                                    {{ $bahan->total_stok }} {{ $bahan->dataUnit->nama }}
+                                </span>
                             </li>
                         @endforeach
                         @if($search_results->count() >= $how_many)
@@ -55,7 +58,7 @@
                 </div>
             </div>
         @else
-            <div class="card absolute mt-1 border-4 left-4 right-4 z-10 bg-white">
+            <div class="card absolute mt-1 border-0 left-0 right-0 z-10 bg-white">
                 <div class="card-body shadow">
                     <div class="alert alert-warning mb-0">
                         No Product Found....

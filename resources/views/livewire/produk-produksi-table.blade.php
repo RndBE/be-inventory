@@ -51,7 +51,7 @@
     </div>
 
     <ul class="flex flex-wrap -m-1">
-        <li class="m-1">
+        {{-- <li class="m-1">
             <button wire:click="setFilter('Produk Setengah Jadi')" type="button"
                 class="group dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700 text-black dark:border-gray-500 bg-transparent border border-black font-medium rounded-full px-3 py-1 text-sm text-center transition duration-200 ease-in-out
                 hover:bg-black hover:text-white focus:bg-black focus:text-white group-focus:bg-black group-focus:text-white
@@ -66,7 +66,7 @@
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black {{ $filter === 'Produk Jadi' ? 'dark:bg-gray-700 bg-black text-black' : '' }}">
                 Produk Jadi
             </button>
-        </li>
+        </li> --}}
     </ul>
     <div class="relative overflow-x-auto pt-2">
         <div class="relative overflow-x-auto">
@@ -76,6 +76,8 @@
                         <th scope="col" class="p-4">No</th>
                         <th scope="col" class="px-6 py-3">Gambar</th>
                         <th scope="col" class="px-6 py-3">Nama Produk</th>
+                        <th scope="col" class="px-6 py-3"></th>
+                        <th scope="col" class="px-6 py-3"></th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -83,7 +85,7 @@
                     @forelse($produkproduksis as $index => $produkproduksi)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $produkproduksis->firstItem() + $index }}</div></td>
-                            <td class="px-6 py-4">{{ $produkproduksi->gambar }}</td>
+                            <td class="px-6 py-4"><img src="{{ $produkproduksi->gambar ? asset('storage/' . $produkproduksi->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $produkproduksi->nama_produk }}" class="h-auto w-24 rounded-lg"></td>
                             <td class="px-6 py-4">{{ $produkproduksi->nama_produk }}</td>
                             <td class="px-6 py-4"></td>
                             <td class="px-6 py-4">
@@ -96,28 +98,26 @@
                                 @endif --}}
                             </td>
                             <td class="px-6 py-4">
-                                <div class="row flex space-x-2">
+                                <div class="produkproduksi flex space-x-2">
                                     {{-- <a href="{{ route('bahan-keluars.show', $produkproduksi->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600 focus:text-white focus:bg-blue-600 focus:border-blue-600">
                                         <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/><path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
                                     </a> --}}
-                                    {{-- @if($produkproduksi->status !== 'Disetujui' && $produkproduksi->status !== 'Ditolak')
-                                        <button wire:click="editBahanKeluar({{ $produkproduksi->id }})" data-modal-target="editbahankeluar-modal" data-modal-toggle="editbahankeluar-modal" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                                        {{-- <button wire:click="editBahanKeluar({{ $produkproduksi->id }})" data-modal-target="editbahankeluar-modal" data-modal-toggle="editbahankeluar-modal" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
                                             <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                                 <path stroke="currentColor" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
                                             </svg>
-                                        </button>
-                                        <button wire:click="deleteBahanKeluars({{ $produkproduksi->id }})" data-modal-target="deletebahankeluars-modal" data-modal-toggle="deletebahankeluars-modal" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 active:border-red-600 active:text-white active:bg-red-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                                        </button> --}}
+                                        <button wire:click="deleteprodukproduksis({{ $produkproduksi->id }})" data-modal-target="deleteprodukproduksis-modal" data-modal-toggle="deleteprodukproduksis-modal" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 active:border-red-600 active:text-white active:bg-red-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
                                             <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
                                             </svg>
                                         </button>
-                                    @endif --}}
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td colspan="9" class="px-6 py-4 text-center">
+                            <td colspan="4" class="px-6 py-4 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
                                 </svg>
@@ -138,9 +138,9 @@
             {{$produkproduksis->links()}}
         </div>
         {{-- MODAL --}}
-        {{-- @include('pages.bahan-keluars.test')
-        @include('pages.bahan-keluars.edit')
-        @include('pages.bahan-keluars.remove') --}}
+        {{-- @include('pages.bahan-keluars.test') --}}
+        {{-- @include('pages.bahan-keluars.edit') --}}
+        @include('pages.produk-produksis.remove')
     </div>
 </div>
 <script>

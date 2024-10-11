@@ -47,35 +47,40 @@
 
     <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
         <div class="w-full bg-white border border-gray-200 rounded-lg shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
-            <form action="{{ route('bahan.store') }}" method="POST" enctype="multipart/form-data" id="produksiForm">
+            <form action="{{ route('produk-produksis.store') }}" method="POST" enctype="multipart/form-data" id="produksiForm">
                 @csrf
                 <div class="space-y-12">
                     <div class="border-gray-900/10 pb-12">
                         <div class="p-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-2">
-                            <!-- First column: Product Name Input -->
                             <div class="col-span-1 col-start-1">
-                                <label for="kode_bahan" class="block text-sm font-medium leading-6 text-gray-900">Nama Produk</label>
+                                <label for="nama_produk" class="block text-sm font-medium leading-6 text-gray-900">Nama Produk</label>
                                 <div class="mt-2">
-                                    <input value="{{ old('nama_bahan') }}" type="text" name="nama_bahan" id="nama_bahan" autocomplete="address-level1" class="border-b lock w-full border-0 py-1 text-gray-900 text-4xl leading-6">
-                                    @error('nama_bahan')
-                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                    <input value="{{ old('nama_produk') }}" type="text" name="nama_produk" id="nama_produk" autocomplete="address-level1" class="border-b lock w-full border-0 py-1 text-gray-900 text-4xl leading-6" required autofocus>
+                                    @error('nama_produk')
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
                                 </div>
                             </div>
 
-                            <!-- Second column: Image Upload (Positioned to the right) -->
                             <div class="sm:col-span-1 flex justify-end">
-                                <div class="mt-2">
-                                    <div id="image-preview" class="max-w-sm p-6 mb-4 bg-gray-100 border-dashed border-2 border-gray-400 rounded-lg items-center mx-auto text-center cursor-pointer">
-                                        <input id="upload" type="file" class="hidden" accept="image/*" />
-                                        <label for="upload" class="cursor-pointer">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-gray-700 mx-auto mb-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                                            </svg>
-                                            <p class="font-normal text-sm text-gray-400 md:px-6">Click to upload</p>
-                                            <p class="font-normal text-sm text-gray-400 md:px-6"><b class="text-gray-600">JPG, PNG, or JPEG</b> format.</p>
-                                        </label>
+                                <div class="mt-2 flex flex-col justify-center items-center rounded-lg border border-dashed border-gray-900/25 px-6 py-4 cursor-pointer" onclick="triggerFileInput()">
+                                    <div class="text-center">
+                                        <svg id="iconInstructions" class="mx-auto h-12 w-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+                                        </svg>
+                                        <div id="uploadInstructions" class="mt-4 flex text-sm leading-6 text-gray-600">
+                                            <span>Click anywhere to upload</span>
+                                        </div>
+                                        <p id="fileInstructions" class="text-xs leading-5 text-gray-600">PNG, JPG, JPEG up to 2MB</p>
                                     </div>
+                                    <div id="imagePreview" class="mt-4 w-full max-w-[200px] hidden">
+                                        <img id="previewImg" class="w-full h-auto rounded-lg" alt="Image preview">
+                                    </div>
+                                    <p id="fileName" class="mt-0 text-sm text-gray-600 text-center">No file selected</p>
+                                    <input id="gambar" name="gambar" type="file" class="sr-only" accept=".png, .jpg, .jpeg" onchange="previewImage()">
+                                    @error('gambar')
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -87,64 +92,67 @@
         </div>
     </div>
     <script>
+        setTimeout(function() {
+            const errorMessages = document.querySelectorAll('.error-message');
+            errorMessages.forEach(function(message) {
+                message.style.display = 'none';
+            });
+        }, 3000);
+    </script>
+    <script>
         document.getElementById('saveButton').addEventListener('click', function() {
             document.getElementById('produksiForm').submit();
         });
     </script>
     <script>
-        const uploadInput = document.getElementById('upload');
-        const filenameLabel = document.getElementById('filename');
-        const imagePreview = document.getElementById('image-preview');
+        function updateFileName() {
+            const fileInput = document.getElementById('gambar');
+            const fileName = fileInput.files[0] ? fileInput.files[0].name : '';
+            const fileNameDisplay = document.getElementById('fileName');
+            fileNameDisplay.textContent = fileName ? `${fileName}` : 'No file selected';
+        }
+    </script>
+    <script>
+        function triggerFileInput() {
+            document.getElementById('gambar').click();
+        }
+        function previewImage() {
+            const fileInput = document.getElementById('gambar');
+            const fileNameDisplay = document.getElementById('fileName');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const uploadInstructions = document.getElementById('uploadInstructions');
+            const fileInstructions = document.getElementById('fileInstructions');
+            const iconInstructions = document.getElementById('iconInstructions');
 
-        // Check if the event listener has been added before
-        let isEventListenerAdded = false;
+            const fileName = fileInput.files[0] ? fileInput.files[0].name : '';
+            fileNameDisplay.textContent = fileName ? `${fileName}` : 'No file selected';
 
-        uploadInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
 
-            if (file) {
-            filenameLabel.textContent = file.name;
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    previewImg.classList.remove('hidden');
+                    imagePreview.classList.remove('hidden');
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.innerHTML =
-                `<img src="${e.target.result}" class="max-h-48 rounded-lg mx-auto" alt="Image preview" />`;
-                imagePreview.classList.remove('border-dashed', 'border-2', 'border-gray-400');
+                    uploadInstructions.classList.add('hidden');
+                    fileInstructions.classList.add('hidden');
+                    iconInstructions.classList.add('hidden');
+                };
 
-                // Add event listener for image preview only once
-                if (!isEventListenerAdded) {
-                imagePreview.addEventListener('click', () => {
-                    uploadInput.click();
-                });
-
-                isEventListenerAdded = true;
-                }
-            };
-            reader.readAsDataURL(file);
+                reader.readAsDataURL(fileInput.files[0]);
             } else {
-            filenameLabel.textContent = '';
-            imagePreview.innerHTML =
-                `<label for="upload" class="cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-gray-700 mx-auto mb-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                    </svg>
-                    <p class="font-normal text-sm text-gray-400 md:px-6">Click to upload</p>
-                    <p class="font-normal text-sm text-gray-400 md:px-6"><b class="text-gray-600">JPG, PNG, or JPEG</b> format.</p>
-                </label>
-                `;
-            imagePreview.classList.add('border-dashed', 'border-2', 'border-gray-400');
+                previewImg.src = '';
+                previewImg.classList.add('hidden');
+                imagePreview.classList.add('hidden');
 
-            // Remove the event listener when there's no image
-            imagePreview.removeEventListener('click', () => {
-                uploadInput.click();
-            });
+                fileNameDisplay.textContent = 'No file selected';
 
-            isEventListenerAdded = false;
+                uploadInstructions.classList.remove('hidden');
+                fileInstructions.classList.remove('hidden');
+                iconInstructions.classList.remove('hidden');
             }
-        });
-
-        uploadInput.addEventListener('click', (event) => {
-            event.stopPropagation();
-        });
-        </script>
+        }
+    </script>
 </x-app-layout>

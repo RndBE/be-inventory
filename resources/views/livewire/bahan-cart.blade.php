@@ -15,7 +15,6 @@
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
 
-
                             <td class="px-6 py-4 text-center">
                                 <a href="#"
                                    class="flex justify-center items-center text-center font-medium text-red-600 dark:text-red-500 hover:underline"

@@ -12,7 +12,7 @@ class ProdukProduksiTable extends Component
 
     public $search = '';
     public $perPage = 5;
-    public $id_bahan, $nama_bahan;
+    public $id_produkproduksi, $nama_bahan;
     public $filter = 'semua';
 
     public function setFilter($value)
@@ -40,6 +40,11 @@ class ProdukProduksiTable extends Component
         return view('livewire.produk-produksi-table', [
             'produkproduksis' => $produkproduksis,
         ]);
+    }
+
+    public function deleteprodukproduksis(int $id)
+    {
+        $this->id_produkproduksi = $id;
     }
 
     public function updatingSearch()

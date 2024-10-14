@@ -3,150 +3,70 @@
 namespace App\Livewire;
 
 use App\Models\Bahan;
+use App\Models\ProdukProduksiDetail;
 use Livewire\Component;
-use Illuminate\Support\Facades\Session;
 
 class BahanCart extends Component
 {
     public $cart = [];
-    public $qty = [];
-    public $unit_price = [];
-    public $unit_price_raw = [];
-    public $subtotals = [];
-    public $totalharga = 0;
-    public $editingItemId = null;
+    public $produkProduksisId; // untuk menangkap id produk produksi dalam mode edit
 
     protected $listeners = ['bahanSelected' => 'addToCart'];
-    public function mount()
+
+    public function mount($produkProduksisId = null)
     {
-        // Load cart from session if it exists
-        $this->cart = Session::get('cart', []);
-        $this->qty = Session::get('qty', []);
-        $this->subtotals = Session::get('subtotals', []);
-        $this->totalharga = array_sum($this->subtotals);
-    }
-    public function addToCart($bahan)
-    {
-        if (is_array($bahan)) {
-            $bahan = (object) $bahan;
-        }
-        // Cek apakah bahan sudah ada di keranjang
-        $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
-        if ($existingItemKey !== false) {
-            // Jika bahan sudah ada, tingkatkan kuantitas
-            $this->qty[$bahan->id]++;
+        // Jika dalam mode edit, ambil bahan terkait produk produksi
+        $this->produkProduksisId = $produkProduksisId;
+
+        if ($this->produkProduksisId) {
+            $this->loadCartItems();
         } else {
-            // Jika bahan belum ada, tambahkan ke keranjang
-            $this->cart[] = $bahan;
-            $this->qty[$bahan->id] = 1; // Set kuantitas menjadi 1
-            $this->unit_price_raw[$bahan->id] = 0;
-            $this->unit_price[$bahan->id] = null;
-        }
-        // Hitung subtotal untuk item yang ditambahkan atau diperbarui
-        $this->calculateSubTotal($bahan->id);
-
-        $this->updateSession();
-    }
-
-    public function updateSession()
-    {
-        // Store cart data in session
-        Session::put('cart', $this->cart);
-        Session::put('qty', $this->qty);
-        Session::put('subtotals', $this->subtotals);
-        Session::put('totalharga', $this->totalharga);
-    }
-
-    public function calculateSubTotal($itemId)
-    {
-        $unitPrice = isset($this->unit_price[$itemId]) ? intval($this->unit_price[$itemId]) : 0;
-        $qty = isset($this->qty[$itemId]) ? intval($this->qty[$itemId]) : 0;
-
-        $this->subtotals[$itemId] = $unitPrice * $qty;
-
-        // Hitung total harga setelah memperbarui subtotal
-        $this->calculateTotalHarga();
-    }
-
-
-    public function calculateTotalHarga()
-    {
-        $this->totalharga = array_sum($this->subtotals);
-    }
-
-
-    public function increaseQuantity($itemId)
-    {
-        $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
-        $this->calculateSubTotal($itemId); // Panggil untuk menghitung subtotal
-    }
-
-    public function decreaseQuantity($itemId)
-    {
-        if (isset($this->qty[$itemId]) && $this->qty[$itemId] > 1) {
-            $this->qty[$itemId]--;
-            $this->calculateSubTotal($itemId); // Panggil untuk menghitung subtotal
+            // Inisialisasi keranjang dari sesi atau mulai dengan array kosong
+            $this->cart = session()->get('cart', []);
         }
     }
 
-    public function formatToRupiah($itemId)
+    public function loadCartItems()
     {
-        // Pastikan untuk menghapus 'Rp.' dan mengonversi ke integer
-        $this->unit_price[$itemId] = intval(str_replace(['.', ' '], '', $this->unit_price_raw[$itemId]));
-        $this->unit_price_raw[$itemId] = $this->unit_price[$itemId];
-        $this->calculateSubTotal($itemId); // Hitung subtotal setelah format
-        $this->editingItemId = null; // Reset ID setelah selesai
-    }
+        // Ambil bahan terkait produk produksi dari database
+        $details = ProdukProduksiDetail::where('produk_produksis_id', $this->produkProduksisId)
+            ->with('dataBahan')
+            ->get();
 
-    public function updateQuantity($itemId)
-    {
-        // Pastikan kuantitas adalah angka dan tidak kurang dari 1
-        if (isset($this->qty[$itemId])) {
-            $this->qty[$itemId] = max(0, intval($this->qty[$itemId]));
-            $this->calculateSubTotal($itemId);
-        }
-    }
-
-    public function editItem($itemId)
-    {
-        $this->editingItemId = $itemId; // Set ID item yang sedang diedit
-        $this->unit_price_raw[$itemId] = $this->unit_price[$itemId]; // Ambil nilai untuk diedit
-    }
-
-    public function saveUnitPrice($itemId)
-    {
-        $this->formatToRupiah($itemId);
-    }
-
-    public function removeItem($itemId)
-    {
-        // Hapus item dari keranjang
-        $this->cart = collect($this->cart)->filter(function ($item) use ($itemId) {
-            return $item->id !== $itemId;
-        })->values()->all(); // Menggunakan collect untuk memfilter dan mengembalikan array
-        // Hapus subtotal yang terkait dengan item yang dihapus
-        unset($this->subtotals[$itemId]);
-        // Hitung ulang total harga setelah penghapusan
-        $this->calculateTotalHarga();
-        $this->updateSession();
-    }
-
-    public function getCartItemsForStorage()
-    {
-        $items = [];
-        foreach ($this->cart as $item) {
-            $itemId = $item->id; // Store the item ID for reuse
-            $items[] = [
-                'id' => $itemId,
-                'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
-                'unit_price' => isset($this->unit_price_raw[$itemId]) ? $this->unit_price_raw[$itemId] : 0,
-                'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
+        // Konversi ke format yang sesuai untuk keranjang
+        foreach ($details as $detail) {
+            $this->cart[] = [
+                'id' => $detail->dataBahan->id,
+                'nama_bahan' => $detail->dataBahan->nama_bahan,
             ];
         }
-        return $items;
     }
 
+    public function addToCart($bahan)
+    {
+        // Konversi objek menjadi array
+        $bahan = (array) $bahan;
 
+        // Periksa apakah bahan sudah ada di keranjang
+        if (!collect($this->cart)->contains('id', $bahan['id'])) {
+            // Tambahkan bahan ke keranjang
+            $this->cart[] = $bahan;
+
+            // Simpan ke sesi
+            session()->put('cart', $this->cart);
+        }
+    }
+
+    public function removeItem($bahanId)
+    {
+        // Filter menggunakan koleksi
+        $this->cart = collect($this->cart)->reject(function ($item) use ($bahanId) {
+            return isset($item['id']) && $item['id'] == $bahanId;
+        })->toArray();  // Konversi kembali ke array setelah reject
+
+        // Simpan pembaruan ke sesi
+        session()->put('cart', $this->cart);
+    }
 
     public function render()
     {

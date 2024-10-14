@@ -12,7 +12,7 @@ class SearchBahan extends Component
     public $query;
     public $search_results;
     public $how_many;
-    public $selectedIndex = -1; // -1 berarti tidak ada yang dipilih
+    public $selectedIndex = -1; 
 
 
     public function mount() {
@@ -28,18 +28,13 @@ class SearchBahan extends Component
 
     public function updatedQuery()
     {
-        $this->search_results = Bahan::with('dataUnit', 'purchaseDetails')
+        $this->search_results = Bahan::with('dataUnit')
             ->where('nama_bahan', 'like', '%' . $this->query . '%')
             ->orWhere('kode_bahan', 'like', '%' . $this->query . '%')
             ->take($this->how_many)
             ->get();
 
-        // Calculate total stock for each result
-        foreach ($this->search_results as $bahan) {
-            $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
-        }
-
-        $this->selectedIndex = -1; // Reset selected index
+        $this->selectedIndex = -1;
     }
 
 
@@ -74,9 +69,6 @@ class SearchBahan extends Component
         } else {
             $this->selectedIndex = 0; // Kembali ke atas jika sudah di bawah
         }
-        foreach ($this->search_results as $bahan) {
-            $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
-        }
     }
 
     public function selectPrevious()
@@ -86,17 +78,11 @@ class SearchBahan extends Component
         } else {
             $this->selectedIndex = $this->search_results->count() - 1; // Kembali ke bawah jika sudah di atas
         }
-        foreach ($this->search_results as $bahan) {
-            $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
-        }
     }
 
 
     public function selectCurrent()
     {
-        foreach ($this->search_results as $bahan) {
-            $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
-        }
         if ($this->selectedIndex >= 0 && $this->selectedIndex < $this->search_results->count()) {
             $this->selectBahan($this->search_results[$this->selectedIndex]->id);
         }

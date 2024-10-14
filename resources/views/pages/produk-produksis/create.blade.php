@@ -1,6 +1,7 @@
 @section('title', 'Tambah Produk | BE INVENTORY')
 
 <x-app-layout>
+
     @props(['variant' => ''])
     <x-app.secondary-header :variant="$attributes['headerVariant']">
         <div class="flex">
@@ -46,6 +47,31 @@
     </x-app.secondary-header>
 
     <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+        @if (session('success'))
+            <div id="successAlert" class="flex items-center p-4 mb-4 text-sm text-green-800 border border-green-300 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800" role="alert">
+                <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                </svg>
+                <span class="sr-only">Info</span>
+                <div>
+                    <strong class="font-bold">Success!</strong>
+                    <span class="font-medium">{{ session('success') }}</span>
+                </div>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div id="errorAlert" class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
+                <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                </svg>
+                <span class="sr-only">Info</span>
+                <div>
+                    <strong class="font-bold">Error!</strong>
+                    <span class="font-medium">{{ session('error') }}</span>
+                </div>
+            </div>
+        @endif
         <div class="w-full bg-white border border-gray-200 rounded-lg shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
             <form action="{{ route('produk-produksis.store') }}" method="POST" enctype="multipart/form-data" id="produksiForm">
                 @csrf
@@ -91,6 +117,28 @@
             </form>
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Atur waktu delay dalam milidetik (contoh: 5000 = 5 detik)
+            const delay = 5000;
+
+            // Menghilangkan alert sukses
+            const successAlert = document.getElementById('successAlert');
+            if (successAlert) {
+                setTimeout(() => {
+                    successAlert.style.display = 'none';
+                }, delay);
+            }
+
+            // Menghilangkan alert error
+            const errorAlert = document.getElementById('errorAlert');
+            if (errorAlert) {
+                setTimeout(() => {
+                    errorAlert.style.display = 'none';
+                }, delay);
+            }
+        });
+    </script>
     <script>
         setTimeout(function() {
             const errorMessages = document.querySelectorAll('.error-message');

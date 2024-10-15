@@ -46,11 +46,6 @@
     </x-app.secondary-header>
 
     <div class="px-4 sm:px-6 lg:px-8 py-2 w-full max-w-9xl mx-auto">
-        @if ($errors->any())
-        <script>
-            alert("{{ $errors->first() }}");
-        </script>
-    @endif
         @if (session('success'))
             <div id="successAlert" class="flex items-center p-4 mb-4 text-sm text-green-800 border border-green-300 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800" role="alert">
                 <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -95,11 +90,11 @@
                             </div>
 
                             <div class="sm:col-span-1 flex justify-end">
-                                <div class="mt-2 flex flex-col justify-center items-center rounded-lg border border-dashed border-gray-900/25 px-6 py-4 cursor-pointer" onclick="triggerFileInput()">
+                                <div class="flex flex-col justify-center items-center rounded-lg border border-dashed border-gray-800/25 px-1 py-1 cursor-pointer" onclick="triggerFileInput()">
                                     <div class="text-center">
                                         <span class="text-sm text-gray-600"></span>
                                     </div>
-                                    <div id="imagePreview" class="mt-4 w-full max-w-[200px] {{ $produkProduksis->gambar ? '' : 'hidden' }}">
+                                    <div id="imagePreview" class="w-full max-w-[200px] {{ $produkProduksis->gambar ? '' : 'hidden' }}">
                                         @if($produkProduksis->gambar)
                                             <img id="previewImg" class="w-full h-auto rounded-lg" src="{{ asset('storage/'.$produkProduksis->gambar) }}" alt="Image preview">
                                         @else

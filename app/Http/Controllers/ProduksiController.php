@@ -10,6 +10,7 @@ use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
 use App\Models\DetailProduksi;
+use App\Models\ProdukProduksi;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
 use App\Models\BahanJadiDetails;
@@ -36,11 +37,9 @@ class ProduksiController extends Controller
     public function create()
     {
         $units = Unit::all();
-        $bahanProduksi = Bahan::whereHas('jenisBahan', function ($query) {
-            $query->where('nama', 'like', '%Produksi%');
-        })->get();
+        $produkProduksi = ProdukProduksi::all();
 
-        return view('pages.produksis.create', compact('units', 'bahanProduksi'));
+        return view('pages.produksis.create', compact('units', 'produkProduksi'));
     }
 
     /**
@@ -48,7 +47,7 @@ class ProduksiController extends Controller
      */
     public function store(Request $request)
     {
-        //dd($request->all());
+        dd($request->all());
         $cartItems = json_decode($request->cartItems, true);
         $validator = Validator::make([
             'bahan_id' => $request->bahan_id,

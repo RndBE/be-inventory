@@ -60,16 +60,11 @@
 
             <div class="flex items-center">
                 <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
-                <div class="flex item-center mb-4">
-                    <input type="number" name="jml_produksi" id="jml_produksi" placeholder="Jumlah Produksi"
-                           class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm
-                           ring-1 ring-inset ring-gray-300 placeholder:text-gray-400
-                           focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                           required
-                           wire:model.debounce.500ms="jmlProduksi"
-                           wire:keyup="updateJmlBahan">
+                <div class="relative w-3/4">
+                    <div class="flex item-center">
+                        <input type="number" name="jml_produksi"  id="jml_produksi" placeholder="" class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
+                    </div>
                 </div>
-
                 @error('jml_produksi')
                     <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                 @enderror
@@ -107,7 +102,7 @@
                                 {{ $item->nama ?? $item->nama_bahan }}
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                bahan_diproduksi / {{ $jml_bahan[$item->id] ?? 0 }}
+                                bahan_diproduksi / max_bahan
                             </td>
                             <td class="px-6 py-4 text-right flex justify-end">
 
@@ -115,6 +110,12 @@
                                     @if(isset($warningMessage[$item->id]))
                                         <span class="text-red-500 text-sm pr-2">{{ $warningMessage[$item->id] }}</span> <!-- Display warning message -->
                                     @endif
+                                    <button wire:click="decreaseQuantity({{ $item->id }})"
+                                        class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                                        type="button">
+                                        <span class="sr-only">Decrease Quantity</span>
+                                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"/></svg>
+                                    </button>
 
                                     <input value="{{ old('qty.'.$item->id, $qty[$item->id] ?? 0) }}"
                                         type="number"
@@ -122,6 +123,13 @@
                                         wire:keyup="updateQuantity({{ $item->id }})"
                                         class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                         placeholder="0" min="0" required />
+
+                                    <button wire:click="increaseQuantity({{ $item->id }})"
+                                        class="inline-flex items-center justify-center h-6 w-6 p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                                        type="button">
+                                        <span class="sr-only">Increase Quantity</span>
+                                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/></svg>
+                                    </button>
                                 </div>
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><span><strong></strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span></td>

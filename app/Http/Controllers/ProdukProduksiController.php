@@ -65,7 +65,6 @@ class ProdukProduksiController extends Controller
 
     public function update(Request $request, $id)
     {
-        dd($request->all());
         $validated = $request->validate([
             'nama_produk' => 'required|string|max:255',
             'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -87,10 +86,12 @@ class ProdukProduksiController extends Controller
                 $validated['gambar'] = $produkproduksi->gambar;
             }
 
-            $produkproduksi->update($validated);
+            $produkproduksi->update([
+                'nama_produk' => $validated['nama_produk'],
+                'gambar' => $validated['gambar'],
+            ]);
 
             if ($request->has('cartItems')) {
-
                 $produkproduksi->produkProduksiDetails()->delete();
 
                 foreach ($request->cartItems as $item) {
@@ -102,11 +103,13 @@ class ProdukProduksiController extends Controller
                 }
             }
 
-            return redirect()->route('produk-produksis.index')->with('success', 'Produk berhasil diperbarui.');
+            return redirect()->back()->with('success', 'Bahan produk berhasil diperbarui.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui produk: ' . $e->getMessage());
         }
     }
+
+
 
     public function destroy($id)
     {

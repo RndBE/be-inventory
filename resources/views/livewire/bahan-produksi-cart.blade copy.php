@@ -157,8 +157,3 @@
         </div>
     </div>
 </div>
-<script>
-    document.getElementById('bahan_id').addEventListener('change', function() {
-        @this.call('bahanSelected', this.value);
-    });
-</script>

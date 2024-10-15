@@ -20,7 +20,7 @@ class BahanCart extends Component
         if ($this->produkProduksisId) {
             $this->loadCartItems();
         } else {
-            $this->cart = session()->get('cart', []);
+            $this->cart = [];
         }
     }
 

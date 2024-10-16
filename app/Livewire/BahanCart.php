@@ -34,6 +34,7 @@ class BahanCart extends Component
             $this->cart[] = [
                 'id' => $detail->dataBahan->id,
                 'nama_bahan' => $detail->dataBahan->nama_bahan,
+                'jml_bahan' => $detail->jml_bahan ?? 0,
             ];
         }
     }

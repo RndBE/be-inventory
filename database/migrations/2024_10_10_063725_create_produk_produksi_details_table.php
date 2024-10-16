@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('produk_produksis_id')->constrained('produk_produksis')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('bahan_id')->constrained('bahan');
+            $table->integer('jml_bahan')->nullable();
+            $table->integer('used_materials')->nullable();
             $table->timestamps();
         });
     }

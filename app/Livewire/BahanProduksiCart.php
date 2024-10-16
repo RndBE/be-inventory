@@ -183,9 +183,6 @@ class BahanProduksiCart extends Component
         return 0;
     }
 
-
-
-
     public function updateQuantity($itemId)
     {
         $requestedQty = $this->qty[$itemId] ?? 0;
@@ -329,6 +326,7 @@ class BahanProduksiCart extends Component
             $items[] = [
                 'id' => $itemId,
                 'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
+                'jml_bahan' => isset($this->jml_bahan[$itemId]) ? $this->jml_bahan[$itemId] : 0,
                 'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
                 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
             ];

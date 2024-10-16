@@ -106,7 +106,7 @@
                                 {{ $item->nama ?? $item->nama_bahan }}
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                {{ $used_materials[$item->id] ?? 0 }} / {{ $jml_bahan[$item->id] ?? 0 }}
+                                {{ isset($jml_bahan[$item->id]) ? $jml_bahan[$item->id] : 0 }}
                             </td>
                             <td class="px-6 py-4 text-right flex justify-end">
 

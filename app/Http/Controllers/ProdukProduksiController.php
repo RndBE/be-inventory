@@ -23,6 +23,7 @@ class ProdukProduksiController extends Controller
 
     public function store(Request $request)
     {
+        //dd($request->all());
         try {
             $validated = $request->validate([
                 'nama_produk' => 'required|string|max:255',
@@ -56,9 +57,12 @@ class ProdukProduksiController extends Controller
             if ($request->has('cartItems')) {
                 foreach ($request->cartItems as $item) {
                     $item = json_decode($item, true);
+                    $quantity = $request->input('jml_bahan.' . $item['id'], 0);
                     ProdukProduksiDetail::create([
                         'produk_produksis_id' => $produkproduksi->id,
                         'bahan_id' => $item['id'],
+                        'jml_bahan' => $quantity,
+                        'used_materials' => 0,
                     ]);
                 }
             }
@@ -119,9 +123,12 @@ class ProdukProduksiController extends Controller
 
                 foreach ($request->cartItems as $item) {
                     $item = json_decode($item, true);
+                    $quantity = $request->input('jml_bahan.' . $item['id'], 0);
                     ProdukProduksiDetail::create([
                         'produk_produksis_id' => $produkproduksi->id,
                         'bahan_id' => $item['id'],
+                        'jml_bahan' => $quantity,
+                        'used_materials' => 0,
                     ]);
                 }
             }

@@ -21,6 +21,7 @@ class BahanProduksiCart extends Component
     public $selectedProdukId = null;
     public $warningMessage = [];
     public $jml_bahan = [];
+    public $used_materials = [];
     public $jmlProduksi,$originalJmlBahan;
 
     protected $listeners = [
@@ -41,6 +42,7 @@ class BahanProduksiCart extends Component
             $this->qty = [];
             $this->warningMessage = [];
             $this->jml_bahan = [];
+            $this->used_materials = [];
             $this->subtotals = [];
             $this->totalharga = 0;
 
@@ -50,7 +52,8 @@ class BahanProduksiCart extends Component
                 foreach ($produk->produkProduksiDetails as $detail) {
                     if ($detail->dataBahan) {
                         $jmlBahan = $detail->jml_bahan ?? 0;
-                        $this->addToCart($detail->dataBahan, $jmlBahan );
+                        $usedMaterials = $detail->used_materials ?? 0;
+                        $this->addToCart($detail->dataBahan, $jmlBahan, $usedMaterials);
 
                         $stock = $this->checkRemainingStock($detail->dataBahan->id);
                         if ($stock === 'Not Available') {
@@ -62,52 +65,69 @@ class BahanProduksiCart extends Component
         }
     }
 
-    public function addToCart($bahan, $jmlBahan)
+    public function addToCart($bahan, $jmlBahan, $usedMaterials)
     {
         if (is_array($bahan)) {
             $bahan = (object) $bahan;
         }
-
+        //dd($bahan);
         $bahanId = $bahan->id ?? $bahan->bahan_id;
         $existingItemKey = array_search($bahanId, array_column($this->cart, 'id'));
         $currentStock = $this->checkRemainingStock($bahanId);
 
         if ($existingItemKey !== false) {
+            // If item already exists, adjust the quantity based on current stock
             if ($this->qty[$bahanId] < $currentStock) {
                 $this->qty[$bahanId]++;
                 $this->calculateSubTotal($bahanId);
             }
         } else {
+            // If it's a new item, initialize the quantity
             $this->cart[] = $bahan;
-            $this->qty[$bahanId] = $currentStock;
+            if ($currentStock === 'Not Available') {
+                $this->qty[$bahanId] = 0; // No stock available
+            } elseif ($currentStock >= $jmlBahan) {
+                $this->qty[$bahanId] = $jmlBahan; // Set qty to jmlBahan
+            } else {
+                $this->qty[$bahanId] = $currentStock; // Set qty to current stock
+            }
+
+            $this->originalJmlBahan[$bahanId] = $jmlBahan;
             $this->jml_bahan[$bahanId] = $jmlBahan;
+            $this->used_materials[$bahanId] = $usedMaterials;
             $this->calculateSubTotal($bahanId);
         }
     }
 
     public function updateJmlBahan()
     {
-        // Loop through cart items and update jml_bahan
+        // dd($this->cart);
         foreach ($this->cart as $item) {
-            $itemId = $item->id; // Get the item ID
+            $itemObject = (object) $item;
+            $bahanId = $itemObject->id ?? $itemObject->bahan_id;
+            //dd($itemObject);
+            $currentStock = $this->checkRemainingStock($bahanId);
+            $originalJmlBahan = $this->originalJmlBahan[$bahanId] ?? 0;
 
-            // Store the original jml_bahan in case we need to reset it
-            $originalJmlBahan = $this->originalJmlBahan[$itemId] ?? 0;
-
-            // Check the value of jmlProduksi
-            if (is_null($this->jmlProduksi)) {
-                // If jmlProduksi is null, reset jml_bahan to its original value
-                $this->jml_bahan[$itemId] = $originalJmlBahan;
+            // Calculate jml_bahan based on jmlProduksi
+            if ($this->jmlProduksi < 0) {
+                $this->jml_bahan[$bahanId] = $originalJmlBahan;
             } elseif ($this->jmlProduksi > 0) {
-                // If jmlProduksi is a valid number greater than zero, calculate new jml_bahan
-                $this->jml_bahan[$itemId] = $this->jmlProduksi * $originalJmlBahan;
+                $this->jml_bahan[$bahanId] = $this->jmlProduksi * $originalJmlBahan;
+            } else {
+                $this->jml_bahan[$bahanId] = 0;
             }
 
-            // Debugging output
-            logger()->debug("Updated jml_bahan for item ID $itemId: " . $this->jml_bahan[$itemId]);
+            if ($currentStock === 'Not Available') {
+                $this->qty[$bahanId] = 0;
+            } elseif ($currentStock >= $this->jml_bahan[$bahanId]) {
+                $this->qty[$bahanId] = $this->jml_bahan[$bahanId];
+            } else {
+                $this->qty[$bahanId] = $currentStock;
+            }
+            $this->calculateSubTotal($bahanId);
         }
     }
-
 
     public function calculateSubTotal($itemId)
     {
@@ -124,39 +144,6 @@ class BahanProduksiCart extends Component
     }
 
 
-    public function increaseQuantity($itemId)
-    {
-        $item = Bahan::find($itemId);
-        if ($item) {
-            if ($item->jenisBahan->nama !== 'Produksi') {
-                $totalStok = $item->purchaseDetails()->where('sisa', '>', 0)->sum('sisa');
-                if ($totalStok > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $totalStok)) {
-                    $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
-                    $this->updateQuantity($itemId);
-                }
-            } elseif ($item->jenisBahan->nama === 'Produksi') {
-                $totalStok = $item->bahanSetengahjadiDetails()->where('sisa', '>', 0)->sum('sisa');
-                if ($totalStok > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $totalStok)) {
-                    $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
-                    $this->updateQuantity($itemId);
-                }
-            }
-        }
-    }
-
-
-    public function decreaseQuantity($itemId)
-    {
-        // Cek apakah kuantitas untuk item tersebut sudah diatur dan lebih besar dari 1
-        if (isset($this->qty[$itemId]) && $this->qty[$itemId] > 1) {
-            $this->qty[$itemId]--; // Kurangi kuantitas sebesar 1
-            $this->updateQuantity($itemId); // Panggil updateQuantity untuk memperbarui subtotal dan total harga
-        } elseif (isset($this->qty[$itemId]) && $this->qty[$itemId] == 1) {
-            // Jika kuantitas adalah 1, setel ke nol
-            $this->qty[$itemId] = 0;
-            $this->updateQuantity($itemId); // Tetap panggil updateQuantity untuk mengupdate subtotal
-        }
-    }
 
     public function checkRemainingStock($itemId)
     {

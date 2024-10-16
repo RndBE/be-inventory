@@ -62,14 +62,13 @@
                 <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
                 <div class="flex item-center mb-4">
                     <input type="number" name="jml_produksi" id="jml_produksi" placeholder="Jumlah Produksi"
-                           class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm
-                           ring-1 ring-inset ring-gray-300 placeholder:text-gray-400
-                           focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                           required
-                           wire:model.debounce.500ms="jmlProduksi"
-                           wire:keyup="updateJmlBahan">
+                        class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm
+                        ring-1 ring-inset ring-gray-300 placeholder:text-gray-400
+                        focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        required
+                        wire:model.lazy="jmlProduksi"
+                        wire:input="updateJmlBahan">
                 </div>
-
                 @error('jml_produksi')
                     <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                 @enderror
@@ -107,7 +106,7 @@
                                 {{ $item->nama ?? $item->nama_bahan }}
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                bahan_diproduksi / {{ $jml_bahan[$item->id] ?? 0 }}
+                                {{ $used_materials[$item->id] ?? 0 }} / {{ $jml_bahan[$item->id] ?? 0 }}
                             </td>
                             <td class="px-6 py-4 text-right flex justify-end">
 
@@ -149,8 +148,8 @@
         </div>
     </div>
 </div>
-<script>
+{{-- <script>
     document.getElementById('bahan_id').addEventListener('change', function() {
         @this.call('bahanSelected', this.value);
     });
-</script>
+</script> --}}

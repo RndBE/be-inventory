@@ -45,7 +45,14 @@
                                     @if (!empty($this->bahanKeluarDetails))
                                         @foreach($this->bahanKeluarDetails as $detail)
                                             <tr class="flex">
-                                                <td class="flex-1 py-1">{{ $detail->dataBahan->nama_bahan }}</td>
+                                                <td class="flex-1 py-1">
+                                                    {{ $detail->dataBahan->nama_bahan }}
+                                                    @if ($detail->qty > 0)
+                                                        ({{ $detail->qty }}/{{ $detail->jml_bahan }})
+                                                    @else
+                                                        <span class="text-red-500">Belum tersedia</span>
+                                                    @endif
+                                                </td>
                                             </tr>
                                             @php
                                                 $unitPrices = json_decode($detail->details);
@@ -54,14 +61,16 @@
                                                 <tr class="flex">
                                                     <td class="min-w-[44px]">{{ $priceDetail->qty }} x</td>
                                                     <td class="flex-1">{{ number_format($priceDetail->unit_price) }}</td>
-                                                    <td class="flex-1"></td>
+                                                    <td class="flex-1 pl-3">
+
+                                                    </td>
                                                     <td class="w-full text-right">{{ number_format(($priceDetail->qty) * ($priceDetail->unit_price)) }}</td>
                                                 </tr>
                                             @endforeach
                                         @endforeach
                                         <tr class="flex">
                                             <td class="flex-1 py-1"></td>
-                                            <td class="min-w-[44px]"><strong>Total Harga: </strong></td>
+                                            <td class="min-w-[44px]"><strong>Estimasi Harga: </strong></td>
                                             <td class="min-w-[44px]">Rp. {{ number_format($this->bahanKeluarDetails->sum('sub_total')) }}</td>
                                         </tr>
                                     @else

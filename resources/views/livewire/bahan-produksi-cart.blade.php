@@ -17,10 +17,6 @@
                         <option value="{{ $produk->id }}">{{ $produk->nama_produk }}</option>
                     @endforeach
                 </select>
-
-                @error('bahan_id')
-                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                @enderror
             </div>
 
 
@@ -34,9 +30,6 @@
                     </div>
                     <input type="text" name="mulai_produksi" id="datetimepicker" placeholder="Pilih tanggal dan waktu" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
                 </div>
-                @error('mulai_produksi')
-                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                @enderror
             </div>
 
             <div class="flex items-center">
@@ -53,9 +46,6 @@
                         </div>
                     </div>
                 </div>
-                @error('jenis_produksi')
-                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                @enderror
             </div>
 
             <div class="flex items-center">
@@ -69,9 +59,6 @@
                         wire:model.lazy="jmlProduksi"
                         wire:input="updateJmlBahan">
                 </div>
-                @error('jml_produksi')
-                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                @enderror
             </div>
 
             <div class="flex items-center">
@@ -92,7 +79,7 @@
                     <tr>
                         <th scope="col" class="px-6 py-3 w-2/4">Bahan</th>
                         <th scope="col" class="px-6 py-3 text-right w-0.5">Kebutuhan</th>
-                        <th scope="col" class="px-6 py-3 text-right w-1/4">Qty</th>
+                        <th scope="col" class="px-6 py-3 text-right w-1/4">Ketersediaan</th>
                         <th scope="col" class="px-6 py-3 text-right w-1/4">Sub Total</th>
                         <th scope="col" class="px-6 py-3 text-right w-0.5">Action</th>
                     </tr>

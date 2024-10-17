@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('kode_produksi')->unique();
             $table->dateTime('mulai_produksi');
             $table->dateTime('selesai_produksi')->nullable();
-            $table->foreignId('bahan_id')->constrained('bahan');
+            $table->foreignId('produk_id')->constrained('produk_produksis');
             $table->string('jenis_produksi');
             $table->integer('jml_produksi');
             $table->string('status');

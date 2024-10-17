@@ -63,10 +63,6 @@ class ProduksiController extends Controller
                 'mulai_produksi' => 'required',
                 'jenis_produksi' => 'required',
                 'cartItems' => 'required|array',
-                'cartItems.*.id' => 'required|integer',
-                'cartItems.*.qty' => 'required|integer|min:1',
-                'cartItems.*.details' => 'required|array',
-                'cartItems.*.sub_total' => 'required',
             ]);
             if ($validator->fails()) {
                 return redirect()->back()->withErrors($validator)->withInput();

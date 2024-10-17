@@ -70,26 +70,23 @@ class BahanProduksiCart extends Component
         if (is_array($bahan)) {
             $bahan = (object) $bahan;
         }
-        //dd($bahan);
         $bahanId = $bahan->id ?? $bahan->bahan_id;
         $existingItemKey = array_search($bahanId, array_column($this->cart, 'id'));
         $currentStock = $this->checkRemainingStock($bahanId);
 
         if ($existingItemKey !== false) {
-            // If item already exists, adjust the quantity based on current stock
             if ($this->qty[$bahanId] < $currentStock) {
                 $this->qty[$bahanId]++;
                 $this->calculateSubTotal($bahanId);
             }
         } else {
-            // If it's a new item, initialize the quantity
             $this->cart[] = $bahan;
             if ($currentStock === 'Not Available') {
-                $this->qty[$bahanId] = 0; // No stock available
+                $this->qty[$bahanId] = 0;
             } elseif ($currentStock >= $jmlBahan) {
-                $this->qty[$bahanId] = $jmlBahan; // Set qty to jmlBahan
+                $this->qty[$bahanId] = $jmlBahan;
             } else {
-                $this->qty[$bahanId] = $currentStock; // Set qty to current stock
+                $this->qty[$bahanId] = $currentStock;
             }
 
             $this->originalJmlBahan[$bahanId] = $jmlBahan;
@@ -101,15 +98,16 @@ class BahanProduksiCart extends Component
 
     public function updateJmlBahan()
     {
-        // dd($this->cart);
+        $this->subtotals = [];
+        $this->totalharga = 0;
+
         foreach ($this->cart as $item) {
             $itemObject = (object) $item;
             $bahanId = $itemObject->id ?? $itemObject->bahan_id;
-            //dd($itemObject);
+
             $currentStock = $this->checkRemainingStock($bahanId);
             $originalJmlBahan = $this->originalJmlBahan[$bahanId] ?? 0;
 
-            // Calculate jml_bahan based on jmlProduksi
             if ($this->jmlProduksi < 0) {
                 $this->jml_bahan[$bahanId] = $originalJmlBahan;
             } elseif ($this->jmlProduksi > 0) {
@@ -118,6 +116,7 @@ class BahanProduksiCart extends Component
                 $this->jml_bahan[$bahanId] = 0;
             }
 
+            // Update qty based on jml_bahan and current stock
             if ($currentStock === 'Not Available') {
                 $this->qty[$bahanId] = 0;
             } elseif ($currentStock >= $this->jml_bahan[$bahanId]) {
@@ -127,23 +126,45 @@ class BahanProduksiCart extends Component
             }
             $this->calculateSubTotal($bahanId);
         }
+
+        $this->calculateTotalHarga();
     }
 
     public function calculateSubTotal($itemId)
     {
+        // Mendapatkan harga unit dari detail atau menghitung berdasarkan detail lain
         $unitPrice = isset($this->details[$itemId]) ? intval($this->details[$itemId]) : 0;
         $qty = isset($this->qty[$itemId]) ? intval($this->qty[$itemId]) : 0;
 
         $this->subtotals[$itemId] = $unitPrice * $qty;
+
+        // Jika item adalah jenis produksi, lakukan pembaruan dari bahan setengah jadi
+        $itemModel = Bahan::find($itemId);
+        if ($itemModel && $itemModel->jenisBahan->nama === 'Produksi') {
+            $bahanSetengahjadiDetails = $itemModel->bahanSetengahjadiDetails()
+                ->where('sisa', '>', 0)
+                ->with(['bahanSetengahjadi' => function ($query) {
+                    $query->orderBy('tgl_masuk', 'asc');
+                }])->get();
+            $this->updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $qty, $bahanSetengahjadiDetails);
+        } else {
+            // Jika bukan bahan produksi, ambil dari purchase details
+            $purchaseDetails = $itemModel->purchaseDetails()
+                ->where('sisa', '>', 0)
+                ->with(['purchase' => function ($query) {
+                    $query->orderBy('tgl_masuk', 'asc');
+                }])->get();
+            $this->updateUnitPriceAndSubtotal($itemId, $qty, $purchaseDetails);
+        }
+
         $this->calculateTotalHarga();
     }
+
 
     public function calculateTotalHarga()
     {
         $this->totalharga = array_sum($this->subtotals);
     }
-
-
 
     public function checkRemainingStock($itemId)
     {

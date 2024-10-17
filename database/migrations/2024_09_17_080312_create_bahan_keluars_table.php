@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->dateTime('tgl_keluar');
             $table->string('kode_transaksi')->unique();
+            $table->string('tujuan');
             $table->string('divisi');
             $table->string('status');
             $table->timestamps();

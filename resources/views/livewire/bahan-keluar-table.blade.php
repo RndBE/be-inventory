@@ -86,6 +86,7 @@
                         <th scope="col" class="p-4">No</th>
                         <th scope="col" class="px-6 py-3">Kode Transaksi</th>
                         <th scope="col" class="px-6 py-3">Tanggal Keluar</th>
+                        <th scope="col" class="px-6 py-3">Tujuan</th>
                         <th scope="col" class="px-6 py-3">Divisi</th>
                         <th scope="col" class="px-6 py-3">Total Item</th>
                         <th scope="col" class="px-6 py-3">Total Harga</th>
@@ -103,6 +104,7 @@
                                 </button>
                             </th>
                             <td class="px-6 py-4">{{ $bahan_keluar->tgl_keluar }}</td>
+                            <td class="px-6 py-4">{{ $bahan_keluar->tujuan }}</td>
                             <td class="px-6 py-4">{{ $bahan_keluar->divisi }}</td>
                             <td class="px-6 py-4">{{ $bahan_keluar->bahanKeluarDetails->sum('qty') }}</td>
                             <td class="px-6 py-4">Rp {{ number_format($bahan_keluar->bahanKeluarDetails->sum('sub_total'), 2, ',', '.') }}</td>

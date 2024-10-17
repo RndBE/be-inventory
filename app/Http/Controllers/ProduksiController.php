@@ -47,103 +47,121 @@ class ProduksiController extends Controller
      */
     public function store(Request $request)
     {
-        dd($request->all());
-        $cartItems = json_decode($request->cartItems, true);
-        $validator = Validator::make([
-            'bahan_id' => $request->bahan_id,
-            'jml_produksi' => $request->jml_produksi,
-            'mulai_produksi' => $request->mulai_produksi,
-            'jenis_produksi' => $request->jenis_produksi,
-            'cartItems' => $cartItems
-        ], [
-            'bahan_id' => 'required',
-            'jml_produksi' => 'required',
-            'mulai_produksi' => 'required',
-            'jenis_produksi' => 'required',
-            'cartItems' => 'required|array',
-            'cartItems.*.id' => 'required|integer',
-            'cartItems.*.qty' => 'required|integer|min:1',
-            'cartItems.*.details' => 'required|array',
-            'cartItems.*.sub_total' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
-        if ($lastTransaction) {
-            $last_transaction_number = intval(substr($lastTransaction->kode_transaksi, 6));
-        } else {
-            $last_transaction_number = 0;
-        }
-        $new_transaction_number = $last_transaction_number + 1;
-        $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-        $kode_transaksi = 'KBK - ' . $formatted_number;
-
-        $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-
-        // Save main keluar data
-        $bahan_keluar = new BahanKeluar();
-        $bahan_keluar->kode_transaksi = $kode_transaksi;
-        $bahan_keluar->tgl_keluar = $tgl_keluar;
-        $bahan_keluar->divisi = 'Produksi';
-        $bahan_keluar->status = 'Belum disetujui';
-        $bahan_keluar->save();
-
-        $lastTransactionProduksi = Produksi::orderByRaw('CAST(SUBSTRING(kode_produksi, 7) AS UNSIGNED) DESC')->first();
-        if ($lastTransactionProduksi) {
-            $last_transaction_number_produksi = intval(substr($lastTransactionProduksi->kode_produksi, 6));
-        } else {
-            $last_transaction_number_produksi = 0;
-        }
-        $new_transaction_number_produksi = $last_transaction_number_produksi + 1;
-        $formatted_number_produksi = str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
-        $kode_produksi = 'PR - ' . $formatted_number_produksi;
-
-        $produksi = new Produksi();
-        $produksi->bahan_keluar_id = $bahan_keluar->id;
-        $produksi->kode_produksi = $kode_produksi;
-        $produksi->bahan_id = $request->bahan_id;
-        $produksi->jml_produksi = $request->jml_produksi;
-        $produksi->mulai_produksi = $request->mulai_produksi;
-        $produksi->jenis_produksi = $request->jenis_produksi;
-        $produksi->status = 'Konfirmasi';
-        $produksi->save();
-
-        // Group items by bahan_id and aggregate quantities
-        $groupedItems = [];
-        foreach ($cartItems as $item) {
-            if (!isset($groupedItems[$item['id']])) {
-                $groupedItems[$item['id']] = [
-                    'qty' => 0,
-                    'details' => $item['details'], // Assuming you want to keep the same unit price
-                    'sub_total' => 0,
-                ];
+        try {
+            //dd($request->all());
+            $cartItems = json_decode($request->cartItems, true);
+            //validasi input
+            $validator = Validator::make([
+                'produk_id' => $request->produk_id,
+                'jml_produksi' => $request->jml_produksi,
+                'mulai_produksi' => $request->mulai_produksi,
+                'jenis_produksi' => $request->jenis_produksi,
+                'cartItems' => $cartItems
+            ], [
+                'produk_id' => 'required',
+                'jml_produksi' => 'required',
+                'mulai_produksi' => 'required',
+                'jenis_produksi' => 'required',
+                'cartItems' => 'required|array',
+                'cartItems.*.id' => 'required|integer',
+                'cartItems.*.qty' => 'required|integer|min:1',
+                'cartItems.*.details' => 'required|array',
+                'cartItems.*.sub_total' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
             }
-            $groupedItems[$item['id']]['qty'] += $item['qty'];
-            $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
-        }
 
-        // Save the details
-        foreach ($groupedItems as $bahan_id => $details) {
-            BahanKeluarDetails::create([
-                'bahan_keluar_id' => $bahan_keluar->id,
-                'bahan_id' => $bahan_id,
-                'qty' => $details['qty'],
-                'details' => json_encode($details['details']),
-                'sub_total' => $details['sub_total'],
-            ]);
+            $produk = ProdukProduksi::find($request->produk_id);
+            if ($produk) {
+                $tujuan = $produk->nama_produk;
+            } else {
+                $tujuan = null;
+            }
+            $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
+            if ($lastTransaction) {
+                $last_transaction_number = intval(substr($lastTransaction->kode_transaksi, 6));
+            } else {
+                $last_transaction_number = 0;
+            }
+            $new_transaction_number = $last_transaction_number + 1;
+            $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
+            $kode_transaksi = 'KBK - ' . $formatted_number;
+            $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
-            ProduksiDetails::create([
-                'produksi_id' => $produksi->id,
-                'bahan_id' => $bahan_id,
-                'qty' => $details['qty'],
-                'details' => json_encode($details['details']),
-                'sub_total' => $details['sub_total'],
-            ]);
+            // Simpan data ke Bahan Keluar
+            $bahan_keluar = new BahanKeluar();
+            $bahan_keluar->kode_transaksi = $kode_transaksi;
+            $bahan_keluar->tgl_keluar = $tgl_keluar;
+            $bahan_keluar->tujuan = 'Produksi '.$tujuan;
+            $bahan_keluar->divisi = 'Produksi';
+            $bahan_keluar->status = 'Belum disetujui';
+            $bahan_keluar->save();
+
+            // Buat kombinasi kode transaksi di Produksi
+            $lastTransactionProduksi = Produksi::orderByRaw('CAST(SUBSTRING(kode_produksi, 7) AS UNSIGNED) DESC')->first();
+            if ($lastTransactionProduksi) {
+                $last_transaction_number_produksi = intval(substr($lastTransactionProduksi->kode_produksi, 6));
+            } else {
+                $last_transaction_number_produksi = 0;
+            }
+            $new_transaction_number_produksi = $last_transaction_number_produksi + 1;
+            $formatted_number_produksi = str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
+            $kode_produksi = 'PR - ' . $formatted_number_produksi;
+
+            // Simpan data ke Produksi
+            $produksi = new Produksi();
+            $produksi->bahan_keluar_id = $bahan_keluar->id;
+            $produksi->kode_produksi = $kode_produksi;
+            $produksi->produk_id = $request->produk_id;
+            $produksi->jml_produksi = $request->jml_produksi;
+            $produksi->mulai_produksi = $request->mulai_produksi;
+            $produksi->jenis_produksi = $request->jenis_produksi;
+            $produksi->status = 'Konfirmasi';
+            $produksi->save();
+
+            // Kelompokkan item berdasarkan bahan_id dan jumlah
+            $groupedItems = [];
+            foreach ($cartItems as $item) {
+                if (!isset($groupedItems[$item['id']])) {
+                    $groupedItems[$item['id']] = [
+                        'qty' => 0,
+                        'jml_bahan' => 0,
+                        'details' => $item['details'],
+                        'sub_total' => 0,
+                    ];
+                }
+                $groupedItems[$item['id']]['qty'] += $item['qty'];
+                $groupedItems[$item['id']]['jml_bahan'] += $item['jml_bahan'];
+                $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
+            }
+
+            // Simpan data ke Bahan Keluar Detail dan Produksi Detail
+            foreach ($groupedItems as $bahan_id => $details) {
+                BahanKeluarDetails::create([
+                    'bahan_keluar_id' => $bahan_keluar->id,
+                    'bahan_id' => $bahan_id,
+                    'qty' => $details['qty'],
+                    'jml_bahan' => $details['jml_bahan'],
+                    'used_materials' => 0,
+                    'details' => json_encode($details['details']),
+                    'sub_total' => $details['sub_total'],
+                ]);
+
+                ProduksiDetails::create([
+                    'produksi_id' => $produksi->id,
+                    'bahan_id' => $bahan_id,
+                    'qty' => $details['qty'],
+                    'jml_bahan' => $details['jml_bahan'],
+                    'used_materials' => 0,
+                    'details' => json_encode($details['details']),
+                    'sub_total' => $details['sub_total'],
+                ]);
+            }
+            return redirect()->back()->with('success', 'Permintaan berhasil ditambahkan!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan data: ' . $e->getMessage());
         }
-        return redirect()->back()->with('success', 'Permintaan berhasil ditambahkan!');
     }
 
     public function show(string $id)

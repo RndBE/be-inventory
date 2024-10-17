@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('bahan_keluar_id')->constrained('bahan_keluars')->onDelete('cascade');
             $table->foreignId('bahan_id')->constrained('bahan'); // assuming 'bahan' table exists
             $table->integer('qty');
+            $table->integer('jml_bahan')->nullable();
+            $table->integer('used_materials')->nullable();
             $table->json('details');
             $table->integer('sub_total');
             $table->timestamps();

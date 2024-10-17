@@ -22,6 +22,11 @@ class Produksi extends Model
         return $this->belongsTo(BahanKeluar::class);
     }
 
+    public function dataProdukProduksi()
+    {
+        return $this->belongsTo(ProdukProduksi::class, 'produk_id');
+    }
+
     public function dataBahan()
     {
         return $this->belongsTo(Bahan::class, 'bahan_id');

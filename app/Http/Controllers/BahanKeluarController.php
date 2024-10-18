@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
 use App\Models\BahanKeluarDetails;
 use App\Models\BahanSetengahjadiDetails;
+use App\Models\ProduksiDetails;
 use Illuminate\Support\Facades\Validator;
 
 class BahanKeluarController extends Controller
@@ -170,6 +171,23 @@ class BahanKeluarController extends Controller
                                     throw new \Exception('Purchase detail tidak ditemukan untuk bahan: ' . $detail->bahan_id);
                                 }
                             }
+                            // Update kolom used_materials pada produksi_details
+                            $produksiDetail = ProduksiDetails::where('produksi_id', $data->produksis->id)
+                            ->where('bahan_id', $detail->bahan_id)
+                            ->first();
+                            //dd($produksiDetail);
+
+                            // Cek apakah produksiDetail ditemukan
+                            if (!$produksiDetail) {
+                                throw new \Exception('Produksi detail tidak ditemukan untuk produksi_id: ' . $data->produksi->id);
+                            }
+
+                            // Pastikan used_materials tidak melebihi jml_bahan
+                            $produksiDetail->used_materials += $transaksiDetail['qty'];
+                            if ($produksiDetail->used_materials > $produksiDetail->jml_bahan) {
+                                throw new \Exception('Jumlah bahan terpakai melebihi total bahan yang tersedia.');
+                            }
+                            $produksiDetail->save();
                         }
                     }
                 }

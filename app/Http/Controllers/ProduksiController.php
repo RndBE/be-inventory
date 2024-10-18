@@ -48,7 +48,7 @@ class ProduksiController extends Controller
     public function store(Request $request)
     {
         try {
-            //dd($request->all());
+            dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             //validasi input
             $validator = Validator::make([

@@ -83,12 +83,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @php
-                        $grandTotal = 0;
-                    @endphp
                     @foreach($produksiDetails as $detail)
+                    <input type="hidden" name="produksiDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']->nama_bahan }}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']['nama_bahan'] }}</td>
                         <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
                             {{ $detail['jml_bahan'] }}
                         </td>
@@ -99,9 +97,10 @@
                             <div class="flex flex-col space-y-2">
                                 <div class="flex justify-center items-center">
                                     @php
-                                        $availableQty1 = 0;
+                                        $stokSaatIni = 0;
                                         $unitPrice = 0;
                                         $totalPrice = 0;
+                                        $grandTotal = 0;
 
                                         // Calculate the maximum allowed quantity based on production details
                                         $maxAllowedQty = $detail['jml_bahan'] - $detail['used_materials'];
@@ -113,71 +112,41 @@
                                                 ->with(['bahanSetengahjadi' => function ($query) {
                                                     $query->orderBy('tgl_masuk', 'asc');
                                                 }])->get();
-                                            $availableQty2 = min($bahanSetengahjadiDetails->sum('sisa'), $maxAllowedQty);
-                                            $availableQty1 = $bahanSetengahjadiDetails->sum('sisa');
+                                            $stokDiambil = min($bahanSetengahjadiDetails->sum('sisa'), $maxAllowedQty);
+                                            $stokSaatIni = $bahanSetengahjadiDetails->sum('sisa');
+
+                                            if ($bahanSetengahjadiDetails->isNotEmpty()) {
+                                                $unitPrice = $bahanSetengahjadiDetails->first()->unit_price ?? 0; // Assuming unit_price exists
+                                            }
                                         } else {
                                             $purchaseDetails = $detail['bahan']->purchaseDetails()
                                                 ->where('sisa', '>', 0)
                                                 ->with(['purchase' => function ($query) {
                                                     $query->orderBy('tgl_masuk', 'asc');
                                                 }])->get();
-                                            $availableQty2 = min($purchaseDetails->sum('sisa'), $maxAllowedQty);
-                                            $availableQty1 = $purchaseDetails->sum('sisa');
+                                            $stokDiambil = min($purchaseDetails->sum('sisa'), $maxAllowedQty);
+                                            $stokSaatIni = $purchaseDetails->sum('sisa');
+
+                                            if ($purchaseDetails->isNotEmpty()) {
+                                                $unitPrice = $purchaseDetails->first()->unit_price ?? 0; // Assuming unit_price exists
+                                            }
                                         }
+                                        $totalPrice = $unitPrice * $stokSaatIni;
+                                        $grandTotal += $totalPrice;
                                     @endphp
-                                    {{ $availableQty1 }}
+                                    {{ $stokSaatIni }}
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 font-semibold text-center text-gray-900 dark:text-white">
-                            {{ $availableQty2 }}
+                            {{ $stokDiambil }}
                         </td>
-
                         <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
-                            @php
-                                $availableQty = 0;
-                                $unitPrice = 0;
-                                $totalPrice = 0;
-
-                                // Calculate the maximum allowed quantity based on production details
-                                $maxAllowedQty = $detail['jml_bahan'] - $detail['used_materials'];
-
-                                // Determine available quantity and corresponding unit price
-                                if ($detail['bahan']->jenisBahan->nama === 'Produksi') {
-                                    $bahanSetengahjadiDetails = $detail['bahan']->bahanSetengahjadiDetails()
-                                        ->where('sisa', '>', 0)
-                                        ->with(['bahanSetengahjadi' => function ($query) {
-                                            $query->orderBy('tgl_masuk', 'asc');
-                                        }])->get();
-
-                                    $availableQty = min($bahanSetengahjadiDetails->sum('sisa'), $maxAllowedQty);
-                                    // Get the first unit price if available
-                                    if ($bahanSetengahjadiDetails->isNotEmpty()) {
-                                        $unitPrice = $bahanSetengahjadiDetails->first()->unit_price ?? 0; // Assuming unit_price exists
-                                    }
-                                } else {
-                                    $purchaseDetails = $detail['bahan']->purchaseDetails()
-                                        ->where('sisa', '>', 0)
-                                        ->with(['purchase' => function ($query) {
-                                            $query->orderBy('tgl_masuk', 'asc');
-                                        }])->get();
-
-                                    $availableQty = min($purchaseDetails->sum('sisa'), $maxAllowedQty);
-                                    // Get the first unit price if available
-                                    if ($purchaseDetails->isNotEmpty()) {
-                                        $unitPrice = $purchaseDetails->first()->unit_price ?? 0; // Assuming unit_price exists
-                                    }
-                                }
-
-                                $totalPrice = $unitPrice * $availableQty;
-                                $grandTotal += $totalPrice;
-                            @endphp
                             <span>
                                 <strong></strong>
-                                {{ $totalPrice > 0 ? number_format($totalPrice, 0, ',', '.') : 0 }} <!-- Menampilkan total harga -->
+                                {{ $totalPrice > 0 ? number_format($totalPrice, 0, ',', '.') : 0 }}
                             </span>
                         </td>
-
                         <td class="items-right px-6 py-4 text-right">
                             @foreach($detail['details'] as $d)
                             <div class="flex flex-col space-y-2">

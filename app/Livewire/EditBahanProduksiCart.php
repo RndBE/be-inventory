@@ -265,18 +265,23 @@ class EditBahanProduksiCart extends Component
 
     public function getCartItemsForStorage()
     {
-        $items = [];
+        $produksiDetails = [];
         foreach ($this->cart as $item) {
             $itemId = $item->id;
-            $items[] = [
-                'id' => $itemId,
+            $bahanId = $item->bahan->id;
+
+            $produksiDetails[] = [
+                'id' => $itemId['id'],
                 'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
-                'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
+                'jml_bahan' => isset($this->jml_bahan[$itemId]) ? $this->jml_bahan[$itemId] : 0,
+                'used_materials' => isset($this->used_materials[$itemId]) ? $this->used_materials[$itemId] : 0,
                 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
+                'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
             ];
         }
-        return $items;
+        return $produksiDetails;
     }
+
 
     public function getCartItemsForBahanRusak()
     {

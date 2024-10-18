@@ -19,7 +19,7 @@ class Produksi extends Model
 
     public function bahanKeluar()
     {
-        return $this->belongsTo(BahanKeluar::class);
+        return $this->belongsTo(BahanKeluar::class, 'bahan_keluar_id');
     }
 
     public function dataProdukProduksi()

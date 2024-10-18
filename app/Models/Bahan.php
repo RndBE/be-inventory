@@ -22,6 +22,16 @@ class Bahan extends Model
         return $this->belongsTo(Unit::class, 'unit_id');
     }
 
+    public function produksiDetails()
+    {
+        return $this->hasMany(ProduksiDetails::class, 'bahan_id');
+    }
+
+    public function bahanKeluarDetails()
+    {
+        return $this->hasMany(BahanKeluarDetails::class, 'bahan_id');
+    }
+
     public function purchaseDetails()
     {
         return $this->hasMany(PurchaseDetail::class, 'bahan_id'); // adjust if necessary

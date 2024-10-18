@@ -1,5 +1,5 @@
 <div>
-    @if($produksiStatus !== 'Selesai')
+    {{-- @if($produksiStatus !== 'Selesai')
     <div class="border-b border-gray-900/10">
         <h1><strong>Kebutuhan Bahan</strong></h1>
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
@@ -65,23 +65,119 @@
             </table>
         </div>
     </div>
-    @endif
+    @endif --}}
 
     <div class="border-b border-gray-900/10">
-        <h1 class="mt-6"><strong>Bahan Saat Ini</strong></h1>
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-6 py-3 w-2/3">Bahan</th>
-                        <th scope="col" class="px-6 py-3 text-right w-0.5">Details</th>
+                        <th scope="col" class="px-6 py-3 w-1/5">Bahan</th>
+                        <th scope="col" class="px-6 py-3 text-center w-0.5">Kebutuhan</th>
+                        <th scope="col" class="px-6 py-3 text-center w-0.5">Kekurangan</th>
+                        <th scope="col" class="px-6 py-3 text-center w-0.5">Stok</th>
+                        <th scope="col" class="px-6 py-3 text-center w-0.5">Ambil Stok</th>
+                        <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total</th>
+                        <th scope="col" class="px-6 py-3 text-right w-1">Details</th>
                         <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @php
+                        $grandTotal = 0;
+                    @endphp
                     @foreach($produksiDetails as $detail)
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']->nama_bahan }}</td>
+                        <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
+                            {{ $detail['jml_bahan'] }}
+                        </td>
+                        <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
+                            {{ $detail['jml_bahan'] - $detail['used_materials'] }}
+                        </td>
+                        <td class="items-center px-6 py-4 text-gray-900 dark:text-white text-cente">
+                            <div class="flex flex-col space-y-2">
+                                <div class="flex justify-center items-center">
+                                    @php
+                                        $availableQty1 = 0;
+                                        $unitPrice = 0;
+                                        $totalPrice = 0;
+
+                                        // Calculate the maximum allowed quantity based on production details
+                                        $maxAllowedQty = $detail['jml_bahan'] - $detail['used_materials'];
+
+                                        // Determine available quantity and corresponding unit price
+                                        if ($detail['bahan']->jenisBahan->nama === 'Produksi') {
+                                            $bahanSetengahjadiDetails = $detail['bahan']->bahanSetengahjadiDetails()
+                                                ->where('sisa', '>', 0)
+                                                ->with(['bahanSetengahjadi' => function ($query) {
+                                                    $query->orderBy('tgl_masuk', 'asc');
+                                                }])->get();
+                                            $availableQty2 = min($bahanSetengahjadiDetails->sum('sisa'), $maxAllowedQty);
+                                            $availableQty1 = $bahanSetengahjadiDetails->sum('sisa');
+                                        } else {
+                                            $purchaseDetails = $detail['bahan']->purchaseDetails()
+                                                ->where('sisa', '>', 0)
+                                                ->with(['purchase' => function ($query) {
+                                                    $query->orderBy('tgl_masuk', 'asc');
+                                                }])->get();
+                                            $availableQty2 = min($purchaseDetails->sum('sisa'), $maxAllowedQty);
+                                            $availableQty1 = $purchaseDetails->sum('sisa');
+                                        }
+                                    @endphp
+                                    {{ $availableQty1 }}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-semibold text-center text-gray-900 dark:text-white">
+                            {{ $availableQty2 }}
+                        </td>
+
+                        <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
+                            @php
+                                $availableQty = 0;
+                                $unitPrice = 0;
+                                $totalPrice = 0;
+
+                                // Calculate the maximum allowed quantity based on production details
+                                $maxAllowedQty = $detail['jml_bahan'] - $detail['used_materials'];
+
+                                // Determine available quantity and corresponding unit price
+                                if ($detail['bahan']->jenisBahan->nama === 'Produksi') {
+                                    $bahanSetengahjadiDetails = $detail['bahan']->bahanSetengahjadiDetails()
+                                        ->where('sisa', '>', 0)
+                                        ->with(['bahanSetengahjadi' => function ($query) {
+                                            $query->orderBy('tgl_masuk', 'asc');
+                                        }])->get();
+
+                                    $availableQty = min($bahanSetengahjadiDetails->sum('sisa'), $maxAllowedQty);
+                                    // Get the first unit price if available
+                                    if ($bahanSetengahjadiDetails->isNotEmpty()) {
+                                        $unitPrice = $bahanSetengahjadiDetails->first()->unit_price ?? 0; // Assuming unit_price exists
+                                    }
+                                } else {
+                                    $purchaseDetails = $detail['bahan']->purchaseDetails()
+                                        ->where('sisa', '>', 0)
+                                        ->with(['purchase' => function ($query) {
+                                            $query->orderBy('tgl_masuk', 'asc');
+                                        }])->get();
+
+                                    $availableQty = min($purchaseDetails->sum('sisa'), $maxAllowedQty);
+                                    // Get the first unit price if available
+                                    if ($purchaseDetails->isNotEmpty()) {
+                                        $unitPrice = $purchaseDetails->first()->unit_price ?? 0; // Assuming unit_price exists
+                                    }
+                                }
+
+                                $totalPrice = $unitPrice * $availableQty;
+                                $grandTotal += $totalPrice;
+                            @endphp
+                            <span>
+                                <strong></strong>
+                                {{ $totalPrice > 0 ? number_format($totalPrice, 0, ',', '.') : 0 }} <!-- Menampilkan total harga -->
+                            </span>
+                        </td>
+
                         <td class="items-right px-6 py-4 text-right">
                             @foreach($detail['details'] as $d)
                             <div class="flex flex-col space-y-2">
@@ -101,7 +197,6 @@
                             </div>
                             @endforeach
                         </td>
-
                         <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
                             <span><strong></strong> {{ number_format($detail['sub_total'], 0, ',', '.') }}</span>
                         </td>
@@ -109,11 +204,27 @@
                     @endforeach
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
-                        <td class="px-6 py-4 text-right text-black">
-                            <strong>Total Harga</strong>
-                        </td>
+                        <td class="px-6 py-4 text-right text-black"></td>
+                        <td class="px-6 py-4 text-right text-black"></td>
+                        <td class="px-6 py-4 text-right text-black"></td>
+                        <td class="px-6 py-4 text-right text-black"></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><strong>Rp.</strong> {{ number_format($grandTotal, 0, ',', '.') }}</span></td>
+                        <td class="px-6 py-4 text-center text-black">+</td>
+
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                             <span><strong>Rp.</strong> {{ number_format($produksiTotal, 0, ',', '.') }}</span>
+                        </td>
+                    </tr>
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
+                        <td class="px-6 py-4 text-right text-black"></td>
+                        <td class="px-6 py-4 text-right text-black"></td>
+                        <td class="px-6 py-4 text-right text-black"></td>
+                        <td class="px-6 py-4 text-right text-black"></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                        <td class="px-6 py-4 text-right text-black"><strong>Total Harga</strong></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                            <span><strong>Rp.</strong> {{ number_format($produksiTotal+$grandTotal, 0, ',', '.') }}</span>
                         </td>
                     </tr>
                 </tbody>

@@ -189,7 +189,7 @@ class ProduksiController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            //dd($request->all());
+            dd($request->all());
             $cartItems = json_decode($request->cartItems, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
 

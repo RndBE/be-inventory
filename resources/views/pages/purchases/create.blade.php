@@ -84,7 +84,7 @@
                             </div>
                         </div>
                     </div>
-                        <livewire:bahan-cart/>
+                        <livewire:bahan-purchase-cart/>
                 </div>
 
                 <div class="mt-2 flex items-center justify-end gap-x-6">

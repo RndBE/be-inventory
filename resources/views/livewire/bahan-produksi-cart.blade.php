@@ -50,14 +50,14 @@
 
             <div class="flex items-center">
                 <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
-                <div class="flex item-center mb-4">
-                    <input type="number" name="jml_produksi" id="jml_produksi" placeholder="Jumlah Produksi"
-                        class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm
-                        ring-1 ring-inset ring-gray-300 placeholder:text-gray-400
-                        focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                        required
-                        wire:model.lazy="jmlProduksi"
-                        wire:input="updateJmlBahan">
+                <div class="relative w-3/4">
+                    <div class="flex item-center">
+                        <input type="number" name="jml_produksi" id="jml_produksi" placeholder="Jumlah Produksi"
+                            class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            required
+                            wire:model.lazy="jmlProduksi"
+                            wire:input="updateJmlBahan">
+                    </div>
                 </div>
             </div>
 

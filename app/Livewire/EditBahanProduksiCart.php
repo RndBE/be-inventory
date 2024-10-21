@@ -262,25 +262,97 @@ class EditBahanProduksiCart extends Component
         $this->calculateTotalHarga();
     }
 
-
     public function getCartItemsForStorage()
     {
+        $grandTotal = 0;
         $produksiDetails = [];
-        foreach ($this->cart as $item) {
-            $itemId = $item->id;
-            $bahanId = $item->bahan->id;
 
+        foreach ($this->produksiDetails as $item) {
+            $bahanId = $item['bahan']->id;
+
+            $usedMaterials = 0;
+            $stokSaatIni = 0;
+            $totalPrice = 0;
+
+            // Hitung jumlah maksimum yang diizinkan berdasarkan detail produksi
+            $maxAllowedQty = $item['jml_bahan'] - $item['used_materials'];
+
+            // Inisialisasi array untuk menyimpan detail transaksi
+            $details = [];
+
+            if ($item['bahan']->jenisBahan->nama === 'Produksi') {
+                $bahanSetengahjadiDetails = $item['bahan']->bahanSetengahjadiDetails()
+                    ->where('sisa', '>', 0)
+                    ->with(['bahanSetengahjadi' => function ($query) {
+                        $query->orderBy('tgl_masuk', 'asc');
+                    }])->get();
+
+                // Hitung used materials dan detailnya
+                foreach ($bahanSetengahjadiDetails as $bahan) {
+                    if ($usedMaterials < $maxAllowedQty) {
+                        $qtyToUse = min($bahan->sisa, $maxAllowedQty - $usedMaterials);
+                        $usedMaterials += $qtyToUse;
+
+                        // Ambil harga satuan dan kode transaksi untuk detail
+                        $unitPrice = $bahan->unit_price ?? 0;
+                        $details[] = [
+                            'kode_transaksi' => $bahan->kode_transaksi,
+                            'qty' => $qtyToUse, // Tambahkan qty yang digunakan
+                            'unit_price' => $unitPrice,
+                        ];
+                    }
+                }
+            } else {
+                // Cek purchase details
+                $purchaseDetails = $item['bahan']->purchaseDetails()
+                    ->where('sisa', '>', 0)
+                    ->with(['purchase' => function ($query) {
+                        $query->orderBy('tgl_masuk', 'asc');
+                    }])->get();
+
+                // Hitung used materials dan detailnya
+                foreach ($purchaseDetails as $purchase) {
+                    if ($usedMaterials < $maxAllowedQty) {
+                        $qtyToUse = min($purchase->sisa, $maxAllowedQty - $usedMaterials);
+                        $usedMaterials += $qtyToUse;
+
+                        // Ambil harga satuan dan kode transaksi untuk detail
+                        $unitPrice = $purchase->unit_price ?? 0;
+                        $details[] = [
+                            'kode_transaksi' => $purchase->purchase->kode_transaksi,
+                            'qty' => $qtyToUse, // Tambahkan qty yang digunakan
+                            'unit_price' => $unitPrice,
+                        ];
+                    }
+                }
+            }
+
+            // Hitung total price berdasarkan usedMaterials dan unitPrice
+            foreach ($details as $detail) {
+                $totalPrice += $detail['qty'] * $detail['unit_price']; // Hitung subtotal dari setiap detail
+            }
+
+            // Tambahkan total price ke grand total
+            $grandTotal += $totalPrice;
+
+            // Tambahkan data ke array produksiDetails
             $produksiDetails[] = [
-                'id' => $itemId['id'],
-                'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
-                'jml_bahan' => isset($this->jml_bahan[$itemId]) ? $this->jml_bahan[$itemId] : 0,
-                'used_materials' => isset($this->used_materials[$itemId]) ? $this->used_materials[$itemId] : 0,
-                'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
-                'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
+                'id' => $bahanId,
+                'qty' => $usedMaterials,
+                'jml_bahan' => $item['jml_bahan'],
+                'details' => $details,
+                'sub_total' => $totalPrice,
             ];
         }
+
         return $produksiDetails;
     }
+
+
+
+
+
+
 
 
     public function getCartItemsForBahanRusak()

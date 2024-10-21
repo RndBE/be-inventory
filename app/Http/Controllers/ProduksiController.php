@@ -189,8 +189,8 @@ class ProduksiController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            dd($request->all());
-            $cartItems = json_decode($request->cartItems, true) ?? [];
+            // dd($request->all());
+            $cartItems = json_decode($request->produksiDetails, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
 
             // Find the existing production entry
@@ -198,7 +198,6 @@ class ProduksiController extends Controller
 
             // Validate input
             $validator = Validator::make($request->all(), [
-                'bahan_id' => 'required',
                 'jml_produksi' => 'required',
                 'mulai_produksi' => 'required',
                 'jenis_produksi' => 'required',
@@ -210,7 +209,6 @@ class ProduksiController extends Controller
 
             // Update production data
             $produksi->update([
-                'bahan_id' => $request->bahan_id,
                 'jml_produksi' => $request->jml_produksi,
                 'mulai_produksi' => $request->mulai_produksi,
                 'jenis_produksi' => $request->jenis_produksi,
@@ -223,6 +221,7 @@ class ProduksiController extends Controller
                     $qty = $item['qty'] ?? 0;
                     $sub_total = $item['sub_total'] ?? 0;
                     $details = $item['details'] ?? [];
+                    $newUsedMaterials = $item['used_materials'] ?? 0;
 
                     // Check if there's an existing ProduksiDetails entry for this bahan_id
                     $existingDetail = ProduksiDetails::where('produksi_id', $produksi->id)
@@ -235,6 +234,7 @@ class ProduksiController extends Controller
 
                         // Initialize total quantity for this detail
                         $totalQty = $existingDetail->qty;
+                        $totalUsedMaterials = $existingDetail->used_materials;
 
                         // Update quantities for matching kode_transaksi
                         foreach ($details as $newDetail) {
@@ -255,11 +255,13 @@ class ProduksiController extends Controller
 
                             // Add newDetail qty to totalQty
                             $totalQty += $newDetail['qty'];
+                            $totalUsedMaterials += $newDetail['qty'];
                         }
 
                         // Update the existing detail with new quantities
                         $existingDetail->details = json_encode($existingDetailsArray);
                         $existingDetail->qty = $totalQty; // Update the total qty
+                        $existingDetail->used_materials = $totalUsedMaterials + $newUsedMaterials;
                         $existingDetail->sub_total += $sub_total; // Update subtotal
                         $existingDetail->save();
                     } else {
@@ -267,7 +269,8 @@ class ProduksiController extends Controller
                         ProduksiDetails::create([
                             'produksi_id' => $produksi->id,
                             'bahan_id' => $bahan_id,
-                            'qty' => $qty, // Set initial qty
+                            'qty' => $qty,
+                            'used_materials' => $newUsedMaterials,
                             'details' => json_encode($details),
                             'sub_total' => $sub_total,
                         ]);
@@ -399,6 +402,8 @@ class ProduksiController extends Controller
 
                         $produksiDetail->qty = $newTotalQty; // Update total quantity
                         $produksiDetail->sub_total = $newSubTotal; // Update subtotal
+
+                        $produksiDetail->used_materials -= $qtyRusak;
 
                         // Save changes if there are remaining details or qty
                         if ($newTotalQty > 0) {

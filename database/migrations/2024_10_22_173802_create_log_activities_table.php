@@ -21,6 +21,7 @@ class CreateLogActivitiesTable extends Migration
             $table->string('ip_address')->nullable(); // IP address
             $table->string('url'); // URL that was accessed
             $table->text('data')->nullable(); // Any additional data (optional)
+            $table->string('status')->nullable();
             $table->timestamps();
 
             // Optional foreign key constraint to the users table

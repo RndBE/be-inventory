@@ -18,10 +18,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BahanRusakController;
 use App\Http\Controllers\JenisBahanController;
 use App\Http\Controllers\BahanKeluarController;
+use App\Http\Controllers\LogActivityController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\StokProduksiController;
-use App\Http\Controllers\BahanSetengahjadiController;
 use App\Http\Controllers\ProdukProduksiController;
+use App\Http\Controllers\BahanSetengahjadiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,8 +37,9 @@ use App\Http\Controllers\ProdukProduksiController;
 
 Route::redirect('/', 'login');
 
-Route::middleware(['auth:sanctum', 'verified'])->group(function () {
-
+Route::middleware(['auth:sanctum', 'verified', 'log.activity'])->group(function () {
+    // Route::get('/log-activities', [LogActivityController::class, 'index'])->name('log.activities.index');
+    Route::resource('log-activities', LogActivityController::class);
     // Route for the getting the data feed
     Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');
 

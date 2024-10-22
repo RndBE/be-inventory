@@ -28,28 +28,25 @@ class BahanController extends Controller
     // Menyimpan data bahan baru
     public function store(Request $request)
     {
+        //dd($request->all());
         $validated = $request->validate([
+            'kode_bahan' => 'required|string|max:255|unique:bahan,kode_bahan',
             'nama_bahan' => 'required|string|max:255',
             'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
             'stok_awal' => 'required|integer',
             'unit_id' => 'required|exists:unit,id',
-            'kondisi' => 'required|string|max:100',
             'penempatan' => 'required|string|max:255',
             'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Generate unique kode_bahan
-        $kode_bahan = strtoupper(uniqid());
-
         // If there's an uploaded file, handle the file upload
         if ($request->hasFile('gambar')) {
             $fileName = time() . '_' . $request->file('gambar')->getClientOriginalName();
-            $filePath = $request->file('gambar')->move(public_path('images/bahan'), $fileName);
+            // Store the file in the 'public/bahan' directory within the storage folder
+            $filePath = $request->file('gambar')->storeAs('public/bahan', $fileName);
+            // Save the path for accessing via the storage link
             $validated['gambar'] = 'bahan/' . $fileName;
         }
-
-        // Add the generated kode_bahan to the validated data
-        $validated['kode_bahan'] = $kode_bahan;
 
         // Create the new Bahan record
         Bahan::create($validated);
@@ -80,7 +77,6 @@ class BahanController extends Controller
             'nama_bahan' => 'required|string|max:255',
             'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
             'unit_id' => 'required|exists:unit,id',
-            'kondisi' => 'required|string|max:255',
             'penempatan' => 'required|string|max:255',
             'gambar' => 'nullable|image|max:2048',
         ]);
@@ -88,11 +84,15 @@ class BahanController extends Controller
         // Jika ada file gambar yang di-upload, proses penyimpanan
         if ($request->hasFile('gambar')) {
             // Hapus gambar lama jika ada
-            if ($bahan->gambar && file_exists(public_path('images/' . $bahan->gambar))) {
-                unlink(public_path('images/' . $bahan->gambar));
+            if ($bahan->gambar && Storage::exists('public/' . $bahan->gambar)) {
+                Storage::delete('public/' . $bahan->gambar);
             }
+
+            // Simpan gambar baru di storage
             $fileName = time() . '_' . $request->file('gambar')->getClientOriginalName();
-            $filePath = $request->file('gambar')->move(public_path('images/bahan'), $fileName);
+            $filePath = $request->file('gambar')->storeAs('public/bahan', $fileName);
+
+            // Simpan path gambar ke dalam validated data
             $validated['gambar'] = 'bahan/' . $fileName;
         } else {
             // Jika tidak ada gambar baru, pertahankan gambar lama
@@ -101,7 +101,7 @@ class BahanController extends Controller
 
         $bahan->update($validated);
 
-        return redirect()->route('bahan.index')->with('success', 'Data bahan berhasil diupdate');
+        return redirect()->back()->with('success', 'Data bahan berhasil diupdate');
     }
 
 

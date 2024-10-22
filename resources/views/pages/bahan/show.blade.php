@@ -18,14 +18,13 @@
             <!-- Modal body -->
             <div class="pt-0 p-5">
                 <div class="p-4">
-                    <img class="rounded-lg mx-auto block" src="{{ $gambar ? asset('images/' . $gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $nama_bahan }}" />
+                    <img src="{{ $gambar ? asset('storage/' . $gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $nama_bahan }}" class="rounded-lg mx-auto block">
                     <ul class="my-4 space-y-3">
                         <li><h6>Kode Bahan: {{ $kode_bahan }}</h6></li>
                         <li><h6>Jenis Bahan: {{ $jenis_bahan_id }}</h6></li>
                         <li><h6>Stok Awal: <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $stok_awal }} {{ $unit_id }}</span></h6></li>
                         <li><h6>Total Stok: <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $total_stok }} {{ $unit_id }}</span></h6></li>
                         <li><h6>Penempatan: {{ $penempatan }}</h6></li>
-                        <li><h6>Kondisi: {{ $kondisi }}</h6></li>
                     </ul>
                 </div>
             </div>

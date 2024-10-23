@@ -1,7 +1,10 @@
 <?php
 
+use App\Helpers\LogHelper;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobController;
+use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\BahanController;
 use App\Http\Controllers\OrderController;
@@ -37,7 +40,7 @@ use App\Http\Controllers\BahanSetengahjadiController;
 
 Route::redirect('/', 'login');
 
-Route::middleware(['auth:sanctum', 'verified', 'log.activity'])->group(function () {
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Route::get('/log-activities', [LogActivityController::class, 'index'])->name('log.activities.index');
     Route::resource('log-activities', LogActivityController::class);
     // Route for the getting the data feed
@@ -183,4 +186,11 @@ Route::middleware(['auth:sanctum', 'verified', 'log.activity'])->group(function 
     Route::fallback(function() {
         return view('pages/utility/404');
     });
+
+    Route::post('/logout', function (Request $request) {
+        $userName = Auth::check() ? Auth::user()->name : 'Guest';
+        Auth::guard('web')->logout();
+        LogHelper::success('Sign in: ' . $userName);
+        return redirect('/login');
+    })->name('logout');
 });

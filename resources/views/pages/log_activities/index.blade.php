@@ -22,18 +22,22 @@
                             <th scope="col" class="px-6 py-3">URL</th>
                             <th scope="col" class="px-6 py-3">Platform</th>
                             <th scope="col" class="px-6 py-3">Browser</th>
+                            <th scope="col" class="px-6 py-3">Status</th>
+                            <th scope="col" class="px-6 py-3">Pesan</th>
                             <th scope="col" class="px-6 py-3">Created At</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($activities as $activity)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4">{{ $activity->user->name }}</td>
+                            <td class="px-6 py-4">{{ $activity->user->name ?? null }}</td>
                             <td class="px-6 py-4">{{ $activity->method }}</td>
                             <td class="px-6 py-4">{{ $activity->ip_address }}</td>
                             <td class="px-6 py-4">{{ $activity->url }}</td>
                             <td class="px-6 py-4">{{ $activity->platform }}</td>
                             <td class="px-6 py-4">{{ $activity->browser }}</td>
+                            <td class="px-6 py-4">{{ $activity->status }}</td>
+                            <td class="px-6 py-4">{{ $activity->message }}</td>
                             <td class="px-6 py-4">{{ $activity->created_at }}</td>
                         </tr>
                         @endforeach

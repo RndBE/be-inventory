@@ -21,7 +21,8 @@ class CreateLogActivitiesTable extends Migration
             $table->string('url');
             $table->string('platform')->nullable();
             $table->string('browser')->nullable();
-            $table->datetime('waktu')->nullable();
+            $table->string('status')->nullable();
+            $table->text('message')->nullable();
             $table->timestamps();
 
 

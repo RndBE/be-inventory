@@ -69,12 +69,12 @@
                                 <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900">Tanggal Masuk</label>
                                 <div class="mt-2">
                                     <div class="relative max-w-sm">
-                                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                             <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
                                             </svg>
                                         </div>
-                                        <input datepicker-autoselect-today datepicker-buttons datepicker-format="yyyy-mm-dd" value="{{ old('tgl_masuk') }}"  name="tgl_masuk" id="datepicker-autohide" datepicker datepicker-autohide type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 py-1.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date">
+                                        <input type="text" name="tgl_masuk" id="datetimepicker" value="{{ old('tgl_masuk') }}" placeholder="Pilih tanggal" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 py-1.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
                                     </div>
                                     <p class="text-red-500 text-sm mt-1"><sup>*</sup>Tanggal wajib diisi</p>
                                     @error('tgl_masuk')
@@ -102,5 +102,12 @@
                 message.style.display = 'none';
             });
         }, 3000); // 5000 ms = 5 detik
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#datetimepicker", {
+                dateFormat: "Y-m-d",
+            });
+        });
     </script>
 </x-app-layout>

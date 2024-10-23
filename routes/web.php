@@ -38,7 +38,9 @@ use App\Http\Controllers\BahanSetengahjadiController;
 |
 */
 
-Route::redirect('/', 'login');
+Route::get('/', function () {
+    return redirect('/login');
+})->name('login');
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Route::get('/log-activities', [LogActivityController::class, 'index'])->name('log.activities.index');

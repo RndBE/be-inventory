@@ -20,7 +20,6 @@
                 <th scope="col" class="px-6 py-3">Kode Transaksi</th>
                 <th scope="col" class="px-6 py-3">Tanggal Masuk</th>
                 <th scope="col" class="px-6 py-3">Keterangan | Sisa</th>
-                {{-- <th scope="col" class="px-6 py-3">Total Item</th> --}}
                 <th scope="col" class="px-6 py-3">Total Harga</th>
                 <th scope="col" class="px-6 py-3">Aksi</th>
             </tr>

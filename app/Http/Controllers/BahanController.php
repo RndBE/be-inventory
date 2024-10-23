@@ -108,13 +108,12 @@ class BahanController extends Controller
     public function destroy($id)
     {
         $bahan = Bahan::findOrFail($id);
-        // Hapus gambar dari penyimpanan jika ada
-        if ($bahan->gambar && file_exists(public_path('images/' . $bahan->gambar))) {
-            unlink(public_path('images/' . $bahan->gambar));
+        if ($bahan->gambar && Storage::exists('public/' . $bahan->gambar)) {
+            Storage::delete('public/' . $bahan->gambar);
         }
-        // Hapus data dari database
-        $bahan->delete();
 
+        $bahan->delete();
         return redirect()->route('bahan.index')->with('success', 'Bahan berhasil dihapus.');
     }
+
 }

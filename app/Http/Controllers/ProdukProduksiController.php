@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Livewire\BahanCart;
 use App\Models\Bahan;
+use App\Helpers\LogHelper;
+use App\Livewire\BahanCart;
 use Illuminate\Http\Request;
 use App\Models\ProdukProduksi;
-use Illuminate\Support\Facades\Storage;
 use App\Models\ProdukProduksiDetail;
+use Illuminate\Support\Facades\Storage;
 
 class ProdukProduksiController extends Controller
 {
@@ -23,7 +24,6 @@ class ProdukProduksiController extends Controller
 
     public function store(Request $request)
     {
-        //dd($request->all());
         try {
             $validated = $request->validate([
                 'nama_produk' => 'required|string|max:255',
@@ -67,9 +67,10 @@ class ProdukProduksiController extends Controller
                 }
             }
             session()->forget('cart');
-
-            return redirect()->route('produk-produksis.index')->with('success', 'Produk berhasil ditambahkan.');
+            LogHelper::success('Berhasil Menambahkan Produk Produksi!');
+            return redirect()->route('produk-produksis.index')->with('success', 'Berhasil Menambahkan Produk Produksi!');
         } catch (\Exception $e) {
+            LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
         }
     }
@@ -132,8 +133,10 @@ class ProdukProduksiController extends Controller
                     ]);
                 }
             }
+            LogHelper::success('Berhasil Mengubah Produk Produksi!');
             return redirect()->back()->with('success', 'Bahan produk berhasil diperbarui.');
         } catch (\Exception $e) {
+            LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage());
         }
     }
@@ -143,19 +146,15 @@ class ProdukProduksiController extends Controller
     public function destroy($id)
     {
         try {
-            // Cari data produk berdasarkan ID
             $produkproduksi = ProdukProduksi::findOrFail($id);
-
-            // Hapus file gambar dari storage jika ada
             if ($produkproduksi->gambar && Storage::exists('public/' . $produkproduksi->gambar)) {
                 Storage::delete('public/' . $produkproduksi->gambar);
             }
-
-            // Hapus data produk dari database
             $produkproduksi->delete();
-
+            LogHelper::success('Berhasil Menghapus Produk Produksi!');
             return redirect()->route('produk-produksis.index')->with('success', 'Produk berhasil dihapus.');
         } catch (\Exception $e) {
+            LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus produk: ' . $e->getMessage());
         }
     }

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Throwable;
 use App\Models\Unit;
+use App\Helpers\LogHelper;
 use Illuminate\Http\Request;
 
 class UnitController extends Controller
@@ -17,40 +19,56 @@ class UnitController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama' => 'required',
-        ]);
-        $unit = Unit::create($validated);
+        try{
+            $validated = $request->validate([
+                'nama' => 'required',
+            ]);
+            $unit = Unit::create($validated);
 
-        if (!$unit) {
-            return redirect()->back()->with('errors', 'Gagal menambahkan data');
+            if (!$unit) {
+                return redirect()->back()->with('errors', 'Gagal menambahkan data.');
+            }
+            LogHelper::success('Berhasil Menambahkan Satuan Unit!');
+            return redirect()->route('unit.index')->with('success', 'Berhasil Menambahkan Satuan Unit!');
+        }catch(Throwable $e){
+            LogHelper::error($e->getMessage());
+            return view('pages.utility.404');
         }
-        return redirect()->route('unit.index')->with('success', 'Unit berhasil ditambahkan.');
     }
 
     public function update(Request $request, $id)
     {
-
-        $validated = $request->validate([
-            'nama' => 'required',
-        ]);
-        $data = Unit::find($id);
-        $data->nama = $validated['nama'];
-        $Unit = $data->save();
-        if (!$Unit) {
-            return redirect()->back()->with('errors', 'Gagal menambahkan data');
+        try{
+            $validated = $request->validate([
+                'nama' => 'required',
+            ]);
+            $data = Unit::find($id);
+            $data->nama = $validated['nama'];
+            $Unit = $data->save();
+            if (!$Unit) {
+                return redirect()->back()->with('errors', 'Gagal menambahkan data');
+            }
+            LogHelper::success('Berhasil Mengubah Satuan Unit!');
+            return redirect()->route('unit.index')->with('success', 'Berhasil Mengubah Satuan Unit');
+        }catch(Throwable $e){
+            LogHelper::error($e->getMessage());
+            return view('pages.utility.404');
         }
-        return redirect()->route('unit.index')->with('success', 'Unit berhasil diubah.');
     }
 
     public function destroy(Request $request, $id)
     {
-
-        $data = Unit::find($id);
-        $unit = $data->delete();
-        if (!$unit) {
-            return redirect()->back()->with('gagal', 'menghapus');
+        try{
+            $data = Unit::find($id);
+            $unit = $data->delete();
+            if (!$unit) {
+                return redirect()->back()->with('gagal', 'menghapus');
+            }
+            LogHelper::success('Berhasil Menghapus Satuan Unit!');
+            return redirect()->route('unit.index')->with('success', 'Berhasil Menghapus Satuan Unit!');
+        }catch(Throwable $e){
+            LogHelper::error($e->getMessage());
+            return view('pages.utility.404');
         }
-        return redirect()->route('unit.index')->with('success', 'Unit berhasil dihapus.');
     }
 }

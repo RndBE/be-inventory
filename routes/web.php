@@ -40,7 +40,7 @@ use App\Http\Controllers\BahanSetengahjadiController;
 
 Route::get('/', function () {
     return redirect('/login');
-})->name('login');
+});
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Route::get('/log-activities', [LogActivityController::class, 'index'])->name('log.activities.index');
@@ -192,7 +192,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/logout', function (Request $request) {
         $userName = Auth::check() ? Auth::user()->name : 'Guest';
         Auth::guard('web')->logout();
-        LogHelper::success('Sign in: ' . $userName);
+        LogHelper::success('Sign out: ' . $userName);
         return redirect('/login');
     })->name('logout');
 });

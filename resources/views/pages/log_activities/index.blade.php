@@ -16,21 +16,38 @@
                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
-                            <th scope="col" class="px-6 py-3">User</th>
+                            <th scope="col" class="px-6 py-3 w-1/4">Waktu</th>
+                            <th scope="col" class="px-6 py-3 w-1/4">User</th>
+                            <th scope="col" class="px-6 py-3">Platform</th>
                             <th scope="col" class="px-6 py-3">Method</th>
                             <th scope="col" class="px-6 py-3">Status</th>
                             <th scope="col" class="px-6 py-3">Pesan</th>
-                            <th scope="col" class="px-6 py-3">IP Address</th>
                             <th scope="col" class="px-6 py-3">URL</th>
-                            <th scope="col" class="px-6 py-3">Platform</th>
-                            <th scope="col" class="px-6 py-3">Browser</th>
-                            <th scope="col" class="px-6 py-3">Created At</th>
+                            {{-- <th scope="col" class="px-6 py-3">Platform</th>
+                            <th scope="col" class="px-6 py-3">Browser</th> --}}
+
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($activities as $activity)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4">{{ $activity->user->name ?? null }}</td>
+                            <td class="px-6 py-4 w-1/4">{{ $activity->created_at }}</td>
+                            <td class="px-6 py-4 w-1/4">
+                                <div class="inline-flex justify-center items-center group">
+                                    <img class="w-8 h-8 rounded-full" src="{{ Auth::user()->profile_photo_url }}" width="32" height="32" alt="{{ Auth::user()->name }}" />{{ $activity->user->name ?? null }}
+                                </div>
+
+                            </td>
+                            <td class="px-6 py-4 w-1/4">
+                                <div class="ms-3">
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                                        {{ $activity->platform }}-{{ $activity->browser }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ $activity->ip_address }}
+                                    </div>
+                                </div>
+                            </td>
                             <td class="px-6 py-4">
 								@php
 								$bgColor = '';
@@ -59,11 +76,8 @@
 							</td>
                             <td class="px-6 py-4">{{ $activity->status }}</td>
                             <td class="px-6 py-4">{{ $activity->message }}</td>
-                            <td class="px-6 py-4">{{ $activity->ip_address }}</td>
                             <td class="px-6 py-4">{{ $activity->url }}</td>
-                            <td class="px-6 py-4">{{ $activity->platform }}</td>
-                            <td class="px-6 py-4">{{ $activity->browser }}</td>
-                            <td class="px-6 py-4">{{ $activity->created_at }}</td>
+
                         </tr>
                         @endforeach
                     </tbody>

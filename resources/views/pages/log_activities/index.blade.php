@@ -18,11 +18,14 @@
                         <tr>
                             <th scope="col" class="px-6 py-3 w-1/4">Waktu</th>
                             <th scope="col" class="px-6 py-3 w-1/4">User</th>
-                            <th scope="col" class="px-6 py-3 w-1/4">Platform</th>
+                            <th scope="col" class="px-6 py-3">Platform</th>
                             <th scope="col" class="px-6 py-3">Method</th>
                             <th scope="col" class="px-6 py-3">Status</th>
                             <th scope="col" class="px-6 py-3">Pesan</th>
                             <th scope="col" class="px-6 py-3">URL</th>
+                            {{-- <th scope="col" class="px-6 py-3">Platform</th>
+                            <th scope="col" class="px-6 py-3">Browser</th> --}}
+
                         </tr>
                     </thead>
                     <tbody>
@@ -44,7 +47,32 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4">{{ $activity->method }}</td>
+                            <td class="px-6 py-4">
+								@php
+								$bgColor = '';
+								$textColor = '';
+								if ($activity->method === 'POST') {
+								$bgColor = 'bg-green-100';
+								$textColor = 'text-green-800';
+								} elseif ($activity->method === 'PUT') {
+								$bgColor = 'bg-orange-100';
+								$textColor = 'text-orange-800';
+								} elseif ($activity->method === 'DELETE') {
+								$bgColor = 'bg-red-100';
+								$textColor = 'text-red-800';
+								} elseif ($activity->method === 'GET') {
+								$bgColor = 'bg-blue-100';
+								$textColor = 'text-blue-800';
+								} else {
+								$bgColor = 'bg-gray-100';
+								$textColor = 'text-gray-800';
+								}
+								@endphp
+
+								<span class="{{ $bgColor }} {{ $textColor }} text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-opacity-75 dark:text-opacity-75">
+									{{ $activity->method }}
+								</span>
+							</td>
                             <td class="px-6 py-4">{{ $activity->status }}</td>
                             <td class="px-6 py-4">{{ $activity->message }}</td>
                             <td class="px-6 py-4">{{ $activity->url }}</td>

@@ -9,10 +9,19 @@ class LogActivity extends Model
 {
     use HasFactory;
 
-    protected $table = 'log_activities';
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'user_id',
+        'method',
+        'ip_address',
+        'url',
+        'platform',
+        'browser',
+        'created_at',
+        'status',
+        'message',
+    ];
 
-    // Optional: Define the relationship with the User model
+    protected $dates = ['created_at', 'updated_at'];
     public function user()
     {
         return $this->belongsTo(User::class);

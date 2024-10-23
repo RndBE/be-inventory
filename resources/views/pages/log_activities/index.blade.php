@@ -18,12 +18,12 @@
                         <tr>
                             <th scope="col" class="px-6 py-3">User</th>
                             <th scope="col" class="px-6 py-3">Method</th>
+                            <th scope="col" class="px-6 py-3">Status</th>
+                            <th scope="col" class="px-6 py-3">Pesan</th>
                             <th scope="col" class="px-6 py-3">IP Address</th>
                             <th scope="col" class="px-6 py-3">URL</th>
                             <th scope="col" class="px-6 py-3">Platform</th>
                             <th scope="col" class="px-6 py-3">Browser</th>
-                            <th scope="col" class="px-6 py-3">Status</th>
-                            <th scope="col" class="px-6 py-3">Pesan</th>
                             <th scope="col" class="px-6 py-3">Created At</th>
                         </tr>
                     </thead>
@@ -31,13 +31,27 @@
                         @foreach($activities as $activity)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4">{{ $activity->user->name ?? null }}</td>
-                            <td class="px-6 py-4">{{ $activity->method }}</td>
+                            <td class="px-6 py-4">
+                                @php
+                                    $methodClasses = [
+                                        'POST' => 'bg-green-100 text-green-800',
+                                        'PUT' => 'bg-yellow-100 text-yellow-800',
+                                        'DELETE' => 'bg-red-100 text-red-800',
+                                        'GET' => 'bg-blue-100 text-blue-800',
+                                    ];
+                                    $methodClass = $methodClasses[$activity->method] ?? 'bg-gray-100 text-gray-800'; // Default class
+                                @endphp
+
+                                <span class="{{ $methodClass }} text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-800 dark:text-gray-300">
+                                    {{ $activity->method }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">{{ $activity->status }}</td>
+                            <td class="px-6 py-4">{{ $activity->message }}</td>
                             <td class="px-6 py-4">{{ $activity->ip_address }}</td>
                             <td class="px-6 py-4">{{ $activity->url }}</td>
                             <td class="px-6 py-4">{{ $activity->platform }}</td>
                             <td class="px-6 py-4">{{ $activity->browser }}</td>
-                            <td class="px-6 py-4">{{ $activity->status }}</td>
-                            <td class="px-6 py-4">{{ $activity->message }}</td>
                             <td class="px-6 py-4">{{ $activity->created_at }}</td>
                         </tr>
                         @endforeach

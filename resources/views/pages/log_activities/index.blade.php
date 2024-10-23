@@ -32,31 +32,31 @@
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4">{{ $activity->user->name ?? null }}</td>
                             <td class="px-6 py-4">
-                                @php
-                                    $bgColor = '';
-                                    $textColor = '';
-                                    if ($activity->method === 'POST') {
-                                        $bgColor = 'bg-green-100';
-                                        $textColor = 'text-green-800';
-                                    } elseif ($activity->method === 'PUT') {
-                                        $bgColor = 'bg-yellow-100';
-                                        $textColor = 'text-yellow-800';
-                                    } elseif ($activity->method === 'DELETE') {
-                                        $bgColor = 'bg-red-100';
-                                        $textColor = 'text-red-800';
-                                    } elseif ($activity->method === 'GET') {
-                                        $bgColor = 'bg-blue-100';
-                                        $textColor = 'text-blue-800';
-                                    } else {
-                                        $bgColor = 'bg-gray-100';
-                                        $textColor = 'text-gray-800';
-                                    }
-                                @endphp
+								@php
+								$bgColor = '';
+								$textColor = '';
+								if ($activity->method === 'POST') {
+								$bgColor = 'bg-green-100';
+								$textColor = 'text-green-800';
+								} elseif ($activity->method === 'PUT') {
+								$bgColor = 'bg-orange-100';
+								$textColor = 'text-orange-800';
+								} elseif ($activity->method === 'DELETE') {
+								$bgColor = 'bg-red-100';
+								$textColor = 'text-red-800';
+								} elseif ($activity->method === 'GET') {
+								$bgColor = 'bg-blue-100';
+								$textColor = 'text-blue-800';
+								} else {
+								$bgColor = 'bg-gray-100';
+								$textColor = 'text-gray-800';
+								}
+								@endphp
 
-                                <span class="{{ $bgColor }} {{ $textColor }} text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-opacity-75 dark:text-opacity-75">
-                                    {{ $activity->method }}
-                                </span>
-                            </td>
+								<span class="{{ $bgColor }} {{ $textColor }} text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-opacity-75 dark:text-opacity-75">
+									{{ $activity->method }}
+								</span>
+							</td>
                             <td class="px-6 py-4">{{ $activity->status }}</td>
                             <td class="px-6 py-4">{{ $activity->message }}</td>
                             <td class="px-6 py-4">{{ $activity->ip_address }}</td>

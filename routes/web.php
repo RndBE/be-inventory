@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobController;
 use Illuminate\Support\Facades\Request;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\BahanController;
 use App\Http\Controllers\OrderController;
@@ -41,6 +42,8 @@ use App\Http\Controllers\BahanSetengahjadiController;
 Route::get('/', function () {
     return redirect('/login');
 });
+
+Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Route::get('/log-activities', [LogActivityController::class, 'index'])->name('log.activities.index');
@@ -189,10 +192,5 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         return view('pages/utility/404');
     });
 
-    Route::post('/logout', function (Request $request) {
-        $userName = Auth::check() ? Auth::user()->name : 'Guest';
-        Auth::guard('web')->logout();
-        LogHelper::success('Sign out: ' . $userName);
-        return redirect('/login');
-    })->name('logout');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

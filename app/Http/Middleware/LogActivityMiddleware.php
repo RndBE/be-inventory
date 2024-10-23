@@ -3,9 +3,11 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
 use App\Models\LogActivity;
+use Illuminate\Http\Request;
+use Laravel\Jetstream\Agent;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class LogActivityMiddleware
 {
@@ -31,15 +33,16 @@ class LogActivityMiddleware
         if ($request->isMethod('post') || $request->isMethod('put') || $request->isMethod('delete')) {
             // Remove the _token field from the request data
             $requestData = $request->except('_token');
+            $ipAddress = Session::get('ip_address', $request->ip());
             $status = $response->status() == 200 ? 'success' : 'error';
+            $agent = new Agent();
             LogActivity::create([
-                'description' => 'User ' . Auth::user()->name . ' performed ' . $request->method() . ' on ' . $request->path(),
-                'user_id' => Auth::id(), // Get the authenticated user ID
+                'user_id' => Auth::id(),
                 'method' => $request->method(),
-                'ip_address' => $request->ip(),
+                'ip_address' => $ipAddress,
                 'url' => $request->fullUrl(),
-                'data' => json_encode($requestData), // Log the filtered request data
-                'status' => $status
+                'platform' => $agent->platform(),
+                'browser' => $agent->browser(),
             ]);
         }
 

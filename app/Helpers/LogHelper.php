@@ -16,13 +16,13 @@ class LogHelper
         $agent = new Agent();
         $logData = [
             'user_id' => Auth::id(), // Save the user ID
-            'status' => $status,
-            'message' => $message,
             'method' => request()->method(), // You can adjust this based on your requirements
             'ip_address' => request()->ip(), // Get IP address directly from the request
             'url' => request()->fullUrl(), // Current URL
             'platform' => $agent->platform(), // Use Agent for platform
             'browser' => $agent->browser(), // Use Agent for browser
+            'status' => $status,
+            'message' => $message,
             'created_at' => Carbon::now('Asia/Jakarta'), // Set the created_at timestamp
         ];
 
@@ -36,13 +36,13 @@ class LogHelper
         $agent = new Agent();
         $logData = [
             'user_id' => Auth::id(), // Save the user ID
-            'status' => $status,
-            'message' => $message,
-            'method' => 'error', // You can adjust this based on your requirements
+            'method' => request()->method(), // You can adjust this based on your requirements
             'ip_address' => request()->ip(), // Get IP address directly from the request
             'url' => request()->fullUrl(), // Current URL
             'platform' => $agent->platform(), // Use Agent for platform
             'browser' => $agent->browser(), // Use Agent for browser
+            'status' => $status,
+            'message' => $message,
             'created_at' => Carbon::now('Asia/Jakarta'), // Set the created_at timestamp
         ];
 

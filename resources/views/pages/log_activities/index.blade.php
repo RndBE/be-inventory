@@ -33,16 +33,27 @@
                             <td class="px-6 py-4">{{ $activity->user->name ?? null }}</td>
                             <td class="px-6 py-4">
                                 @php
-                                    $methodClasses = [
-                                        'POST' => 'bg-green-100 text-green-800',
-                                        'PUT' => 'bg-yellow-100 text-yellow-800',
-                                        'DELETE' => 'bg-red-100 text-red-800',
-                                        'GET' => 'bg-blue-100 text-blue-800',
-                                    ];
-                                    $methodClass = $methodClasses[$activity->method] ?? 'bg-gray-100 text-gray-800'; // Default class
+                                    $bgColor = '';
+                                    $textColor = '';
+                                    if ($activity->method === 'POST') {
+                                        $bgColor = 'bg-green-100';
+                                        $textColor = 'text-green-800';
+                                    } elseif ($activity->method === 'PUT') {
+                                        $bgColor = 'bg-yellow-100';
+                                        $textColor = 'text-yellow-800';
+                                    } elseif ($activity->method === 'DELETE') {
+                                        $bgColor = 'bg-red-100';
+                                        $textColor = 'text-red-800';
+                                    } elseif ($activity->method === 'GET') {
+                                        $bgColor = 'bg-blue-100';
+                                        $textColor = 'text-blue-800';
+                                    } else {
+                                        $bgColor = 'bg-gray-100';
+                                        $textColor = 'text-gray-800';
+                                    }
                                 @endphp
 
-                                <span class="{{ $methodClass }} text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-800 dark:text-gray-300">
+                                <span class="{{ $bgColor }} {{ $textColor }} text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-opacity-75 dark:text-opacity-75">
                                     {{ $activity->method }}
                                 </span>
                             </td>

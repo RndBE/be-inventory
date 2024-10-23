@@ -2,98 +2,95 @@
 
 namespace App\Http\Controllers;
 
+use Throwable;
 use Carbon\Carbon;
+use App\Models\Bahan;
 use App\Models\Purchase;
+use App\Helpers\LogHelper;
 use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
-use App\Models\Bahan;
 use Illuminate\Support\Facades\Validator;
 
 class PurchaseController extends Controller
 {
     public function index()
     {
-        // Menampilkan semua transaksi barang masuk
         $purchases = Purchase::with('purchaseDetails')->get();
         return view('pages.purchases.index', compact('purchases'));
     }
 
     public function show($id)
     {
-        $purchase = Purchase::with('purchaseDetails.dataBahan.dataUnit')->findOrFail($id); // Mengambil detail pembelian
+        $purchase = Purchase::with('purchaseDetails.dataBahan.dataUnit')->findOrFail($id);
         return view('pages.purchases.show', [
             'kode_transaksi' => $purchase->kode_transaksi,
-            'tgl_masuk' => $purchase->tgl_masuk, // Ambil tanggal transaksi
-            'purchaseDetails' => $purchase->purchaseDetails, // Ambil detail pembelian
+            'tgl_masuk' => $purchase->tgl_masuk,
+            'purchaseDetails' => $purchase->purchaseDetails,
         ]);
     }
 
 
     public function create()
     {
-        // Form untuk menambah barang masuk baru
         return view('pages.purchases.create');
     }
 
     public function store(Request $request)
     {
-        // Decode cartItems dari JSON string menjadi array
-        $cartItems = json_decode($request->cartItems, true);
-
-        // Lakukan validasi setelah cartItems di-decode
-        $validator = Validator::make([
-            'tgl_masuk' => $request->tgl_masuk,
-            'cartItems' => $cartItems
-        ], [
-            'tgl_masuk' => 'required|date_format:Y-m-d',
-            'cartItems' => 'required|array',
-            'cartItems.*.id' => 'required|integer',
-            'cartItems.*.qty' => 'required|integer|min:1',
-            'cartItems.*.unit_price' => 'required',
-            'cartItems.*.sub_total' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        // Menghasilkan kode transaksi
-        $kode_transaksi = 'KBM - ' . strtoupper(uniqid());
-        $tgl_masuk = $request->tgl_masuk . ' ' . now()->setTimezone('Asia/Jakarta')->format('H:i:s');
-
-        // Simpan data pembelian
-        $purchase = new Purchase();
-        $purchase->kode_transaksi = $kode_transaksi;
-        $purchase->tgl_masuk = $tgl_masuk; // Gunakan tanggal yang sudah diformat
-        $purchase->save();
-
-        // Simpan item pembelian dari cart yang sudah didecode
-        foreach ($cartItems as $item) {
-            PurchaseDetail::create([
-                'purchase_id' => $purchase->id,
-                'bahan_id' => $item['id'],
-                'qty' => $item['qty'],
-                'sisa' => $item['qty'],
-                'unit_price' => $item['unit_price'],
-                'sub_total' => $item['sub_total'],
+        try{
+            $cartItems = json_decode($request->cartItems, true);
+            $validator = Validator::make([
+                'tgl_masuk' => $request->tgl_masuk,
+                'cartItems' => $cartItems
+            ], [
+                'tgl_masuk' => 'required|date_format:Y-m-d',
+                'cartItems' => 'required|array',
+                'cartItems.*.id' => 'required|integer',
+                'cartItems.*.qty' => 'required|integer|min:1',
+                'cartItems.*.unit_price' => 'required',
+                'cartItems.*.sub_total' => 'required',
             ]);
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+            $kode_transaksi = 'KBM - ' . strtoupper(uniqid());
+            $tgl_masuk = $request->tgl_masuk . ' ' . now()->setTimezone('Asia/Jakarta')->format('H:i:s');
+            $purchase = new Purchase();
+            $purchase->kode_transaksi = $kode_transaksi;
+            $purchase->tgl_masuk = $tgl_masuk;
+            $purchase->save();
+            foreach ($cartItems as $item) {
+                PurchaseDetail::create([
+                    'purchase_id' => $purchase->id,
+                    'bahan_id' => $item['id'],
+                    'qty' => $item['qty'],
+                    'sisa' => $item['qty'],
+                    'unit_price' => $item['unit_price'],
+                    'sub_total' => $item['sub_total'],
+                ]);
+            }
+            LogHelper::success('Berhasil Menambahkan Transaksi Bahan Masuk!');
+            return redirect()->route('purchases.index')->with('success', 'Berhasil Menambahkan Transaksi Bahan Masuk!');
+        }catch(Throwable $e){
+            LogHelper::error($e->getMessage());
+            return view('pages.utility.404');
         }
-
-        return redirect()->route('purchases.index')->with('success', 'Pembelian berhasil disimpan!');
     }
 
     public function destroy(Request $request, $id)
     {
-        // Temukan transaksi pembelian
-        $data = Purchase::find($id);
-
-        if (!$data) {
-            return redirect()->back()->with('gagal', 'Transaksi tidak ditemukan.');
+        try{
+            $data = Purchase::find($id);
+            if (!$data) {
+                return redirect()->back()->with('gagal', 'Transaksi tidak ditemukan.');
+            }
+            $data->delete();
+            LogHelper::success('Berhasil Menghapus Transaksi Bahan Masuk!');
+            return redirect()->route('purchases.index')->with('success', 'Berhasil Menghapus Transaksi Bahan Masuk!');
+        }catch(Throwable $e){
+            LogHelper::error($e->getMessage());
+            return view('pages.utility.404');
         }
-        // Hapus transaksi pembelian
-        $data->delete();
-
-        return redirect()->route('purchases.index')->with('success', 'Transaksi berhasil dihapus.');
     }
 
 }

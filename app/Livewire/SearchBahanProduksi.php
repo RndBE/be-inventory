@@ -66,7 +66,7 @@ class SearchBahanProduksi extends Component
                 'nama' => $bahanSetengahJadi->nama_bahan,
                 'kode' => $bahanSetengahJadi->kode_bahan,
                 'stok' => $totalSisa,
-                'unit' => $bahanSetengahJadi->dataUnit->nama,
+                // 'unit' => $bahanSetengahJadi->dataUnit->nama,
             ];
         });
         //dd($bahanSetengahJadiResults);

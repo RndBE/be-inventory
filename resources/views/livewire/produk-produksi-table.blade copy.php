@@ -76,6 +76,8 @@
                         <th scope="col" class="p-4">No</th>
                         <th scope="col" class="px-6 py-3">Gambar</th>
                         <th scope="col" class="px-6 py-3">Nama Produk</th>
+                        <th scope="col" class="px-6 py-3"></th>
+                        <th scope="col" class="px-6 py-3"></th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -83,8 +85,11 @@
                     @forelse($produkproduksis as $index => $produkproduksi)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $produkproduksis->firstItem() + $index }}</div></td>
-                            <td class="px-6 py-4"><img src="{{ $produkproduksi->dataBahan->gambar ? asset('storage/' . $produkproduksi->dataBahan->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $produkproduksi->nama_produk }}" class="h-auto w-24 rounded-lg"></td>
-                            <td class="px-6 py-4">{{ $produkproduksi->dataBahan->nama_bahan }}</td>
+                            {{-- <td class="px-6 py-4"><img src="{{ $produkproduksi->gambar ? asset('storage/' . $produkproduksi->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $produkproduksi->nama_produk }}" class="h-auto w-24 rounded-lg"></td>
+                            <td class="px-6 py-4">{{ $produkproduksi->nama_produk }}</td> --}}
+                            <td class="px-6 py-4"></td>
+                            <td class="px-6 py-4">
+                            </td>
                             <td class="px-6 py-4">
                                 <div class="produkproduksi flex space-x-2">
                                         <a href="{{ route('produk-produksis.edit', $produkproduksi->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">

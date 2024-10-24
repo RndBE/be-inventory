@@ -150,7 +150,7 @@
                                     <label for="produk_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk
                                         <sup class="text-red-500 text-base">*</sup>
                                     </label>
-                                    <input type="text" name="produk_id" value="{{ $produksi->dataBahan->nama_bahan }}" id="produk_id"
+                                    <input type="text" name="produk_id" value="{{ $produksi->dataProdukProduksi->nama_produk }}" id="produk_id"
                                     placeholder="" class="block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required readonly disabled>
                                     @error('produk_id')
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>

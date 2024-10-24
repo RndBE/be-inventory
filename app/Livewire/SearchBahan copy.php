@@ -12,7 +12,7 @@ class SearchBahan extends Component
     public $query;
     public $search_results;
     public $how_many;
-    public $selectedIndex = -1;
+    public $selectedIndex = -1; 
 
 
     public function mount() {
@@ -29,19 +29,13 @@ class SearchBahan extends Component
     public function updatedQuery()
     {
         $this->search_results = Bahan::with('dataUnit')
-            ->whereHas('jenisBahan', function($query) {
-                $query->where('nama', '!=', 'Produksi');
-            })
-            ->where(function($query) {
-                $query->where('nama_bahan', 'like', '%' . $this->query . '%')
-                    ->orWhere('kode_bahan', 'like', '%' . $this->query . '%');
-            })
+            ->where('nama_bahan', 'like', '%' . $this->query . '%')
+            ->orWhere('kode_bahan', 'like', '%' . $this->query . '%')
             ->take($this->how_many)
             ->get();
 
         $this->selectedIndex = -1;
     }
-
 
 
     public function loadMore()

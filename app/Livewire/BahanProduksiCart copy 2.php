@@ -31,46 +31,39 @@ class BahanProduksiCart extends Component
 
     public function mount()
     {
-        $this->produkProduksi = ProdukProduksi::with('produkProduksiDetails.dataBahan')->get();
+        $this->produkProduksi = ProdukProduksi::all();
     }
 
 
     public function onProductSelected()
     {
-        // Clear previous cart data
-        $this->cart = [];
-        $this->qty = [];
-        $this->warningMessage = [];
-        $this->jml_bahan = [];
-        $this->used_materials = [];
-        $this->subtotals = [];
-        $this->totalharga = 0;
-
-        // Find the selected bahan using the selectedProdukId (now containing bahan_id)
         if ($this->selectedProdukId) {
-            $bahan = Bahan::find($this->selectedProdukId);
+            $this->cart = [];
+            $this->qty = [];
+            $this->warningMessage = [];
+            $this->jml_bahan = [];
+            $this->used_materials = [];
+            $this->subtotals = [];
+            $this->totalharga = 0;
 
-            // Add to cart logic
-            if ($bahan) {
-                // You may need to get the corresponding produkProduksi here if necessary
-                // Assuming you have access to $produkProduksi with relations
-                $produkProduksi = ProdukProduksi::with('produkProduksiDetails.dataBahan')
-                    ->where('bahan_id', $bahan->id)
-                    ->first();
+            $produk = ProdukProduksi::with('produkProduksiDetails.dataBahan')->find($this->selectedProdukId);
 
-                if ($produkProduksi) {
-                    foreach ($produkProduksi->produkProduksiDetails as $detail) {
-                        if ($detail->dataBahan) {
-                            $jmlBahan = $detail->jml_bahan ?? 0;
-                            $usedMaterials = $detail->used_materials ?? 0;
-                            $this->addToCart($detail->dataBahan, $jmlBahan, $usedMaterials);
+            if ($produk) {
+                foreach ($produk->produkProduksiDetails as $detail) {
+                    if ($detail->dataBahan) {
+                        $jmlBahan = $detail->jml_bahan ?? 0;
+                        $usedMaterials = $detail->used_materials ?? 0;
+                        $this->addToCart($detail->dataBahan, $jmlBahan, $usedMaterials);
+
+                        $stock = $this->checkRemainingStock($detail->dataBahan->id);
+                        if ($stock === 'Not Available') {
+                            $this->warningMessage[$detail->dataBahan->id] = 'Not Available';
                         }
                     }
                 }
             }
         }
     }
-
 
     public function addToCart($bahan, $jmlBahan, $usedMaterials)
     {

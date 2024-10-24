@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('produk_produksis', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_produk');
-            $table->string('gambar')->nullable();
+            $table->foreignId('bahan_id')->constrained('bahan');
             $table->timestamps();
         });
     }

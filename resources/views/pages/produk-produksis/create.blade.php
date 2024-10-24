@@ -78,7 +78,7 @@
                 <div class="space-y-12">
                     <div class="border-gray-900/10 pb-12">
                         <div class="p-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-2">
-                            <div class="col-span-1 col-start-1">
+                            {{-- <div class="col-span-1 col-start-1">
                                 <label for="nama_produk" class="block text-sm font-medium leading-6 text-gray-900">Nama Produk</label>
                                 <div class="mt-2">
                                     <input value="{{ old('nama_produk') }}" type="text" name="nama_produk" id="nama_produk" autocomplete="address-level1" class="border-b lock w-full border-0 py-1 text-gray-900 text-4xl leading-6" required autofocus>
@@ -86,9 +86,22 @@
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
                                 </div>
+
+                            </div> --}}
+                            <div class="mt-2">
+                                <label for="bahan_id" class="block text-sm font-medium text-gray-700">Pilih Produk</label>
+                                <select name="bahan_id" id="bahan_id" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                                    <option value="" disabled selected>Pilih Produk</option>
+                                    @foreach ($bahans as $bahan)
+                                        <option value="{{ $bahan->id }}">{{ $bahan->nama_bahan }} ({{ $bahan->kode_bahan }})</option>
+                                    @endforeach
+                                </select>
+                                @error('bahan_id')
+                                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                @enderror
                             </div>
 
-                            <div class="sm:col-span-1 flex justify-end">
+                            {{-- <div class="sm:col-span-1 flex justify-end">
                                 <div class="flex flex-col justify-center items-center rounded-lg border border-dashed border-gray-900/25 px-1 py-1 cursor-pointer" onclick="triggerFileInput()">
                                     <div class="text-center">
                                         <svg id="iconInstructions" class="mx-auto h-12 w-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -108,7 +121,7 @@
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>

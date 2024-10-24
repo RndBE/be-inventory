@@ -10,6 +10,7 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\BahanController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\ProjekController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\StokRndController;
 use App\Http\Controllers\CampaignController;
@@ -70,6 +71,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::resource('stok-rnds', StokRndController::class);
     Route::resource('produksis', ProduksiController::class);
     Route::put('produksis/{produksi}/selesai', [ProduksiController::class, 'updateStatus'])->name('produksis.updateStatus');
+    Route::resource('projeks', ProjekController::class);
     Route::resource('bahan-rusaks', BahanRusakController::class);
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
     Route::resource('bahan-jadis', BahanJadiController::class);

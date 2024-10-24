@@ -27,16 +27,19 @@ class ProdukProduksiTable extends Component
 
     public function render()
     {
-        $produkproduksis = ProdukProduksi::orderBy('id', 'desc')
-            ->whereHas('dataBahan', function($query) {
-                $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+        $produkproduksis = ProdukProduksi::with('produkProduksiDetails.dataBahan', 'dataBahan')->orderBy('id', 'desc')
+        ->where('bahan_id', 'like', '%' . $this->search . '%')
+            ->when($this->filter === 'Produk Jadi', function ($query) {
+                return $query->where('jenis_produksi', 'Produk Jadi');
+            })
+            ->when($this->filter === 'Produk Setengah Jadi', function ($query) {
+                return $query->where('jenis_produksi', 'Produk Setengah Jadi');
             })
             ->paginate($this->perPage);
 
         return view('livewire.produk-produksi-table', [
             'produkproduksis' => $produkproduksis,
         ]);
-
     }
 
     public function deleteprodukproduksis(int $id)

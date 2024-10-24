@@ -6,7 +6,7 @@
 
             @include('livewire.dataperpage')
         </div>
-        <a href="{{ route('produksis.create') }}" class="inline-flex rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+        <a href="{{ route('projeks.create') }}" class="inline-flex rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             Tambah
         </a>
     </div>
@@ -41,7 +41,7 @@
                 </td>
                 <td class="px-6 py-3">{{ $produksi->mulai_produksi }}</td>
                 <td class="px-6 py-3">{{ $produksi->selesai_produksi }}</td>
-                <td class="px-6 py-3">{{ $produksi->dataProdukProduksi->nama_produk }}</td>
+                <td class="px-6 py-3">{{ $produksi->dataBahan->nama_bahan }}</td>
                 <td class="px-6 py-3"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $produksi->jml_produksi }}</span></td>
                 {{-- <td class="px-6 py-3">{{ $produksi->produksiDetails->sum('qty') }}</td> --}}
                 <td class="px-6 py-3">{{ $produksi->status }}</td>

@@ -38,7 +38,7 @@
         <!-- Header: Right side -->
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
-                <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
+                <a href="{{ route('projeks.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
                 <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
             </div>
         </div>
@@ -77,10 +77,10 @@
         </div>
 
         <div class="w-full bg-white border border-gray-200 rounded-lg p-4 shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
-            <form action="{{ route('produksis.store') }}" method="POST" enctype="multipart/form-data" id="produksiProdukForm">
+            <form action="{{ route('projeks.store') }}" method="POST" enctype="multipart/form-data" id="produksiProdukForm">
                 @csrf
                 <div class="space-y-6">
-                    <livewire:bahan-produksi-cart/>
+                    <livewire:bahan-projek-cart/>
                 </div>
             </form>
         </div>

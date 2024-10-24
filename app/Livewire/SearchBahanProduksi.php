@@ -69,7 +69,7 @@ class SearchBahanProduksi extends Component
                 'unit' => $bahanSetengahJadi->dataUnit->nama,
             ];
         });
-
+        //dd($bahanSetengahJadiResults);
         // Gabungkan hasil dari kedua tabel
         $this->search_results = collect(array_merge($bahanResults->toArray(), $bahanSetengahJadiResults->toArray()));
 
@@ -80,6 +80,7 @@ class SearchBahanProduksi extends Component
 
         // Reset selected index
         $this->selectedIndex = -1;
+
     }
 
     public function selectBahan($bahanId)
@@ -104,7 +105,7 @@ class SearchBahanProduksi extends Component
             $bahan = Bahan::with('dataUnit')
                 ->where('id', $bahanId)
                 ->first();
-
+                //dd($bahan);
             if ($bahan) {
                 // dispatch event untuk mengirim data bahan yang dipilih
                 $bahanData = (object) [

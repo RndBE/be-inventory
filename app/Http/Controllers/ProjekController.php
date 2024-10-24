@@ -34,13 +34,13 @@ class ProjekController extends Controller
     {
         $units = Unit::all();
         $produkProduksi = ProdukProduksi::all();
-        return view('pages.produksis.create', compact('units', 'produkProduksi'));
+        return view('pages.projek.create', compact('units', 'produkProduksi'));
     }
 
     public function store(Request $request)
     {
         try {
-            //dd($request->all());
+            dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
                 'produk_id' => $request->produk_id,

@@ -9,12 +9,12 @@ class Projek extends Model
 {
     use HasFactory;
 
-    protected $table = 'produksis';
+    protected $table = 'projek';
     protected $guarded = [];
 
-    public function produksiDetails()
+    public function projekDetails()
     {
-        return $this->hasMany(ProduksiDetails::class, 'produksi_id', 'id');
+        return $this->hasMany(ProjekDetails::class, 'projek_id', 'id');
     }
 
     public function bahanKeluar()

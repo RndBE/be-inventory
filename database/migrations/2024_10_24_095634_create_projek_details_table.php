@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('projek_details', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('produksi_id')->constrained('produksis')->onDelete('cascade');
+            $table->foreignId('projek_id')->constrained('projek')->onDelete('cascade');
             $table->foreignId('bahan_id')->constrained('bahan');
             $table->integer('qty');
-            $table->integer('jml_bahan')->nullable();
             $table->json('details');
             $table->integer('sub_total');
             $table->timestamps();

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Produksi;
+use App\Models\Projek;
 use Livewire\WithPagination;
 
 class ProjekTable extends Component
@@ -11,21 +12,21 @@ class ProjekTable extends Component
     use WithPagination;
     public $search = "";
     public $perPage = 5;
-    public $id_produksis;
+    public $id_projeks;
     public function render()
     {
-        $produksis = Produksi::with(['produksiDetails', 'bahanKeluar'])->orderBy('id', 'desc')
-        ->where('mulai_produksi', 'like', '%' . $this->search . '%')
+        $projeks = Projek::with(['projekDetails', 'bahanKeluar'])->orderBy('id', 'desc')
+        ->where('mulai_projek', 'like', '%' . $this->search . '%')
             ->paginate($this->perPage);
 
         return view('livewire.projek-table', [
-            'produksis' => $produksis,
+            'projeks' => $projeks,
         ]);
     }
 
-    public function deleteProduksis(int $id)
+    public function deleteProjeks(int $id)
     {
-        $this->id_produksis = $id;
+        $this->id_projeks = $id;
     }
 
     public function updatingSearch()

@@ -1,4 +1,4 @@
-@section('title', 'Tambah Produksi | BE INVENTORY')
+@section('title', 'Tambah Projek | BE INVENTORY')
 <x-app-layout>
     @props(['variant' => ''])
     <x-app.secondary-header :variant="$attributes['headerVariant']">

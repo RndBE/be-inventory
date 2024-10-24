@@ -4,11 +4,10 @@ namespace App\Livewire;
 
 use App\Models\Bahan;
 use Livewire\Component;
-use App\Models\ProdukProduksi;
-use App\Models\ProdukProduksiDetail;
-use App\Models\BahanSetengahjadiDetails;
+use App\Models\Produksi;
+use App\Models\Projek;
 
-class BahanProjekCart extends Component
+class EditBahanProjekCart extends Component
 {
     public $cart = [];
     public $qty = [];
@@ -17,6 +16,8 @@ class BahanProjekCart extends Component
     public $subtotals = [];
     public $totalharga = 0;
     public $editingItemId = 0;
+    public $projekStatus;
+    public $bahanRusak = [];
 
     protected $listeners = ['bahanSelected' => 'addToCart', 'bahanSetengahJadiSelected' => 'addToCart'];
 
@@ -57,7 +58,68 @@ class BahanProjekCart extends Component
         $this->calculateSubTotal($bahan->id);
     }
 
+    public function loadProduksi()
+    {
+        $produksi = Produksi::with('produksiDetails')->find($this->produksiId);
 
+        if ($produksi) {
+            $this->projekStatus = $produksi->status;
+            foreach ($produksi->produksiDetails as $detail) {
+                $this->produksiDetails[] = [
+                    'bahan' => Bahan::find($detail->bahan_id),
+                    'qty' => $detail->qty,
+                    'jml_bahan' => $detail->jml_bahan,
+                    'used_materials' => $detail->used_materials,
+                    'sub_total' => $detail->sub_total,
+                    'details' => json_decode($detail->details, true),
+                ];
+            }
+        }
+    }
+
+    public function returnToProduction($itemId, $unitPrice, $qty)
+    {
+        foreach ($this->bahanRusak as $key => $rusak) {
+            if ($rusak['id'] === $itemId && $rusak['unit_price'] === $unitPrice) {
+                $this->bahanRusak[$key]['qty'] -= $qty;
+                if ($this->bahanRusak[$key]['qty'] <= 0) {
+                    unset($this->bahanRusak[$key]);
+                }
+                $foundInDetails = false;
+                foreach ($this->produksiDetails as &$detail) {
+                    if ($detail['bahan']->id === $itemId) {
+                        foreach ($detail['details'] as &$d) {
+                            if ($d['unit_price'] === $unitPrice) {
+                                $d['qty'] += $qty;
+                                $detail['sub_total'] += $unitPrice * $qty;
+                                $foundInDetails = true;
+                                break;
+                            }
+                        }
+                    }
+                    if ($foundInDetails) {
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        $this->calculateTotalHarga();
+    }
+
+    public function getCartItemsForBahanRusak()
+    {
+        $bahanRusak = [];
+        foreach ($this->bahanRusak as $rusak) {
+            $bahanRusak[] = [
+                'id' => $rusak['id'],
+                'qty' => $rusak['qty'],
+                'unit_price' => $rusak['unit_price'],
+                'sub_total' => $rusak['qty'] * $rusak['unit_price'],
+            ];
+        }
+        return $bahanRusak;
+    }
 
     protected function saveCartToSession()
     {
@@ -277,10 +339,12 @@ class BahanProjekCart extends Component
         }
         return $items;
     }
-    public function render()
-    {
-        return view('livewire.bahan-projek-cart', [
+
+    public function render(){
+
+        return view('livewire.edit-bahan-projek-cart', [
             'cartItems' => $this->cart,
+            'bahanRusak' => $this->bahanRusak,
         ]);
     }
 }

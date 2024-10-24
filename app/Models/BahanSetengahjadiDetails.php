@@ -26,4 +26,9 @@ class BahanSetengahjadiDetails extends Model
     {
         return $this->belongsTo(Unit::class, 'unit_id');
     }
+
+    public function dataProdukProduksi()
+    {
+        return $this->belongsTo(ProdukProduksi::class, 'produk_id');
+    }
 }

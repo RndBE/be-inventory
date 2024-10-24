@@ -73,16 +73,6 @@
                 </div>
             </div>
         @endif
-        {{-- <nav class="bg-white border border-gray-200 rounded-lg shadow sm:p-2 dark:bg-gray-800 dark:border-gray-700 mb-4">
-            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-                <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse">
-
-                </a>
-
-            </div>
-        </nav> --}}
-
-        <!-- Dashboard actions -->
         <div class="sm:flex sm:justify-between sm:items-center mb-2">
         </div>
 
@@ -92,10 +82,6 @@
                 <div class="space-y-6">
                     <livewire:bahan-produksi-cart/>
                 </div>
-                {{-- <div class="mt-2 flex items-center justify-end gap-x-6">
-                    <a href="{{ route('produksis.index') }}" type="button" class="text-sm font-semibold leading-6 text-gray-900">Batal</a>
-                    <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
-                </div> --}}
             </form>
         </div>
     </div>
@@ -109,7 +95,7 @@
             flatpickr("#datetimepicker", {
                 enableTime: true,
                 dateFormat: "Y-m-d H:i:S",
-                time_24hr: true // Menggunakan format 24 jam
+                time_24hr: true
             });
         });
     </script>

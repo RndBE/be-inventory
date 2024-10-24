@@ -33,13 +33,13 @@
             </div>
 
             <div class="flex items-center">
-                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jenis Produksi<sup class="text-red-500 text-base">*</sup></label>
+                <label for="jenis_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jenis Produksi<sup class="text-red-500 text-base">*</sup></label>
                 <div class="relative w-3/4 mr-2">
                     <div class="flex flex-wrap">
-                        <div class="flex items-center me-4">
+                        {{-- <div class="flex items-center me-4">
                             <input id="red-radio" type="radio" value="Produk Jadi" name="jenis_produksi" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                             <label for="red-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Produk Jadi</label>
-                        </div>
+                        </div> --}}
                         <div class="flex items-center me-4">
                             <input id="green-radio" type="radio" value="Produk Setengah Jadi" name="jenis_produksi" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                             <label for="green-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Produk Setengah Jadi</label>
@@ -107,7 +107,7 @@
                                         wire:model="qty.{{ $item->id }}"
                                         wire:keyup="updateQuantity({{ $item->id }})"
                                         class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        placeholder="0" min="0" required />
+                                        placeholder="0" min="0" required readonly/>
                                 </div>
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><span><strong></strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span></td>

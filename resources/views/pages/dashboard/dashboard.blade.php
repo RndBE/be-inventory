@@ -30,9 +30,7 @@
 
         </div>
 
-        <!-- Cards -->
-        <div class="grid grid-cols-12 gap-6">
-
+        <div class="grid grid-cols-4 gap-6">
             <!-- Line chart (Acme Plus) -->
             <x-dashboard.dashboard-card-02 :dataFeed="$dataFeed" />
 
@@ -42,9 +40,10 @@
             <!-- Line chart (Acme Professional) -->
             <x-dashboard.dashboard-card-02 :dataFeed="$dataFeed" />
 
+            <!-- Another Line chart -->
             <x-dashboard.dashboard-card-02 :dataFeed="$dataFeed" />
-
         </div>
+
 
     </div>
 </x-app-layout>

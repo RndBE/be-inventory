@@ -38,13 +38,13 @@
                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l11 0" /><path d="M9 12l11 0" /><path d="M9 18l11 0" /><path d="M5 6l0 .01" /><path d="M5 12l0 .01" /><path d="M5 18l0 .01" /></svg>
                 </div>
                 <div class="p-4 text-right">
-                <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Total Jenis Bahan</p>
-                <h4 class="block antialiased tracking-normal font-sans text-2xl font-semibold leading-snug text-blue-gray-900">{{ $totalJenisBahan }}</h4>
+                    <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Total Jenis Bahan</p>
+                    <h4 class="block antialiased tracking-normal font-sans text-2xl font-semibold leading-snug text-blue-gray-900">{{ $totalJenisBahan }}</h4>
                 </div>
                 <div class="border-t border-blue-gray-50 p-4">
-                <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-                    <strong class="text-green-500"></strong>&nbsp;
-                </p>
+                    <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
+                        <strong class="text-green-500"></strong>&nbsp;
+                    </p>
                 </div>
             </div>
 
@@ -80,9 +80,12 @@
 
             <!-- Line chart (Acme Advanced) -->
             <x-dashboard.dashboard-card-02 :dataFeed="$dataFeed" />
+            <x-dashboard.dashboard-card-02 :dataFeed="$dataFeed" />
+            <x-dashboard.dashboard-card-02 :dataFeed="$dataFeed" />
+            <x-dashboard.dashboard-card-02 :dataFeed="$dataFeed" />
 
             <!-- Line chart (Acme Professional) -->
-            <x-dashboard.dashboard-card-03 :dataFeed="$dataFeed" />
+            {{-- <x-dashboard.dashboard-card-03 :dataFeed="$dataFeed" /> --}}
 
             <!-- Bar chart (Direct vs Indirect) -->
             <x-dashboard.dashboard-card-04 />

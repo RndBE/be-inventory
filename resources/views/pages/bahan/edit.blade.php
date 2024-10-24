@@ -81,7 +81,7 @@
                             <div class="sm:col-span-2 sm:col-start-1">
                             <label for="kode_bahan" class="block text-sm font-medium leading-6 text-gray-900">Kode Bahan</label>
                             <div class="mt-2">
-                                <input type="text" name="kode_bahan" id="kode_bahan" value="{{ old('kode_bahan', $bahan->kode_bahan) }}" disabled class="block w-full rounded-md border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <input type="text" name="kode_bahan" id="kode_bahan" value="{{ old('kode_bahan', $bahan->kode_bahan) }}" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                 @error('kode_bahan')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror

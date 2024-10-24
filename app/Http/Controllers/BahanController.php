@@ -71,6 +71,7 @@ class BahanController extends Controller
             $bahan = Bahan::findOrFail($id);
 
             $validated = $request->validate([
+                'kode_bahan' => 'required|string|max:255',
                 'nama_bahan' => 'required|string|max:255',
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 'unit_id' => 'required|exists:unit,id',

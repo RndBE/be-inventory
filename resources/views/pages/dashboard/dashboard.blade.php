@@ -12,29 +12,71 @@
             <!-- Right: Actions -->
             <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
 
-                <!-- Filter button -->
-                <x-dropdown-filter align="right" />
-
-                <!-- Datepicker built with flatpickr -->
-                <x-datepicker />
-
-                <!-- Add view button -->
-                <button class="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white">
-                    <svg class="fill-current shrink-0 xs:hidden" width="16" height="16" viewBox="0 0 16 16">
-                        <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
-                  </svg>
-                  <span class="max-xs:sr-only">Add View</span>
-                </button>
-                
             </div>
 
         </div>
-        
+
         <!-- Cards -->
         <div class="grid grid-cols-12 gap-6">
 
-            <!-- Line chart (Acme Plus) -->
-            <x-dashboard.dashboard-card-01 :dataFeed="$dataFeed" />
+            <div class="relative flex flex-col col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-packages"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 16.5l-5 -3l5 -3l5 3v5.5l-5 3z" /><path d="M2 13.5v5.5l5 3" /><path d="M7 16.545l5 -3.03" /><path d="M17 16.5l-5 -3l5 -3l5 3v5.5l-5 3z" /><path d="M12 19l5 3" /><path d="M17 16.5l5 -3" /><path d="M12 13.5v-5.5l-5 -3l5 -3l5 3v5.5" /><path d="M7 5.03v5.455" /><path d="M12 8l5 -3" /></svg>
+                </div>
+                <div class="p-4 text-right">
+                <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Total Bahan</p>
+                <h4 class="block antialiased tracking-normal font-sans text-2xl font-semibold leading-snug text-blue-gray-900">{{ $totalBahan }}</h4>
+                </div>
+                <div class="border-t border-blue-gray-50 p-4">
+                <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
+                    <strong class="text-green-500"></strong>&nbsp;
+                </p>
+                </div>
+            </div>
+            <div class="relative flex flex-col col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l11 0" /><path d="M9 12l11 0" /><path d="M9 18l11 0" /><path d="M5 6l0 .01" /><path d="M5 12l0 .01" /><path d="M5 18l0 .01" /></svg>
+                </div>
+                <div class="p-4 text-right">
+                <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Total Jenis Bahan</p>
+                <h4 class="block antialiased tracking-normal font-sans text-2xl font-semibold leading-snug text-blue-gray-900">{{ $totalJenisBahan }}</h4>
+                </div>
+                <div class="border-t border-blue-gray-50 p-4">
+                <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
+                    <strong class="text-green-500"></strong>&nbsp;
+                </p>
+                </div>
+            </div>
+
+            <div class="relative flex flex-col col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l11 0" /><path d="M9 12l11 0" /><path d="M9 18l11 0" /><path d="M5 6l0 .01" /><path d="M5 12l0 .01" /><path d="M5 18l0 .01" /></svg>
+                </div>
+                <div class="p-4 text-right">
+                <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Total Satuan Unit</p>
+                <h4 class="block antialiased tracking-normal font-sans text-2xl font-semibold leading-snug text-blue-gray-900">{{ $totalSatuanUnit }}</h4>
+                </div>
+                <div class="border-t border-blue-gray-50 p-4">
+                <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
+                    <strong class="text-green-500"></strong>&nbsp;
+                </p>
+                </div>
+            </div>
+            <div class="relative flex flex-col col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-building-factory-2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21h18" /><path d="M5 21v-12l5 4v-4l5 4h4" /><path d="M19 21v-8l-1.436 -9.574a.5 .5 0 0 0 -.495 -.426h-1.145a.5 .5 0 0 0 -.494 .418l-1.43 8.582" /><path d="M9 17h1" /><path d="M14 17h1" /></svg>
+                </div>
+                <div class="p-4 text-right">
+                <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Total Produk Produksi</p>
+                <h4 class="block antialiased tracking-normal font-sans text-2xl font-semibold leading-snug text-blue-gray-900">{{ $totalProdukProduksi }}</h4>
+                </div>
+                <div class="border-t border-blue-gray-50 p-4">
+                <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
+                    <strong class="text-green-500"></strong>&nbsp;
+                </p>
+                </div>
+            </div>
+
 
             <!-- Line chart (Acme Advanced) -->
             <x-dashboard.dashboard-card-02 :dataFeed="$dataFeed" />
@@ -64,11 +106,11 @@
             <x-dashboard.dashboard-card-10 />
 
             <!-- Card (Reasons for Refunds) -->
-            <x-dashboard.dashboard-card-11 />             
+            <x-dashboard.dashboard-card-11 />
 
             <!-- Card (Recent Activity) -->
             <x-dashboard.dashboard-card-12 />
-            
+
             <!-- Card (Income/Expenses) -->
             <x-dashboard.dashboard-card-13 />
 

@@ -43,7 +43,7 @@ class SearchBahanProduksi extends Component
                     'nama' => $bahan->nama_bahan,
                     'kode' => $bahan->kode_bahan,
                     'stok' => $bahan->purchaseDetails->sum('sisa'),
-                    'unit' => $bahan->dataUnit->nama,
+                    'unit' => optional($bahan->dataUnit)->nama ?? 'N/A',
                 ];
             });
 
@@ -66,7 +66,7 @@ class SearchBahanProduksi extends Component
                 'nama' => $bahanSetengahJadi->nama_bahan,
                 'kode' => $bahanSetengahJadi->kode_bahan,
                 'stok' => $totalSisa,
-                // 'unit' => $bahanSetengahJadi->dataUnit->nama,
+                'unit' => optional($bahanSetengahJadi->dataUnit)->nama ?? 'N/A',
             ];
         });
         //dd($bahanSetengahJadiResults);

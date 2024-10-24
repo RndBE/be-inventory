@@ -4,14 +4,12 @@ namespace App\Http\Controllers;
 
 use Throwable;
 use App\Models\Bahan;
-use App\Models\Projek;
 use App\Models\StokRnd;
 use App\Models\Produksi;
 use App\Helpers\LogHelper;
 use App\Models\BahanKeluar;
 use App\Models\StokProduksi;
 use Illuminate\Http\Request;
-use App\Models\ProjekDetails;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
 use App\Models\BahanKeluarDetails;
@@ -51,9 +49,6 @@ class BahanKeluarController extends Controller
         try {
             $data = BahanKeluar::find($id);
             $details = BahanKeluarDetails::where('bahan_keluar_id', $id)->get();
-
-            $pendingStockReductions = [];
-
             if ($validated['status'] === 'Disetujui') {
                 $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                 $data->tgl_keluar = $tgl_keluar;
@@ -69,10 +64,11 @@ class BahanKeluarController extends Controller
                                     throw new \Exception('Tolak pengajuan, Stok bahan setengah jadi tidak cukup!');
                                 }
 
-                                $pendingStockReductions[] = [
-                                    'detail' => $setengahJadiDetail,
-                                    'qty' => $transaksiDetail['qty'],
-                                ];
+                                $setengahJadiDetail->sisa -= $transaksiDetail['qty'];
+                                if ($setengahJadiDetail->sisa < 0) {
+                                    $setengahJadiDetail->sisa = 0;
+                                }
+                                $setengahJadiDetail->save();
                             } else {
                                 $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)
                                     ->whereHas('purchase', function ($query) use ($transaksiDetail) {
@@ -80,7 +76,6 @@ class BahanKeluarController extends Controller
                                     })
                                     ->where('unit_price', $transaksiDetail['unit_price'])
                                     ->first();
-
                                 if ($purchaseDetail) {
                                     if ($transaksiDetail['qty'] > $purchaseDetail->sisa) {
                                         throw new \Exception('Tolak pengajuan, Lakukan pengajuan bahan kembali!');
@@ -88,92 +83,46 @@ class BahanKeluarController extends Controller
                                     if ($purchaseDetail->sisa <= 0) {
                                         throw new \Exception('Tidak dapat mengubah status karena sisa bahan sudah habis.');
                                     }
-                                    $pendingStockReductions[] = [
-                                        'detail' => $purchaseDetail,
-                                        'qty' => $transaksiDetail['qty'],
-                                    ];
+                                    $purchaseDetail->sisa -= $transaksiDetail['qty'];
+                                    if ($purchaseDetail->sisa < 0) {
+                                        $purchaseDetail->sisa = 0;
+                                    }
+                                    $purchaseDetail->save();
                                 } else {
                                     throw new \Exception('Purchase detail tidak ditemukan untuk bahan: ' . $detail->bahan_id);
                                 }
                             }
-
-                            // Periksa apakah permintaan berasal dari Produksi atau Projek
-                            if ($data->produksis) {
-                                $produksiDetail = ProduksiDetails::where('produksi_id', $data->produksis->id)
-                                    ->where('bahan_id', $detail->bahan_id)
-                                    ->first();
-
-                                if (!$produksiDetail) {
-                                    throw new \Exception('Produksi detail tidak ditemukan untuk produksi_id: ' . $data->produksi->id);
-                                }
-
-                                $produksiDetail->used_materials += $transaksiDetail['qty'];
-                                if ($produksiDetail->used_materials > $produksiDetail->jml_bahan) {
-                                    throw new \Exception('Jumlah bahan terpakai melebihi total bahan yang tersedia.');
-                                }
-                                $produksiDetail->save();
-                            } elseif ($data->projek) {
-                                $projekDetail = ProjekDetails::where('projek_id', $data->projek->id)
-                                    ->where('bahan_id', $detail->bahan_id)
-                                    ->first();
-
-                                if (!$projekDetail) {
-                                    throw new \Exception('Projek detail tidak ditemukan untuk projek_id: ' . $data->projek->id);
-                                }
-
-                                $projekDetail->save();
+                            $produksiDetail = ProduksiDetails::where('produksi_id', $data->produksis->id)
+                            ->where('bahan_id', $detail->bahan_id)
+                            ->first();
+                            if (!$produksiDetail) {
+                                throw new \Exception('Produksi detail tidak ditemukan untuk produksi_id: ' . $data->produksi->id);
                             }
+                            $produksiDetail->used_materials += $transaksiDetail['qty'];
+                            if ($produksiDetail->used_materials > $produksiDetail->jml_bahan) {
+                                throw new \Exception('Jumlah bahan terpakai melebihi total bahan yang tersedia.');
+                            }
+                            $produksiDetail->save();
                         }
                     }
                 }
-
-                // Update status Produksi atau Projek
-                if ($data->produksis) {
-                    $produksi = Produksi::where('bahan_keluar_id', $id)->first();
-                    if ($produksi) {
-                        $produksi->status = 'Dalam Proses';
-                        $produksi->save();
-                    }
-                } elseif ($data->projek) {
-                    $projek = Projek::where('bahan_keluar_id', $id)->first();
-                    if ($projek) {
-                        $projek->status = 'Dalam Proses';
-                        $projek->save();
-                    }
-                }
-
-                // Kurangi stok
-                foreach ($pendingStockReductions as $reduction) {
-                    $reduction['detail']->sisa -= $reduction['qty'];
-                    if ($reduction['detail']->sisa < 0) {
-                        $reduction['detail']->sisa = 0;
-                    }
-                    $reduction['detail']->save();
+                $produksi = Produksi::where('bahan_keluar_id', $id)->first();
+                if ($produksi) {
+                    $produksi->status = 'Dalam Proses';
+                    $produksi->save();
                 }
             }
-
             if ($validated['status'] === 'Ditolak') {
                 $data->tgl_keluar = null;
 
-                // Update status Produksi atau Projek jika ditolak
-                if ($data->produksis) {
-                    $produksi = Produksi::where('bahan_keluar_id', $id)->first();
-                    if ($produksi) {
-                        $produksi->status = 'Ditolak';
-                        $produksi->save();
-                    }
-                } elseif ($data->projek) {
-                    $projek = Projek::where('bahan_keluar_id', $id)->first();
-                    if ($projek) {
-                        $projek->status = 'Ditolak';
-                        $projek->save();
-                    }
+                $produksi = Produksi::where('bahan_keluar_id', $id)->first();
+                if ($produksi) {
+                    $produksi->status = 'Ditolak';
+                    $produksi->save();
                 }
             }
-
             $data->status = $validated['status'];
             $data->save();
-
             LogHelper::success('Berhasil Mengubah Status Bahan Keluar!');
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
@@ -186,10 +135,8 @@ class BahanKeluarController extends Controller
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', "Terjadi kesalahan pada kolom: $errorColumn. Pesan error: $errorMessage");
         }
-
         return redirect()->route('bahan-keluars.index')->with('success', 'Status berhasil diubah.');
     }
-
 
 
     public function destroy(string $id)

@@ -143,23 +143,22 @@ class BahanPurchaseCart extends Component
         $items = [];
         foreach ($this->cart as $item) {
             $itemId = $item->id; // Store the item ID for reuse
-            $items[] = (object) [  // Cast each item as an object here
-                // 'id' => $itemId,
+            $items[] = [
+                'id' => $itemId,
                 'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
                 'unit_price' => isset($this->unit_price_raw[$itemId]) ? $this->unit_price_raw[$itemId] : 0,
                 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
-                'nama_bahan' => $item->nama_bahan, // Add any other necessary properties here
             ];
         }
         return $items;
     }
 
+
+
     public function render()
     {
-        // Ensure you are using the getCartItemsForStorage() method to get cart items
         return view('livewire.bahan-purchase-cart', [
-            'cartItems' => $this->getCartItemsForStorage(), // Use the correct method to get items
+            'cartItems' => $this->cart,
         ]);
     }
-
 }

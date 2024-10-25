@@ -62,6 +62,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/bahan/{id}/edit', [BahanController::class, 'edit'])->name('bahan.edit');
     Route::put('/bahan/{id}', [BahanController::class, 'update'])->name('bahan.update');
     Route::delete('/bahan/{id}', [BahanController::class, 'destroy'])->name('bahan.destroy');
+    Route::get('bahan-export', [BahanController::class, 'export'])->name('bahan.export');
 
     Route::resource('jenis-bahan', JenisBahanController::class);
     Route::resource('unit', UnitController::class);

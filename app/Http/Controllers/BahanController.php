@@ -8,11 +8,18 @@ use App\Models\Bahan;
 use App\Helpers\LogHelper;
 use App\Models\JenisBahan;
 use Illuminate\Http\Request;
+use App\Exports\BahansExport;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 
 class BahanController extends Controller
 {
+    public function export()
+    {
+        return Excel::download(new BahansExport, 'bahans.xlsx');
+    }
+
     public function index()
     {
         $bahans = Bahan::with('jenisBahan', 'dataUnit')->get();

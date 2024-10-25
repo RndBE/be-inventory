@@ -48,7 +48,7 @@
             </ul>
         </div>
     </div>
-
+    <a class="btn btn-warning float-end" href="{{ route('bahan.export') }}"><i class="fa fa-download"></i> Export User Data</a>
     <ul class="flex flex-wrap -m-1">
 
     </ul>

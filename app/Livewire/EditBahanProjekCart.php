@@ -30,6 +30,7 @@ class EditBahanProjekCart extends Component
     public function mount($projekId)
     {
         $this->projekId = $projekId;
+        $this->cart = [];
         $this->loadProduksi();
 
         foreach ($this->projekDetails as $detail) {
@@ -55,6 +56,82 @@ class EditBahanProjekCart extends Component
         }
     }
 
+    public function addToCart($bahan)
+    {
+        if (is_array($bahan)) {
+            $bahan = (object) $bahan;
+        }
+        //dd($bahan);
+        // Check if the type property is set
+        $isSetengahJadi = isset($bahan->type) && $bahan->type === 'setengahjadi';
+
+        $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
+
+        if ($existingItemKey !== false) {
+            $this->updateQuantity($bahan->id);
+        } else {
+            // Create item object
+            $item = (object)[
+                'id' => $bahan->id,
+                'nama_bahan' => $isSetengahJadi ? $bahan->nama : Bahan::find($bahan->id)->nama_bahan,
+                'stok' => $bahan->stok,
+                'unit' => $bahan->unit,
+            ];
+
+            // Add item to cart
+            $this->cart[] = $item;
+            // Initialize qty for this item
+            $this->qty[$bahan->id] = 1; // or any default value
+        }
+
+        $this->saveCartToSession();
+        $this->calculateSubTotal($bahan->id);
+    }
+
+    public function getCombinedCart()
+    {
+        // Prepare an array for the combined details
+        $combinedDetails = [];
+
+        // Add items from the cart
+        foreach ($this->cart as $item) {
+            // Check if the item has the necessary properties
+            if (isset($item->id)) {
+                $combinedDetails[$item->id] = [
+                    'nama_bahan' => $item->nama_bahan,
+                    'qty' => $this->qty[$item->id] ?? 0,
+                    'stok' => $item->stok,
+                    'unit' => $item->unit,
+                ];
+            }
+        }
+
+        // Add projek details
+        foreach ($this->projekDetails as $detail) {
+            $bahanId = $detail['bahan']->id ?? null; // Use null coalescing to avoid undefined index
+            if ($bahanId !== null) {
+                if (!isset($combinedDetails[$bahanId])) {
+                    $combinedDetails[$bahanId] = [
+                        'nama_bahan' => $detail['bahan']->nama_bahan,
+                        'qty' => 0, // Start with 0 for qty as per your request
+                        'stok' => $detail['bahan']->stok,
+                        'unit' => $detail['bahan']->unit,
+                    ];
+                }
+            }
+        }
+
+        return array_values($combinedDetails); // Convert associative array back to indexed array
+    }
+
+
+
+    protected function saveCartToSession()
+    {
+        session()->put('cartItems', $this->getCartItemsForStorage());
+        dd($this->getCartItemsForStorage());
+    }
+
     public function calculateSubTotal($itemId)
     {
         $unitPrice = isset($this->details[$itemId]) ? intval($this->details[$itemId]) : 0;
@@ -62,12 +139,6 @@ class EditBahanProjekCart extends Component
         $this->subtotals[$itemId] = $unitPrice * $qty;
         $this->calculateTotalHarga();
     }
-
-    public function calculateTotalHarga1()
-{
-    $this->grandTotal = array_sum($this->subtotals) + $this->produksiTotal; // Include any additional production total if applicable
-}
-
 
     public function calculateTotalHarga()
     {
@@ -275,12 +346,10 @@ class EditBahanProjekCart extends Component
 
         foreach ($this->projekDetails as $item) {
             $bahanId = $item['bahan']->id;
-            $requestedQty = $this->qty[$bahanId] ?? 0; // Get the requested quantity
-            $usedMaterials = 0; // Initialize used materials
-            $totalPrice = 0; // Initialize total price
-            $details = []; // Initialize details array
-
-            // Check if the material type is 'Produksi'
+            $requestedQty = $this->qty[$bahanId] ?? 0;
+            $usedMaterials = 0;
+            $totalPrice = 0;
+            $details = [];
             if ($item['bahan']->jenisBahan->nama === 'Produksi') {
                 $bahanSetengahjadiDetails = $item['bahan']->bahanSetengahjadiDetails()
                     ->where('sisa', '>', 0)
@@ -291,22 +360,20 @@ class EditBahanProjekCart extends Component
                 // Calculate used materials for 'Produksi'
                 foreach ($bahanSetengahjadiDetails as $bahan) {
                     if ($usedMaterials < $requestedQty) {
-                        $availableQty = min($bahan->sisa, $requestedQty - $usedMaterials); // Determine how much can be used
+                        $availableQty = min($bahan->sisa, $requestedQty - $usedMaterials);
                         $unitPrice = $bahan->unit_price ?? 0;
 
-                        // If available quantity is greater than zero, add to details
                         if ($availableQty > 0) {
                             $details[] = [
-                                'kode_transaksi' => $bahan->kode_transaksi,
-                                'qty' => $availableQty, // Use available quantity
+                                'kode_transaksi' => $bahan->bahanSetengahjadi->kode_transaksi,
+                                'qty' => $availableQty,
                                 'unit_price' => $unitPrice,
                             ];
-                            $usedMaterials += $availableQty; // Update used materials
+                            $usedMaterials += $availableQty;
                         }
                     }
                 }
             } else {
-                // For other material types, check purchase details
                 $purchaseDetails = $item['bahan']->purchaseDetails()
                     ->where('sisa', '>', 0)
                     ->with(['purchase' => function ($query) {
@@ -349,15 +416,6 @@ class EditBahanProjekCart extends Component
         return $projekDetails;
     }
 
-
-
-
-
-
-
-
-
-
     public function getCartItemsForBahanRusak()
     {
         $bahanRusak = [];
@@ -376,24 +434,14 @@ class EditBahanProjekCart extends Component
     public function render()
     {
         $produksiTotal = array_sum(array_column($this->projekDetails, 'sub_total'));
+        $grandTotal = $produksiTotal;
 
         return view('livewire.edit-bahan-projek-cart', [
             'cartItems' => $this->cart,
             'projekDetails' => $this->projekDetails,
             'produksiTotal' => $produksiTotal,
+            'grandTotal' => $grandTotal,
             'bahanRusak' => $this->bahanRusak,
         ]);
     }
-
-    // public function render()
-    // {
-    //     $projekTotal = array_sum(array_column($this->projekDetails, 'sub_total'));
-
-    //     return view('livewire.edit-bahan-projek-cart', [
-    //         'cartItems' => $this->cart,
-    //         'projekDetails' => $this->projekDetails,
-    //         'projekTotal' => $projekTotal,
-    //         'bahanRusak' => $this->bahanRusak,
-    //     ]);
-    // }
 }

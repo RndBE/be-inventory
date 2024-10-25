@@ -42,6 +42,7 @@ class ProjekController extends Controller
     public function store(Request $request)
     {
         try {
+
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
                 'nama_projek' => $request->nama_projek,
@@ -153,25 +154,9 @@ class ProjekController extends Controller
     {
         try {
             dd($request->all());
-            $cartItems = json_decode($request->produksiDetails, true) ?? [];
+            $cartItems = json_decode($request->projekDetails, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
-            $produksi = Produksi::findOrFail($id);
-            // $validator = Validator::make($request->all(), [
-            //     'jml_produksi' => 'required',
-            //     'mulai_produksi' => 'required',
-            //     'jenis_produksi' => 'required',
-            // ]);
-
-            // if ($validator->fails()) {
-            //     return redirect()->back()->withErrors($validator)->withInput();
-            // }
-
-            // Update production data
-            // $produksi->update([
-            //     'jml_produksi' => $request->jml_produksi,
-            //     'mulai_produksi' => $request->mulai_produksi,
-            //     'jenis_produksi' => $request->jenis_produksi,
-            // ]);
+            $projek = Projek::findOrFail($id);
 
             if (!empty($cartItems)) {
                 foreach ($cartItems as $item) {
@@ -179,15 +164,13 @@ class ProjekController extends Controller
                     $qty = $item['qty'] ?? 0;
                     $sub_total = $item['sub_total'] ?? 0;
                     $details = $item['details'] ?? [];
-                    $newUsedMaterials = $item['used_materials'] ?? 0;
-                    $existingDetail = ProduksiDetails::where('produksi_id', $produksi->id)
+                    $existingDetail = ProjekDetails::where('projek_id', $projek->id)
                         ->where('bahan_id', $bahan_id)
                         ->first();
 
                     if ($existingDetail) {
                         $existingDetailsArray = json_decode($existingDetail->details, true) ?? [];
                         $totalQty = $existingDetail->qty;
-                        $totalUsedMaterials = $existingDetail->used_materials;
                         foreach ($details as $newDetail) {
                             $found = false;
                             foreach ($existingDetailsArray as &$existingDetailItem) {
@@ -201,19 +184,16 @@ class ProjekController extends Controller
                                 $existingDetailsArray[] = $newDetail;
                             }
                             $totalQty += $newDetail['qty'];
-                            $totalUsedMaterials += $newDetail['qty'];
                         }
                         $existingDetail->details = json_encode($existingDetailsArray);
                         $existingDetail->qty = $totalQty;
-                        $existingDetail->used_materials = $totalUsedMaterials + $newUsedMaterials;
                         $existingDetail->sub_total += $sub_total;
                         $existingDetail->save();
                     } else {
-                        ProduksiDetails::create([
-                            'produksi_id' => $produksi->id,
+                        ProjekDetails::create([
+                            'projek_id' => $projek->id,
                             'bahan_id' => $bahan_id,
                             'qty' => $qty,
-                            'used_materials' => $newUsedMaterials,
                             'details' => json_encode($details),
                             'sub_total' => $sub_total,
                         ]);
@@ -310,12 +290,12 @@ class ProjekController extends Controller
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
                     ]);
-                $produksiDetail = ProduksiDetails::where('produksi_id', $produksi->id)
+                $projekDetail = ProjekDetails::where('projek_id', $projek->id)
                     ->where('bahan_id', $bahan_id)
                     ->first();
 
-                    if ($produksiDetail) {
-                        $existingDetailsArray = json_decode($produksiDetail->details, true) ?? [];
+                    if ($projekDetail) {
+                        $existingDetailsArray = json_decode($projekDetail->details, true) ?? [];
 
                         foreach ($existingDetailsArray as $key => &$detail) {
                             if ($detail['unit_price'] === $unit_price) {
@@ -327,28 +307,26 @@ class ProjekController extends Controller
                             }
                         }
 
-                        $produksiDetail->details = json_encode(array_values($existingDetailsArray));
+                        $projekDetail->details = json_encode(array_values($existingDetailsArray));
 
                         $newTotalQty = array_sum(array_column($existingDetailsArray, 'qty'));
                         $newSubTotal = array_sum(array_map(function ($detail) {
                             return $detail['qty'] * $detail['unit_price'];
                         }, $existingDetailsArray));
 
-                        $produksiDetail->qty = $newTotalQty;
-                        $produksiDetail->sub_total = $newSubTotal;
-
-                        $produksiDetail->used_materials -= $qtyRusak;
+                        $projekDetail->qty = $newTotalQty;
+                        $projekDetail->sub_total = $newSubTotal;
 
                         if ($newTotalQty > 0) {
-                            $produksiDetail->save();
+                            $projekDetail->save();
                         } else {
-                            $produksiDetail->delete();
+                            $projekDetail->delete();
                         }
                     }
             }
         }
-        LogHelper::success('Berhasil Mengubah Detail Produksi!');
-            return redirect()->back()->with('success', 'Produksi berhasil diperbarui!');
+        LogHelper::success('Berhasil Mengubah Detail Projek!');
+            return redirect()->back()->with('success', 'Projek berhasil diperbarui!');
         } catch (\Exception $e) {
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();

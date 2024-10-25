@@ -6,7 +6,7 @@ use Throwable;
 use App\Models\Unit;
 use App\Models\Bahan;
 use App\Models\Projek;
-use App\Models\Produksi;
+use App\Models\Produk;
 use App\Models\BahanJadi;
 use App\Helpers\LogHelper;
 use App\Models\BahanRusak;
@@ -336,102 +336,18 @@ class ProjekController extends Controller
     public function updateStatus(Request $request, $id)
     {
         try{
-
-            $produksi = Produksi::findOrFail($id);
-            // dd($produksi);
-            if ($produksi->bahanKeluar->status === 'Disetujui' && $produksi->status !== 'Selesai') {
-                // Proses update berdasarkan jenis produksi
-                if ($produksi->jenis_produksi === 'Produk Setengah Jadi') {
-                    try {
-                        // Mulai transaksi database
-                        DB::beginTransaction();
-
-                        // Masukkan data ke dalam tabel bahan_setengahjadi
-                        $bahanSetengahJadi = new BahanSetengahjadi();
-                        $bahanSetengahJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                        $bahanSetengahJadi->kode_transaksi = $produksi->kode_produksi;
-                        $bahanSetengahJadi->save();
-
-                        $produksiTotal = $produksi->produksiDetails->sum('sub_total');
-
-                        $bahanSetengahJadiDetail = new BahanSetengahjadiDetails();
-                        $bahanSetengahJadiDetail->bahan_setengahjadi_id = $bahanSetengahJadi->id;
-                        $bahanSetengahJadiDetail->produk_id = $produksi->produk_id;
-                        $bahanSetengahJadiDetail->qty = $produksi->jml_produksi;
-                        $bahanSetengahJadiDetail->sisa = $produksi->jml_produksi;
-                        $bahanSetengahJadiDetail->unit_price = $produksiTotal / $produksi->jml_produksi;
-                        $bahanSetengahJadiDetail->sub_total = $produksiTotal;
-                        $bahanSetengahJadiDetail->save();
-
-                        // Jika semua penyimpanan berhasil, update status produksi menjadi "Selesai"
-                        $produksi->status = 'Selesai';
-                        $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                        $produksi->save();
-
-                        // Commit transaksi
-                        DB::commit();
-
-                        LogHelper::success('Berhasil Menyelesaikan Produksi Produk Setengah Jadi!');
-                        return redirect()->back()->with('success', 'Produksi telah selesai.');
-                    } catch (\Exception $e) {
-                        // Rollback jika ada kesalahan
-                        DB::rollBack();
-                        $errorMessage = $e->getMessage();
-                        LogHelper::error($e->getMessage());
-                        return redirect()->back()->with('error', "Gagal update status produksi.".$errorMessage);
-                    }
-                }
-
-                // Kondisi untuk jenis produksi 'Bahan Jadi'
-                // if ($produksi->jenis_produksi === 'Produk Jadi') {
-                //     try {
-                //         // Mulai transaksi database
-                //         DB::beginTransaction();
-
-                //         // Masukkan data ke dalam tabel bahan_jadi
-                //         $bahanJadi = new BahanJadi();
-                //         $bahanJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                //         $bahanJadi->kode_transaksi = $produksi->kode_produksi;
-                //         $bahanJadi->save();
-
-                //         $produksiTotal = $produksi->produksiDetails->sum('sub_total');
-
-                //         $bahanJadiDetail = new BahanJadiDetails();
-                //         $bahanJadiDetail->bahan_jadi_id = $bahanJadi->id;
-                //         $bahanJadiDetail->bahan_id = $produksi->bahan_id;
-                //         $bahanJadiDetail->qty = $produksi->jml_produksi;
-                //         $bahanJadiDetail->sisa = $produksi->jml_produksi;
-                //         $bahanJadiDetail->unit_price = $produksiTotal / $produksi->jml_produksi;
-                //         $bahanJadiDetail->sub_total = $produksiTotal;
-                //         $bahanJadiDetail->save();
-
-                //         // Jika semua penyimpanan berhasil, update status produksi menjadi "Selesai"
-                //         $produksi->status = 'Selesai';
-                //         $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                //         $produksi->save();
-
-                //         // Commit transaksi
-                //         DB::commit();
-
-                //         LogHelper::success('Berhasil Menyelesaikan Produksi Produk Jadi!');
-                //         return redirect()->back()->with('success', 'Produksi Bahan Jadi telah selesai.');
-                //     } catch (\Exception $e) {
-                //         // Rollback jika ada kesalahan
-                //         DB::rollBack();
-                //         $errorMessage = $e->getMessage();
-                //         LogHelper::error($e->getMessage());
-                //         return redirect()->back()->with('error', "Gagal update status produksi.".$errorMessage);
-                //     }
-                // }
-            }
-            return redirect()->back()->with('error', 'Produksi tidak bisa diupdate ke selesai.');
+            $projek = Projek::findOrFail($id);
+            //dd($projek);
+            $projek->status = 'Selesai';
+            $projek->selesai_projek = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $projek->save();
+            LogHelper::success('Berhasil menyelesaikan projek Produk Setengah Jadi!');
+            return redirect()->back()->with('error', 'Projek tidak bisa diupdate ke selesai.');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }
     }
-
-
 
     public function destroy(string $id)
     {

@@ -72,6 +72,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::resource('produksis', ProduksiController::class);
     Route::put('produksis/{produksi}/selesai', [ProduksiController::class, 'updateStatus'])->name('produksis.updateStatus');
     Route::resource('projeks', ProjekController::class);
+    Route::put('projeks/{projek}/selesai', [ProjekController::class, 'updateStatus'])->name('projeks.updateStatus');
     Route::resource('bahan-rusaks', BahanRusakController::class);
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
     Route::resource('bahan-jadis', BahanJadiController::class);

@@ -211,7 +211,7 @@
             </form>
         </div>
     </div>
-    {{-- @include('pages.produksis.selesai') --}}
+    @include('pages.projek.selesai')
     <script>
         document.getElementById('saveButton').addEventListener('click', function() {
             document.getElementById('produksiForm').submit();

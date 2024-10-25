@@ -32,10 +32,6 @@ class EditBahanProjekCart extends Component
         $this->projekId = $projekId;
         $this->cart = [];
         $this->loadProduksi();
-
-        foreach ($this->projekDetails as $detail) {
-            $this->qty[$detail['bahan']->id] = $detail['used_materials']; // atau nilai default lainnya
-        }
     }
     public function loadProduksi()
     {

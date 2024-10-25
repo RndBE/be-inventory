@@ -36,6 +36,14 @@
                             </td>
                         </tr>
                     @endforeach
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <td colspan="3" class="px-6 py-4 text-right text-black">
+                            <strong>Total Harga</strong>
+                        </td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                            <span><strong>Rp.</strong> {{ number_format($totalharga, 0, ',', '.') }}</span>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -94,7 +102,7 @@
                             <strong>Total Harga</strong>
                         </td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                            <span><strong>Rp.</strong> {{ number_format($totalharga, 0, ',', '.') }}</span>
+                            <span><strong>Rp.</strong> {{ number_format($produksiTotal, 0, ',', '.') }}</span>
                         </td>
                     </tr>
                 </tbody>

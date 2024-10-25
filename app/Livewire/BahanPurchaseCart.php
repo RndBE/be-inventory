@@ -142,7 +142,9 @@ class BahanPurchaseCart extends Component
     {
         $items = [];
         foreach ($this->cart as $item) {
-            $itemId = $item->id; // Store the item ID for reuse
+            // Check if $item is an object or array and retrieve the ID accordingly
+            $itemId = is_object($item) ? $item->id : $item['id'];
+
             $items[] = [
                 'id' => $itemId,
                 'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
@@ -152,6 +154,7 @@ class BahanPurchaseCart extends Component
         }
         return $items;
     }
+
 
 
 

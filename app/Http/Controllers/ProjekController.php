@@ -42,7 +42,6 @@ class ProjekController extends Controller
     public function store(Request $request)
     {
         try {
-            dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
                 'nama_projek' => $request->nama_projek,
@@ -59,92 +58,81 @@ class ProjekController extends Controller
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
+            $tujuan = $request->nama_projek;
+
+            // Create transaction code for BahanKeluar
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
-            if ($lastTransaction) {
-                $last_transaction_number = intval(substr($lastTransaction->kode_transaksi, 6));
-            } else {
-                $last_transaction_number = 0;
-            }
-            $new_transaction_number = $last_transaction_number + 1;
-            $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-            $kode_transaksi = 'KBK - ' . $formatted_number;
+            $new_transaction_number = ($lastTransaction ? intval(substr($lastTransaction->kode_transaksi, 6)) : 0) + 1;
+            $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
             $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
-            // Simpan data ke Bahan Keluar
-            $bahan_keluar = new BahanKeluar();
-            $bahan_keluar->kode_transaksi = $kode_transaksi;
-            $bahan_keluar->tgl_keluar = $tgl_keluar;
-            $bahan_keluar->tujuan = 'Projek '. $request->nama_projek;
-            $bahan_keluar->divisi = 'Produksi';
-            $bahan_keluar->status = 'Belum disetujui';
-            $bahan_keluar->save();
+            $bahan_keluar = BahanKeluar::create([
+                'kode_transaksi' => $kode_transaksi,
+                'tgl_keluar' => $tgl_keluar,
+                'tujuan' => 'Produksi ' . $tujuan,
+                'divisi' => 'Produksi',
+                'status' => 'Belum disetujui'
+            ]);
 
-            // Buat kombinasi kode transaksi di Produksi
-            $lastTransactionProjek = Projek::orderByRaw('CAST(SUBSTRING(kode_projek, 7) AS UNSIGNED) DESC')->first();
-            if ($lastTransactionProjek) {
-                $last_transaction_number_projek = intval(substr($lastTransactionProjek->kode_projek, 6));
-            } else {
-                $last_transaction_number_projek = 0;
-            }
-            $new_transaction_number_projek = $last_transaction_number_projek + 1;
-            $formatted_number_projek = str_pad($new_transaction_number_projek, 5, '0', STR_PAD_LEFT);
-            $kode_projek = 'PR - ' . $formatted_number_projek;
+            // Create transaction code for Projek
+            $lastTransactionProduksi = Projek::orderByRaw('CAST(SUBSTRING(kode_projek, 7) AS UNSIGNED) DESC')->first();
+            $new_transaction_number_produksi = ($lastTransactionProduksi ? intval(substr($lastTransactionProduksi->kode_projek, 6)) : 0) + 1;
+            $kode_produksi = 'PR - ' . str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
 
-            // Simpan data ke Produksi
-            $projek = new Projek();
-            $projek->bahan_keluar_id = $bahan_keluar->id;
-            $projek->kode_projek = $kode_projek;
-            $projek->nama_projek = $request->nama_projek;
-            $projek->jml_projek = $request->jml_projek;
-            $projek->mulai_projek = $request->mulai_projek;
-            $projek->status = 'Konfirmasi';
-            $projek->save();
+            $produksi = Projek::create([
+                'bahan_keluar_id' => $bahan_keluar->id,
+                'kode_projek' => $kode_produksi,
+                'nama_projek' => $request->nama_projek,
+                'jml_projek' => $request->jml_projek,
+                'mulai_projek' => $request->mulai_projek,
+                'status' => 'Konfirmasi'
+            ]);
 
-            // Kelompokkan item berdasarkan bahan_id dan jumlah
+            // Group items by bahan_id
             $groupedItems = [];
             foreach ($cartItems as $item) {
-                if (!isset($groupedItems[$item['id']])) {
-                    $groupedItems[$item['id']] = [
-                        'qty' => 0,
-                        'details' => $item['details'],
-                        'sub_total' => 0,
-                    ];
-                }
-                $groupedItems[$item['id']]['qty'] += $item['qty'];
-                $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
+                $itemId = $item['id'];
+                $groupedItems[$itemId] = [
+                    'qty' => $item['qty'],
+                    'details' => $item['details'] ?? [],
+                    'sub_total' => $item['sub_total'] ?? 0,
+                ];
             }
 
-            // Simpan data ke Bahan Keluar Detail dan Produksi Detail
+            // Save items to BahanKeluarDetails and ProjekDetails
             foreach ($groupedItems as $bahan_id => $details) {
                 BahanKeluarDetails::create([
                     'bahan_keluar_id' => $bahan_keluar->id,
                     'bahan_id' => $bahan_id,
                     'qty' => $details['qty'],
+                    'jml_bahan' => 0,
+                    'used_materials' => 0,
                     'details' => json_encode($details['details']),
                     'sub_total' => $details['sub_total'],
                 ]);
 
                 ProjekDetails::create([
-                    'projek_id' => $projek->id,
+                    'projek_id' => $produksi->id,
                     'bahan_id' => $bahan_id,
                     'qty' => $details['qty'],
                     'details' => json_encode($details['details']),
                     'sub_total' => $details['sub_total'],
                 ]);
             }
-            session()->forget('cartItems');
-            LogHelper::success('Berhasil Menambahkan Pengajuan Produksi!');
-            return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Produksi!');
+            $request->session()->forget('cartItems');
+            LogHelper::success('Berhasil Menambahkan Pengajuan Projek!');
+            return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Projek!');
         } catch (\Exception $e) {
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan data: ' . $e->getMessage());
         }
     }
 
+
     public function edit(string $id)
     {
         $units = Unit::all();
-        $bahanProduksi = Bahan::whereHas('jenisBahan', function ($query) {
+        $bahanProjek = Bahan::whereHas('jenisBahan', function ($query) {
             $query->where('nama', 'like', '%Produksi%');
         })->get();
         $projek = Projek::with(['projekDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
@@ -153,7 +141,7 @@ class ProjekController extends Controller
         }
         return view('pages.projek.edit', [
             'projekId' => $projek->id,
-            'bahanProduksi' => $bahanProduksi,
+            'bahanProjek' => $bahanProjek,
             'projek' => $projek,
             'units' => $units,
             'id' => $id
@@ -470,19 +458,20 @@ class ProjekController extends Controller
     public function destroy(string $id)
     {
         try{
-            $produksi = Produksi::find($id);
-            if (!$produksi) {
-                return redirect()->back()->with('gagal', 'Produksi tidak ditemukan.');
+            $projek = Projek::find($id);
+            //dd($projek);
+            if (!$projek) {
+                return redirect()->back()->with('gagal', 'Projek tidak ditemukan.');
             }
-            if ($produksi->status !== 'Konfirmasi') {
-                return redirect()->back()->with('gagal', 'Produksi hanya dapat dihapus jika statusnya "Konfirmasi".');
+            if ($projek->status !== 'Konfirmasi') {
+                return redirect()->back()->with('gagal', 'Projek hanya dapat dihapus jika statusnya "Konfirmasi".');
             }
-            $bahanKeluar = BahanKeluar::find($produksi->bahan_keluar_id);
-            $produksi->delete();
+            $bahanKeluar = BahanKeluar::find($projek->bahan_keluar_id);
+            $projek->delete();
             if ($bahanKeluar) {
                 $bahanKeluar->delete();
             }
-            return redirect()->back()->with('success', 'Produksi dan bahan keluar terkait berhasil dihapus.');
+            return redirect()->back()->with('success', 'Projek dan bahan keluar terkait berhasil dihapus.');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

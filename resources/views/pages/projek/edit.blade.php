@@ -178,7 +178,7 @@
                                 </div>
 
                                 <div class="flex items-center">
-                                    <label for="jml_projek" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
+                                    <label for="jml_projek" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Projek<sup class="text-red-500 text-base">*</sup></label>
                                     <div class="relative w-3/4">
                                         <div class="flex item-center">
                                             <input type="number" name="jml_projek" value="{{ $projek->jml_projek }}"  id="jml_projek" placeholder="" class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300

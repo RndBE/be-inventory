@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('projek_id')->constrained('projek')->onDelete('cascade');
             $table->foreignId('bahan_id')->constrained('bahan');
             $table->integer('qty');
-            $table->json('details');
+            $table->text('details');
             $table->integer('sub_total');
             $table->timestamps();
         });

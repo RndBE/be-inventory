@@ -14,26 +14,24 @@
                 </thead>
                 <tbody>
                     @foreach($cartItems as $item)
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                            @if($editingItemId === $item->id)
-                            <input
-                                autofocus
-                                value="{{ old('unit_price_raw.' . $item->id, isset($unit_price[$item->id]) ? $unit_price[$item->id] : '') }}"
-                                wire:model="unit_price_raw.{{ $item->id }}"
-                                type="text"
-                                class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="0"
-                                required
-                                wire:blur="formatToRupiah({{ $item->id }})"
-                            />
-                            @else
-                                <span class="cursor-pointer" wire:click="editItem({{ $item->id }})">Rp. {{ number_format($unit_price[$item->id] ?? 0, 0, ',', '.') }}</span>
-                            @endif
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                                @if($editingItemId === $item->id)
+                                    <input
+                                        autofocus
+                                        value="{{ old('unit_price_raw.' . $item->id, isset($unit_price[$item->id]) ? $unit_price[$item->id] : '') }}"
+                                        wire:model="unit_price_raw.{{ $item->id }}"
+                                        type="text"
+                                        class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        placeholder="0"
+                                        required
+                                        wire:blur="formatToRupiah({{ $item->id }})"
+                                    />
+                                @else
+                                    <span class="cursor-pointer" wire:click="editItem({{ $item->id }})">Rp. {{ number_format($unit_price[$item->id] ?? 0, 0, ',', '.') }}</span>
+                                @endif
                             </td>
-                            {{-- <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ is_array($item->data_unit) ? $item->data_unit['nama'] : $item->data_unit->nama }}</span></td> --}}
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
                                     <button wire:click="decreaseQuantity({{ $item->id }})" class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button">
@@ -53,15 +51,16 @@
                                 <span><strong>Rp.</strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline" wire:click.prevent="removeItem({{ $item->id }})"><svg class="w-6 h-6 text-red-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                    <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z" clip-rule="evenodd"/>
-                                </svg>
+                                <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline" wire:click.prevent="removeItem({{ $item->id }})">
+                                    <svg class="w-6 h-6 text-red-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z" clip-rule="evenodd"/>
+                                    </svg>
                                 </a>
                             </td>
-
                         </tr>
                     @endforeach
                 </tbody>
+
             </table>
         </div>
     </div>

@@ -144,7 +144,7 @@ class BahanPurchaseCart extends Component
         foreach ($this->cart as $item) {
             $itemId = $item->id; // Store the item ID for reuse
             $items[] = (object) [  // Cast each item as an object here
-                'id' => $itemId,
+                // 'id' => $itemId,
                 'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
                 'unit_price' => isset($this->unit_price_raw[$itemId]) ? $this->unit_price_raw[$itemId] : 0,
                 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
@@ -153,12 +153,6 @@ class BahanPurchaseCart extends Component
         }
         return $items;
     }
-
-
-
-
-
-
 
     public function render()
     {

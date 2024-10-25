@@ -37,7 +37,7 @@ class EditBahanProjekCart extends Component
     }
     public function loadProduksi()
     {
-        $produksi = Produksi::with('projekDetails')->find($this->projekId);
+        $produksi = Projek::with('projekDetails')->find($this->projekId);
 
         if ($produksi) {
             $this->produksiStatus = $produksi->status;
@@ -375,7 +375,7 @@ class EditBahanProjekCart extends Component
     {
         $produksiTotal = array_sum(array_column($this->projekDetails, 'sub_total'));
 
-        return view('livewire.edit-bahan-produksi-cart', [
+        return view('livewire.edit-bahan-projek-cart', [
             'cartItems' => $this->cart,
             'projekDetails' => $this->projekDetails,
             'produksiTotal' => $produksiTotal,

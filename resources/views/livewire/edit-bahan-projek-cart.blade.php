@@ -1,12 +1,10 @@
 <div>
     <div class="border-b border-gray-900/10">
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-2">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="px-6 py-3 w-1/5">Bahan</th>
-                        <th scope="col" class="px-6 py-3 text-center w-0.5">Kebutuhan</th>
-                        <th scope="col" class="px-6 py-3 text-center w-0.5">Kekurangan</th>
                         <th scope="col" class="px-6 py-3 text-center w-0.5">Stok</th>
                         <th scope="col" class="px-6 py-3 text-center w-0.5">Ambil Stok</th>
                         <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total</th>
@@ -22,12 +20,6 @@
                     <input type="hidden" name="projekDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']->nama_bahan }}</td>
-                        <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                            {{ $detail['jml_bahan'] }}
-                        </td>
-                        <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                            {{ $detail['jml_bahan'] - $detail['used_materials'] }}
-                        </td>
                         <td class="items-center px-6 py-4 text-gray-900 dark:text-white text-cente">
                             <div class="flex flex-col space-y-2">
                                 <div class="flex justify-center items-center">
@@ -129,8 +121,6 @@
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
                         <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 text-right text-black"></td>
-                        <td class="px-6 py-4 text-right text-black"></td>
-                        <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><strong>Rp.</strong> {{ number_format($grandTotal, 0, ',', '.') }}</span></td>
                         <td class="px-6 py-4 text-center text-black">+</td>
 
@@ -140,8 +130,6 @@
                     </tr>
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
-                        <td class="px-6 py-4 text-right text-black"></td>
-                        <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>

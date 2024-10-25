@@ -61,8 +61,7 @@ class EditBahanProjekCart extends Component
         if (is_array($bahan)) {
             $bahan = (object) $bahan;
         }
-        //dd($bahan);
-        // Check if the type property is set
+        // Periksa apakah properti 'type' ada sebelum mengaksesnya
         $isSetengahJadi = isset($bahan->type) && $bahan->type === 'setengahjadi';
 
         $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
@@ -70,7 +69,7 @@ class EditBahanProjekCart extends Component
         if ($existingItemKey !== false) {
             $this->updateQuantity($bahan->id);
         } else {
-            // Create item object
+            // Buat objek item
             $item = (object)[
                 'id' => $bahan->id,
                 'nama_bahan' => $isSetengahJadi ? $bahan->nama : Bahan::find($bahan->id)->nama_bahan,
@@ -78,50 +77,14 @@ class EditBahanProjekCart extends Component
                 'unit' => $bahan->unit,
             ];
 
-            // Add item to cart
+            // Tambahkan item ke keranjang
             $this->cart[] = $item;
-            // Initialize qty for this item
-            $this->qty[$bahan->id] = 1; // or any default value
+            $this->qty[$bahan->id] = null;
         }
 
+        // Simpan ke sesi
         $this->saveCartToSession();
         $this->calculateSubTotal($bahan->id);
-    }
-
-    public function getCombinedCart()
-    {
-        // Prepare an array for the combined details
-        $combinedDetails = [];
-
-        // Add items from the cart
-        foreach ($this->cart as $item) {
-            // Check if the item has the necessary properties
-            if (isset($item->id)) {
-                $combinedDetails[$item->id] = [
-                    'nama_bahan' => $item->nama_bahan,
-                    'qty' => $this->qty[$item->id] ?? 0,
-                    'stok' => $item->stok,
-                    'unit' => $item->unit,
-                ];
-            }
-        }
-
-        // Add projek details
-        foreach ($this->projekDetails as $detail) {
-            $bahanId = $detail['bahan']->id ?? null; // Use null coalescing to avoid undefined index
-            if ($bahanId !== null) {
-                if (!isset($combinedDetails[$bahanId])) {
-                    $combinedDetails[$bahanId] = [
-                        'nama_bahan' => $detail['bahan']->nama_bahan,
-                        'qty' => 0, // Start with 0 for qty as per your request
-                        'stok' => $detail['bahan']->stok,
-                        'unit' => $detail['bahan']->unit,
-                    ];
-                }
-            }
-        }
-
-        return array_values($combinedDetails); // Convert associative array back to indexed array
     }
 
 
@@ -129,7 +92,6 @@ class EditBahanProjekCart extends Component
     protected function saveCartToSession()
     {
         session()->put('cartItems', $this->getCartItemsForStorage());
-        dd($this->getCartItemsForStorage());
     }
 
     public function calculateSubTotal($itemId)
@@ -342,78 +304,18 @@ class EditBahanProjekCart extends Component
 
     public function getCartItemsForStorage()
     {
-        $projekDetails = [];
+        $items = [];
+        foreach ($this->cart as $item) {
+            $itemId = $item->id;
 
-        foreach ($this->projekDetails as $item) {
-            $bahanId = $item['bahan']->id;
-            $requestedQty = $this->qty[$bahanId] ?? 0;
-            $usedMaterials = 0;
-            $totalPrice = 0;
-            $details = [];
-            if ($item['bahan']->jenisBahan->nama === 'Produksi') {
-                $bahanSetengahjadiDetails = $item['bahan']->bahanSetengahjadiDetails()
-                    ->where('sisa', '>', 0)
-                    ->with(['bahanSetengahjadi' => function ($query) {
-                        $query->orderBy('tgl_masuk', 'asc');
-                    }])->get();
-
-                // Calculate used materials for 'Produksi'
-                foreach ($bahanSetengahjadiDetails as $bahan) {
-                    if ($usedMaterials < $requestedQty) {
-                        $availableQty = min($bahan->sisa, $requestedQty - $usedMaterials);
-                        $unitPrice = $bahan->unit_price ?? 0;
-
-                        if ($availableQty > 0) {
-                            $details[] = [
-                                'kode_transaksi' => $bahan->bahanSetengahjadi->kode_transaksi,
-                                'qty' => $availableQty,
-                                'unit_price' => $unitPrice,
-                            ];
-                            $usedMaterials += $availableQty;
-                        }
-                    }
-                }
-            } else {
-                $purchaseDetails = $item['bahan']->purchaseDetails()
-                    ->where('sisa', '>', 0)
-                    ->with(['purchase' => function ($query) {
-                        $query->orderBy('tgl_masuk', 'asc');
-                    }])->get();
-
-                // Calculate used materials for purchase details
-                foreach ($purchaseDetails as $purchase) {
-                    if ($usedMaterials < $requestedQty) {
-                        $availableQty = min($purchase->sisa, $requestedQty - $usedMaterials); // Determine how much can be used
-                        $unitPrice = $purchase->unit_price ?? 0;
-
-                        // If available quantity is greater than zero, add to details
-                        if ($availableQty > 0) {
-                            $details[] = [
-                                'kode_transaksi' => $purchase->purchase->kode_transaksi,
-                                'qty' => $availableQty, // Use available quantity
-                                'unit_price' => $unitPrice,
-                            ];
-                            $usedMaterials += $availableQty; // Update used materials
-                        }
-                    }
-                }
-            }
-
-            // Calculate total price based on usedMaterials and unitPrice
-            foreach ($details as $detail) {
-                $totalPrice += $detail['qty'] * $detail['unit_price']; // Calculate subtotal for each detail
-            }
-
-            // Add data to projekDetails
-            $projekDetails[] = [
-                'id' => $bahanId,
-                'qty' => $usedMaterials, // Now correctly reflects the used materials
-                'details' => $details,
-                'sub_total' => $totalPrice,
+            $items[] = [
+                'id' => $itemId,
+                'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
+                'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
+                'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
             ];
         }
-
-        return $projekDetails;
+        return $items;
     }
 
     public function getCartItemsForBahanRusak()

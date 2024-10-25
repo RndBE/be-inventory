@@ -153,8 +153,8 @@ class ProjekController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            dd($request->all());
-            $cartItems = json_decode($request->projekDetails, true) ?? [];
+            //dd($request->all());
+            $cartItems = json_decode($request->cartItems, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $projek = Projek::findOrFail($id);
 

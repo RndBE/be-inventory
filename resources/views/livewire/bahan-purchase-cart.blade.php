@@ -16,11 +16,11 @@
                     @foreach($cartItems as $item)
                     <input type="hidden" name="cartItems" value="{{ json_encode($this->getCartItemsForStorage()) }}">
 
-                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                @if($editingItemId === $item->id)
-                                <input
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                            @if($editingItemId === $item->id)
+                            <input
                                 autofocus
                                 value="{{ old('unit_price_raw.' . $item->id, isset($unit_price[$item->id]) ? $unit_price[$item->id] : '') }}"
                                 wire:model="unit_price_raw.{{ $item->id }}"
@@ -30,10 +30,9 @@
                                 required
                                 wire:blur="formatToRupiah({{ $item->id }})"
                             />
-
-                                @else
-                                    <span class="cursor-pointer" wire:click="editItem({{ $item->id }})">Rp. {{ number_format($unit_price[$item->id] ?? 0, 0, ',', '.') }}</span>
-                                @endif
+                            @else
+                                <span class="cursor-pointer" wire:click="editItem({{ $item->id }})">Rp. {{ number_format($unit_price[$item->id] ?? 0, 0, ',', '.') }}</span>
+                            @endif
                             </td>
                             {{-- <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                 <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ is_array($item->data_unit) ? $item->data_unit['nama'] : $item->data_unit->nama }}</span></td> --}}

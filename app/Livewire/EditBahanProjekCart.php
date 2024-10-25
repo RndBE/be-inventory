@@ -20,6 +20,7 @@ class EditBahanProjekCart extends Component
     public $projekDetails = [];
     public $bahanRusak = [];
     public $produksiStatus;
+    public $grandTotal = 0;
 
     protected $listeners = [
         'bahanSelected' => 'addToCart',
@@ -61,6 +62,11 @@ class EditBahanProjekCart extends Component
         $this->subtotals[$itemId] = $unitPrice * $qty;
         $this->calculateTotalHarga();
     }
+
+    public function calculateTotalHarga1()
+{
+    $this->grandTotal = array_sum($this->subtotals) + $this->produksiTotal; // Include any additional production total if applicable
+}
 
 
     public function calculateTotalHarga()
@@ -265,22 +271,16 @@ class EditBahanProjekCart extends Component
 
     public function getCartItemsForStorage()
     {
-        $grandTotal = 0;
         $projekDetails = [];
 
         foreach ($this->projekDetails as $item) {
             $bahanId = $item['bahan']->id;
+            $requestedQty = $this->qty[$bahanId] ?? 0; // Get the requested quantity
+            $usedMaterials = 0; // Initialize used materials
+            $totalPrice = 0; // Initialize total price
+            $details = []; // Initialize details array
 
-            $usedMaterials = 0;
-            $stokSaatIni = 0;
-            $totalPrice = 0;
-
-            // Hitung jumlah maksimum yang diizinkan berdasarkan detail produksi
-            $maxAllowedQty = $item['jml_bahan'] - $item['used_materials'];
-
-            // Inisialisasi array untuk menyimpan detail transaksi
-            $details = [];
-
+            // Check if the material type is 'Produksi'
             if ($item['bahan']->jenisBahan->nama === 'Produksi') {
                 $bahanSetengahjadiDetails = $item['bahan']->bahanSetengahjadiDetails()
                     ->where('sisa', '>', 0)
@@ -288,59 +288,59 @@ class EditBahanProjekCart extends Component
                         $query->orderBy('tgl_masuk', 'asc');
                     }])->get();
 
-                // Hitung used materials dan detailnya
+                // Calculate used materials for 'Produksi'
                 foreach ($bahanSetengahjadiDetails as $bahan) {
-                    if ($usedMaterials < $maxAllowedQty) {
-                        $qtyToUse = min($bahan->sisa, $maxAllowedQty - $usedMaterials);
-                        $usedMaterials += $qtyToUse;
-
-                        // Ambil harga satuan dan kode transaksi untuk detail
+                    if ($usedMaterials < $requestedQty) {
+                        $availableQty = min($bahan->sisa, $requestedQty - $usedMaterials); // Determine how much can be used
                         $unitPrice = $bahan->unit_price ?? 0;
-                        $details[] = [
-                            'kode_transaksi' => $bahan->kode_transaksi,
-                            'qty' => $qtyToUse, // Tambahkan qty yang digunakan
-                            'unit_price' => $unitPrice,
-                        ];
+
+                        // If available quantity is greater than zero, add to details
+                        if ($availableQty > 0) {
+                            $details[] = [
+                                'kode_transaksi' => $bahan->kode_transaksi,
+                                'qty' => $availableQty, // Use available quantity
+                                'unit_price' => $unitPrice,
+                            ];
+                            $usedMaterials += $availableQty; // Update used materials
+                        }
                     }
                 }
             } else {
-                // Cek purchase details
+                // For other material types, check purchase details
                 $purchaseDetails = $item['bahan']->purchaseDetails()
                     ->where('sisa', '>', 0)
                     ->with(['purchase' => function ($query) {
                         $query->orderBy('tgl_masuk', 'asc');
                     }])->get();
 
-                // Hitung used materials dan detailnya
+                // Calculate used materials for purchase details
                 foreach ($purchaseDetails as $purchase) {
-                    if ($usedMaterials < $maxAllowedQty) {
-                        $qtyToUse = min($purchase->sisa, $maxAllowedQty - $usedMaterials);
-                        $usedMaterials += $qtyToUse;
-
-                        // Ambil harga satuan dan kode transaksi untuk detail
+                    if ($usedMaterials < $requestedQty) {
+                        $availableQty = min($purchase->sisa, $requestedQty - $usedMaterials); // Determine how much can be used
                         $unitPrice = $purchase->unit_price ?? 0;
-                        $details[] = [
-                            'kode_transaksi' => $purchase->purchase->kode_transaksi,
-                            'qty' => $qtyToUse, // Tambahkan qty yang digunakan
-                            'unit_price' => $unitPrice,
-                        ];
+
+                        // If available quantity is greater than zero, add to details
+                        if ($availableQty > 0) {
+                            $details[] = [
+                                'kode_transaksi' => $purchase->purchase->kode_transaksi,
+                                'qty' => $availableQty, // Use available quantity
+                                'unit_price' => $unitPrice,
+                            ];
+                            $usedMaterials += $availableQty; // Update used materials
+                        }
                     }
                 }
             }
 
-            // Hitung total price berdasarkan usedMaterials dan unitPrice
+            // Calculate total price based on usedMaterials and unitPrice
             foreach ($details as $detail) {
-                $totalPrice += $detail['qty'] * $detail['unit_price']; // Hitung subtotal dari setiap detail
+                $totalPrice += $detail['qty'] * $detail['unit_price']; // Calculate subtotal for each detail
             }
 
-            // Tambahkan total price ke grand total
-            $grandTotal += $totalPrice;
-
-            // Tambahkan data ke array projekDetails
+            // Add data to projekDetails
             $projekDetails[] = [
                 'id' => $bahanId,
-                'qty' => $usedMaterials,
-                'jml_bahan' => $item['jml_bahan'],
+                'qty' => $usedMaterials, // Now correctly reflects the used materials
                 'details' => $details,
                 'sub_total' => $totalPrice,
             ];
@@ -348,6 +348,8 @@ class EditBahanProjekCart extends Component
 
         return $projekDetails;
     }
+
+
 
 
 

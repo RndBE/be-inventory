@@ -26,13 +26,8 @@
                                     @php
                                         $usedMaterials = 0;
                                         $stokSaatIni = 0;
-                                        $unitPrices = []; // Inisialisasi array untuk menyimpan unit price
-                                        $totalPrice = 0; // Inisialisasi total price
-
-                                        // Hitung jumlah maksimum yang diizinkan berdasarkan detail produksi
-                                        $maxAllowedQty = $detail['jml_bahan'] - $detail['used_materials'];
-
-                                        // Tentukan jumlah yang tersedia dan harga satuan yang sesuai
+                                        $unitPrices = [];
+                                        $totalPrice = 0;
                                         if ($detail['bahan']->jenisBahan->nama === 'Produksi') {
                                             $bahanSetengahjadiDetails = $detail['bahan']->bahanSetengahjadiDetails()
                                                 ->where('sisa', '>', 0)
@@ -42,18 +37,6 @@
 
                                             // Hitung stok dan gunakan materials
                                             $stokSaatIni = $bahanSetengahjadiDetails->sum('sisa');
-
-                                            // Iterasi melalui bahan setengah jadi untuk menghitung used materials dan unit price
-                                            foreach ($bahanSetengahjadiDetails as $bahan) {
-                                                if ($usedMaterials < $maxAllowedQty) {
-                                                    $qtyToUse = min($bahan->sisa, $maxAllowedQty - $usedMaterials);
-                                                    $usedMaterials += $qtyToUse;
-                                                    $unitPrices[] = $bahan->unit_price; // Simpan unit price
-
-                                                    // Jika unit price sudah disimpan, kita tambahkan total price
-                                                    $totalPrice += $qtyToUse * $bahan->unit_price; // Hitung total price per transaksi
-                                                }
-                                            }
                                         } else {
                                             $purchaseDetails = $detail['bahan']->purchaseDetails()
                                                 ->where('sisa', '>', 0)
@@ -63,34 +46,26 @@
 
                                             // Hitung stok dan gunakan materials
                                             $stokSaatIni = $purchaseDetails->sum('sisa');
-
-                                            // Iterasi melalui purchase details untuk menghitung used materials dan unit price
-                                            foreach ($purchaseDetails as $purchase) {
-                                                if ($usedMaterials < $maxAllowedQty) {
-                                                    $qtyToUse = min($purchase->sisa, $maxAllowedQty - $usedMaterials);
-                                                    $usedMaterials += $qtyToUse;
-                                                    $unitPrices[] = $purchase->unit_price; // Simpan unit price
-
-                                                    // Jika unit price sudah disimpan, kita tambahkan total price
-                                                    $totalPrice += $qtyToUse * $purchase->unit_price; // Hitung total price per transaksi
-                                                }
-                                            }
                                         }
-
-                                        // Akumulasi grand total
-                                        $grandTotal += $totalPrice; // Update grand total
                                     @endphp
                                     {{ $stokSaatIni }}
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 font-semibold text-center text-gray-900 dark:text-white">
-                            {{ $usedMaterials }}
+                            <div class="flex justify-center">
+                            <input value="{{ old('qty.'.$detail['bahan']->id, $qty[$detail['bahan']->id] ?? 0) }}"
+                            type="number"
+                            wire:model="qty.{{ $detail['bahan']->id }}"
+                            wire:keyup="updateQuantity({{ $detail['bahan']->id }})"
+                            class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            placeholder="0" min="0" required />
+                            </div>
                         </td>
                         <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
                             <span>
                                 <strong></strong>
-                                {{ $totalPrice > 0 ? number_format($totalPrice, 0, ',', '.') : 0 }}
+                                {{ isset($subtotals[$detail['bahan']->id]) ? number_format($subtotals[$detail['bahan']->id], 0, ',', '.') : '0' }}
                             </span>
                         </td>
                         <td class="items-right px-6 py-4 text-right">

@@ -27,6 +27,16 @@ use Illuminate\Support\Facades\Validator;
 
 class ProjekController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-projek', ['only' => ['index']]);
+        $this->middleware('permission:selesai-projek', ['only' => ['updateStatus']]);
+        $this->middleware('permission:tambah-projek', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-projek', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-projek', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         return view('pages.projek.index');

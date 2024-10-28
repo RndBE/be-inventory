@@ -41,9 +41,11 @@
                 @if($projek->bahanKeluar->status === 'Disetujui' && $projek->status !== 'Selesai')
                     <a href="{{ route('projeks.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
                     <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
-                    <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
-                        Selesai
-                    </button>
+                    @can('selesai-projek')
+                        <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
+                            Selesai
+                        </button>
+                    @endcan
                 @elseif ($projek->status === 'Selesai')
                     <a href="{{ route('projeks.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                 @else

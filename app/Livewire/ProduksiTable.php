@@ -10,7 +10,7 @@ class ProduksiTable extends Component
 {
     use WithPagination;
     public $search = "";
-    public $perPage = 5;
+    public $perPage = 15;
     public $id_produksis;
     public function render()
     {

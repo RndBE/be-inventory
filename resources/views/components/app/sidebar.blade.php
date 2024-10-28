@@ -239,7 +239,7 @@
                         </a>
                     </li> --}}
                     <!-- Bahan Setengah Jadi -->
-                    @can('lihat-bahan-setengah-jadi')
+                    @can('lihat-bahan-setengahjadi')
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['bahan-setengahjadis'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['bahan-setengahjadis.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('bahan-setengahjadis.index') }}">
                                 <div class="flex items-center">

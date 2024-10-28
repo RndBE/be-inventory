@@ -7,6 +7,13 @@ use Illuminate\Http\Request;
 
 class BahanSetengahjadiController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-bahan-setengahjadi', ['only' => ['index']]);
+        $this->middleware('permission:detail-bahan-setengahjadi', ['only' => ['show']]);
+    }
+
     public function index()
     {
         $bahanSetengahjadis = BahanSetengahjadi::with('bahanSetengahjadiDetails')->get();

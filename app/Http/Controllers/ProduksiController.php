@@ -25,6 +25,16 @@ use Illuminate\Support\Facades\Validator;
 
 class ProduksiController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-proses-produksi', ['only' => ['index']]);
+        $this->middleware('permission:selesai-proses-produksi', ['only' => ['updateStatus']]);
+        $this->middleware('permission:tambah-proses-produksi', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-proses-produksi', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-proses-produksi', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         return view('pages.produksis.index');

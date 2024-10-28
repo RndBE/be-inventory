@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 class BahanRusakController extends Controller
 {
 
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-bahan-rusak', ['only' => ['index']]);
+        $this->middleware('permission:detail-bahan-rusak', ['only' => ['show']]);
+    }
+
     public function index()
     {
         $bahanRusaks = BahanRusak::with('bahanRusakDetails')->get();

@@ -27,7 +27,7 @@
     <div class="sm:flex sm:justify-between sm:items-center mb-2">
 
         <div class="mb-4 sm:mb-0">
-            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Jenis Bahan</h6>
+            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Satuan Unit</h6>
         </div>
 
 

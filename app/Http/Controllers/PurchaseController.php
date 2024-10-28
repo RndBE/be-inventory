@@ -38,6 +38,7 @@ class PurchaseController extends Controller
     public function store(Request $request)
     {
         try{
+           //dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
                 'tgl_masuk' => $request->tgl_masuk,

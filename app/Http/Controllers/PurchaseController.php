@@ -17,6 +17,7 @@ class PurchaseController extends Controller
     public function __construct()
     {
         $this->middleware('permission:lihat-bahan-masuk', ['only' => ['index']]);
+        $this->middleware('permission:detail-bahan-masuk', ['only' => ['show']]);
         $this->middleware('permission:tambah-bahan-masuk', ['only' => ['create','store']]);
         $this->middleware('permission:edit-bahan-masuk', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-bahan-masuk', ['only' => ['destroy']]);

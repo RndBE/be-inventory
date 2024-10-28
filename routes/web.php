@@ -49,7 +49,7 @@ Route::get('/', function () {
 
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     // Route::get('/log-activities', [LogActivityController::class, 'index'])->name('log.activities.index');
     Route::resource('log-activities', LogActivityController::class);
     Route::resource('permissions', PermissionController::class);

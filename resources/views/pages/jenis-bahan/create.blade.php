@@ -1,6 +1,6 @@
-<div class="text-center my-3">
-    <button data-modal-target="jenisbahan-modal" data-modal-toggle="jenisbahan-modal" class="inline-flex rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" type="button">Tambah</button>
-</div>
+
+<button data-modal-target="jenisbahan-modal" data-modal-toggle="jenisbahan-modal" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" type="button">Tambah</button>
+
 
 <!-- Main modal -->
 <div id="jenisbahan-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">

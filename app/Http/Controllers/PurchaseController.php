@@ -13,6 +13,15 @@ use Illuminate\Support\Facades\Validator;
 
 class PurchaseController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-bahan-masuk', ['only' => ['index']]);
+        $this->middleware('permission:tambah-bahan-masuk', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-bahan-masuk', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-bahan-masuk', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         $purchases = Purchase::with('purchaseDetails')->get();

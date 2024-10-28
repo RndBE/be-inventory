@@ -20,7 +20,7 @@ class BahanPurchaseCart extends Component
     public function mount()
     {
         // Load cart from session if it exists
-        $this->cart = Session::get('cart', []);
+        // $this->cart = Session::get('cart', []);
         $this->qty = Session::get('qty', []);
         $this->subtotals = Session::get('subtotals', []);
         $this->totalharga = array_sum($this->subtotals);

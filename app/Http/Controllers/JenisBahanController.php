@@ -9,6 +9,14 @@ use Illuminate\Http\Request;
 
 class JenisBahanController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-jenis-bahan', ['only' => ['index']]);
+        $this->middleware('permission:tambah-jenis-bahan', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-jenis-bahan', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-jenis-bahan', ['only' => ['destroy']]);
+    }
+
     public function index(Request $request)
     {
         $jenisbahan = JenisBahan::All();

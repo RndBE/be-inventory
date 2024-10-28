@@ -9,6 +9,14 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-user', ['only' => ['index']]);
+        $this->middleware('permission:tambah-user', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-user', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-user', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         $users = User::get();

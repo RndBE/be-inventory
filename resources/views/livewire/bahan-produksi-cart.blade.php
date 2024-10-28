@@ -107,8 +107,9 @@
                                         type="number"
                                         wire:model="qty.{{ $item->id }}"
                                         wire:keyup="updateQuantity({{ $item->id }})"
-                                        class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        placeholder="0" min="0" required readonly/>
+                                        class="bg-gray-50 w-20 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 border-transparent"
+                                        placeholder="0" min="0" required readonly />
+
                                 </div>
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><span><strong></strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span></td>

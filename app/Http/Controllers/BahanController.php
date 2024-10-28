@@ -15,6 +15,14 @@ use Illuminate\Support\Facades\Storage;
 
 class BahanController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-bahan', ['only' => ['index']]);
+        $this->middleware('permission:tambah-bahan', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-bahan', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-bahan', ['only' => ['destroy']]);
+    }
+
     public function export()
     {
         return Excel::download(new BahansExport, 'bahans.xlsx');

@@ -11,7 +11,7 @@ class BahanTable extends Component
     use WithPagination;
 
     public $search = '';
-    public $perPage = 5;
+    public $perPage = 15;
     public $id_bahan, $nama_bahan, $jenis_bahan_id, $stok_awal, $total_stok, $penempatan, $unit_id, $kondisi, $gambar, $kode_bahan;
 
     public function render()

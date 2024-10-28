@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Auth;
 
 class LogActivityController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-log-activity', ['only' => ['index']]);
+    }
+
     public function index()
     {
         $activities = LogActivity::orderBy('created_at', 'desc')->paginate(10);

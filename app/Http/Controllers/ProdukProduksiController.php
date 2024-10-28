@@ -12,6 +12,15 @@ use Illuminate\Support\Facades\Storage;
 
 class ProdukProduksiController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-produk-produksi', ['only' => ['index']]);
+        $this->middleware('permission:tambah-produk-produksi', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-produk-produksi', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-produk-produksi', ['only' => ['destroy']]);
+    }
+
+
     public function index()
     {
         return view('pages.produk-produksis.index');

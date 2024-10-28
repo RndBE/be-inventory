@@ -10,7 +10,7 @@ class UnitTable extends Component
 {
     use WithPagination;
     public $search = "";
-    public $perPage = 5;
+    public $perPage = 15;
     public $id_unit, $nama;
 
     public function editUnit(int $id)

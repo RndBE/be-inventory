@@ -9,6 +9,14 @@ use Illuminate\Http\Request;
 
 class UnitController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-unit', ['only' => ['index']]);
+        $this->middleware('permission:tambah-unit', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-unit', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-unit', ['only' => ['destroy']]);
+    }
+
     public function index(Request $request)
     {
         $unit = Unit::All();

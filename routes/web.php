@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\BahanController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MemberController;
@@ -55,6 +56,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::resource('roles', RoleController::class);
     Route::get('roles/{roleId}/give-permissions', [RoleController::class, 'addPermissionToRole'])->name('roles.add-permissions');
     Route::put('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permissions');
+
+    Route::resource('users', UserController::class);
+    // Route::get('users/{userId}/delete', [UserController::class, 'destroy']);
     // Route for the getting the data feed
     Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');
 

@@ -348,7 +348,7 @@
                         </li>
                     </ul>
                 @endcan
-
+                @can('lihat-permission')
                     <ul class="mt-3">
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['permissions'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['permissions.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('permissions.index') }}">
@@ -362,8 +362,8 @@
                             </a>
                         </li>
                     </ul>
-
-
+                @endcan
+                @can('lihat-role')
                     <ul class="mt-3">
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['roles'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['roles.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('roles.index') }}">
@@ -377,8 +377,8 @@
                             </a>
                         </li>
                     </ul>
-
-
+                @endcan
+                @can('lihat-user')
                     <ul class="mt-3">
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['users'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['users.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('users.index') }}">
@@ -392,6 +392,7 @@
                             </a>
                         </li>
                     </ul>
+                    @endcan
             </div>
         </div>
 

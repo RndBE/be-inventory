@@ -11,13 +11,13 @@ use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:lihat-role', ['only' => ['index']]);
-    //     $this->middleware('permission:tambah-role', ['only' => ['create','store','addPermissionToRole','givePermissionToRole']]);
-    //     $this->middleware('permission:edit-role', ['only' => ['update','edit']]);
-    //     $this->middleware('permission:hapus-role', ['only' => ['destroy']]);
-    // }
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-role', ['only' => ['index']]);
+        $this->middleware('permission:tambah-role', ['only' => ['create','store','addPermissionToRole','givePermissionToRole']]);
+        $this->middleware('permission:edit-role', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-role', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      */

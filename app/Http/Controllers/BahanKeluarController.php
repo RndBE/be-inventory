@@ -20,6 +20,16 @@ use Illuminate\Support\Facades\Validator;
 
 class BahanKeluarController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-bahan-keluar', ['only' => ['index']]);
+        $this->middleware('permission:detail-bahan-keluar', ['only' => ['show']]);
+        $this->middleware('permission:tambah-bahan-keluar', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-bahan-keluar', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-bahan-keluar', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         $bahan_keluars = BahanKeluar::with('bahanKeluarDetails')->get();

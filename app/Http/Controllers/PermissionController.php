@@ -40,15 +40,13 @@ class PermissionController extends Controller
     {
         try {
             $request->validate([
-                'name' => [
-                    'required',
-                    'string',
-                    'unique:permissions,name'
-                ]
+                'name' => ['required','string','unique:permissions,name'],
+                'category' => ['required','string'],
             ]);
 
             Permission::create([
                 'name' => $request->name,
+                'category' => $request->category,
                 'guard_name' => 'web',
             ]);
             LogHelper::success('Berhasil Menambah Permission!');
@@ -89,11 +87,13 @@ class PermissionController extends Controller
                     'required',
                     'string',
                     'unique:permissions,name,' . $permissions->id
-                ]
+                ],
+                'category' => ['required','string'],
             ]);
 
             $permissions->update([
-                'name' => $request->name
+                'name' => $request->name,
+                'category' => $request->category,
             ]);
             LogHelper::success('Berhasil Mengubah Permission!');
             return redirect('permissions')->with('success', 'Permission Updated Successfully');

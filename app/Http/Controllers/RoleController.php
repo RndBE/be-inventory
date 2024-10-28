@@ -127,19 +127,20 @@ class RoleController extends Controller
 
     public function addPermissionToRole($roleId)
     {
-        $permissions = Permission::get();
+        $permissions = Permission::all()->groupBy('category'); // Mengelompokkan permission berdasarkan kategori
         $role = Role::findOrFail($roleId);
         $rolePermissions = DB::table('role_has_permissions')
-        ->where('role_has_permissions.role_id', $role->id)
+            ->where('role_has_permissions.role_id', $role->id)
             ->pluck('role_has_permissions.permission_id', 'role_has_permissions.permission_id')
             ->all();
 
         return view('pages.role.add-permissions', [
             'role' => $role,
-            'permissions' => $permissions,
+            'permissions' => $permissions, // Data permission terkelompok
             'rolePermissions' => $rolePermissions
         ]);
     }
+
 
     public function givePermissionToRole(Request $request, $roleId)
     {

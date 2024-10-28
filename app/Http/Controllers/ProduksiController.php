@@ -186,6 +186,7 @@ class ProduksiController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            //dd($request->all());
             $cartItems = json_decode($request->produksiDetails, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $produksi = Produksi::findOrFail($id);
@@ -309,10 +310,34 @@ class ProduksiController extends Controller
                             throw new \Exception('Purchase detail tidak ditemukan untuk bahan: ' . $bahan_id);
                         }
                     }
+
+                    // Add to bahan_keluar_details if bahan_id is new
+                    $bahanKeluar = BahanKeluar::findOrFail($produksi->bahan_keluar_id);
+
+                    $existingBahanKeluarDetail = BahanKeluarDetails::where('bahan_keluar_id', $bahanKeluar->id)
+                        ->where('bahan_id', $bahan_id)
+                        ->first();
+
+                    if ($existingBahanKeluarDetail) {
+                        $existingBahanKeluarDetail->update([
+                            'qty' => $existingBahanKeluarDetail->qty + $qty,
+                            'sub_total' => $existingBahanKeluarDetail->sub_total + $sub_total,
+                            'details' => json_encode(array_merge(json_decode($existingBahanKeluarDetail->details, true), $details)),
+                        ]);
+                    } else {
+                        BahanKeluarDetails::create([
+                            'bahan_keluar_id' => $bahanKeluar->id,
+                            'bahan_id' => $bahan_id,
+                            'qty' => $qty,
+                            'jml_bahan' => $item['jml_bahan'] ?? null,
+                            'used_materials' => $newUsedMaterials,
+                            'details' => json_encode($details),
+                            'sub_total' => $sub_total,
+                        ]);
+                    }
                 }
             }
 
-            // Save bahan rusak if available
             if (!empty($bahanRusak)) {
                 $lastTransaction = BahanRusak::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
                 if ($lastTransaction) {
@@ -343,7 +368,7 @@ class ProduksiController extends Controller
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
                     ]);
-                $produksiDetail = ProduksiDetails::where('produksi_id', $produksi->id)
+                    $produksiDetail = ProduksiDetails::where('produksi_id', $produksi->id)
                     ->where('bahan_id', $bahan_id)
                     ->first();
 

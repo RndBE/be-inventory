@@ -14,7 +14,7 @@ class BahanKeluar extends Model
 
     public function bahanKeluarDetails()
     {
-        return $this->hasMany(BahanKeluarDetails::class);
+        return $this->hasMany(BahanKeluarDetails::class, 'bahan_keluar_id');
     }
 
     public function produksiS()

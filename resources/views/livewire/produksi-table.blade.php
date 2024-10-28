@@ -64,6 +64,7 @@
                         </th>
                         <th scope="col" class="px-6 py-3">Kode Produksi</th>
                         <th scope="col" class="px-6 py-3">Mulai Produksi</th>
+                        <th scope="col" class="px-6 py-3">Kode Bahan Keluar</th>
                         <th scope="col" class="px-6 py-3">Selesai Produksi</th>
                         <th scope="col" class="px-6 py-3">Nama Produk</th>
                         <th scope="col" class="px-6 py-3">Jenis Produksi</th>
@@ -87,6 +88,7 @@
                                 <span class="text-gray-500">{{ $produksi->kode_produksi }}</span>
                             @endif
                         </td>
+                        <td class="px-6 py-3">{{ $produksi->bahanKeluar->kode_transaksi }}</td>
                         <td class="px-6 py-3">{{ $produksi->mulai_produksi }}</td>
                         <td class="px-6 py-3">{{ $produksi->selesai_produksi }}</td>
                         <td class="px-6 py-3">{{ $produksi->dataBahan->nama_bahan }}</td>

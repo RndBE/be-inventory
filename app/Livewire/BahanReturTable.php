@@ -10,7 +10,7 @@ class BahanReturTable extends Component
 {
     use WithPagination;
     public $search = "";
-    public $perPage = 5;
+    public $perPage = 15;
     public $id_bahan_returs, $status,
     $kode_transaksi, $tgl_diterima, $tgl_pengajuan, $divisi, $bahanReturDetails;
     public $filter = 'semua';

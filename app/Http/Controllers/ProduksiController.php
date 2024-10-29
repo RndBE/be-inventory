@@ -274,11 +274,13 @@ class ProduksiController extends Controller
                 }
                 $new_transaction_number = $last_transaction_number + 1;
                 $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-                $kode_transaksi = 'BR - ' . $formatted_number;
+                $kode_transaksi = 'BS - ' . $formatted_number;
 
                 $bahanRusakRecord = BahanRusak::create([
-                    'tgl_masuk' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+                    'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
                     'kode_transaksi' => $kode_transaksi,
+                    'produksi_id' => $produksi->id,
+                    'status' => 'Belum disetujui',
                 ]);
 
                 foreach ($bahanRusak as $item) {
@@ -291,41 +293,9 @@ class ProduksiController extends Controller
                         'bahan_rusak_id' => $bahanRusakRecord->id,
                         'bahan_id' => $bahan_id,
                         'qty' => $qtyRusak,
-                        'sisa' => $qtyRusak,
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
                     ]);
-                    $produksiDetail = ProduksiDetails::where('produksi_id', $produksi->id)
-                    ->where('bahan_id', $bahan_id)
-                    ->first();
-
-                    if ($produksiDetail) {
-                        $existingDetailsArray = json_decode($produksiDetail->details, true) ?? [];
-
-                        foreach ($existingDetailsArray as $key => &$detail) {
-                            if ($detail['unit_price'] === $unit_price) {
-                                $detail['qty'] -= $qtyRusak;
-
-                                if ($detail['qty'] <= 0) {
-                                    unset($existingDetailsArray[$key]);
-                                }
-                            }
-                        }
-
-                        $produksiDetail->details = json_encode(array_values($existingDetailsArray));
-
-                        $newTotalQty = array_sum(array_column($existingDetailsArray, 'qty'));
-                        $newSubTotal = array_sum(array_map(function ($detail) {
-                            return $detail['qty'] * $detail['unit_price'];
-                        }, $existingDetailsArray));
-
-                        $produksiDetail->qty = $newTotalQty;
-                        $produksiDetail->sub_total = $newSubTotal;
-
-                        $produksiDetail->used_materials -= $qtyRusak;
-
-                            $produksiDetail->save();
-                    }
                 }
             }
 

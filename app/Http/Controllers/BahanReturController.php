@@ -179,7 +179,7 @@ class BahanReturController extends Controller
             $bahanRetur->status = $validated['status'];
             $bahanRetur->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             $bahanRetur->save();
-            LogHelper::success('Berhasil Mengubah Status Bahan Keluar!');
+            LogHelper::success('Berhasil Mengubah Status Bahan Retur!');
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
             $errorColumn = '';
@@ -191,7 +191,6 @@ class BahanReturController extends Controller
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', "Terjadi kesalahan pada kolom: $errorColumn. Pesan error: $errorMessage");
         }
-
         return redirect()->route('bahan-returs.index')->with('success', 'Status berhasil diubah.');
     }
 

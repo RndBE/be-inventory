@@ -85,7 +85,8 @@
                     <tr>
                         <th scope="col" class="p-4">No</th>
                         <th scope="col" class="px-6 py-3">Kode Transaksi</th>
-                        <th scope="col" class="px-6 py-3">Tanggal Keluar</th>
+                        <th scope="col" class="px-6 py-3">Tanggal Pengajuan</th>
+                        <th scope="col" class="px-6 py-3">Tanggal Diterima</th>
                         <th scope="col" class="px-6 py-3">Tujuan</th>
                         <th scope="col" class="px-6 py-3">Divisi</th>
                         <th scope="col" class="px-6 py-3">Total Item</th>
@@ -104,6 +105,7 @@
                                 </button>
                             </th>
                             <td class="px-6 py-4">{{ $bahan_retur->tgl_pengajuan }}</td>
+                            <td class="px-6 py-4">{{ $bahan_retur->tgl_diterima }}</td>
                             <td class="px-6 py-4">{{ $bahan_retur->tujuan }}</td>
                             <td class="px-6 py-4">{{ $bahan_retur->divisi }}</td>
                             <td class="px-6 py-4">{{ $bahan_retur->bahanReturDetails->sum('qty') }}</td>

@@ -161,57 +161,104 @@ class ProjekController extends Controller
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $projek = Projek::findOrFail($id);
 
-            $tujuan = $projek->nama_projek;
+            if (!empty($cartItems)) {
+                foreach ($cartItems as $item) {
+                    $bahan_id = $item['id'];
+                    $qty = $item['qty'] ?? 0;
+                    $sub_total = $item['sub_total'] ?? 0;
+                    $details = $item['details'] ?? [];
+                    $existingDetail = ProjekDetails::where('projek_id', $projek->id)
+                        ->where('bahan_id', $bahan_id)
+                        ->first();
 
-            $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
-            if ($lastTransaction) {
-                $last_transaction_number = intval(substr($lastTransaction->kode_transaksi, 6));
-            } else {
-                $last_transaction_number = 0;
-            }
-            $new_transaction_number = $last_transaction_number + 1;
-            $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-            $kode_transaksi = 'KBK - ' . $formatted_number;
-            $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                    if ($existingDetail) {
+                        $existingDetailsArray = json_decode($existingDetail->details, true) ?? [];
+                        $totalQty = $existingDetail->qty;
+                        foreach ($details as $newDetail) {
+                            $found = false;
+                            foreach ($existingDetailsArray as &$existingDetailItem) {
+                                if ($existingDetailItem['kode_transaksi'] === $newDetail['kode_transaksi'] && $existingDetailItem['unit_price'] === $newDetail['unit_price']) {
+                                    $existingDetailItem['qty'] += $newDetail['qty']; // Increase quantity in details
+                                    $found = true;
+                                    break;
+                                }
+                            }
+                            if (!$found) {
+                                $existingDetailsArray[] = $newDetail;
+                            }
+                            $totalQty += $newDetail['qty'];
+                        }
+                        $existingDetail->details = json_encode($existingDetailsArray);
+                        $existingDetail->qty = $totalQty;
+                        $existingDetail->sub_total += $sub_total;
+                        $existingDetail->save();
+                    } else {
+                        ProjekDetails::create([
+                            'projek_id' => $projek->id,
+                            'bahan_id' => $bahan_id,
+                            'qty' => $qty,
+                            'details' => json_encode($details),
+                            'sub_total' => $sub_total,
+                        ]);
+                    }
 
-            // Kelompokkan item berdasarkan bahan_id dan jumlah
-            $groupedItems = [];
-            $totalQty = 0;  // Variabel untuk menghitung total qty
+                    foreach ($details as $newDetail) {
+                        $purchaseDetail = PurchaseDetail::where('bahan_id', $bahan_id)
+                            ->whereHas('purchase', function ($query) use ($newDetail) {
+                                $query->where('kode_transaksi', $newDetail['kode_transaksi']);
+                            })
+                            ->where('unit_price', $newDetail['unit_price'])
+                            ->whereHas('dataBahan', function ($query) {
+                                $query->whereHas('jenisBahan', function ($query) {
+                                    $query->where('nama', '!=', 'Produksi');
+                                });
+                            })
+                            ->first();
 
-            foreach ($cartItems as $item) {
-                if (!isset($groupedItems[$item['id']])) {
-                    $groupedItems[$item['id']] = [
-                        'qty' => 0,
-                        'details' => $item['details'],
-                        'sub_total' => 0,
-                    ];
-                }
-                $groupedItems[$item['id']]['qty'] += $item['qty'];
-                $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
-                $totalQty += $item['qty'];  // Tambahkan qty item ke total qty
-            }
+                        $bahanSetengahjadiDetail = BahanSetengahjadiDetails::where('bahan_id', $bahan_id)
+                            ->whereHas('bahanSetengahjadi', function ($query) use ($newDetail) {
+                                $query->where('kode_transaksi', $newDetail['kode_transaksi']);
+                            })
+                            ->where('unit_price', $newDetail['unit_price']) // Pengecekan unit_price
+                            ->whereHas('dataBahan', function ($query) {
+                                $query->whereHas('jenisBahan', function ($query) {
+                                    $query->where('nama', 'Produksi');
+                                });
+                            })
+                            ->first();
 
-            if ($totalQty !== 0) {
-                // Simpan data ke Bahan Keluar
-                $bahan_keluar = new BahanKeluar();
-                $bahan_keluar->kode_transaksi = $kode_transaksi;
-                $bahan_keluar->projek_id = $projek->id;
-                $bahan_keluar->tgl_keluar = $tgl_keluar;
-                $bahan_keluar->tujuan = 'Projek ' . $tujuan;
-                $bahan_keluar->divisi = 'Produksi';
-                $bahan_keluar->status = 'Belum disetujui';
-                $bahan_keluar->save();
 
-                // Simpan data ke Bahan Keluar Detail dan Produksi Detail
-                foreach ($groupedItems as $bahan_id => $details) {
-                    BahanKeluarDetails::create([
-                        'bahan_keluar_id' => $bahan_keluar->id,
-                        'bahan_id' => $bahan_id,
-                        'qty' => $details['qty'],
-                        'used_materials' => 0,
-                        'details' => json_encode($details['details']),
-                        'sub_total' => $details['sub_total'],
-                    ]);
+                        if ($purchaseDetail) {
+                            if ($newDetail['qty'] > $purchaseDetail->sisa) {
+                                throw new \Exception('Permintaan qty melebihi sisa stok pada bahan: ' . $bahan_id);
+                            }
+
+                            $purchaseDetail->sisa -= $newDetail['qty'];
+                            if ($purchaseDetail->sisa < 0) {
+                                $purchaseDetail->sisa = 0;
+                            }
+
+                            $purchaseDetail->save();
+                        }elseif ($bahanSetengahjadiDetail) {
+                            // Cek apakah permintaan qty melebihi sisa stok
+                            if ($newDetail['qty'] > $bahanSetengahjadiDetail->sisa) {
+                                throw new \Exception('Permintaan qty melebihi sisa stok pada bahan: ' . $bahan_id);
+                            }
+
+                            // Kurangi stok sesuai qty permintaan
+                            $bahanSetengahjadiDetail->sisa -= $newDetail['qty'];
+
+                            // Jika sisa stok kurang dari 0, set sisa menjadi 0
+                            if ($bahanSetengahjadiDetail->sisa < 0) {
+                                $bahanSetengahjadiDetail->sisa = 0;
+                            }
+
+                            $bahanSetengahjadiDetail->save();
+
+                        } else {
+                            throw new \Exception('Purchase detail tidak ditemukan untuk bahan: ' . $bahan_id);
+                        }
+                    }
                 }
             }
 

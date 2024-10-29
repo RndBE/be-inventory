@@ -59,6 +59,7 @@ class BahanKeluarController extends Controller
         ]);
 
         try {
+            //dd($request->all());
             $data = BahanKeluar::find($id);
             $details = BahanKeluarDetails::where('bahan_keluar_id', $id)->get();
 
@@ -68,8 +69,32 @@ class BahanKeluarController extends Controller
                 $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                 $data->tgl_keluar = $tgl_keluar;
 
+
+
                 foreach ($details as $detail) {
-                    $transactionDetails = json_decode($detail->details, true);
+                    $transactionDetails = json_decode($detail->details, true) ?? [];
+                    if (empty($transactionDetails)) {
+                        if ($data->produksi_id) {
+                            // Cek apakah bahan_id sudah ada di ProduksiDetails
+                            $existingDetail = ProduksiDetails::where('produksi_id', $data->produksi_id)
+                                ->where('bahan_id', $detail->bahan_id)
+                                ->first();
+
+                            // Jika belum ada, buat entri baru
+                            if (!$existingDetail) {
+                                ProduksiDetails::create([
+                                    'produksi_id' => $data->produksi_id,
+                                    'bahan_id' => $detail->bahan_id,
+                                    'qty' => 0, // Set qty to 0 if there are no transaction details
+                                    'jml_bahan' => $detail->jml_bahan,
+                                    'used_materials' => 0,
+                                    'details' => json_encode([]), // Set details as an empty array
+                                    'sub_total' => 0, // Set sub_total to 0 if details are null or empty
+                                ]);
+                            }
+                            continue;
+                        }
+                    }
                     //dd($transactionDetails);
                     if (is_array($transactionDetails)) {
                         foreach ($transactionDetails as $transaksiDetail) {
@@ -138,7 +163,7 @@ class BahanKeluarController extends Controller
                                     $produksiDetail->sub_total += $newSubTotal;  // Tambahkan sub_total baru ke sub_total yang sudah ada
 
                                     // Decode existing details
-                                    $existingDetails = json_decode($produksiDetail->details, true);
+                                    $existingDetails = json_decode($produksiDetail->details, true) ?? [];
                                     $found = false;
 
                                     // Cek apakah ada detail dengan kode_transaksi dan unit_price yang sama

@@ -10,7 +10,7 @@ class BahanKeluarTable extends Component
 {
     use WithPagination;
     public $search = "";
-    public $perPage = 5;
+    public $perPage = 15;
     public $id_bahan_keluars, $status,
     $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails;
     public $filter = 'semua';

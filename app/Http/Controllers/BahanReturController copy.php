@@ -7,7 +7,6 @@ use App\Models\Purchase;
 use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
 use Illuminate\Http\Request;
-use App\Models\ProjekDetails;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
 use App\Models\BahanReturDetails;
@@ -68,101 +67,73 @@ class BahanReturController extends Controller
             ]);
             $bahanRetur = BahanRetur::findOrFail($id);
             $bahanReturDetails = BahanReturDetails::where('bahan_retur_id', $id)->get();
-
+            //dd($bahanReturDetails);
+            // Jika status bahan retur disetujui
             if ($validated['status'] === 'Disetujui') {
                 foreach ($bahanReturDetails as $returDetail) {
-                    $produksiDetail = ProduksiDetails::where('produksi_id', $bahanRetur->produksi_id)
-                        ->where('bahan_id', $returDetail->bahan_id)
-                        ->first();
-
-                    $projekDetail = ProjekDetails::where('projek_id', $bahanRetur->projek_id)
-                    ->where('bahan_id', $returDetail->bahan_id)
-                    ->first();
+                    $produksiDetail = ProduksiDetails::where('bahan_id', $returDetail->bahan_id)->first();
 
                     if ($produksiDetail) {
-                        $details = json_decode($produksiDetail->details, true) ?? [];
+                        // Decode kolom details untuk mengakses setiap item secara individu
+                        $details = json_decode($produksiDetail->details, true);
+                        foreach ($bahanReturDetails as $returDetail) {
+                            $produksiDetail = ProduksiDetails::where('bahan_id', $returDetail->bahan_id)->first();
+                            //dd($produksiDetail);
+                            if ($produksiDetail) {
+                                // Decode kolom details untuk mengakses setiap item secara individu
+                                $details = json_decode($produksiDetail->details, true);
+                                // Loop untuk menyesuaikan qty pada items yang memiliki unit_price dan kode_transaksi yang sama
+                                foreach ($details as $key => &$detail) {
+                                    if ($detail['unit_price'] == $returDetail->unit_price) {
+                                        // Kurangi qty sesuai dengan qty pada bahan retur detail
+                                        $detail['qty'] -= $returDetail->qty;
 
-                        foreach ($details as $key => &$detail) {
-                            // Ensure correct access to unit_price
-                            if ($detail['unit_price'] === $returDetail->unit_price) {
-                                // Decrease qty based on retur detail
-                                $detail['qty'] -= $returDetail->qty;
-
-                                // Ensure qty doesn't go negative
-                                if ($detail['qty'] <= 0) {
-                                    unset($details[$key]);
+                                        // Pastikan qty tidak menjadi negatif
+                                        if ($detail['qty'] <= 0) {
+                                            unset($details[$key]);
+                                        }
+                                    }
                                 }
+                                // Menghitung total qty setelah update
+                                $totalQty = 0;
+                                foreach ($details as $detail) {
+                                    $totalQty += $detail['qty'];
+                                }
+                                // Update sub_total pada produksi detail
+                                if ($totalQty > 0) {
+                                    // Hitung sub_total sebagai qty * unit_price untuk semua detail
+                                    $produksiDetail->sub_total = 0; // Reset sub_total sebelum perhitungan
+                                    foreach ($details as $detail) {
+                                        $produksiDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                                    }
+                                } else {
+                                    // Jika total qty adalah 0, set sub_total menjadi 0
+                                    $produksiDetail->sub_total = 0;
+                                }
+
+                                // Kurangi kolom qty dan used_materials di produksi detail
+                                $produksiDetail->qty -= $returDetail->qty;
+                                $produksiDetail->used_materials -= $returDetail->qty;
+
+                                // Pastikan nilai qty dan used_materials tidak negatif
+                                if ($produksiDetail->qty < 0) {
+                                    $produksiDetail->qty = 0;
+                                }
+                                if ($produksiDetail->used_materials < 0) {
+                                    $produksiDetail->used_materials = 0;
+                                }
+
+                                // Simpan perubahan ke database
+                                $produksiDetail->details = json_encode(array_values($details)); // Re-index array sebelum menyimpan
+                                $produksiDetail->save();
                             }
-                        } // Total qty after updates
-                        $totalQty = array_sum(array_column($details, 'qty'));
-
-                        // Update sub_total
-                        if ($totalQty > 0) {
-                            $produksiDetail->sub_total = 0;
-                            foreach ($details as $detail) {
-                                $produksiDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                            }
-                        } else {
-                            $produksiDetail->sub_total = 0;
-                        }
-
-                        // Adjust qty and used_materials
-                        $produksiDetail->qty -= $returDetail->qty;
-                        $produksiDetail->used_materials -= $returDetail->qty;
-
-                        // Ensure non-negative values
-                        $produksiDetail->qty = max($produksiDetail->qty, 0);
-                        $produksiDetail->used_materials = max($produksiDetail->used_materials, 0);
-
-                        // Update details and save
-                        $produksiDetail->details = json_encode(array_values($details));
-                        $produksiDetail->save();
-
                         }
                         // Simpan perubahan ke database
                         $produksiDetail->details = json_encode($details);
                         $produksiDetail->save();
                     }
-                    if ($projekDetail) {
-                        $details = json_decode($projekDetail->details, true) ?? [];
+                }
 
-                        foreach ($details as $key => &$detail) {
-                            // Ensure correct access to unit_price
-                            if ($detail['unit_price'] === $returDetail->unit_price) {
-                                // Decrease qty based on retur detail
-                                $detail['qty'] -= $returDetail->qty;
-
-                                // Ensure qty doesn't go negative
-                                if ($detail['qty'] <= 0) {
-                                    unset($details[$key]);
-                                }
-                            }
-                        }
-
-                        // Total qty after updates
-                        $totalQty = array_sum(array_column($details, 'qty'));
-
-                        // Update sub_total
-                        if ($totalQty > 0) {
-                            $projekDetail->sub_total = 0;
-                            foreach ($details as $detail) {
-                                $projekDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                            }
-                        } else {
-                            $projekDetail->sub_total = 0;
-                        }
-
-                        // Adjust qty and used_materials
-                        $projekDetail->qty -= $returDetail->qty;
-
-                        // Ensure non-negative values
-                        $projekDetail->qty = max($projekDetail->qty, 0);
-
-                        // Update details and save
-                        $projekDetail->details = json_encode(array_values($details));
-                        $projekDetail->save();
-
-                    }
                 // Buat atau update data di purchases
                 $purchase = Purchase::firstOrCreate(
                     ['kode_transaksi' => 'RTR-' . uniqid()],
@@ -202,21 +173,22 @@ class BahanReturController extends Controller
                         ]);
                     }
                 }
-                }
+            }
 
-                // Update status bahan retur
-                $bahanRetur->status = $validated['status'];
-                $bahanRetur->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                $bahanRetur->save();
-                LogHelper::success('Berhasil Mengubah Status Bahan Retur!');
-            } catch (\Exception $e) {
-                $errorMessage = $e->getMessage();
-                $errorColumn = '';
-                if (strpos($errorMessage, 'tgl_keluar') !== false) {
-                    $errorColumn = 'tgl_keluar';
-                } elseif (strpos($errorMessage, 'status') !== false) {
-                    $errorColumn = 'status';
-                }
+
+            // Update status bahan retur
+            $bahanRetur->status = $validated['status'];
+            $bahanRetur->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $bahanRetur->save();
+            LogHelper::success('Berhasil Mengubah Status Bahan Retur!');
+        } catch (\Exception $e) {
+            $errorMessage = $e->getMessage();
+            $errorColumn = '';
+            if (strpos($errorMessage, 'tgl_keluar') !== false) {
+                $errorColumn = 'tgl_keluar';
+            } elseif (strpos($errorMessage, 'status') !== false) {
+                $errorColumn = 'status';
+            }
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', "Terjadi kesalahan pada kolom: $errorColumn. Pesan error: $errorMessage");
         }

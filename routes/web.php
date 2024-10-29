@@ -26,6 +26,7 @@ use App\Http\Controllers\BahanRusakController;
 use App\Http\Controllers\JenisBahanController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\BahanKeluarController;
+use App\Http\Controllers\BahanReturController;
 use App\Http\Controllers\LogActivityController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\StokProduksiController;
@@ -77,6 +78,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('jenis-bahan', JenisBahanController::class);
     Route::resource('unit', UnitController::class);
     Route::resource('purchases', PurchaseController::class);
+
+    Route::get('notif_transaksi', [PurchaseController::class, 'notif_transaksi']);
+
     Route::resource('bahan-keluars', BahanKeluarController::class);
     Route::resource('stok-produksis', StokProduksiController::class);
     Route::resource('stok-rnds', StokRndController::class);
@@ -88,6 +92,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
     Route::resource('bahan-jadis', BahanJadiController::class);
     Route::resource('produk-produksis', ProdukProduksiController::class);
+    Route::resource('bahan-returs', BahanReturController::class);
 
 
 

@@ -180,7 +180,7 @@ class ProduksiController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            //dd($request->all());
+            dd($request->all());
             $cartItems = json_decode($request->produksiDetails, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
@@ -239,29 +239,32 @@ class ProduksiController extends Controller
                 $totalQty += $item['qty'];  // Tambahkan qty item ke total qty
             }
 
-            if ($totalQty !== 0) {
-                // Simpan data ke Bahan Keluar
-                $bahan_keluar = new BahanKeluar();
-                $bahan_keluar->kode_transaksi = $kode_transaksi;
-                $bahan_keluar->produksi_id = $produksi->id;
-                $bahan_keluar->tgl_keluar = $tgl_keluar;
-                $bahan_keluar->tujuan = 'Produksi '.$tujuan;
-                $bahan_keluar->divisi = 'Produksi';
-                $bahan_keluar->status = 'Belum disetujui';
-                $bahan_keluar->save();
+            // Cek apakah totalQty adalah 0; jika iya, hentikan proses
+            if ($totalQty === 0) {
+                return redirect()->back()->with('error', 'Tidak ada bahan keluar karena qty setiap item adalah 0.');
+            }
 
-                // Simpan data ke Bahan Keluar Detail dan Produksi Detail
-                foreach ($groupedItems as $bahan_id => $details) {
-                    BahanKeluarDetails::create([
-                        'bahan_keluar_id' => $bahan_keluar->id,
-                        'bahan_id' => $bahan_id,
-                        'qty' => $details['qty'],
-                        'jml_bahan' => $details['jml_bahan'],
-                        'used_materials' => 0,
-                        'details' => json_encode($details['details']),
-                        'sub_total' => $details['sub_total'],
-                    ]);
-                }
+            // Simpan data ke Bahan Keluar
+            $bahan_keluar = new BahanKeluar();
+            $bahan_keluar->kode_transaksi = $kode_transaksi;
+            $bahan_keluar->produksi_id = $produksi->id;
+            $bahan_keluar->tgl_keluar = $tgl_keluar;
+            $bahan_keluar->tujuan = 'Produksi '.$tujuan;
+            $bahan_keluar->divisi = 'Produksi';
+            $bahan_keluar->status = 'Belum disetujui';
+            $bahan_keluar->save();
+
+            // Simpan data ke Bahan Keluar Detail dan Produksi Detail
+            foreach ($groupedItems as $bahan_id => $details) {
+                BahanKeluarDetails::create([
+                    'bahan_keluar_id' => $bahan_keluar->id,
+                    'bahan_id' => $bahan_id,
+                    'qty' => $details['qty'],
+                    'jml_bahan' => $details['jml_bahan'],
+                    'used_materials' => 0,
+                    'details' => json_encode($details['details']),
+                    'sub_total' => $details['sub_total'],
+                ]);
             }
 
 
@@ -344,10 +347,6 @@ class ProduksiController extends Controller
                 $bahanReturRecord = BahanRetur::create([
                     'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
                     'kode_transaksi' => $kode_transaksi,
-                    'produksi_id' => $produksi->id,
-                    'tujuan' => 'Produksi '.$tujuan,
-                    'divisi' => 'Produksi',
-                    'status' => 'Belum disetujui',
                 ]);
 
                 foreach ($bahanRetur as $item) {
@@ -360,10 +359,41 @@ class ProduksiController extends Controller
                         'bahan_retur_id' => $bahanReturRecord->id,
                         'bahan_id' => $bahan_id,
                         'qty' => $qtyRetur,
+                        'sisa' => $qtyRetur,
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
                     ]);
+                    $produksiDetail = ProduksiDetails::where('produksi_id', $produksi->id)
+                    ->where('bahan_id', $bahan_id)
+                    ->first();
 
+                    if ($produksiDetail) {
+                        $existingDetailsArray = json_decode($produksiDetail->details, true) ?? [];
+
+                        foreach ($existingDetailsArray as $key => &$detail) {
+                            if ($detail['unit_price'] === $unit_price) {
+                                $detail['qty'] -= $qtyRetur;
+
+                                if ($detail['qty'] <= 0) {
+                                    unset($existingDetailsArray[$key]);
+                                }
+                            }
+                        }
+
+                        $produksiDetail->details = json_encode(array_values($existingDetailsArray));
+
+                        $newTotalQty = array_sum(array_column($existingDetailsArray, 'qty'));
+                        $newSubTotal = array_sum(array_map(function ($detail) {
+                            return $detail['qty'] * $detail['unit_price'];
+                        }, $existingDetailsArray));
+
+                        $produksiDetail->qty = $newTotalQty;
+                        $produksiDetail->sub_total = $newSubTotal;
+
+                        $produksiDetail->used_materials -= $qtyRetur;
+
+                            $produksiDetail->save();
+                    }
                 }
             }
 

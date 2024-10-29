@@ -142,7 +142,7 @@ class EditBahanProduksiCart extends Component
                 $totalPrice += $toTake * $bahanSetengahjadiDetail->unit_price;
 
                 $this->details[$itemId][] = [
-                    'kode_transaksi' => $bahanSetengahjadiDetail->bahanSetengahjadi->kode_transaksi,
+                    'kode_transaksi' => $bahanSetengahjadiDetail->kode_transaksi,
                     'qty' => $toTake,
                     'unit_price' => $bahanSetengahjadiDetail->unit_price
                 ];
@@ -363,7 +363,7 @@ class EditBahanProduksiCart extends Component
                         // Ambil harga satuan dan kode transaksi untuk detail
                         $unitPrice = $bahan->unit_price ?? 0;
                         $details[] = [
-                            'kode_transaksi' => $bahan->kode_transaksi,
+                            'kode_transaksi' => $bahan->bahanSetengahjadi->kode_transaksi,
                             'qty' => $qtyToUse, // Tambahkan qty yang digunakan
                             'unit_price' => $unitPrice,
                         ];

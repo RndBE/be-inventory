@@ -38,7 +38,7 @@
         <!-- Header: Right side -->
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
-                @if($produksi->bahanKeluar->status === 'Disetujui' && $produksi->status !== 'Selesai')
+                @if($produksi->status !== 'Selesai')
                     <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
                     <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
                     @can('selesai-proses-produksi')
@@ -67,10 +67,9 @@
                     <span class="font-medium">{{ session('success') }}</span>
                 </div>
             </div>
-
         @endif
 
-        @if ($errors->any())
+        @if (session('error'))
             <div id="errorAlert" class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
                 <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
@@ -78,10 +77,7 @@
                 <span class="sr-only">Info</span>
                 <div>
                     <strong class="font-bold">Error!</strong>
-                    <span class="font-medium">{{ $errors->first('error') }}</span>
-                    @foreach ($errors->all() as $error)
-                        <span class="font-medium">{{ $error }}</span><br>
-                    @endforeach
+                    <span class="font-medium">{{ session('error') }}</span>
                 </div>
             </div>
         @endif

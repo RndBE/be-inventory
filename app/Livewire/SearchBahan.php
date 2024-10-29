@@ -29,9 +29,6 @@ class SearchBahan extends Component
     public function updatedQuery()
     {
         $this->search_results = Bahan::with('dataUnit')
-            ->whereHas('jenisBahan', function($query) {
-                $query->where('nama', '!=', 'Produksi');
-            })
             ->where(function($query) {
                 $query->where('nama_bahan', 'like', '%' . $this->query . '%')
                     ->orWhere('kode_bahan', 'like', '%' . $this->query . '%');

@@ -146,6 +146,16 @@ class ProduksiController extends Controller
                     'details' => json_encode($details['details']),
                     'sub_total' => $details['sub_total'],
                 ]);
+
+                ProduksiDetails::create([
+                    'produksi_id' => $produksi->id,
+                    'bahan_id' => $bahan_id,
+                    'qty' => $details['qty'],
+                    'jml_bahan' => $details['jml_bahan'],
+                    'used_materials' => 0,
+                    'details' => json_encode($details['details']),
+                    'sub_total' => $details['sub_total'],
+                ]);
             }
             LogHelper::success('Berhasil Menambahkan Pengajuan Produksi!');
             return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Produksi!');

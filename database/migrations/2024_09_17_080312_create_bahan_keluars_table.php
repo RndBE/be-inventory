@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->dateTime('tgl_keluar');
             $table->string('kode_transaksi')->unique();
+            $table->foreignId('produksi_id')->constrained('produksis');
+            $table->foreignId('projek_id')->constrained('projek');
             $table->string('tujuan');
             $table->string('divisi');
             $table->string('status');

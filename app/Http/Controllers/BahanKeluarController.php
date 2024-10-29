@@ -106,9 +106,20 @@ class BahanKeluarController extends Controller
                                     throw new \Exception('Purchase detail tidak ditemukan untuk bahan: ' . $detail->bahan_id);
                                 }
                             }
+                            // Insert data into produksi_details
+                            ProduksiDetails::create([
+                                'produksi_id' => $data->produksi_id ?? null,
+                                'bahan_id' => $detail->bahan_id,
+                                'qty' => $detail->qty,
+                                'jml_bahan' => $detail->jml_bahan,
+                                'used_materials' => $detail->used_materials + $transaksiDetail['qty'],
+                                'details' => json_encode($transaksiDetail),
+                                'sub_total' => $detail->sub_total,
+                            ]);
 
                             // Periksa apakah permintaan berasal dari Produksi atau Projek
                             if ($data->produksis) {
+
                                 $produksiDetail = ProduksiDetails::where('produksi_id', $data->produksis->id)
                                     ->where('bahan_id', $detail->bahan_id)
                                     ->first();

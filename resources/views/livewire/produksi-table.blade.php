@@ -64,7 +64,6 @@
                         </th>
                         <th scope="col" class="px-6 py-3">Kode Produksi</th>
                         <th scope="col" class="px-6 py-3">Mulai Produksi</th>
-                        <th scope="col" class="px-6 py-3">Kode Bahan Keluar</th>
                         <th scope="col" class="px-6 py-3">Selesai Produksi</th>
                         <th scope="col" class="px-6 py-3">Nama Produk</th>
                         <th scope="col" class="px-6 py-3">Jenis Produksi</th>
@@ -80,7 +79,7 @@
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $produksis->firstItem() + $index }}</div></td>
                         <td class="px-6 py-3">
-                            @if($produksi->bahanKeluar->status === 'Disetujui' && $produksi->status !== 'Konfirmasi')
+                            @if($produksi->status !== 'Konfirmasi')
                             @can('edit-proses-produksi')
                                 <strong><u><a href="{{ route('produksis.edit', $produksi->id) }}">{{ $produksi->kode_produksi }}</a></u></strong>
                             @endcan
@@ -88,7 +87,6 @@
                                 <span class="text-gray-500">{{ $produksi->kode_produksi }}</span>
                             @endif
                         </td>
-                        <td class="px-6 py-3">{{ $produksi->bahanKeluar->kode_transaksi }}</td>
                         <td class="px-6 py-3">{{ $produksi->mulai_produksi }}</td>
                         <td class="px-6 py-3">{{ $produksi->selesai_produksi }}</td>
                         <td class="px-6 py-3">{{ $produksi->dataBahan->nama_bahan }}</td>
@@ -99,7 +97,7 @@
                         {{-- <td class="px-6 py-3">Rp {{ number_format($produksi->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
                         <td class="px-6 py-4">
                             <div class="row flex space-x-2">
-                                @if ($produksi->bahanKeluar->status === 'Belum disetujui' && $produksi->status === 'Konfirmasi')
+                                @if ($produksi->status === 'Konfirmasi')
                                 @can('hapus-proses-produksi')
                                     <button wire:click="deleteProduksis({{$produksi->id}})" data-modal-target="deleteproduksi-modal" data-modal-toggle="deleteproduksi-modal" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 active:border-red-600 active:text-white active:bg-red-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
                                         <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">

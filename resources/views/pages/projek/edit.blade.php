@@ -38,7 +38,7 @@
         <!-- Header: Right side -->
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
-                @if($projek->bahanKeluar->status === 'Disetujui' && $projek->status !== 'Selesai')
+                @if($projek->status !== 'Selesai')
                     <a href="{{ route('projeks.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
                     <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
                     @can('selesai-projek')

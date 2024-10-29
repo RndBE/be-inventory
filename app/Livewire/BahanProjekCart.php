@@ -23,7 +23,7 @@ class BahanProjekCart extends Component
     public function mount()
     {
         // Load cart items from session if they exist
-        $this->loadCartFromSession();
+        // $this->loadCartFromSession();
     }
 
     public function addToCart($bahan)

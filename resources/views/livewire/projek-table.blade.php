@@ -81,7 +81,7 @@
                                 <div class="text-slate-800 dark:text-slate-100">{{ $projeks->firstItem() + $index }}</div>
                             </td>
                             <td class="px-6 py-3">
-                                @if ($projek->bahanKeluar->status === 'Disetujui' && $projek->status !== 'Konfirmasi')
+                                @if ($projek->status !== 'Konfirmasi')
                                 @can('edit-projek')
                                     <strong><u><a href="{{ route('projeks.edit', $projek->id) }}">{{ $projek->kode_projek }}</a></u></strong>
                                 @endcan
@@ -100,7 +100,7 @@
                             {{-- <td class="px-6 py-3">Rp {{ number_format($projek->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
                             <td class="px-6 py-4">
                                 <div class="row flex space-x-2">
-                                    @if ($projek->bahanKeluar->status === 'Belum disetujui' && $projek->status === 'Konfirmasi')
+                                    @if ($projek->status === 'Konfirmasi')
                                         <button wire:click="deleteProjeks({{ $projek->id }})"
                                             data-modal-target="deleteproduksi-modal" data-modal-toggle="deleteproduksi-modal"
                                             class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 active:border-red-600 active:text-white active:bg-red-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"

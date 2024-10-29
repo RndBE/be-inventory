@@ -36,7 +36,7 @@
                             </td>
                         </tr>
                     @endforeach
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <tr class="bg-white dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td colspan="3" class="px-6 py-4 text-right text-black">
                             <strong>Total Harga</strong>
                         </td>

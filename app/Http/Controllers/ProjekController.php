@@ -77,26 +77,26 @@ class ProjekController extends Controller
             $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
             $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
-            $bahan_keluar = BahanKeluar::create([
-                'kode_transaksi' => $kode_transaksi,
-                'tgl_keluar' => $tgl_keluar,
-                'tujuan' => 'Produksi ' . $tujuan,
-                'divisi' => 'Produksi',
-                'status' => 'Belum disetujui'
-            ]);
-
             // Create transaction code for Projek
-            $lastTransactionProduksi = Projek::orderByRaw('CAST(SUBSTRING(kode_projek, 7) AS UNSIGNED) DESC')->first();
-            $new_transaction_number_produksi = ($lastTransactionProduksi ? intval(substr($lastTransactionProduksi->kode_projek, 6)) : 0) + 1;
-            $kode_produksi = 'PR - ' . str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
+            $lastTransactionProjek = Projek::orderByRaw('CAST(SUBSTRING(kode_projek, 7) AS UNSIGNED) DESC')->first();
+            $new_transaction_number_produksi = ($lastTransactionProjek ? intval(substr($lastTransactionProjek->kode_projek, 6)) : 0) + 1;
+            $kode_projek = 'PRJ - ' . str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
 
-            $produksi = Projek::create([
-                'bahan_keluar_id' => $bahan_keluar->id,
-                'kode_projek' => $kode_produksi,
+            $projek = Projek::create([
+                'kode_projek' => $kode_projek,
                 'nama_projek' => $request->nama_projek,
                 'jml_projek' => $request->jml_projek,
                 'mulai_projek' => $request->mulai_projek,
-                'status' => 'Konfirmasi'
+                'status' => 'Dalam Proses'
+            ]);
+
+            $bahan_keluar = BahanKeluar::create([
+                'kode_transaksi' => $kode_transaksi,
+                'projek_id' => $projek->id,
+                'tgl_keluar' => $tgl_keluar,
+                'tujuan' => 'Projek ' . $tujuan,
+                'divisi' => 'Produksi',
+                'status' => 'Belum disetujui'
             ]);
 
             // Group items by bahan_id
@@ -122,13 +122,6 @@ class ProjekController extends Controller
                     'sub_total' => $details['sub_total'],
                 ]);
 
-                ProjekDetails::create([
-                    'projek_id' => $produksi->id,
-                    'bahan_id' => $bahan_id,
-                    'qty' => $details['qty'],
-                    'details' => json_encode($details['details']),
-                    'sub_total' => $details['sub_total'],
-                ]);
             }
             $request->session()->forget('cartItems');
             LogHelper::success('Berhasil Menambahkan Pengajuan Projek!');
@@ -147,9 +140,9 @@ class ProjekController extends Controller
             $query->where('nama', 'like', '%Produksi%');
         })->get();
         $projek = Projek::with(['projekDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
-        if ($projek->bahanKeluar->status != 'Disetujui') {
-            return redirect()->back()->with('error', 'Projek belum disetujui. Anda tidak dapat mengakses halaman tersebut.');
-        }
+        // if ($projek->bahanKeluar->status != 'Disetujui') {
+        //     return redirect()->back()->with('error', 'Projek belum disetujui. Anda tidak dapat mengakses halaman tersebut.');
+        // }
         return view('pages.projek.edit', [
             'projekId' => $projek->id,
             'bahanProjek' => $bahanProjek,

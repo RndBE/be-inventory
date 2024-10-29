@@ -275,8 +275,10 @@ class ProjekController extends Controller
                 $kode_transaksi = 'BR - ' . $formatted_number;
 
                 $bahanRusakRecord = BahanRusak::create([
-                    'tgl_masuk' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+                    'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
                     'kode_transaksi' => $kode_transaksi,
+                    'projek_id' => $projek->id,
+                    'status' => 'Belum disetujui',
                 ]);
 
                 foreach ($bahanRusak as $item) {
@@ -289,46 +291,12 @@ class ProjekController extends Controller
                         'bahan_rusak_id' => $bahanRusakRecord->id,
                         'bahan_id' => $bahan_id,
                         'qty' => $qtyRusak,
-                        'sisa' => $qtyRusak,
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
                     ]);
-                $projekDetail = ProjekDetails::where('projek_id', $projek->id)
-                    ->where('bahan_id', $bahan_id)
-                    ->first();
-
-                    if ($projekDetail) {
-                        $existingDetailsArray = json_decode($projekDetail->details, true) ?? [];
-
-                        foreach ($existingDetailsArray as $key => &$detail) {
-                            if ($detail['unit_price'] === $unit_price) {
-                                $detail['qty'] -= $qtyRusak;
-
-                                if ($detail['qty'] <= 0) {
-                                    unset($existingDetailsArray[$key]);
-                                }
-                            }
-                        }
-
-                        $projekDetail->details = json_encode(array_values($existingDetailsArray));
-
-                        $newTotalQty = array_sum(array_column($existingDetailsArray, 'qty'));
-                        $newSubTotal = array_sum(array_map(function ($detail) {
-                            return $detail['qty'] * $detail['unit_price'];
-                        }, $existingDetailsArray));
-
-                        $projekDetail->qty = $newTotalQty;
-                        $projekDetail->sub_total = $newSubTotal;
-
-                        if ($newTotalQty > 0) {
-                            $projekDetail->save();
-                        } else {
-                            $projekDetail->delete();
-                        }
-                    }
+                }
             }
-        }
-        LogHelper::success('Berhasil Mengubah Detail Projek!');
+            LogHelper::success('Berhasil Mengubah Detail Projek!');
             return redirect()->back()->with('success', 'Projek berhasil diperbarui!');
         } catch (\Exception $e) {
             LogHelper::error($e->getMessage());

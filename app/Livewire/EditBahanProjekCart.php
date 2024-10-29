@@ -19,6 +19,7 @@ class EditBahanProjekCart extends Component
     public $projekId;
     public $projekDetails = [];
     public $bahanRusak = [];
+    public $bahanRetur = [];
     public $produksiStatus;
     public $grandTotal = 0;
 
@@ -268,6 +269,42 @@ class EditBahanProjekCart extends Component
         $this->calculateTotalHarga();
     }
 
+    public function returQuantityPerPrice($itemId, $unitPrice)
+    {
+        foreach ($this->projekDetails as &$detail) {
+            if ($detail['bahan']->id === $itemId) {
+                foreach ($detail['details'] as &$d) {
+                    if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
+                        $found = false;
+                        foreach ($this->bahanRetur as &$retur) {
+                            if ($retur['id'] === $itemId && $retur['unit_price'] === $unitPrice) {
+                                $retur['qty'] += 1;
+                                $found = true;
+                                break;
+                            }
+                        }
+                        if (!$found) {
+                            $this->bahanRetur[] = [
+                                'id' => $itemId,
+                                'qty' => 1,
+                                'unit_price' => $unitPrice,
+                            ];
+                        }
+                        $d['qty'] -= 1;
+                        $detail['sub_total'] -= $unitPrice;
+                        if ($d['qty'] < 0) {
+                            $d['qty'] = 0;
+                        }
+
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        $this->calculateTotalHarga();
+    }
+
     public function returnToProduction($itemId, $unitPrice, $qty)
     {
         foreach ($this->bahanRusak as $key => $rusak) {
@@ -275,6 +312,36 @@ class EditBahanProjekCart extends Component
                 $this->bahanRusak[$key]['qty'] -= $qty;
                 if ($this->bahanRusak[$key]['qty'] <= 0) {
                     unset($this->bahanRusak[$key]);
+                }
+                $foundInDetails = false;
+                foreach ($this->projekDetails as &$detail) {
+                    if ($detail['bahan']->id === $itemId) {
+                        foreach ($detail['details'] as &$d) {
+                            if ($d['unit_price'] === $unitPrice) {
+                                $d['qty'] += $qty;
+                                $detail['sub_total'] += $unitPrice * $qty;
+                                $foundInDetails = true;
+                                break;
+                            }
+                        }
+                    }
+                    if ($foundInDetails) {
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        $this->calculateTotalHarga();
+    }
+
+    public function returnReturToProduction($itemId, $unitPrice, $qty)
+    {
+        foreach ($this->bahanRetur as $key => $retur) {
+            if ($retur['id'] === $itemId && $retur['unit_price'] === $unitPrice) {
+                $this->bahanRetur[$key]['qty'] -= $qty;
+                if ($this->bahanRetur[$key]['qty'] <= 0) {
+                    unset($this->bahanRetur[$key]);
                 }
                 $foundInDetails = false;
                 foreach ($this->projekDetails as &$detail) {
@@ -328,6 +395,20 @@ class EditBahanProjekCart extends Component
         return $bahanRusak;
     }
 
+    public function getCartItemsForBahanRetur()
+    {
+        $bahanRetur = [];
+        foreach ($this->bahanRetur as $retur) {
+            $bahanRetur[] = [
+                'id' => $retur['id'],
+                'qty' => $retur['qty'],
+                'unit_price' => $retur['unit_price'],
+                'sub_total' => $retur['qty'] * $retur['unit_price'],
+            ];
+        }
+        return $bahanRetur;
+    }
+
 
     public function render()
     {
@@ -340,6 +421,7 @@ class EditBahanProjekCart extends Component
             'produksiTotal' => $produksiTotal,
             'grandTotal' => $grandTotal,
             'bahanRusak' => $this->bahanRusak,
+            'bahanRetur' => $this->bahanRetur,
         ]);
     }
 }

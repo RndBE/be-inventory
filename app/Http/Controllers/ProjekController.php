@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use Throwable;
 use App\Models\Unit;
 use App\Models\Bahan;
-use App\Models\Projek;
 use App\Models\Produk;
+use App\Models\Projek;
 use App\Models\BahanJadi;
 use App\Helpers\LogHelper;
+use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ use App\Models\ProdukProduksi;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
 use App\Models\BahanJadiDetails;
+use App\Models\BahanReturDetails;
 use App\Models\BahanRusakDetails;
 use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
@@ -159,6 +161,7 @@ class ProjekController extends Controller
             //dd($request->all());
             $cartItems = json_decode($request->cartItems, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
+            $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $projek = Projek::findOrFail($id);
 
             $tujuan = $projek->nama_projek;
@@ -249,6 +252,43 @@ class ProjekController extends Controller
                     ]);
                 }
             }
+
+            if (!empty($bahanRetur)) {
+                $lastTransaction = BahanRetur::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
+                if ($lastTransaction) {
+                    $last_transaction_number = intval(substr($lastTransaction->kode_transaksi, 6));
+                } else {
+                    $last_transaction_number = 0;
+                }
+                $new_transaction_number = $last_transaction_number + 1;
+                $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
+                $kode_transaksi = 'BR - ' . $formatted_number;
+
+                $bahanReturRecord = BahanRetur::create([
+                    'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+                    'kode_transaksi' => $kode_transaksi,
+                    'projek_id' => $projek->id,
+                    'tujuan' => 'Projek ' . $tujuan,
+                    'divisi' => 'Produksi',
+                    'status' => 'Belum disetujui',
+                ]);
+
+                foreach ($bahanRetur as $item) {
+                    $bahan_id = $item['id'];
+                    $qtyRetur = $item['qty'] ?? 0;
+                    $unit_price = $item['unit_price'] ?? 0;
+                    $sub_total = $qtyRetur * $unit_price;
+
+                    BahanReturDetails::create([
+                        'bahan_retur_id' => $bahanReturRecord->id,
+                        'bahan_id' => $bahan_id,
+                        'qty' => $qtyRetur,
+                        'unit_price' => $unit_price,
+                        'sub_total' => $sub_total,
+                    ]);
+                }
+            }
+
             LogHelper::success('Berhasil Mengubah Detail Projek!');
             return redirect()->back()->with('success', 'Projek berhasil diperbarui!');
         } catch (\Exception $e) {

@@ -87,6 +87,12 @@
                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"/>
                                                     </svg>
                                                 </button>
+                                                <button wire:click="returQuantityPerPrice({{ $detail['bahan']->id }}, {{ $d['unit_price'] }})"
+                                                    class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                                                    type="button">
+                                                    <span class="sr-only">Retur Quantity</span>
+                                                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-back"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11l-4 4l4 4m-4 -4h11a4 4 0 0 0 0 -8h-1" /></svg>
+                                                </button>
                                             @endif
                                         </div>
                                     </div>
@@ -139,6 +145,45 @@
                             </td>
                             <td class="px-6 py-4 text-right">
                                 {{ number_format($rusak['unit_price'] * $rusak['qty'], 0, ',', '.') }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
+
+        @if($produksiStatus !== 'Selesai')
+    <div class="border-b border-gray-900/10">
+        <h1 class="mt-6"><strong>Bahan Retur</strong></h1>
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="px-6 py-3" style="width: 30%;">Bahan</th>
+                        <th scope="col" class="px-6 py-3 text-right">Qty</th>
+                        <th scope="col" class="px-6 py-3 text-right">Sub Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($bahanRetur as $retur)
+                    <input type="hidden" name="bahanRetur" value="{{ json_encode($this->getCartItemsForBahanRetur()) }}">
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ App\Models\Bahan::find($retur['id'])->nama_bahan ?? 'Unknown' }}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex justify-end items-center">
+                                    {{ $retur['qty'] }} x {{ number_format($retur['unit_price'], 0, ',', '.') }}
+                                    <button type="button" wire:click="returnReturToProduction({{ $retur['id'] }}, {{ $retur['unit_price'] }}, 1)" class="text-blue-600 hover:underline">
+                                        <svg class="w-6 h-6 text-red-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 10 3-3m0 0-3-3m3 3H5v3m3 4-3 3m0 0 3 3m-3-3h14v-3"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                {{ number_format($retur['unit_price'] * $retur['qty'], 0, ',', '.') }}
                             </td>
                         </tr>
                     @endforeach

@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('bahan_retur', function (Blueprint $table) {
             $table->id();
-            $table->dateTime('tgl_pengajuan');
-            $table->dateTime('tgl_diterima');
+            $table->dateTime('tgl_pengajuan')->nullable();
+            $table->dateTime('tgl_diterima')->nullable();
             $table->string('kode_transaksi')->unique();
-            $table->foreignId('produksi_id')->constrained('produksis');
-            $table->foreignId('projek_id')->constrained('projek');
+            $table->foreignId('produksi_id')->constrained('produksis')->nullable();
+            $table->foreignId('projek_id')->constrained('projek')->nullable();
             $table->string('tujuan');
             $table->string('divisi');
             $table->string('status');

@@ -13,8 +13,12 @@ return new class extends Migration
     {
         Schema::create('bahan_rusaks', function (Blueprint $table) {
             $table->id();
-            $table->dateTime('tgl_masuk');
+            $table->dateTime('tgl_pengajuan')->nullable();
+            $table->dateTime('tgl_diterima')->nullable();
             $table->string('kode_transaksi')->unique();
+            $table->foreignId('produksi_id')->constrained('produksis')->nullable();
+            $table->foreignId('projek_id')->constrained('projek')->nullable();
+            $table->string('status');
             $table->timestamps();
         });
     }

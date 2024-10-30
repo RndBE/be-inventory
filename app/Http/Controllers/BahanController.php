@@ -5,13 +5,26 @@ namespace App\Http\Controllers;
 use Throwable;
 use App\Models\Unit;
 use App\Models\Bahan;
+use App\Models\Produksi;
+use App\Models\Purchase;
 use App\Helpers\LogHelper;
 use App\Models\JenisBahan;
+use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
 use App\Exports\BahansExport;
+use App\Models\ProjekDetails;
+use App\Models\ProdukProduksi;
+use App\Models\PurchaseDetail;
+use App\Models\ProduksiDetails;
 use Illuminate\Validation\Rule;
+use App\Models\BahanReturDetails;
+use App\Models\BahanRusakDetails;
+use App\Models\BahanKeluarDetails;
+use App\Models\ProdukProduksiDetail;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
+use App\Models\BahanSetengahjadiDetails;
+use Illuminate\Validation\ValidationException;
 
 class BahanController extends Controller
 {
@@ -43,7 +56,7 @@ class BahanController extends Controller
 
     public function store(Request $request)
     {
-        try{
+        try {
             $validated = $request->validate([
                 'kode_bahan' => 'required|string|max:255|unique:bahan,kode_bahan',
                 'nama_bahan' => 'required|string|max:255',
@@ -63,7 +76,10 @@ class BahanController extends Controller
             Bahan::create($validated);
             LogHelper::success('Berhasil Menambah Bahan!');
             return redirect()->route('bahan.index')->with('success', 'Berhasil Menambah Bahan!');
-        }catch(Throwable $e){
+        } catch (ValidationException $e) {
+            // Kirim pesan error yang dihasilkan validasi kembali ke form
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (Throwable $e) {
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }

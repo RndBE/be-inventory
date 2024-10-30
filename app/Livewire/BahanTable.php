@@ -17,9 +17,17 @@ class BahanTable extends Component
     public function render()
     {
         $bahans = Bahan::with('jenisBahan', 'dataUnit', 'purchaseDetails')
-        ->where('nama_bahan', 'like', '%' . $this->search . '%')
-            ->orWhere('kode_bahan', 'like', '%' . $this->search . '%')
+            ->where(function ($query) {
+                $query->where('nama_bahan', 'like', '%' . $this->search . '%')
+                    ->orWhere('penempatan', 'like', '%' . $this->search . '%')
+                    ->orWhere('kode_bahan', 'like', '%' . $this->search . '%')
+                    // Pencarian berdasarkan nama jenisBahan
+                    ->orWhereHas('jenisBahan', function ($query) {
+                        $query->where('nama', 'like', '%' . $this->search . '%');
+                    });
+            })
             ->paginate($this->perPage);
+
 
         // Calculate total stock
         foreach ($bahans as $bahan) {

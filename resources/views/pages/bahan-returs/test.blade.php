@@ -23,13 +23,29 @@
                         </div>
                         <div class="flex flex-col gap-3 border-b py-6 text-xs">
                             <p class="flex justify-between">
-                                <span class="text-gray-400">Tgl Keluar:</span>
+                                <span class="text-gray-400">Tgl Pengajuan:</span>
                                 <span>{{ $tgl_pengajuan}}</span>
+                            </p>
+                            <p class="flex justify-between">
+                                <span class="text-gray-400">Tgl Diterima:</span>
+                                <span>{{ $tgl_diterima}}</span>
                             </p>
                             <p class="flex justify-between">
                                 <span class="text-gray-400">Kode Transaksi:</span>
                                 <span>{{ $kode_transaksi }}</span>
                             </p>
+                            @if ($kode_produksi === null)
+                                <p class="flex justify-between">
+                                    <span class="text-gray-400">Kode Projek:</span>
+                                    <span>{{ $kode_projek }}</span>
+                                </p>
+                            @else
+                                <p class="flex justify-between">
+                                    <span class="text-gray-400">Kode Produksi:</span>
+                                    <span>{{ $kode_produksi }}</span>
+                                </p>
+                            @endif
+
                             <p class="flex justify-between">
                                 <span class="text-gray-400">Status:</span>
                                 <span>{{ $status }}</span>

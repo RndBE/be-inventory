@@ -19,11 +19,11 @@ class BahanRetur extends Model
 
     public function produksiS()
     {
-        return $this->hasOne(Produksi::class, 'bahan_retur_id');
+        return $this->hasOne(Produksi::class, 'id', 'produksi_id');
     }
 
     public function projek()
     {
-        return $this->hasOne(Projek::class, 'bahan_retur_id');
+        return $this->hasOne(Projek::class, 'id', 'projek_id');
     }
 }

@@ -12,7 +12,7 @@ class BahanReturTable extends Component
     public $search = "";
     public $perPage = 15;
     public $id_bahan_returs, $status,
-    $kode_transaksi, $tgl_diterima, $tgl_pengajuan, $divisi, $bahanReturDetails;
+    $kode_transaksi, $tgl_diterima, $tgl_pengajuan, $divisi, $bahanReturDetails, $kode_produksi, $kode_projek;
     public $filter = 'semua';
     public $totalHarga;
     public $isModalOpen = false;
@@ -39,6 +39,8 @@ class BahanReturTable extends Component
         $this->id_bahan_returs = $id;
         $this->tgl_pengajuan = $Data->tgl_pengajuan;
         $this->tgl_diterima = $Data->tgl_diterima;
+        $this->kode_produksi = $Data->produksiS->kode_produksi;
+        $this->kode_projek = $Data->produksiS->kode_projek;
         $this->kode_transaksi = $Data->kode_transaksi;
         $this->divisi = $Data->divisi;
         $this->status = $Data->status;

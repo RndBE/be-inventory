@@ -25,8 +25,10 @@ class BahanSetengahjadiController extends Controller
         $bahanSetengahjadi = BahanSetengahjadi::with('bahanSetengahjadiDetails.dataBahan.dataUnit')->findOrFail($id);
         return view('pages.bahan-setengahjadis.show', [
             'kode_transaksi' => $bahanSetengahjadi->kode_transaksi,
+            'kode_produksi' => $bahanSetengahjadi->produksiS ? $bahanSetengahjadi->produksiS->kode_produksi : null,
             'tgl_masuk' => $bahanSetengahjadi->tgl_masuk,
             'bahanSetengahjadiDetails' => $bahanSetengahjadi->bahanSetengahjadiDetails,
+            'produksiDetails' => $bahanSetengahjadi->produksiDetails,
         ]);
     }
 }

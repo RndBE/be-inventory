@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Bahan;
 use Livewire\Component;
 use App\Models\Produksi;
+use App\Models\BahanKeluar;
 
 class EditBahanProduksiCart extends Component
 {
@@ -26,15 +27,19 @@ class EditBahanProduksiCart extends Component
         'bahanSetengahJadiSelected' => 'addToCart'
     ];
 
+    public $bahanKeluars = []; // Menyimpan bahan keluar yang akan ditampilkan
+
     public function mount($produksiId)
     {
         $this->produksiId = $produksiId;
         $this->loadProduksi();
+        $this->loadBahanKeluar(); // Panggil metode untuk memuat bahan keluar
 
         foreach ($this->produksiDetails as $detail) {
             $this->qty[$detail['bahan']->id] = $detail['used_materials']; // atau nilai default lainnya
         }
     }
+
     public function loadProduksi()
     {
         $produksi = Produksi::with('produksiDetails')->find($this->produksiId);
@@ -53,6 +58,17 @@ class EditBahanProduksiCart extends Component
             }
         }
     }
+
+    public function loadBahanKeluar()
+    {
+        // Ambil bahan keluar dengan status "Belum disetujui" dan produksi_id yang sama
+        $this->bahanKeluars = BahanKeluar::with('bahanKeluarDetails.dataBahan') // Menyertakan relasi bahan
+            ->where('status', 'Belum disetujui') // Filter berdasarkan status
+            ->where('produksi_id', $this->produksiId) // Filter berdasarkan produksi_id
+            ->get();
+    }
+
+
 
     public function calculateSubTotal($itemId)
     {

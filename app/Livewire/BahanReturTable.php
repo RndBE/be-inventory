@@ -39,8 +39,8 @@ class BahanReturTable extends Component
         $this->id_bahan_returs = $id;
         $this->tgl_pengajuan = $Data->tgl_pengajuan;
         $this->tgl_diterima = $Data->tgl_diterima;
-        $this->kode_produksi = $Data->produksiS->kode_produksi;
-        $this->kode_projek = $Data->produksiS->kode_projek;
+        $this->kode_produksi = $Data->produksiS ? $Data->produksiS->kode_produksi : null;
+        $this->kode_projek = $Data->projek ? $Data->projek->kode_projek : null;
         $this->kode_transaksi = $Data->kode_transaksi;
         $this->divisi = $Data->divisi;
         $this->status = $Data->status;

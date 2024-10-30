@@ -30,7 +30,10 @@ class BahanRusakController extends Controller
         $bahanRusak = BahanRusak::with('bahanRusakDetails.dataBahan.dataUnit')->findOrFail($id);
         return view('pages.bahan-rusaks.show', [
             'kode_transaksi' => $bahanRusak->kode_transaksi,
-            'tgl_masuk' => $bahanRusak->tgl_masuk,
+            'tgl_pengajuan' => $bahanRusak->tgl_pengajuan ?? null,
+            'tgl_diterima' => $bahanRusak->tgl_diterima ?? null,
+            'kode_produksi' => $bahanRusak->produksiS ? $bahanRusak->produksiS->kode_produksi : null,
+            'kode_projek' => $bahanRusak->projek ? $bahanRusak->projek->kode_projek : null,
             'bahanRusakDetails' => $bahanRusak->bahanRusakDetails,
         ]);
     }

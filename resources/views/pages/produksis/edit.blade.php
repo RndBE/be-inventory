@@ -42,9 +42,14 @@
                     <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
                     <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
                     @can('selesai-proses-produksi')
-                        <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
+                        @if($isComplete)
+                            <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
+                                Selesai
+                            </button>
+                        @endif
+                        {{-- <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
                             Selesai
-                        </button>
+                        </button> --}}
                     @endcan
                 @elseif ($produksi->status === 'Selesai')
                     <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
@@ -82,52 +87,6 @@
             </div>
         @endif
 
-        {{-- <nav class="bg-white border border-gray-200 rounded-lg shadow sm:p-2 dark:bg-gray-800 dark:border-gray-700 mb-4">
-            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-                <div class="mt-2 flex items-center justify-end gap-x-2">
-                    @if($produksi->bahanKeluar->status === 'Disetujui' && $produksi->status !== 'Selesai')
-                        <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
-                        <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Update</button>
-                        <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
-                            Selesai
-                        </button>
-                    @elseif ($produksi->status === 'Selesai')
-                        <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
-                    @else
-                        <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
-                    @endif
-                </div>
-                <div class="w-full md:block md:w-auto">
-                    <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                        <li class="flex items-center {{ $produksi->status === 'Konfirmasi' ? 'text-blue-600 dark:text-blue-500' : '' }}">
-                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $produksi->status === 'Konfirmasi' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
-                                1
-                            </span>
-                            <span class="text-xs">Konfirmasi</span>
-                            <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/>
-                            </svg>
-                        </li>
-                        <li class="flex items-center {{ $produksi->status === 'Dalam Proses' ? 'text-blue-600 dark:text-blue-500' : '' }}">
-                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $produksi->status === 'Dalam Proses' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
-                                2
-                            </span>
-                            <span class="text-xs">Dalam Proses</span>
-                            <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/>
-                            </svg>
-                        </li>
-                        <li class="flex items-center {{ $produksi->status === 'Selesai' ? 'text-blue-600 dark:text-blue-500' : '' }}">
-                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $produksi->status === 'Selesai' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
-                                3
-                            </span>
-                            <span class="text-xs">Selesai</span>
-                        </li>
-                    </ol>
-                </div>
-            </div>
-        </nav> --}}
-
         <div class="sm:flex sm:justify-between sm:items-center mb-2">
         </div>
 
@@ -140,38 +99,44 @@
                         <div class="border-b border-gray-900/10 pb-2">
                             <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                                 <div class="flex items-center">
-                                    <label for="kode_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Produksi</label>
-                                    <input type="text" id="kode_produksi" value="{{ $produksi->kode_produksi }}" disabled placeholder="PR - " class="block rounded-md w-3/4 border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" readonly>
+                                    <label for="kode_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Produksi</label>
+                                    @if($isComplete)
+                                        <input type="text" id="kode_produksi" name="kode_produksi" value="{{ $produksi->kode_produksi }}" placeholder="PR - " class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                    @endif
+
                                 </div>
 
                                 <div class="flex items-center">
-                                    <label for="produk_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk
+                                    <label for="produk_id" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk
                                         <sup class="text-red-500 text-base">*</sup>
                                     </label>
                                     <input type="text" name="produk_id" value="{{ $produksi->dataBahan->nama_bahan }}" id="produk_id"
-                                    placeholder="" class="block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required readonly disabled>
+                                    placeholder="" class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required readonly disabled>
                                     @error('produk_id')
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="flex items-center">
-                                    <label for="mulai_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Produksi<sup class="text-red-500 text-base">*</sup></label>
+                                    <label for="mulai_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Produksi<sup class="text-red-500 text-base">*</sup></label>
                                     <div class="relative w-3/4">
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                             <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
                                             </svg>
                                         </div>
-                                        <input type="text" value="{{ $produksi->mulai_produksi }}" name="mulai_produksi" id="datetimepicker" placeholder="Pilih tanggal dan waktu" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 sm:text-sm sm:leading-6 cursor-default pointer-events-none" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} readonly required>
+                                        @error('kode_produksi')
+                                            <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                        @enderror
+                                        <input type="text" value="{{ $produksi->mulai_produksi }}" name="mulai_produksi" id="datetimepicker" placeholder="Pilih tanggal dan waktu" class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 sm:text-sm sm:leading-6 cursor-default pointer-events-none" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} readonly required>
                                     </div>
                                     @error('mulai_produksi')
-                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                                @enderror
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 <div class="flex items-center">
-                                    <label for="jenis_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                    <label for="jenis_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
                                         Jenis Produksi<sup class="text-red-500 text-base">*</sup>
                                     </label>
                                     <div class="relative w-3/4 mr-2">
@@ -189,22 +154,22 @@
                                             <div class="flex items-center me-4">
                                                 <input id="produk_setengah_jadi" type="radio" value="Produk Setengah Jadi" name="jenis_produksi"
                                                     {{ $produksi->jenis_produksi == 'Produk Setengah Jadi' ? 'checked' : '' }}
-                                                    class="w-4 h-4 cursor-default pointer-events-none"
+                                                    class="w-4 h-4 cursor-default pointer-events-none dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                     {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} readonly>
                                                 <label for="produk_setengah_jadi" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Produk Setengah Jadi</label>
                                             </div>
                                         </div>
                                     </div>
                                     @error('jenis_produksi')
-                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="flex items-center">
-                                    <label for="jml_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
+                                    <label for="jml_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
                                     <div class="relative w-3/4">
                                         <div class="flex item-center">
-                                            <input type="number" name="jml_produksi" value="{{ $produksi->jml_produksi }}"  id="jml_produksi" placeholder="" class="block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                                            <input type="number" name="jml_produksi" value="{{ $produksi->jml_produksi }}"  id="jml_produksi" placeholder="" class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
                                             placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6
                                             cursor-default pointer-events-none" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required readonly>
                                         </div>

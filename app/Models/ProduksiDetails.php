@@ -22,4 +22,9 @@ class ProduksiDetails extends Model
     {
         return $this->belongsTo(Bahan::class, 'bahan_id');
     }
+
+    public function bahanKeluar()
+    {
+        return $this->belongsTo(BahanKeluar::class, 'produksi_id', 'id');
+    }
 }

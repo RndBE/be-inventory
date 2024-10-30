@@ -90,20 +90,9 @@ class ProduksiController extends Controller
             $kode_transaksi = 'KBK - ' . $formatted_number;
             $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
-            // Buat kombinasi kode transaksi di Produksi
-            $lastTransactionProduksi = Produksi::orderByRaw('CAST(SUBSTRING(kode_produksi, 7) AS UNSIGNED) DESC')->first();
-            if ($lastTransactionProduksi) {
-                $last_transaction_number_produksi = intval(substr($lastTransactionProduksi->kode_produksi, 6));
-            } else {
-                $last_transaction_number_produksi = 0;
-            }
-            $new_transaction_number_produksi = $last_transaction_number_produksi + 1;
-            $formatted_number_produksi = str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
-            $kode_produksi = 'PR - ' . $formatted_number_produksi;
-
             // Simpan data ke Produksi
             $produksi = new Produksi();
-            $produksi->kode_produksi = $kode_produksi;
+            $produksi->kode_produksi = null;
             $produksi->bahan_id = $request->bahan_id;
             $produksi->jml_produksi = $request->jml_produksi;
             $produksi->mulai_produksi = $request->mulai_produksi;
@@ -163,18 +152,33 @@ class ProduksiController extends Controller
         $bahanProduksi = Bahan::whereHas('jenisBahan', function ($query) {
             $query->where('nama', 'like', '%Produksi%');
         })->get();
+
         $produksi = Produksi::with(['produksiDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
-        // if ($produksi->bahanKeluar->status != 'Disetujui') {
-        //     return redirect()->back()->with('error', 'Produksi belum disetujui. Anda tidak dapat mengakses halaman tersebut.');
-        // }
+
+        // Kondisi untuk tombol "Selesai"
+        $isComplete = true;
+        if ($produksi->produksiDetails && count($produksi->produksiDetails) > 0) {
+            foreach ($produksi->produksiDetails as $detail) {
+                $kebutuhan = $detail->jml_bahan - $detail->used_materials;
+                if ($kebutuhan > 0) {
+                    $isComplete = false;
+                    break;
+                }
+            }
+        } else {
+            $isComplete = false;
+        }
+
         return view('pages.produksis.edit', [
             'produksiId' => $produksi->id,
             'bahanProduksi' => $bahanProduksi,
             'produksi' => $produksi,
             'units' => $units,
-            'id' => $id
+            'id' => $id,
+            'isComplete' => $isComplete,
         ]);
     }
+
 
 
     public function update(Request $request, $id)
@@ -185,22 +189,22 @@ class ProduksiController extends Controller
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $produksi = Produksi::findOrFail($id);
-            $validator = Validator::make($request->all(), [
-                'jml_produksi' => 'required',
-                'mulai_produksi' => 'required',
-                'jenis_produksi' => 'required',
-            ]);
+            // $validator = Validator::make($request->all(), [
+            //     'jml_produksi' => 'required',
+            //     'mulai_produksi' => 'required',
+            //     'jenis_produksi' => 'required',
+            // ]);
 
-            if ($validator->fails()) {
-                return redirect()->back()->withErrors($validator)->withInput();
-            }
+            // if ($validator->fails()) {
+            //     return redirect()->back()->withErrors($validator)->withInput();
+            // }
 
-            // Update production data
-            $produksi->update([
-                'jml_produksi' => $request->jml_produksi,
-                'mulai_produksi' => $request->mulai_produksi,
-                'jenis_produksi' => $request->jenis_produksi,
-            ]);
+            // // Update production data
+            // $produksi->update([
+            //     'jml_produksi' => $request->jml_produksi,
+            //     'mulai_produksi' => $request->mulai_produksi,
+            //     'jenis_produksi' => $request->jenis_produksi,
+            // ]);
 
             $produk = ProdukProduksi::find($request->bahan_id);
             if ($produk) {
@@ -350,6 +354,19 @@ class ProduksiController extends Controller
         try{
             //dd($request->all());
             $produksi = Produksi::findOrFail($id);
+            $validator = Validator::make($request->all(), [
+                'kode_produksi' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            // Update production data
+            $produksi->update([
+                'kode_produksi' => $request->kode_produksi,
+            ]);
+
             if ($produksi->status !== 'Selesai') {
                 // Proses update berdasarkan jenis produksi
                 if ($produksi->jenis_produksi === 'Produk Setengah Jadi') {
@@ -361,6 +378,7 @@ class ProduksiController extends Controller
                         $bahanSetengahJadi = new BahanSetengahjadi();
                         $bahanSetengahJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                         $bahanSetengahJadi->kode_transaksi = $produksi->kode_produksi;
+                        $bahanSetengahJadi->produksi_id = $produksi->id;
                         $bahanSetengahJadi->save();
 
                         $produksiTotal = $produksi->produksiDetails->sum('sub_total');
@@ -392,48 +410,6 @@ class ProduksiController extends Controller
                         return redirect()->back()->with('error', "Gagal update status produksi.".$errorMessage);
                     }
                 }
-
-                // Kondisi untuk jenis produksi 'Bahan Jadi'
-                if ($produksi->jenis_produksi === 'Produk Jadi') {
-                    try {
-                        // Mulai transaksi database
-                        DB::beginTransaction();
-
-                        // Masukkan data ke dalam tabel bahan_jadi
-                        $bahanJadi = new BahanJadi();
-                        $bahanJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                        $bahanJadi->kode_transaksi = $produksi->kode_produksi;
-                        $bahanJadi->save();
-
-                        $produksiTotal = $produksi->produksiDetails->sum('sub_total');
-
-                        $bahanJadiDetail = new BahanJadiDetails();
-                        $bahanJadiDetail->bahan_jadi_id = $bahanJadi->id;
-                        $bahanJadiDetail->bahan_id = $produksi->bahan_id;
-                        $bahanJadiDetail->qty = $produksi->jml_produksi;
-                        $bahanJadiDetail->sisa = $produksi->jml_produksi;
-                        $bahanJadiDetail->unit_price = $produksiTotal / $produksi->jml_produksi;
-                        $bahanJadiDetail->sub_total = $produksiTotal;
-                        $bahanJadiDetail->save();
-
-                        // Jika semua penyimpanan berhasil, update status produksi menjadi "Selesai"
-                        $produksi->status = 'Selesai';
-                        $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                        $produksi->save();
-
-                        // Commit transaksi
-                        DB::commit();
-
-                        LogHelper::success('Berhasil Menyelesaikan Produksi Produk Jadi!');
-                        return redirect()->back()->with('success', 'Produksi Bahan Jadi telah selesai.');
-                    } catch (\Exception $e) {
-                        // Rollback jika ada kesalahan
-                        DB::rollBack();
-                        $errorMessage = $e->getMessage();
-                        LogHelper::error($e->getMessage());
-                        return redirect()->back()->with('error', "Gagal update status produksi.".$errorMessage);
-                    }
-                }
             }
             LogHelper::success('Berhasil Menyelesaikan Produksi!');
             return redirect()->back()->with('error', 'Produksi tidak bisa diupdate ke selesai.');
@@ -452,17 +428,18 @@ class ProduksiController extends Controller
             if (!$produksi) {
                 return redirect()->back()->with('gagal', 'Produksi tidak ditemukan.');
             }
-            if ($produksi->status !== 'Konfirmasi') {
-                return redirect()->back()->with('gagal', 'Produksi hanya dapat dihapus jika statusnya "Konfirmasi".');
-            }
+            // if ($produksi->status !== 'Konfirmasi') {
+            //     return redirect()->back()->with('gagal', 'Produksi hanya dapat dihapus jika statusnya "Konfirmasi".');
+            // }
 
             // Menghapus semua bahan keluar yang terkait dengan produksi_id
             BahanKeluar::where('produksi_id', $produksi->id)->delete();
-
+            BahanRetur::where('produksi_id', $produksi->id)->delete();
+            BahanRusak::where('produksi_id', $produksi->id)->delete();
             // Menghapus produksi
             $produksi->delete();
 
-            return redirect()->back()->with('success', 'Produksi dan semua bahan keluar terkait berhasil dihapus.');
+            return redirect()->back()->with('success', 'Produksi dan semua bahan terkait berhasil dihapus.');
         } catch (Throwable $e) {
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

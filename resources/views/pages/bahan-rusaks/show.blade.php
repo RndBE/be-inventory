@@ -13,16 +13,28 @@
                         <div class="grid grid-cols-4 gap-12">
                             <div class="text-sm font-light text-slate-500">
                                 <p class="text-sm font-normal text-slate-700">Detail Transaksi:</p>
-                            </div>
-                            <div class="text-sm font-light text-slate-500">
-                                <p class="text-sm font-normal text-slate-700"></p>
-                                <p class="text-sm font-normal text-slate-700"></p>
+                                @if ($kode_produksi === null)
+                                    <p>Kode Projek: {{ $kode_projek }}</p>
+                                @else
+                                    <p>Kode Produksi: {{ $kode_produksi }}</p>
+                                @endif
                             </div>
                             <div class="text-sm font-light text-slate-500">
                                 <p class="text-sm font-normal text-slate-700">Kode Transaksi:</p>
                                 <p>{{ $kode_transaksi }}</p>
-                                <p class="mt-2 text-sm font-normal text-slate-700">Tanggal Transaksi</p>
-                                <p>{{ \Carbon\Carbon::parse($tgl_masuk)->format('d F Y H:i:s') }}</p> <!-- Format tanggal -->
+                                <p class="mt-2 text-sm font-normal text-slate-700">Tanggal Diterima</p>
+                                <p>{{ \Carbon\Carbon::parse($tgl_diterima)->format('d F Y H:i:s') }}</p> <!-- Format tanggal -->
+                            </div>
+                            <div class="text-sm font-light text-slate-500">
+                                <p class="text-sm font-normal text-slate-700"></p>
+                                <p class="text-sm font-normal text-slate-700"></p>
+                            </div>
+
+                            <div class="text-sm font-light text-slate-500">
+                                {{-- <p class="text-sm font-normal text-slate-700">Kode Transaksi:</p>
+                                <p>{{ $kode_transaksi }}</p> --}}
+                                <p class="mt-2 text-sm font-normal text-slate-700">Tanggal Pengajuan</p>
+                                <p>{{ \Carbon\Carbon::parse($tgl_pengajuan)->format('d F Y H:i:s') }}</p> <!-- Format tanggal -->
                             </div>
                         </div>
                     </div>
@@ -57,9 +69,8 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th scope="row" colspan="4" class="hidden pt-6 pl-6 pr-3 text-sm font-light text-right text-slate-500 sm:table-cell md:pl-0">Total Harga</th>
-                                    <th scope="row" class="pt-6 pl-4 pr-3 text-sm font-light text-left text-slate-500 sm:hidden">Total Harga</th>
-                                    <td class="pt-6 pl-3 pr-4 text-sm text-right text-slate-500 sm:pr-6 md:pr-0">Rp. {{ number_format($bahanRusakDetails->sum('sub_total'), 2) }}</td>
+                                    <th scope="row" colspan="4" class="hidden pt-6 pl-6 pr-3 text-sm text-right text-slate-900 sm:table-cell md:pl-0">Total Harga</th>
+                                    <td class="pt-6 pl-3 pr-4 text-sm text-right text-slate-900 sm:pr-6 md:pr-0">Rp. {{ number_format($bahanRusakDetails->sum('sub_total'), 2) }}</td>
                                 </tr>
                                 <!-- Tambahkan baris untuk Discount, Tax, dan Total jika perlu -->
                             </tfoot>
@@ -70,8 +81,8 @@
                 <div class="mt-9 p-9">
                     <div class="border-t pt-9 border-slate-200">
                         <div class="mt-2 flex items-center justify-end gap-x-6">
-                            <a href="{{ route('bahan-rusaks.index') }}" type="button" class="text-sm font-semibold leading-6 text-gray-900">Kembali</a>
-                            <button class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Print</button>
+                            <a href="{{ route('bahan-rusaks.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
+                            {{-- <button class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Print</button> --}}
                         </div>
                     </div>
                 </div>

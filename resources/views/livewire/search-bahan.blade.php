@@ -41,7 +41,10 @@
                         @foreach($search_results as $index => $bahan)
                             <li wire:click="selectBahan({{ $bahan->id }})"
                                 class="cursor-pointer {{ $selectedIndex === $index ? 'bg-blue-100 text-blue-900' : 'hover:bg-blue-50' }} p-2">
-                                {{ $bahan->nama_bahan }} | {{ $bahan->kode_bahan }}
+                                {{ $bahan->nama_bahan }} | {{ $bahan->kode_bahan }} |
+                                <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-400">
+                                    {{ $bahan->sisa_stock ?? 0 }} {{ $bahan->dataUnit->nama }}
+                                </span>
                             </li>
                         @endforeach
                         @if($search_results->count() >= $how_many)

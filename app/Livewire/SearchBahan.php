@@ -32,7 +32,10 @@ class SearchBahan extends Component
             ->where(function($query) {
                 $query->where('nama_bahan', 'like', '%' . $this->query . '%')
                     ->orWhere('kode_bahan', 'like', '%' . $this->query . '%');
-            })
+            })->whereHas('jenisBahan', function ($query) {
+                $query->where('nama', '!=', 'Produksi');
+            }) 
+            ->withSum('purchaseDetails as sisa_stock', 'sisa')
             ->take($this->how_many)
             ->get();
 

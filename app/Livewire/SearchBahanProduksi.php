@@ -34,6 +34,8 @@ class SearchBahanProduksi extends Component
             ->where(function ($query) {
                 $query->where('nama_bahan', 'like', '%' . $this->query . '%')
                     ->orWhere('kode_bahan', 'like', '%' . $this->query . '%');
+            })->whereHas('jenisBahan', function ($query) {
+                $query->where('nama', '!=', 'Produksi');
             })
             ->get()
             ->map(function ($bahan) {
@@ -75,7 +77,7 @@ class SearchBahanProduksi extends Component
 
         // Filter hasil hanya yang memiliki stok > 0
         $this->search_results = $this->search_results->filter(function ($item) {
-            return $item->stok > 0;
+            return $item->stok >= 0;
         })->take($this->how_many);
 
         // Reset selected index

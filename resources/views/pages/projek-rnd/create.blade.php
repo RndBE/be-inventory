@@ -80,7 +80,7 @@
             <form action="{{ route('projek-rnd.store') }}" method="POST" enctype="multipart/form-data" id="projekRndForm">
                 @csrf
                 <div class="space-y-6">
-                    <livewire:bahan-projek-rnd-cart/>
+                    <livewire:bahan-projek-cart/>
                 </div>
             </form>
         </div>

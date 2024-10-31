@@ -86,51 +86,6 @@
             </div>
         @endif
 
-        {{-- <nav class="bg-white border border-gray-200 rounded-lg shadow sm:p-2 dark:bg-gray-800 dark:border-gray-700 mb-4">
-            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-                <div class="mt-2 flex items-center justify-end gap-x-2">
-                    @if($projek->bahanKeluar->status === 'Disetujui' && $projek->status !== 'Selesai')
-                        <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
-                        <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Update</button>
-                        <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
-                            Selesai
-                        </button>
-                    @elseif ($projek->status === 'Selesai')
-                        <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
-                    @else
-                        <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
-                    @endif
-                </div>
-                <div class="w-full md:block md:w-auto">
-                    <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                        <li class="flex items-center {{ $projek->status === 'Konfirmasi' ? 'text-blue-600 dark:text-blue-500' : '' }}">
-                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $projek->status === 'Konfirmasi' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
-                                1
-                            </span>
-                            <span class="text-xs">Konfirmasi</span>
-                            <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/>
-                            </svg>
-                        </li>
-                        <li class="flex items-center {{ $projek->status === 'Dalam Proses' ? 'text-blue-600 dark:text-blue-500' : '' }}">
-                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $projek->status === 'Dalam Proses' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
-                                2
-                            </span>
-                            <span class="text-xs">Dalam Proses</span>
-                            <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/>
-                            </svg>
-                        </li>
-                        <li class="flex items-center {{ $projek->status === 'Selesai' ? 'text-blue-600 dark:text-blue-500' : '' }}">
-                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $projek->status === 'Selesai' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
-                                3
-                            </span>
-                            <span class="text-xs">Selesai</span>
-                        </li>
-                    </ol>
-                </div>
-            </div>
-        </nav> --}}
 
         <div class="sm:flex sm:justify-between sm:items-center mb-2">
         </div>
@@ -194,6 +149,7 @@
                             <livewire:search-bahan-produksi/>
                         @endif
                         <livewire:edit-bahan-projek-cart :projekId="$projekId" />
+                        {{-- <livewire:update-bahan-projek-cart :projekId="$projekId" /> --}}
                     </div>
                 </div>
             </form>

@@ -138,18 +138,21 @@ class ProjekController extends Controller
         $bahanProjek = Bahan::whereHas('jenisBahan', function ($query) {
             $query->where('nama', 'like', '%Produksi%');
         })->get();
+
         $projek = Projek::with(['projekDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
-        // if ($projek->bahanKeluar->status != 'Disetujui') {
-        //     return redirect()->back()->with('error', 'Projek belum disetujui. Anda tidak dapat mengakses halaman tersebut.');
-        // }
+
+        // Ambil bahan yang ada di projekDetails
+        $existingBahanIds = $projek->projekDetails->pluck('dataBahan.id')->toArray();
+
         return view('pages.projek.edit', [
-            'projekId' => $projek->id,
+            'projekId' => $id,
             'bahanProjek' => $bahanProjek,
             'projek' => $projek,
             'units' => $units,
-            'id' => $id
+            'existingBahanIds' => $existingBahanIds, // Kirimkan id bahan yang sudah ada
         ]);
     }
+
 
 
     public function update(Request $request, $id)

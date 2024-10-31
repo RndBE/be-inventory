@@ -4,6 +4,9 @@ namespace App\Livewire;
 
 use App\Models\Bahan;
 use Livewire\Component;
+use App\Models\ProdukProduksi;
+use App\Models\ProdukProduksiDetail;
+use App\Models\BahanSetengahjadiDetails;
 
 class BahanProjekRndCart extends Component
 {

@@ -95,6 +95,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('produk-produksis', ProdukProduksiController::class);
     Route::resource('bahan-returs', BahanReturController::class);
     Route::resource('projek-rnd', ProjekRndController::class);
+    Route::put('projek-rnd/{projek}/selesai', [ProjekController::class, 'updateStatus'])->name('projek-rnd.updateStatus');
 
 
 

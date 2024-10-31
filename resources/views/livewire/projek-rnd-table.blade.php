@@ -89,9 +89,6 @@
                             <td class="px-6 py-3">{{ $projek_rnd->mulai_projek_rnd }}</td>
                             <td class="px-6 py-3">{{ $projek_rnd->selesai_projek_rnd }}</td>
                             <td class="px-6 py-3">{{ $projek_rnd->nama_projek_rnd }}</td>
-                            <td class="px-6 py-3"><span
-                                    class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $projek->jml_projek_rnd }}</span>
-                            </td>
                             {{-- <td class="px-6 py-3">{{ $projek->produksiDetails->sum('qty') }}</td> --}}
                             <td class="px-6 py-3">{{ $projek_rnd->status }}</td>
                             {{-- <td class="px-6 py-3">Rp {{ number_format($projek->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}

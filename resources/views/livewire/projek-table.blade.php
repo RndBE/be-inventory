@@ -66,8 +66,6 @@
                         <th scope="col" class="px-6 py-3">Mulai Projek</th>
                         <th scope="col" class="px-6 py-3">Selesai Projek</th>
                         <th scope="col" class="px-6 py-3">Nama Projek</th>
-                        <th scope="col" class="px-6 py-3">Jumlah Projek</th>
-                        {{-- <th scope="col" class="px-6 py-3">Total Item</th> --}}
                         <th scope="col" class="px-6 py-3">Status</th>
                         {{-- <th scope="col" class="px-6 py-3">Total Harga</th> --}}
                         <th scope="col" class="px-6 py-3">Aksi</th>
@@ -92,9 +90,6 @@
                             <td class="px-6 py-3">{{ $projek->mulai_projek }}</td>
                             <td class="px-6 py-3">{{ $projek->selesai_projek }}</td>
                             <td class="px-6 py-3">{{ $projek->nama_projek }}</td>
-                            <td class="px-6 py-3"><span
-                                    class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $projek->jml_projek }}</span>
-                            </td>
                             {{-- <td class="px-6 py-3">{{ $projek->produksiDetails->sum('qty') }}</td> --}}
                             <td class="px-6 py-3">{{ $projek->status }}</td>
                             {{-- <td class="px-6 py-3">Rp {{ number_format($projek->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
@@ -119,7 +114,7 @@
                         </tr>
                     @empty
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td colspan="9" class="px-6 py-4 text-center">
+                            <td colspan="7" class="px-6 py-4 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                                     <path stroke-linecap="round" stroke-linejoin="round"

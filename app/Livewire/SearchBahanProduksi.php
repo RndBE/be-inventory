@@ -99,7 +99,7 @@ class SearchBahanProduksi extends Component
                 'nama' => $bahanSetengahJadiDetail->dataBahan->nama_bahan, // Ensure this property exists
                 'kode' => $bahanSetengahJadiDetail->bahanSetengahjadi->kode_bahan,
                 'stok' => $bahanSetengahJadiDetail->sisa,
-                'unit' => $bahanSetengahJadiDetail->dataBahan->dataUnit->nama,
+                'unit' => $bahanSetengahJadiDetail->dataBahan->dataUnit->nama ?? 'N/A',
             ];
             $this->dispatch('bahanSetengahJadiSelected', $bahanSetengahJadiData);
         } else {
@@ -115,7 +115,7 @@ class SearchBahanProduksi extends Component
                     'nama' => $bahan->nama_bahan, // Use 'nama' instead of 'nama_bahan'
                     'kode' => $bahan->kode_bahan,
                     'stok' => $bahan->purchaseDetails->sum('sisa'),
-                    'unit' => $bahan->dataUnit->nama,
+                    'unit' => $bahan->dataUnit->nama ?? 'N/A',
                 ];
                 $this->dispatch('bahanSelected', $bahanData);
             } else {

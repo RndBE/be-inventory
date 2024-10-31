@@ -58,12 +58,10 @@ class ProjekController extends Controller
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
                 'nama_projek' => $request->nama_projek,
-                'jml_projek' => $request->jml_projek,
                 'mulai_projek' => $request->mulai_projek,
                 'cartItems' => $cartItems
             ], [
                 'nama_projek' => 'required',
-                'jml_projek' => 'required',
                 'mulai_projek' => 'required',
                 'cartItems' => 'required|array',
             ]);
@@ -87,7 +85,6 @@ class ProjekController extends Controller
             $projek = Projek::create([
                 'kode_projek' => $kode_projek,
                 'nama_projek' => $request->nama_projek,
-                'jml_projek' => $request->jml_projek,
                 'mulai_projek' => $request->mulai_projek,
                 'status' => 'Dalam Proses'
             ]);

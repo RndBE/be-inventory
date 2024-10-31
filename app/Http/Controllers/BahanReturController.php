@@ -71,66 +71,88 @@ class BahanReturController extends Controller
             $bahanReturDetails = BahanReturDetails::where('bahan_retur_id', $id)->get();
 
             if ($validated['status'] === 'Disetujui') {
-                foreach ($bahanReturDetails as $returDetail) {
-                    $produksiDetail = ProduksiDetails::where('produksi_id', $bahanRetur->produksi_id)
-                        ->where('bahan_id', $returDetail->bahan_id)
-                        ->first();
+                $groupedDetails = [];
 
-                    $projekDetail = ProjekDetails::where('projek_id', $bahanRetur->projek_id)
-                        ->where('bahan_id', $returDetail->bahan_id)
+                // Langkah 1: Kelompokkan bahanReturDetails berdasarkan bahan_id dan unit_price
+                foreach ($bahanReturDetails as $returDetail) {
+                    $bahanId = $returDetail->bahan_id;
+                    $unitPrice = $returDetail->unit_price;
+
+                    if (isset($groupedDetails[$bahanId][$unitPrice])) {
+                        $groupedDetails[$bahanId][$unitPrice]['qty'] += $returDetail->qty;
+                    } else {
+                        $groupedDetails[$bahanId][$unitPrice] = [
+                            'qty' => $returDetail->qty,
+                            'unit_price' => $unitPrice,
+                        ];
+                    }
+                }
+
+                // Langkah 2: Kurangi qty di ProduksiDetails dan ProjekDetails sesuai groupedDetails
+                foreach ($groupedDetails as $bahanId => $detailsByPrice) {
+                    // Update untuk ProduksiDetails
+                    $produksiDetail = ProduksiDetails::where('produksi_id', $bahanRetur->produksi_id)
+                        ->where('bahan_id', $bahanId)
                         ->first();
 
                     if ($produksiDetail) {
-                        $details = json_decode($produksiDetail->details, true) ?? [];
+                        $currentDetails = json_decode($produksiDetail->details, true) ?? [];
 
-                        foreach ($details as $key => &$detail) {
-                            if (isset($detail['unit_price']) && $detail['unit_price'] === $returDetail->unit_price) {
-                                $detail['qty'] -= $returDetail->qty;
-
-                                if ($detail['qty'] <= 0) {
-                                    unset($details[$key]);
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    break;
                                 }
                             }
                         }
 
-                        $totalQty = array_sum(array_column($details, 'qty'));
-                        $produksiDetail->sub_total = 0;
+                        // Kurangi qty dan used_materials pada ProduksiDetails
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $produksiDetail->qty -= $totalQtyReduction;
+                        $produksiDetail->used_materials -= $totalQtyReduction;
 
-                        foreach ($details as $detail) {
+                        // Pastikan qty dan used_materials tidak negatif
+                        $produksiDetail->qty = max(0, $produksiDetail->qty);
+                        $produksiDetail->used_materials = max(0, $produksiDetail->used_materials);
+
+                        $produksiDetail->sub_total = 0;
+                        foreach ($currentDetails as $detail) {
                             $produksiDetail->sub_total += $detail['qty'] * $detail['unit_price'];
                         }
 
-                        $produksiDetail->qty -= $returDetail->qty;
-                        $produksiDetail->used_materials -= $returDetail->qty;
-                        $produksiDetail->qty = max($produksiDetail->qty, 0);
-                        $produksiDetail->used_materials = max($produksiDetail->used_materials, 0);
-                        $produksiDetail->details = json_encode(array_values($details));
+                        $produksiDetail->details = json_encode(array_values($currentDetails));
                         $produksiDetail->save();
                     }
 
+                    // Update untuk ProjekDetails
+                    $projekDetail = ProjekDetails::where('projek_id', $bahanRetur->projek_id)
+                        ->where('bahan_id', $bahanId)
+                        ->first();
+
                     if ($projekDetail) {
-                        $details = json_decode($projekDetail->details, true) ?? [];
+                        $currentDetails = json_decode($projekDetail->details, true) ?? [];
 
-                        foreach ($details as $key => &$detail) {
-                            if (isset($detail['unit_price']) && $detail['unit_price'] === $returDetail->unit_price) {
-                                $detail['qty'] -= $returDetail->qty;
-
-                                if ($detail['qty'] <= 0) {
-                                    unset($details[$key]);
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    break;
                                 }
                             }
                         }
 
-                        $totalQty = array_sum(array_column($details, 'qty'));
-                        $projekDetail->sub_total = 0;
+                        $projekDetail->qty -= array_sum(array_column($detailsByPrice, 'qty'));
+                        $projekDetail->qty = max(0, $projekDetail->qty);
 
-                        foreach ($details as $detail) {
+                        $projekDetail->sub_total = 0;
+                        foreach ($currentDetails as $detail) {
                             $projekDetail->sub_total += $detail['qty'] * $detail['unit_price'];
                         }
 
-                        $projekDetail->qty -= $returDetail->qty;
-                        $projekDetail->qty = max($projekDetail->qty, 0);
-                        $projekDetail->details = json_encode(array_values($details));
+                        $projekDetail->details = json_encode(array_values($currentDetails));
                         $projekDetail->save();
                     }
                 }

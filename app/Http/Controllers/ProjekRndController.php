@@ -34,16 +34,14 @@ class ProjekRndController extends Controller
     public function store(Request $request)
     {
         try {
-
+            // dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
                 'nama_projek_rnd' => $request->nama_projek_rnd,
-                'jml_projek_rnd' => $request->jml_projek_rnd,
                 'mulai_projek_rnd' => $request->mulai_projek_rnd,
                 'cartItems' => $cartItems
             ], [
                 'nama_projek_rnd' => 'required',
-                'jml_projek_rnd' => 'required',
                 'mulai_projek_rnd' => 'required',
                 'cartItems' => 'required|array',
             ]);
@@ -67,7 +65,6 @@ class ProjekRndController extends Controller
             $projek_rnd = ProjekRnd::create([
                 'kode_projek_rnd' => $kode_projek_rnd,
                 'nama_projek_rnd' => $request->nama_projek_rnd,
-                'jml_projek_rnd' => $request->jml_projek_rnd,
                 'mulai_projek_rnd' => $request->mulai_projek_rnd,
                 'status' => 'Dalam Proses'
             ]);

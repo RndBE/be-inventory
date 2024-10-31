@@ -72,6 +72,7 @@ class ProduksiController extends Controller
             }
 
             $produk = ProdukProduksi::find($request->bahan_id);
+            //dd($produk );
             if ($produk) {
                 $tujuan = $produk->dataBahan->nama_bahan;
             } else {
@@ -189,22 +190,18 @@ class ProduksiController extends Controller
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $produksi = Produksi::findOrFail($id);
-            // $validator = Validator::make($request->all(), [
-            //     'jml_produksi' => 'required',
-            //     'mulai_produksi' => 'required',
-            //     'jenis_produksi' => 'required',
-            // ]);
+            $validator = Validator::make($request->all(), [
+                'kode_produksi' => 'nullable',
+            ]);
 
-            // if ($validator->fails()) {
-            //     return redirect()->back()->withErrors($validator)->withInput();
-            // }
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
 
-            // // Update production data
-            // $produksi->update([
-            //     'jml_produksi' => $request->jml_produksi,
-            //     'mulai_produksi' => $request->mulai_produksi,
-            //     'jenis_produksi' => $request->jenis_produksi,
-            // ]);
+            // Update production data
+            $produksi->update([
+                'kode_produksi' => $request->kode_produksi,
+            ]);
 
             $produk = ProdukProduksi::find($request->bahan_id);
             if ($produk) {
@@ -354,18 +351,18 @@ class ProduksiController extends Controller
         try{
             //dd($request->all());
             $produksi = Produksi::findOrFail($id);
-            $validator = Validator::make($request->all(), [
-                'kode_produksi' => 'required',
-            ]);
+            // $validator = Validator::make($request->all(), [
+            //     'kode_produksi' => 'required',
+            // ]);
 
-            if ($validator->fails()) {
-                return redirect()->back()->withErrors($validator)->withInput();
-            }
+            // if ($validator->fails()) {
+            //     return redirect()->back()->withErrors($validator)->withInput();
+            // }
 
-            // Update production data
-            $produksi->update([
-                'kode_produksi' => $request->kode_produksi,
-            ]);
+            // // Update production data
+            // $produksi->update([
+            //     'kode_produksi' => $request->kode_produksi,
+            // ]);
 
             if ($produksi->status !== 'Selesai') {
                 // Proses update berdasarkan jenis produksi

@@ -50,103 +50,94 @@ class BahanRusakController extends Controller
 
             // Jika status bahan rusak disetujui
             if ($validated['status'] === 'Disetujui') {
+                $groupedDetails = [];
+
+                // Langkah 1: Kelompokkan BahanRusakDetails berdasarkan bahan_id dan unit_price
                 foreach ($bahanRusakDetails as $returDetail) {
+                    $bahanId = $returDetail->bahan_id;
+                    $unitPrice = $returDetail->unit_price;
+
+                    if (isset($groupedDetails[$bahanId][$unitPrice])) {
+                        $groupedDetails[$bahanId][$unitPrice]['qty'] += $returDetail->qty;
+                    } else {
+                        $groupedDetails[$bahanId][$unitPrice] = [
+                            'qty' => $returDetail->qty,
+                            'unit_price' => $unitPrice,
+                        ];
+                    }
+                }
+
+                // Langkah 2: Kurangi qty di ProduksiDetails dan ProjekDetails sesuai groupedDetails
+                foreach ($groupedDetails as $bahanId => $detailsByPrice) {
+                    // Update untuk ProduksiDetails
                     $produksiDetail = ProduksiDetails::where('produksi_id', $bahanRusak->produksi_id)
-                        ->where('bahan_id', $returDetail->bahan_id)
+                        ->where('bahan_id', $bahanId)
                         ->first();
 
-                    $projekDetail = ProjekDetails::where('projek_id', $bahanRusak->projek_id)
-                    ->where('bahan_id', $returDetail->bahan_id)
-                    ->first();
-
                     if ($produksiDetail) {
-                        $details = json_decode($produksiDetail->details, true) ?? [];
+                        $currentDetails = json_decode($produksiDetail->details, true) ?? [];
 
-                        foreach ($details as $key => &$detail) {
-                            // Ensure correct access to unit_price
-                            if ($detail['unit_price'] === $returDetail->unit_price) {
-                                // Decrease qty based on retur detail
-                                $detail['qty'] -= $returDetail->qty;
-
-                                // Ensure qty doesn't go negative
-                                if ($detail['qty'] <= 0) {
-                                    unset($details[$key]);
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    break;
                                 }
                             }
                         }
 
-                        // Total qty after updates
-                        $totalQty = array_sum(array_column($details, 'qty'));
+                        // Kurangi qty dan used_materials pada ProduksiDetails
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $produksiDetail->qty -= $totalQtyReduction;
+                        $produksiDetail->used_materials -= $totalQtyReduction;
 
-                        // Update sub_total
-                        if ($totalQty > 0) {
-                            $produksiDetail->sub_total = 0;
-                            foreach ($details as $detail) {
-                                $produksiDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                            }
-                        } else {
-                            $produksiDetail->sub_total = 0;
+                        // Pastikan qty dan used_materials tidak negatif
+                        $produksiDetail->qty = max(0, $produksiDetail->qty);
+                        $produksiDetail->used_materials = max(0, $produksiDetail->used_materials);
+
+                        $produksiDetail->sub_total = 0;
+                        foreach ($currentDetails as $detail) {
+                            $produksiDetail->sub_total += $detail['qty'] * $detail['unit_price'];
                         }
 
-                        // Adjust qty and used_materials
-                        $produksiDetail->qty -= $returDetail->qty;
-                        $produksiDetail->used_materials -= $returDetail->qty;
-
-                        // Ensure non-negative values
-                        $produksiDetail->qty = max($produksiDetail->qty, 0);
-                        $produksiDetail->used_materials = max($produksiDetail->used_materials, 0);
-
-                        // Update details and save
-                        $produksiDetail->details = json_encode(array_values($details));
+                        $produksiDetail->details = json_encode(array_values($currentDetails));
                         $produksiDetail->save();
-
-                        // Set remaining qty in bahan rusak detail
-                        $returDetail->sisa = $returDetail->qty;
-                        $returDetail->save();
                     }
+
+                    // Update untuk ProjekDetails
+                    $projekDetail = ProjekDetails::where('projek_id', $bahanRusak->projek_id)
+                        ->where('bahan_id', $bahanId)
+                        ->first();
+
                     if ($projekDetail) {
-                        $details = json_decode($projekDetail->details, true) ?? [];
+                        $currentDetails = json_decode($projekDetail->details, true) ?? [];
 
-                        foreach ($details as $key => &$detail) {
-                            // Ensure correct access to unit_price
-                            if ($detail['unit_price'] === $returDetail->unit_price) {
-                                // Decrease qty based on retur detail
-                                $detail['qty'] -= $returDetail->qty;
-
-                                // Ensure qty doesn't go negative
-                                if ($detail['qty'] <= 0) {
-                                    unset($details[$key]);
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    break;
                                 }
                             }
                         }
 
-                        // Total qty after updates
-                        $totalQty = array_sum(array_column($details, 'qty'));
+                        $projekDetail->qty -= array_sum(array_column($detailsByPrice, 'qty'));
+                        $projekDetail->qty = max(0, $projekDetail->qty);
 
-                        // Update sub_total
-                        if ($totalQty > 0) {
-                            $projekDetail->sub_total = 0;
-                            foreach ($details as $detail) {
-                                $projekDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                            }
-                        } else {
-                            $projekDetail->sub_total = 0;
+                        $projekDetail->sub_total = 0;
+                        foreach ($currentDetails as $detail) {
+                            $projekDetail->sub_total += $detail['qty'] * $detail['unit_price'];
                         }
 
-                        // Adjust qty and used_materials
-                        $projekDetail->qty -= $returDetail->qty;
-
-                        // Ensure non-negative values
-                        $projekDetail->qty = max($projekDetail->qty, 0);
-
-                        // Update details and save
-                        $projekDetail->details = json_encode(array_values($details));
+                        $projekDetail->details = json_encode(array_values($currentDetails));
                         $projekDetail->save();
-
-                        // Set remaining qty in bahan rusak detail
-                        $returDetail->sisa = $returDetail->qty;
-                        $returDetail->save();
                     }
+                }
+                foreach ($bahanRusakDetails as $returDetail) {
+                    $returDetail->sisa = $returDetail->qty;
+                    $returDetail->save();
                 }
             }
 
@@ -156,19 +147,23 @@ class BahanRusakController extends Controller
             $bahanRusak->save();
 
             LogHelper::success('Berhasil Mengubah Status Bahan Rusak!');
-        }  catch (\Exception $e) {
+        } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
             $errorColumn = '';
+
             if (strpos($errorMessage, 'tgl_keluar') !== false) {
                 $errorColumn = 'tgl_keluar';
             } elseif (strpos($errorMessage, 'status') !== false) {
                 $errorColumn = 'status';
             }
+
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', "Terjadi kesalahan pada kolom: $errorColumn. Pesan error: $errorMessage");
         }
+
         return redirect()->route('bahan-rusaks.index')->with('success', 'Status berhasil diubah.');
     }
+
 
 
     public function destroy(string $id)

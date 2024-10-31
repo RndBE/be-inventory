@@ -22,7 +22,7 @@ use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\BahanJadiController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProjekRnDController;
+use App\Http\Controllers\ProjekRndController;
 use App\Http\Controllers\BahanReturController;
 use App\Http\Controllers\BahanRusakController;
 use App\Http\Controllers\JenisBahanController;
@@ -94,7 +94,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('bahan-jadis', BahanJadiController::class);
     Route::resource('produk-produksis', ProdukProduksiController::class);
     Route::resource('bahan-returs', BahanReturController::class);
-    Route::resource('projek-rnd', ProjekRnDController::class);
+    Route::resource('projek-rnd', ProjekRndController::class);
 
 
 

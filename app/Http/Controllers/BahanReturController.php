@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
+use App\Models\ProjekRndDetails;
 use App\Models\BahanReturDetails;
 use App\Models\BahanSetengahjadi;
 use App\Models\BahanSetengahjadiDetails;
@@ -154,6 +155,36 @@ class BahanReturController extends Controller
 
                         $projekDetail->details = json_encode(array_values($currentDetails));
                         $projekDetail->save();
+                    }
+
+                    // Update untuk ProjekDetails
+                    $projekRndDetail = ProjekRndDetails::where('projek_rnd_id', $bahanRetur->projek_rnd_id)
+                        ->where('bahan_id', $bahanId)
+                        ->first();
+
+                    if ($projekRndDetail) {
+                        $currentDetails = json_decode($projekRndDetail->details, true) ?? [];
+
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    break;
+                                }
+                            }
+                        }
+
+                        $projekRndDetail->qty -= array_sum(array_column($detailsByPrice, 'qty'));
+                        $projekRndDetail->qty = max(0, $projekRndDetail->qty);
+
+                        $projekRndDetail->sub_total = 0;
+                        foreach ($currentDetails as $detail) {
+                            $projekRndDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                        }
+
+                        $projekRndDetail->details = json_encode(array_values($currentDetails));
+                        $projekRndDetail->save();
                     }
                 }
 

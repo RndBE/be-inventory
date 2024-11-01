@@ -3,9 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\Bahan;
+use App\Models\Projek;
 use Livewire\Component;
 use App\Models\Produksi;
-use App\Models\Projek;
+use App\Models\ProjekRnd;
 
 class EditBahanProjekRndCart extends Component
 {
@@ -17,10 +18,10 @@ class EditBahanProjekRndCart extends Component
     public $totalharga = 0;
     public $editingItemId = 0;
     public $projekId;
-    public $projekDetails = [];
+    public $projekRndDetails = [];
     public $bahanRusak = [];
     public $bahanRetur = [];
-    public $produksiStatus;
+    public $projekRndStatus;
     public $grandTotal = 0;
 
     protected $listeners = [
@@ -32,20 +33,20 @@ class EditBahanProjekRndCart extends Component
     {
         $this->projekId = $projekId;
         $this->cart = [];
-        $this->loadProduksi();
+        $this->loadProjekRnd();
     }
-    public function loadProduksi()
+    public function loadProjekRnd()
     {
-        $produksi = Projek::with('projekDetails')->find($this->projekId);
+        $projekRnd = ProjekRnd::with('projekRndDetails')->find($this->projekId);
 
-        if ($produksi) {
-            $this->produksiStatus = $produksi->status;
-            foreach ($produksi->projekDetails as $detail) {
-                $this->projekDetails[] = [
+        if ($projekRnd) {
+            $this->projekRndStatus = $projekRnd->status;
+            foreach ($projekRnd->projekRndDetails as $detail) {
+                $this->projekRndDetails[] = [
                     'bahan' => Bahan::find($detail->bahan_id),
                     'qty' => $detail->qty,
-                    'jml_bahan' => $detail->jml_bahan,
-                    'used_materials' => $detail->used_materials,
+                    // 'jml_bahan' => $detail->jml_bahan,
+                    // 'used_materials' => $detail->used_materials,
                     'sub_total' => $detail->sub_total,
                     'details' => json_decode($detail->details, true),
                 ];
@@ -235,7 +236,7 @@ class EditBahanProjekRndCart extends Component
 
     public function decreaseQuantityPerPrice($itemId, $unitPrice)
     {
-        foreach ($this->projekDetails as &$detail) {
+        foreach ($this->projekRndDetails as &$detail) {
             if ($detail['bahan']->id === $itemId) {
                 foreach ($detail['details'] as &$d) {
                     if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
@@ -271,7 +272,7 @@ class EditBahanProjekRndCart extends Component
 
     public function returQuantityPerPrice($itemId, $unitPrice)
     {
-        foreach ($this->projekDetails as &$detail) {
+        foreach ($this->projekRndDetails as &$detail) {
             if ($detail['bahan']->id === $itemId) {
                 foreach ($detail['details'] as &$d) {
                     if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
@@ -314,7 +315,7 @@ class EditBahanProjekRndCart extends Component
                     unset($this->bahanRusak[$key]);
                 }
                 $foundInDetails = false;
-                foreach ($this->projekDetails as &$detail) {
+                foreach ($this->projekRndDetails as &$detail) {
                     if ($detail['bahan']->id === $itemId) {
                         foreach ($detail['details'] as &$d) {
                             if ($d['unit_price'] === $unitPrice) {
@@ -344,7 +345,7 @@ class EditBahanProjekRndCart extends Component
                     unset($this->bahanRetur[$key]);
                 }
                 $foundInDetails = false;
-                foreach ($this->projekDetails as &$detail) {
+                foreach ($this->projekRndDetails as &$detail) {
                     if ($detail['bahan']->id === $itemId) {
                         foreach ($detail['details'] as &$d) {
                             if ($d['unit_price'] === $unitPrice) {
@@ -412,13 +413,13 @@ class EditBahanProjekRndCart extends Component
 
     public function render()
     {
-        $produksiTotal = array_sum(array_column($this->projekDetails, 'sub_total'));
-        $grandTotal = $produksiTotal;
+        $projekRndTotal = array_sum(array_column($this->projekRndDetails, 'sub_total'));
+        $grandTotal = $projekRndTotal;
 
         return view('livewire.edit-bahan-projek-rnd-cart', [
             'cartItems' => $this->cart,
-            'projekDetails' => $this->projekDetails,
-            'produksiTotal' => $produksiTotal,
+            'projekRndDetails' => $this->projekRndDetails,
+            'produksiTotal' => $projekRndTotal,
             'grandTotal' => $grandTotal,
             'bahanRusak' => $this->bahanRusak,
             'bahanRetur' => $this->bahanRetur,

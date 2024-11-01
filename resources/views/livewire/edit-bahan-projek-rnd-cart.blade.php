@@ -65,7 +65,7 @@
                     @php
                         $grandTotal = 0;
                     @endphp
-                    @foreach($projekDetails as $detail)
+                    @foreach($projekRndDetails as $detail)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']->nama_bahan }}</td>
                             <td class="items-center px-6 py-4 text-gray-900 dark:text-white text-center">
@@ -78,7 +78,7 @@
                                     <div class="flex flex-col space-y-2">
                                         <div class="flex justify-end items-center">
                                             <p>{{ $d['qty'] }} x {{ number_format($d['unit_price'], 0, ',', '.') }}</p>
-                                            @if($produksiStatus !== 'Selesai')
+                                            @if($projekRndStatus !== 'Selesai')
                                                 <button wire:click="decreaseQuantityPerPrice({{ $detail['bahan']->id }}, {{ $d['unit_price'] }})"
                                                         class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
                                                         type="button">
@@ -116,7 +116,7 @@
         </div>
     </div>
 
-    @if($produksiStatus !== 'Selesai')
+    @if($projekRndStatus !== 'Selesai')
     <div class="border-b border-gray-900/10">
         <h1 class="mt-6"><strong>Bahan Rusak</strong></h1>
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
@@ -155,7 +155,7 @@
     @endif
 
 
-        @if($produksiStatus !== 'Selesai')
+        @if($projekRndStatus !== 'Selesai')
     <div class="border-b border-gray-900/10">
         <h1 class="mt-6"><strong>Bahan Retur</strong></h1>
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">

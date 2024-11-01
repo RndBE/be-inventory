@@ -13,10 +13,12 @@
                         <div class="grid grid-cols-4 gap-12">
                             <div class="text-sm font-light text-slate-500">
                                 <p class="text-sm font-normal text-slate-700">Detail Transaksi:</p>
-                                @if ($kode_produksi === null)
+                                @if ($kode_projek != null)
                                     <p>Kode Projek: {{ $kode_projek }}</p>
-                                @else
+                                @elseif ($kode_produksi != null)
                                     <p>Kode Produksi: {{ $kode_produksi }}</p>
+                                @else
+                                    <p>Kode Projek RnD: {{ $kode_projek_rnd }}</p>
                                 @endif
                             </div>
                             <div class="text-sm font-light text-slate-500">

@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
+use App\Models\ProjekRndDetails;
 use App\Models\BahanKeluarDetails;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
@@ -101,6 +102,21 @@ class BahanKeluarController extends Controller
                             if (!$existingDetail) {
                                 ProjekDetails::create([
                                     'projek_id' => $data->projek_id,
+                                    'bahan_id' => $detail->bahan_id,
+                                    'qty' => 0,
+                                    'details' => json_encode([]),
+                                    'sub_total' => 0,
+                                ]);
+                            }
+                        }
+                        elseif ($data->projek_rnd_id) {
+                            $existingDetail = ProjekRndDetails::where('projek_rnd_id', $data->projek_rnd_id)
+                                ->where('bahan_id', $detail->bahan_id)
+                                ->first();
+
+                            if (!$existingDetail) {
+                                ProjekRndDetails::create([
+                                    'projek_rnd_id' => $data->projek_rnd_id,
                                     'bahan_id' => $detail->bahan_id,
                                     'qty' => 0,
                                     'details' => json_encode([]),
@@ -222,6 +238,33 @@ class BahanKeluarController extends Controller
                                 } else {
                                     ProjekDetails::create([
                                         'projek_id' => $data->projek_id,
+                                        'bahan_id' => $detail->bahan_id,
+                                        'qty' => $qty['qty'],
+                                        'details' => json_encode(array_values($groupedDetails)), // Gunakan array_values untuk mengubah menjadi indexed array
+                                        'sub_total' => $qty['qty'] * $unitPrice,
+                                    ]);
+                                }
+                            }
+                        }
+                        elseif ($data->projek_rnd_id) {
+                            foreach ($groupedDetails as $unitPrice => $qty) {
+                                $projekDetail = ProjekRndDetails::where('projek_rnd_id', $data->projek_rnd_id)
+                                    ->where('bahan_id', $detail->bahan_id)
+                                    ->first();
+
+                                $detailsToSave = [
+                                    'qty' => $qty['qty'],
+                                    'unit_price' => $unitPrice,
+                                ];
+
+                                if ($projekDetail) {
+                                    $projekDetail->qty += $qty['qty'];
+                                    $projekDetail->sub_total += $qty['qty'] * $unitPrice;
+                                    $projekDetail->details = json_encode(array_values($groupedDetails)); // Gunakan array_values untuk mengubah menjadi indexed array
+                                    $projekDetail->save();
+                                } else {
+                                    ProjekRndDetails::create([
+                                        'projek_rnd_id' => $data->projek_rnd_id,
                                         'bahan_id' => $detail->bahan_id,
                                         'qty' => $qty['qty'],
                                         'details' => json_encode(array_values($groupedDetails)), // Gunakan array_values untuk mengubah menjadi indexed array

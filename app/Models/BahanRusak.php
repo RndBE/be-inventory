@@ -26,4 +26,9 @@ class BahanRusak extends Model
     {
         return $this->hasOne(Projek::class, 'id', 'projek_id');
     }
+
+    public function projekRnd()
+    {
+        return $this->hasOne(ProjekRnd::class, 'id', 'projek_rnd_id');
+    }
 }

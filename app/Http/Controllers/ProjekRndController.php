@@ -64,7 +64,7 @@ class ProjekRndController extends Controller
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
             $new_transaction_number = ($lastTransaction ? intval(substr($lastTransaction->kode_transaksi, 6)) : 0) + 1;
             $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-            $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
             // Create transaction code for Projek
             $lastTransactionProjek = ProjekRnd::orderByRaw('CAST(SUBSTRING(kode_projek_rnd, 7) AS UNSIGNED) DESC')->first();
@@ -81,7 +81,7 @@ class ProjekRndController extends Controller
             $bahan_keluar = BahanKeluar::create([
                 'kode_transaksi' => $kode_transaksi,
                 'projek_rnd_id' => $projek_rnd->id,
-                'tgl_keluar' => $tgl_keluar,
+                'tgl_pengajuan' => $tgl_pengajuan,
                 'tujuan' => 'Projek ' . $tujuan,
                 'divisi' => 'RnD',
                 'status' => 'Belum disetujui'
@@ -161,7 +161,7 @@ class ProjekRndController extends Controller
             $new_transaction_number = $last_transaction_number + 1;
             $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
             $kode_transaksi = 'KBK - ' . $formatted_number;
-            $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
             // Kelompokkan item berdasarkan bahan_id dan jumlah
             $groupedItems = [];
@@ -185,7 +185,7 @@ class ProjekRndController extends Controller
                 $bahan_keluar = new BahanKeluar();
                 $bahan_keluar->kode_transaksi = $kode_transaksi;
                 $bahan_keluar->projek_rnd_id = $projek_rnd->id;
-                $bahan_keluar->tgl_keluar = $tgl_keluar;
+                $bahan_keluar->tgl_pengajuan = $tgl_pengajuan;
                 $bahan_keluar->tujuan = 'Projek ' . $tujuan;
                 $bahan_keluar->divisi = 'RnD';
                 $bahan_keluar->status = 'Belum disetujui';

@@ -72,6 +72,8 @@ class BahanKeluarController extends Controller
 
                 foreach ($details as $detail) {
                     $transactionDetails = json_decode($detail->details, true) ?? [];
+
+                    // Jika tidak ada transactionDetails, lanjutkan
                     if (empty($transactionDetails)) {
                         if ($data->produksi_id) {
                             // Check if the bahan_id already exists in ProduksiDetails
@@ -123,22 +125,6 @@ class BahanKeluarController extends Controller
                             }
                         }
                         continue;
-                    }
-
-                    // Aggregate quantities by unit_price
-                    foreach ($transactionDetails as $transaksiDetail) {
-                        $unitPrice = $transaksiDetail['unit_price'];
-                        $qty = $transaksiDetail['qty'];
-
-                        // Add or merge quantities by `unit_price`
-                        if (isset($groupedDetails[$unitPrice])) {
-                            $groupedDetails[$unitPrice]['qty'] += $qty;
-                        } else {
-                            $groupedDetails[$unitPrice] = [
-                                'qty' => $qty,
-                                'unit_price' => $unitPrice,
-                            ];
-                        }
                     }
 
                     if (is_array($transactionDetails)) {
@@ -203,129 +189,86 @@ class BahanKeluarController extends Controller
                             }
                         }
 
+                        // Update ProduksiDetails setelah selesai menghitung
                         if ($data->produksi_id) {
-                            foreach ($groupedDetails as $unitPrice => $group) {
+                            foreach ($groupedDetails as $unitPrice => $qty) {
                                 $produksiDetail = ProduksiDetails::where('produksi_id', $data->produksi_id)
                                     ->where('bahan_id', $detail->bahan_id)
                                     ->first();
 
+                                $detailsToSave = [
+                                    'qty' => $qty['qty'],
+                                    'unit_price' => $unitPrice,
+                                ];
+
                                 if ($produksiDetail) {
-                                    // Update existing entry
-                                    $produksiDetail->qty += $group['qty'];  // Use the aggregated qty from groupedDetails
-                                    $produksiDetail->used_materials += $group['qty'];
-                                    $produksiDetail->sub_total += $group['qty'] * $unitPrice;
-
-                                    // Merge existing details with new grouped details
-                                    $currentDetails = json_decode($produksiDetail->details, true) ?? [];
-                                    $mergedDetails = [];
-
-                                    foreach ($currentDetails as $existingDetail) {
-                                        $price = $existingDetail['unit_price'];
-                                        $mergedDetails[$price] = $existingDetail;
-                                    }
-
-                                    // Update or add new quantities in mergedDetails
-                                    if (isset($mergedDetails[$unitPrice])) {
-                                        $mergedDetails[$unitPrice]['qty'] += $group['qty'];
-                                    } else {
-                                        $mergedDetails[$unitPrice] = $group; // add new entry
-                                    }
-
-                                    // Update the details field
-                                    $produksiDetail->details = json_encode(array_values($mergedDetails));
+                                    $produksiDetail->qty += $qty['qty'];
+                                    $produksiDetail->used_materials += $qty['qty'];
+                                    $produksiDetail->sub_total += $qty['qty'] * $unitPrice;
+                                    $produksiDetail->details = json_encode(array_values($groupedDetails)); // Gunakan array_values untuk mengubah menjadi indexed array
                                     $produksiDetail->save();
                                 } else {
-                                    // Create new entry
                                     ProduksiDetails::create([
                                         'produksi_id' => $data->produksi_id,
                                         'bahan_id' => $detail->bahan_id,
-                                        'qty' => $group['qty'],
+                                        'qty' => $qty['qty'],
                                         'jml_bahan' => $detail->jml_bahan,
-                                        'used_materials' => $group['qty'],
-                                        'details' => json_encode([$group]), // use an array of groups
-                                        'sub_total' => $group['qty'] * $unitPrice,
+                                        'used_materials' => $qty['qty'],
+                                        'details' => json_encode(array_values($groupedDetails)), // Gunakan array_values untuk mengubah menjadi indexed array
+                                        'sub_total' => $qty['qty'] * $unitPrice,
                                     ]);
                                 }
                             }
-                        } if ($data->projek_id) {
-                            foreach ($groupedDetails as $unitPrice => $group) {
+                        } elseif ($data->projek_id) {
+                            foreach ($groupedDetails as $unitPrice => $qty) {
                                 $projekDetail = ProjekDetails::where('projek_id', $data->projek_id)
                                     ->where('bahan_id', $detail->bahan_id)
                                     ->first();
 
+                                $detailsToSave = [
+                                    'qty' => $qty['qty'],
+                                    'unit_price' => $unitPrice,
+                                ];
+
                                 if ($projekDetail) {
-                                    // Update existing entry
-                                    $projekDetail->qty += $group['qty'];
-                                    $projekDetail->sub_total += $group['qty'] * $unitPrice;
-
-                                    // Merge existing details with new grouped details
-                                    $currentDetails = json_decode($projekDetail->details, true) ?? [];
-                                    $mergedDetails = [];
-
-                                    foreach ($currentDetails as $existingDetail) {
-                                        $price = $existingDetail['unit_price'];
-                                        $mergedDetails[$price] = $existingDetail;
-                                    }
-
-                                    // Update or add new quantities in mergedDetails
-                                    if (isset($mergedDetails[$unitPrice])) {
-                                        $mergedDetails[$unitPrice]['qty'] += $group['qty'];
-                                    } else {
-                                        $mergedDetails[$unitPrice] = $group; // add new entry
-                                    }
-
-                                    // Update the details field
-                                    $projekDetail->details = json_encode(array_values($mergedDetails));
+                                    $projekDetail->qty += $qty['qty'];
+                                    $projekDetail->sub_total += $qty['qty'] * $unitPrice;
+                                    $projekDetail->details = json_encode(array_values($groupedDetails)); // Gunakan array_values untuk mengubah menjadi indexed array
                                     $projekDetail->save();
                                 } else {
-                                    // Create new entry
                                     ProjekDetails::create([
                                         'projek_id' => $data->projek_id,
                                         'bahan_id' => $detail->bahan_id,
-                                        'qty' => $group['qty'],
-                                        'details' => json_encode([$group]), // use an array of groups
-                                        'sub_total' => $group['qty'] * $unitPrice,
+                                        'qty' => $qty['qty'],
+                                        'details' => json_encode(array_values($groupedDetails)), // Gunakan array_values untuk mengubah menjadi indexed array
+                                        'sub_total' => $qty['qty'] * $unitPrice,
                                     ]);
                                 }
                             }
-                        }if ($data->projek_rnd_id) {
-                            foreach ($groupedDetails as $unitPrice => $group) {
-                                $projekRndDetail = ProjekRndDetails::where('projek_rnd_id', $data->projek_rnd_id)
+                        }
+                        elseif ($data->projek_rnd_id) {
+                            foreach ($groupedDetails as $unitPrice => $qty) {
+                                $projekDetail = ProjekRndDetails::where('projek_rnd_id', $data->projek_rnd_id)
                                     ->where('bahan_id', $detail->bahan_id)
                                     ->first();
 
-                                if ($projekRndDetail) {
-                                    // Update existing entry
-                                    $projekRndDetail->qty += $group['qty'];
-                                    $projekRndDetail->sub_total += $group['qty'] * $unitPrice;
+                                $detailsToSave = [
+                                    'qty' => $qty['qty'],
+                                    'unit_price' => $unitPrice,
+                                ];
 
-                                    // Merge existing details with new grouped details
-                                    $currentDetails = json_decode($projekRndDetail->details, true) ?? [];
-                                    $mergedDetails = [];
-
-                                    foreach ($currentDetails as $existingDetail) {
-                                        $price = $existingDetail['unit_price'];
-                                        $mergedDetails[$price] = $existingDetail;
-                                    }
-
-                                    // Update or add new quantities in mergedDetails
-                                    if (isset($mergedDetails[$unitPrice])) {
-                                        $mergedDetails[$unitPrice]['qty'] += $group['qty'];
-                                    } else {
-                                        $mergedDetails[$unitPrice] = $group; // add new entry
-                                    }
-
-                                    // Update the details field
-                                    $projekRndDetail->details = json_encode(array_values($mergedDetails));
-                                    $projekRndDetail->save();
+                                if ($projekDetail) {
+                                    $projekDetail->qty += $qty['qty'];
+                                    $projekDetail->sub_total += $qty['qty'] * $unitPrice;
+                                    $projekDetail->details = json_encode(array_values($groupedDetails)); // Gunakan array_values untuk mengubah menjadi indexed array
+                                    $projekDetail->save();
                                 } else {
-                                    // Create new entry
                                     ProjekRndDetails::create([
                                         'projek_rnd_id' => $data->projek_rnd_id,
                                         'bahan_id' => $detail->bahan_id,
-                                        'qty' => $group['qty'],
-                                        'details' => json_encode([$group]), // use an array of groups
-                                        'sub_total' => $group['qty'] * $unitPrice,
+                                        'qty' => $qty['qty'],
+                                        'details' => json_encode(array_values($groupedDetails)), // Gunakan array_values untuk mengubah menjadi indexed array
+                                        'sub_total' => $qty['qty'] * $unitPrice,
                                     ]);
                                 }
                             }

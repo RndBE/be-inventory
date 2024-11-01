@@ -78,13 +78,7 @@
                                 <div class="text-slate-800 dark:text-slate-100">{{ $projek_rnds->firstItem() + $index }}</div>
                             </td>
                             <td class="px-6 py-3">
-                                @if ($projek_rnd->status !== 'Konfirmasi')
-                                @can('edit-projek-rnd')
-                                    <strong><u><a href="{{ route('projek-rnd.edit', $projek_rnd->id) }}">{{ $projek_rnd->kode_projek_rnd }}</a></u></strong>
-                                @endcan
-                                @else
-                                    <span class="text-gray-500">{{ $projek_rnd->kode_projek_rnd }}</span>
-                                @endif
+                                <strong>{{ $projek_rnd->kode_projek_rnd }}</strong>
                             </td>
                             <td class="px-6 py-3">{{ $projek_rnd->mulai_projek_rnd }}</td>
                             <td class="px-6 py-3">{{ $projek_rnd->selesai_projek_rnd }}</td>
@@ -94,6 +88,15 @@
                             {{-- <td class="px-6 py-3">Rp {{ number_format($projek->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
                             <td class="px-6 py-4">
                                 <div class="row flex space-x-2">
+                                    @if($projek_rnd->status !== 'Konfirmasi')
+                                        @can('edit-projek-rnd')
+                                            <a href="{{ route('projek-rnd.edit', $projek_rnd->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
+                                                <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
+                                                </svg>
+                                            </a>
+                                        @endcan
+                                    @endif
                                     @if ($projek_rnd->status === 'Konfirmasi')
                                         @can('hapus-projek-rnd')
                                             <button wire:click="deleteProjekRnd({{ $projek_rnd->id }})"

@@ -100,7 +100,7 @@
                                         </a>
                                     @endcan
                                 @endif
-                                {{-- @if ($produksi->status === 'Konfirmasi') --}}
+                                @if ($produksi->status === 'Konfirmasi')
                                 @can('hapus-proses-produksi')
                                     <button wire:click="deleteProduksis({{$produksi->id}})" data-modal-target="deleteproduksi-modal" data-modal-toggle="deleteproduksi-modal" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 active:border-red-600 active:text-white active:bg-red-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
                                         <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -108,7 +108,7 @@
                                         </svg>
                                     </button>
                                 @endcan
-                                {{-- @endif --}}
+                                @endif
                             </div>
                         </td>
                     </tr>

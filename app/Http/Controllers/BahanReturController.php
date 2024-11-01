@@ -17,9 +17,14 @@ use App\Models\BahanSetengahjadiDetails;
 
 class BahanReturController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-bahan-retur', ['only' => ['index']]);
+        $this->middleware('permission:detail-bahan-retur', ['only' => ['show']]);
+        $this->middleware('permission:edit-bahan-retur', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-bahan-retur', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         $bahan_returs = BahanRetur::with('bahanReturDetails')->get();

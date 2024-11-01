@@ -159,7 +159,7 @@ class ProjekController extends Controller
     {
         try {
             //dd($request->all());
-            $cartItems = json_decode($request->cartItems, true) ?? [];
+            $projekDetails = json_decode($request->projekDetails, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $projek = Projek::findOrFail($id);
@@ -181,7 +181,7 @@ class ProjekController extends Controller
             $groupedItems = [];
             $totalQty = 0;  // Variabel untuk menghitung total qty
 
-            foreach ($cartItems as $item) {
+            foreach ($projekDetails as $item) {
                 if (!isset($groupedItems[$item['id']])) {
                     $groupedItems[$item['id']] = [
                         'qty' => 0,

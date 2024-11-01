@@ -148,8 +148,8 @@
                         @if ($projek->status !== 'Selesai')
                             <livewire:search-bahan-produksi/>
                         @endif
+                        {{-- <livewire:bahan-projek-cart :projekId="$projekId" /> --}}
                         <livewire:edit-bahan-projek-cart :projekId="$projekId" />
-                        {{-- <livewire:update-bahan-projek-cart :projekId="$projekId" /> --}}
                     </div>
                 </div>
             </form>

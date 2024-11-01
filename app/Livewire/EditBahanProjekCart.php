@@ -3,9 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\Bahan;
+use App\Models\Projek;
 use Livewire\Component;
 use App\Models\Produksi;
-use App\Models\Projek;
+use App\Models\BahanKeluar;
 
 class EditBahanProjekCart extends Component
 {
@@ -21,19 +22,25 @@ class EditBahanProjekCart extends Component
     public $bahanRusak = [];
     public $bahanRetur = [];
     public $produksiStatus;
-    public $grandTotal = 0;
 
     protected $listeners = [
         'bahanSelected' => 'addToCart',
         'bahanSetengahJadiSelected' => 'addToCart'
     ];
 
+    public $bahanKeluars = [];
+
     public function mount($projekId)
     {
         $this->projekId = $projekId;
-        $this->cart = [];
         $this->loadProduksi();
+        $this->loadBahanKeluar();
+
+        foreach ($this->projekDetails as $detail) {
+            $this->qty[$detail['bahan']->id] = $detail['used_materials'];
+        }
     }
+
     public function loadProduksi()
     {
         $produksi = Projek::with('projekDetails')->find($this->projekId);
@@ -42,7 +49,7 @@ class EditBahanProjekCart extends Component
             $this->produksiStatus = $produksi->status;
             foreach ($produksi->projekDetails as $detail) {
                 $this->projekDetails[] = [
-                    'bahan' => Bahan::find($detail->bahan_id),
+                    'bahan' => Bahan::find($detail->bahan_id), // Ensure this returns an object
                     'qty' => $detail->qty,
                     'jml_bahan' => $detail->jml_bahan,
                     'used_materials' => $detail->used_materials,
@@ -53,38 +60,78 @@ class EditBahanProjekCart extends Component
         }
     }
 
+
+    public function loadBahanKeluar()
+    {
+        // Ambil bahan keluar dengan status "Belum disetujui" dan produksi_id yang sama
+        $this->bahanKeluars = BahanKeluar::with('bahanKeluarDetails.dataBahan') // Menyertakan relasi bahan
+            ->where('status', 'Belum disetujui') // Filter berdasarkan status
+            ->where('produksi_id', $this->projekId) // Filter berdasarkan produksi_id
+            ->get();
+    }
+
     public function addToCart($bahan)
     {
         if (is_array($bahan)) {
-            $bahan = (object) $bahan;
+            $bahan = (object)$bahan;
         }
-        // Periksa apakah properti 'type' ada sebelum mengaksesnya
-        $isSetengahJadi = isset($bahan->type) && $bahan->type === 'setengahjadi';
 
+        if (!$bahan instanceof Bahan) {
+            $bahanModel = Bahan::find($bahan->id);
+            if ($bahanModel) {
+                $bahan = $bahanModel;
+            } else {
+                return;
+            }
+        }
+
+        // Check if the item already exists in projekDetails
+        $bahanExistsInProjek = false;
+        foreach ($this->projekDetails as $detail) {
+            if ($detail['bahan']->id === $bahan->id) {
+                $bahanExistsInProjek = true;
+                break;
+            }
+        }
+        if ($bahanExistsInProjek) {
+            return;
+        }
+
+        // Check if the item is already in the cart
         $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
+        $unitPrice = property_exists($bahan, 'unit_price') ? $bahan->unit_price : 0;
 
         if ($existingItemKey !== false) {
-            $this->updateQuantity($bahan->id);
+            // Update quantity and subtotal if already exists in the cart
+            $this->qty[$bahan->id]++;
+            $this->subtotals[$bahan->id] += $unitPrice;
         } else {
-            // Buat objek item
-            $item = (object)[
+            // Add new item to the cart
+            $this->cart[] = (object)[
                 'id' => $bahan->id,
-                'nama_bahan' => $isSetengahJadi ? $bahan->nama : Bahan::find($bahan->id)->nama_bahan,
+                'nama_bahan' => $bahan->nama,
                 'stok' => $bahan->stok,
                 'unit' => $bahan->unit,
+                'newly_added' => true // Flag for newly added item
             ];
-
-            // Tambahkan item ke keranjang
-            $this->cart[] = $item;
             $this->qty[$bahan->id] = null;
+            $this->subtotals[$bahan->id] = $unitPrice;
+
+            // Add the detail to projekDetails
+            $this->projekDetails[] = [
+                'bahan' => $bahan,
+                'qty' => null,
+                'jml_bahan' => 0,
+                'sub_total' => 0,
+                'details' => [],
+                'newly_added' => true // Keep track of newly added item
+            ];
         }
 
-        // Simpan ke sesi
+        // Calculate total price
+        $this->totalharga = array_sum($this->subtotals);
         $this->saveCartToSession();
-        $this->calculateSubTotal($bahan->id);
     }
-
-
 
     protected function saveCartToSession()
     {
@@ -98,6 +145,7 @@ class EditBahanProjekCart extends Component
         $this->subtotals[$itemId] = $unitPrice * $qty;
         $this->calculateTotalHarga();
     }
+
 
     public function calculateTotalHarga()
     {
@@ -178,7 +226,7 @@ class EditBahanProjekCart extends Component
                 $totalPrice += $toTake * $bahanSetengahjadiDetail->unit_price;
 
                 $this->details[$itemId][] = [
-                    'kode_transaksi' => $bahanSetengahjadiDetail->bahanSetengahjadi->kode_transaksi,
+                    'kode_transaksi' => $bahanSetengahjadiDetail->kode_transaksi,
                     'qty' => $toTake,
                     'unit_price' => $bahanSetengahjadiDetail->unit_price
                 ];
@@ -230,8 +278,13 @@ class EditBahanProjekCart extends Component
             return $item->id !== $itemId;
         })->values()->all();
         unset($this->subtotals[$itemId]);
+        $this->projekDetails = collect($this->projekDetails)->filter(function ($detail) use ($itemId) {
+            return $detail['bahan']->id !== $itemId;
+        })->values()->all();
         $this->calculateTotalHarga();
     }
+
+
 
     public function decreaseQuantityPerPrice($itemId, $unitPrice)
     {
@@ -367,19 +420,80 @@ class EditBahanProjekCart extends Component
 
     public function getCartItemsForStorage()
     {
-        $items = [];
-        foreach ($this->cart as $item) {
-            $itemId = $item->id;
+        $grandTotal = 0;
+        $projekDetails = [];
 
-            $items[] = [
-                'id' => $itemId,
-                'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
-                'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
-                'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
+        foreach ($this->projekDetails as $item) {
+            $bahanId = $item['bahan']->id;
+            $usedMaterials = $this->qty[$bahanId] ?? 0;
+
+            if ($usedMaterials <= 0) {
+                continue;
+            }
+
+            $totalPrice = 0;
+            $details = [];
+
+            if ($item['bahan']->jenisBahan->nama === 'Produksi') {
+                $bahanSetengahjadiDetails = $item['bahan']->bahanSetengahjadiDetails()
+                    ->where('sisa', '>', 0)
+                    ->with(['bahanSetengahjadi' => function ($query) {
+                        $query->orderBy('tgl_masuk', 'asc');
+                    }])->get();
+                foreach ($bahanSetengahjadiDetails as $detail) {
+                    if ($usedMaterials <= 0) break;
+
+                    $availableQty = $detail->sisa;
+                    if ($availableQty > 0) {
+                        $toTake = min($availableQty, $usedMaterials);
+                        $details[] = [
+                            'kode_transaksi' => $detail->bahanSetengahjadi->kode_transaksi,
+                            'qty' => $toTake,
+                            'unit_price' => $detail->unit_price,
+                        ];
+
+                        $totalPrice += $toTake * $detail->unit_price;
+                        $usedMaterials -= $toTake;
+                    }
+                }
+            } else {
+                $purchaseDetails = $item['bahan']->purchaseDetails()
+                    ->where('sisa', '>', 0)
+                    ->with(['purchase' => function ($query) {
+                        $query->orderBy('tgl_masuk', 'asc');
+                    }])->get();
+
+                foreach ($purchaseDetails as $detail) {
+                    if ($usedMaterials <= 0) break;
+
+                    $availableQty = $detail->sisa;
+                    if ($availableQty > 0) {
+                        $toTake = min($availableQty, $usedMaterials);
+
+                        // Add this detail
+                        $details[] = [
+                            'kode_transaksi' => $detail->purchase->kode_transaksi,
+                            'qty' => $toTake,
+                            'unit_price' => $detail->unit_price,
+                        ];
+                        $totalPrice += $toTake * $detail->unit_price;
+                        $usedMaterials -= $toTake;
+                    }
+                }
+            }
+            $projekDetails[] = [
+                'id' => $bahanId,
+                'qty' => $this->qty[$bahanId],
+                'details' => $details,
+                'sub_total' => $totalPrice,
             ];
         }
-        return $items;
+        return $projekDetails;
     }
+
+
+
+
 
     public function getCartItemsForBahanRusak()
     {
@@ -394,6 +508,7 @@ class EditBahanProjekCart extends Component
         }
         return $bahanRusak;
     }
+
 
     public function getCartItemsForBahanRetur()
     {
@@ -413,13 +528,11 @@ class EditBahanProjekCart extends Component
     public function render()
     {
         $produksiTotal = array_sum(array_column($this->projekDetails, 'sub_total'));
-        $grandTotal = $produksiTotal;
 
         return view('livewire.edit-bahan-projek-cart', [
             'cartItems' => $this->cart,
             'projekDetails' => $this->projekDetails,
             'produksiTotal' => $produksiTotal,
-            'grandTotal' => $grandTotal,
             'bahanRusak' => $this->bahanRusak,
             'bahanRetur' => $this->bahanRetur,
         ]);

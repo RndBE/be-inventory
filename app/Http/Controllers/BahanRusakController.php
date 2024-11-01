@@ -18,6 +18,8 @@ class BahanRusakController extends Controller
     {
         $this->middleware('permission:lihat-bahan-rusak', ['only' => ['index']]);
         $this->middleware('permission:detail-bahan-rusak', ['only' => ['show']]);
+        $this->middleware('permission:edit-bahan-rusak', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-bahan-rusak', ['only' => ['destroy']]);
     }
 
     public function index()

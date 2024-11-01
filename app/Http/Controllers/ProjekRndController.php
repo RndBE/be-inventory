@@ -19,6 +19,15 @@ use Illuminate\Support\Facades\Validator;
 
 class ProjekRndController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-projek-rnd', ['only' => ['index']]);
+        $this->middleware('permission:selesai-projek-rnd', ['only' => ['updateStatus']]);
+        $this->middleware('permission:tambah-projek-rnd', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-projek-rnd', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-projek-rnd', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
         return view('pages.projek-rnd.index');

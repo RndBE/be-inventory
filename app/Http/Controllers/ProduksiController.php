@@ -405,7 +405,7 @@ class ProduksiController extends Controller
                         DB::rollBack();
                         $errorMessage = $e->getMessage();
                         LogHelper::error($e->getMessage());
-                        return redirect()->back()->with('error', "Gagal update status produksi.".$errorMessage);
+                        return redirect()->back()->with('error', "Gagal update status produksi. Simpan Kode Produksi dahulu!");
                     }
                 }
             }

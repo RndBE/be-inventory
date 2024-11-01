@@ -71,10 +71,10 @@ class ProduksiController extends Controller
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
-            $produk = ProdukProduksi::find($request->bahan_id);
-            //dd($produk );
+            $produk = Bahan::find($request->bahan_id);
+            //dd($produk->nama_bahan);
             if ($produk) {
-                $tujuan = $produk->dataBahan->nama_bahan;
+                $tujuan = $produk->nama_bahan;
             } else {
                 $tujuan = null;
             }
@@ -89,7 +89,7 @@ class ProduksiController extends Controller
             $new_transaction_number = $last_transaction_number + 1;
             $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
             $kode_transaksi = 'KBK - ' . $formatted_number;
-            $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
             // Simpan data ke Produksi
             $produksi = new Produksi();
@@ -105,7 +105,7 @@ class ProduksiController extends Controller
             $bahan_keluar = new BahanKeluar();
             $bahan_keluar->kode_transaksi = $kode_transaksi;
             $bahan_keluar->produksi_id = $produksi->id;
-            $bahan_keluar->tgl_keluar = $tgl_keluar;
+            $bahan_keluar->tgl_pengajuan = $tgl_pengajuan;
             $bahan_keluar->tujuan = 'Produksi '.$tujuan;
             $bahan_keluar->divisi = 'Produksi';
             $bahan_keluar->status = 'Belum disetujui';
@@ -203,9 +203,10 @@ class ProduksiController extends Controller
                 'kode_produksi' => $request->kode_produksi,
             ]);
 
-            $produk = ProdukProduksi::find($request->bahan_id);
+            $produk = $request->produk_id;
+            //dd($produk);
             if ($produk) {
-                $tujuan = $produk->dataBahan->nama_bahan;
+                $tujuan = $produk;
             } else {
                 $tujuan = null;
             }
@@ -219,7 +220,7 @@ class ProduksiController extends Controller
             $new_transaction_number = $last_transaction_number + 1;
             $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
             $kode_transaksi = 'KBK - ' . $formatted_number;
-            $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
             // Kelompokkan item berdasarkan bahan_id dan jumlah
             $groupedItems = [];
@@ -245,7 +246,7 @@ class ProduksiController extends Controller
                 $bahan_keluar = new BahanKeluar();
                 $bahan_keluar->kode_transaksi = $kode_transaksi;
                 $bahan_keluar->produksi_id = $produksi->id;
-                $bahan_keluar->tgl_keluar = $tgl_keluar;
+                $bahan_keluar->tgl_pengajuan = $tgl_pengajuan;
                 $bahan_keluar->tujuan = 'Produksi '.$tujuan;
                 $bahan_keluar->divisi = 'Produksi';
                 $bahan_keluar->status = 'Belum disetujui';

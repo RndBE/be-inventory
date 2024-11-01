@@ -144,8 +144,8 @@ class ProjekRndController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            dd($request->all());
-            $cartItems = json_decode($request->cartItems, true) ?? [];
+            //dd($request->all());
+            $projekRndDetails = json_decode($request->projekRndDetails, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $projek_rnd = ProjekRnd::findOrFail($id);
@@ -167,7 +167,7 @@ class ProjekRndController extends Controller
             $groupedItems = [];
             $totalQty = 0;  // Variabel untuk menghitung total qty
 
-            foreach ($cartItems as $item) {
+            foreach ($projekRndDetails as $item) {
                 if (!isset($groupedItems[$item['id']])) {
                     $groupedItems[$item['id']] = [
                         'qty' => 0,

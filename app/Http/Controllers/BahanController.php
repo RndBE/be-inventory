@@ -39,7 +39,7 @@ class BahanController extends Controller
 
     public function export()
     {
-        return Excel::download(new BahansExport, 'bahans.xlsx');
+        return Excel::download(new BahansExport, 'bahan_be-inventory.xlsx');
     }
 
     public function index()
@@ -62,7 +62,7 @@ class BahanController extends Controller
                 'kode_bahan' => 'required|string|max:255|unique:bahan,kode_bahan',
                 'nama_bahan' => 'required|string|max:255',
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
-                'stok_awal' => 'required|integer',
+                // 'stok_awal' => 'required|integer',
                 'unit_id' => 'required|exists:unit,id',
                 'penempatan' => 'required|string|max:255',
                 'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -78,7 +78,6 @@ class BahanController extends Controller
             LogHelper::success('Berhasil Menambah Bahan!');
             return redirect()->route('bahan.index')->with('success', 'Berhasil Menambah Bahan!');
         } catch (ValidationException $e) {
-            // Kirim pesan error yang dihasilkan validasi kembali ke form
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (Throwable $e) {
             LogHelper::error($e->getMessage());
@@ -103,7 +102,7 @@ class BahanController extends Controller
             $bahan = Bahan::findOrFail($id);
 
             $validated = $request->validate([
-                'kode_bahan' => 'required|string|max:255',
+                'kode_bahan' => 'required|string|max:255|unique:bahan,kode_bahan,'. $id,
                 'nama_bahan' => 'required|string|max:255',
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 'unit_id' => 'required|exists:unit,id',
@@ -124,6 +123,8 @@ class BahanController extends Controller
             $bahan->update($validated);
             LogHelper::success('Berhasil Mengubah Bahan!');
             return redirect()->back()->with('success', 'Berhasil Mengubah Bahan!');
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

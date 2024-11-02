@@ -79,9 +79,9 @@
                         <div class="p-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
 
                             <div class="sm:col-span-2 sm:col-start-1">
-                            <label for="kode_bahan" class="block text-sm font-medium leading-6 text-gray-900">Kode Bahan</label>
+                            <label for="kode_bahan" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Kode Bahan</label>
                             <div class="mt-2">
-                                <input type="text" name="kode_bahan" id="kode_bahan" value="{{ old('kode_bahan', $bahan->kode_bahan) }}" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <input type="text" name="kode_bahan" id="kode_bahan" value="{{ old('kode_bahan', $bahan->kode_bahan) }}" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
                                 @error('kode_bahan')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -89,9 +89,10 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                            <label for="nama_bahan" class="block text-sm font-medium leading-6 text-gray-900">Nama Bahan</label>
+                            <label for="nama_bahan" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Nama Bahan</label>
                             <div class="mt-2">
-                                <input value="{{ old('nama_bahan', $bahan->nama_bahan) }}" type="text" name="nama_bahan" id="nama_bahan" autocomplete="address-level1" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <input value="{{ old('nama_bahan', $bahan->nama_bahan) }}" type="text" name="nama_bahan" id="nama_bahan" autocomplete="address-level1" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6
+                                dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
                                 @error('nama_bahan')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -99,9 +100,9 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                            <label for="jenis_bahan_id" class="block text-sm font-medium leading-6 text-gray-900">Jenis Bahan</label>
+                            <label for="jenis_bahan_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Jenis Bahan</label>
                             <div class="mt-2">
-                                    <select id="jenis_bahan_id" name="jenis_bahan_id" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                    <select id="jenis_bahan_id" name="jenis_bahan_id" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
                                         <option value="" disabled>Pilih Jenis Bahan</option>
                                         @foreach($jenisBahan as $jenis)
                                             <option value="{{ $jenis->id }}" {{ old('jenis_bahan_id', $bahan->jenis_bahan_id) == $jenis->id ? 'selected' : '' }}>
@@ -115,30 +116,41 @@
                                 </div>
                             </div>
 
-                            <div class="sm:col-span-2 sm:col-start-1">
-                            <label for="stok_awal" class="block text-sm font-medium leading-6 text-gray-900">Stok Awal</label>
+                            {{-- <div class="sm:col-span-2 sm:col-start-1">
+                            <label for="stok_awal" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Stok Awal</label>
                             <div class="mt-2">
-                                <input value="{{ old('stok_awal', $bahan->stok_awal) }}" disabled type="number" name="stok_awal" id="stok_awal" autocomplete="address-level2" class="block w-full rounded-md border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <input value="{{ old('stok_awal', $bahan->stok_awal) }}" disabled type="number" name="stok_awal" id="stok_awal" autocomplete="address-level2" class="block w-full rounded-md border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
                                 @error('stok_awal')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            </div>
+                            </div> --}}
 
                             <div class="sm:col-span-2">
-                            <label for="total_stok" class="block text-sm font-medium leading-6 text-gray-900">Total Stok</label>
+                                <label for="gambar" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Gambar</label>
+                                <div class="mt-2">
+                                    <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 file:rounded-lg file:w-24 file:h-9" id="gambar" name="gambar" type="file" accept=".png, .jpg, .jpeg">
+                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">PNG, JPG or JPEG (MAX. 2 MB).</p>
+                                    @error('gambar')
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            {{-- <div class="sm:col-span-2">
+                            <label for="total_stok" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Total Stok</label>
                             <div class="mt-2">
-                                <input value="{{ old('total_stok', $bahan->total_stok) }}" disabled type="number" name="total_stok" id="total_stok" autocomplete="address-level1" class="block w-full rounded-md border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <input value="{{ old('total_stok', $bahan->total_stok) }}" disabled type="number" name="total_stok" id="total_stok" autocomplete="address-level1" class="block w-full rounded-md border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
                                 @error('total_stok')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            </div>
+                            </div> --}}
 
                             <div class="sm:col-span-2">
-                                <label for="unit_id" class="block text-sm font-medium leading-6 text-gray-900">Unit</label>
+                                <label for="unit_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Unit</label>
                                 <div class="mt-2">
-                                    <select id="unit_id" name="unit_id" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                    <select id="unit_id" name="unit_id" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
                                         <option value="" disabled>Pilih Satuan Unit</option>
                                         @foreach($units as $unit)
                                             <option value="{{ $unit->id }}" {{ old('unit_id', $bahan->unit_id) == $unit->id ? 'selected' : '' }}>
@@ -153,18 +165,18 @@
                             </div>
 
 
-                            <div class="col-span-full">
-                            <label for="penempatan" class="block text-sm font-medium leading-6 text-gray-900">Penempatan</label>
+                            <div class="sm:col-span-2">
+                            <label for="penempatan" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Penempatan</label>
                             <div class="mt-2">
-                                <input value="{{ old('penempatan', $bahan->penempatan) }}" type="text" name="penempatan" id="penempatan" autocomplete="street-address" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <input value="{{ old('penempatan', $bahan->penempatan) }}" type="text" name="penempatan" id="penempatan" autocomplete="street-address" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
                                 @error('penempatan')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
                             </div>
 
-                            <div class="col-span-full">
-                            <label for="gambar" class="block text-sm font-medium leading-6 text-gray-900">Gambar</label>
+                            {{-- <div class="col-span-full">
+                            <label for="gambar" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Gambar</label>
                             <div class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
                                 <div class="text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -183,7 +195,7 @@
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            </div>
+                            </div> --}}
 
                             <!-- Display existing image if available -->
                             <div class="sm:col-span-2 sm:col-start-1">

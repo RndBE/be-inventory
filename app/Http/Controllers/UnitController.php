@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Throwable;
 use App\Models\Unit;
 use App\Helpers\LogHelper;
+use App\Exports\UnitExport;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UnitController extends Controller
 {
@@ -15,6 +17,12 @@ class UnitController extends Controller
         $this->middleware('permission:tambah-unit', ['only' => ['create','store']]);
         $this->middleware('permission:edit-unit', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-unit', ['only' => ['destroy']]);
+        $this->middleware('permission:export-unit', ['only' => ['export']]);
+    }
+
+    public function export()
+    {
+        return Excel::download(new UnitExport, 'satuan_units_be-inventory.xlsx');
     }
 
     public function index(Request $request)

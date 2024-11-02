@@ -34,6 +34,7 @@ class BahanController extends Controller
         $this->middleware('permission:tambah-bahan', ['only' => ['create','store']]);
         $this->middleware('permission:edit-bahan', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-bahan', ['only' => ['destroy']]);
+        $this->middleware('permission:export-bahan', ['only' => ['export']]);
     }
 
     public function export()

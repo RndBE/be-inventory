@@ -9,6 +9,8 @@ use App\Models\Purchase;
 use App\Helpers\LogHelper;
 use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
+use App\Exports\PurchasesExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 
 class PurchaseController extends Controller
@@ -21,6 +23,22 @@ class PurchaseController extends Controller
         $this->middleware('permission:tambah-bahan-masuk', ['only' => ['create','store']]);
         $this->middleware('permission:edit-bahan-masuk', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-bahan-masuk', ['only' => ['destroy']]);
+    }
+
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $startDate = $request->input('start_date') . ' 00:00:00';
+        $endDate = $request->input('end_date') . ' 23:59:59';
+
+        $companyName = "PT Arta Teknologi Comunindo"; // Replace with your actual company name or a variable if needed
+
+        return Excel::download(new PurchasesExport($startDate, $endDate, $companyName), 'purchases.xlsx');
     }
 
     public function index()

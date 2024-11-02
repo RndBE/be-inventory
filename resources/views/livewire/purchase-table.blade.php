@@ -40,6 +40,19 @@
                 <li class="m-1">
                     @include('livewire.dataperpage')
                 </li>
+                {{-- <form action="{{ route('purchases-export.export') }}" method="GET">
+                    @csrf
+                    <label for="start_date">Start Date:</label>
+                    <input type="date" id="start_date" name="start_date" required>
+
+                    <label for="end_date">End Date:</label>
+                    <input type="date" id="end_date" name="end_date" required>
+
+                    <button type="submit">Download Report</button>
+                </form> --}}
+                <li class="m-1">
+                    @include('pages.purchases.export')
+                </li>
                 <li class="m-1">
                     @can('tambah-bahan-masuk')
                         <a href="{{ route('purchases.create') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">

@@ -81,6 +81,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('unit', UnitController::class);
     Route::get('unit-export', [UnitController::class, 'export'])->name('unit.export');
     Route::resource('purchases', PurchaseController::class);
+    Route::get('purchases-export', [PurchaseController::class, 'export'])->name('purchases-export.export');
 
     Route::get('notif_transaksi', [PurchaseController::class, 'notif_transaksi']);
 

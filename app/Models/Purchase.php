@@ -16,4 +16,9 @@ class Purchase extends Model
     {
         return $this->hasMany(PurchaseDetail::class);
     }
+
+    public function dataBahan()
+    {
+        return $this->belongsTo(Bahan::class);
+    }
 }

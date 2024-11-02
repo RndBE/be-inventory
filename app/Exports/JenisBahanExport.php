@@ -4,11 +4,14 @@ namespace App\Exports;
 
 use App\Models\JenisBahan;
 use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Border;
 
-class JenisBahanExport implements FromCollection
+class JenisBahanExport implements FromCollection, WithHeadings, WithStyles, WithEvents
 {
     public function collection()
     {

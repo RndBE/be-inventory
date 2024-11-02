@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\JenisBahanExport;
 use Throwable;
 use App\Helpers\LogHelper;
 use App\Models\JenisBahan;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class JenisBahanController extends Controller
 {
@@ -15,6 +17,12 @@ class JenisBahanController extends Controller
         $this->middleware('permission:tambah-jenis-bahan', ['only' => ['create','store']]);
         $this->middleware('permission:edit-jenis-bahan', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-jenis-bahan', ['only' => ['destroy']]);
+        $this->middleware('permission:export-jenisbahan', ['only' => ['export']]);
+    }
+
+    public function export()
+    {
+        return Excel::download(new JenisBahanExport, 'JenisBahan_be-inventory.xlsx');
     }
 
     public function index(Request $request)

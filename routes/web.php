@@ -77,6 +77,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('bahan-export', [BahanController::class, 'export'])->name('bahan.export');
 
     Route::resource('jenis-bahan', JenisBahanController::class);
+    Route::get('jenisbahan-expot', [JenisBahanController::class, 'export'])->name('jenisbahan-expot.export');
     Route::resource('unit', UnitController::class);
     Route::get('unit-export', [UnitController::class, 'export'])->name('unit.export');
     Route::resource('purchases', PurchaseController::class);

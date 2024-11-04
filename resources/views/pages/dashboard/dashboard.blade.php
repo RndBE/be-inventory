@@ -121,76 +121,33 @@
                 </div>
             </div> --}}
             <div class="col-span-full xl:col-span-8 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-                <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+                <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100">Proses Produksi</h2>
+                    <form method="GET" action="{{ route('dashboard') }}" class="flex gap-2">
+                        <div>
+                            <select id="year" name="year" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
+                                @foreach($availableYears as $availableYear)
+                                    <option value="{{ $availableYear }}" {{ $year == $availableYear ? 'selected' : '' }}>
+                                        {{ $availableYear }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <select id="period" name="period" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
+                                <option value="7_days" {{ $period == '7_days' ? 'selected' : '' }}>7 Days</option>
+                                <option value="monthly" {{ $period == 'monthly' ? 'selected' : '' }}>Monthly</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-end">
+                            <button type="submit" class="px-3 py-1 bg-green-600 text-white rounded-lg text-sm">Apply</button>
+                        </div>
                 </header>
                 <div class="p-3">
+                    <div id="dashboard-bar-chart"></div>
 
-                    <!-- Table -->
-                    <div class="overflow-x-auto">
-                        <table class="table-auto w-full dark:text-gray-300">
-                            <!-- Table header -->
-                            <thead class="text-xs uppercase text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700 dark:bg-opacity-50 rounded-sm">
-                                <tr>
-                                    <th class="p-2">
-                                        <div class="font-semibold text-left">Nama Produk</div>
-                                    </th>
-                                    <th class="p-2">
-                                        <div class="font-semibold text-center">Mulai Produksi</div>
-                                    </th>
-                                    <th class="p-2">
-                                        <div class="font-semibold text-center">Jumlah Produksi</div>
-                                    </th>
-                                    <th class="p-2">
-                                        <div class="font-semibold text-center">Subtotal</div>
-                                    </th>
-                                    <th class="p-2">
-                                        <div class="font-semibold text-center">Penyelesaian</div>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <!-- Table body -->
-                            <tbody class="text-sm font-medium divide-y divide-gray-100 dark:divide-gray-700/60">
-                                @forelse($prosesProduksi as $produksi)
-                                <tr>
-                                    <td class="p-2">
-                                        <div class="text-gray-800 dark:text-gray-100">{{ $produksi->dataBahan->nama_bahan }}</div>
-                                    </td>
-                                    <td class="p-2">
-                                        <div class="text-center">{{ $produksi->mulai_produksi }}</div>
-                                    </td>
-                                    <td class="p-2">
-                                        <div class="text-center text-green-500">{{ $produksi->jml_produksi }}</div>
-                                    </td>
-                                    <td class="p-2">
-                                        <div class="text-center">Rp {{ number_format($produksi->total_subtotal, 0, ',', '.') }}</div>
-                                    </td>
-                                    <td class="p-2">
-                                        <div class="text-center text-sky-500">
-                                            <div class="w-10/12 mx-auto">
-                                                <p class="antialiased font-sans mb-1 block text-xs font-medium text-blue-gray-600">{{ $produksi->completion_percentage }}%</p>
-                                                <div class="flex flex-start bg-blue-gray-50 overflow-hidden w-full rounded-sm font-sans text-xs font-medium h-1">
-                                                    <div class="flex justify-center items-center h-full bg-gradient-to-tr from-blue-600 to-blue-400 text-white" style="width: {{ $produksi->completion_percentage }}%;"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                    <td colspan="9" class="px-6 py-4 text-center">
-                                        <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-                                        </svg>
-                                        <h3 class="mt-2 text-sm font-semibold text-gray-900">Data Tidak Ditemukan!</h3>
-                                        <p class="mt-1 text-sm text-gray-500">Maaf, data yang Anda cari tidak ada</p>
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-
-                    </div>
                 </div>
             </div>
 

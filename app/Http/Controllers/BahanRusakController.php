@@ -127,8 +127,13 @@ class BahanRusakController extends Controller
                             }
                         }
 
-                        $projekDetail->qty -= array_sum(array_column($detailsByPrice, 'qty'));
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $projekDetail->qty -= $totalQtyReduction;
+                        $projekDetail->used_materials -= $totalQtyReduction;
+
+                        // Pastikan qty dan used_materials tidak negatif
                         $projekDetail->qty = max(0, $projekDetail->qty);
+                        $projekDetail->used_materials = max(0, $projekDetail->used_materials);
 
                         $projekDetail->sub_total = 0;
                         foreach ($currentDetails as $detail) {
@@ -157,8 +162,13 @@ class BahanRusakController extends Controller
                             }
                         }
 
-                        $projekRndDetail->qty -= array_sum(array_column($detailsByPrice, 'qty'));
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $projekRndDetail->qty -= $totalQtyReduction;
+                        $projekRndDetail->used_materials -= $totalQtyReduction;
+
+                        // Pastikan qty dan used_materials tidak negatif
                         $projekRndDetail->qty = max(0, $projekRndDetail->qty);
+                        $projekRndDetail->used_materials = max(0, $projekRndDetail->used_materials);
 
                         $projekRndDetail->sub_total = 0;
                         foreach ($currentDetails as $detail) {

@@ -260,7 +260,12 @@ class BahanKeluarController extends Controller
                                 if ($projekDetail) {
                                     // Update existing entry
                                     $projekDetail->qty += $group['qty'];
+                                    $projekDetail->used_materials += $group['qty'];
                                     $projekDetail->sub_total += $group['qty'] * $unitPrice;
+
+                                    if ($projekDetail->jml_bahan !== $detail->jml_bahan) {
+                                        $projekDetail->jml_bahan = $detail->jml_bahan; // Update jml_bahan
+                                    }
 
                                     // Merge existing details with new grouped details
                                     $currentDetails = json_decode($projekDetail->details, true) ?? [];
@@ -303,7 +308,12 @@ class BahanKeluarController extends Controller
                                 if ($projekRndDetail) {
                                     // Update existing entry
                                     $projekRndDetail->qty += $group['qty'];
+                                    $projekRndDetail->used_materials += $group['qty'];
                                     $projekRndDetail->sub_total += $group['qty'] * $unitPrice;
+
+                                    if ($projekRndDetail->jml_bahan !== $detail->jml_bahan) {
+                                        $projekRndDetail->jml_bahan = $detail->jml_bahan; // Update jml_bahan
+                                    }
 
                                     // Merge existing details with new grouped details
                                     $currentDetails = json_decode($projekRndDetail->details, true) ?? [];

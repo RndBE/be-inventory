@@ -102,8 +102,59 @@
             </div>
 
 
-            <!-- Bar chart (Direct vs Indirect) -->
-            {{-- <x-dashboard.dashboard-card-04 /> --}}
+            <div class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+                <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Bahan Masuk - Sub Total 7 Hari Terakhir</h2>
+                </header>
+                <div class="grow">
+                    <canvas id="data-bahan-masuk" width="595" height="248"></canvas>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const ctx = document.getElementById('data-bahan-masuk').getContext('2d');
+
+                    const data = {
+                        labels: @json($chartLabels),
+                        datasets: [{
+                            label: 'Sub Total Bahan Masuk',
+                            data: @json($chartData),
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                        }]
+                    };
+
+                    const options = {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                            }
+                        }
+                    };
+
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: data,
+                        options: options
+                    });
+                });
+            </script>
+
 
             <!-- Line chart (Real Time Value) -->
             {{-- <x-dashboard.dashboard-card-05 /> --}}

@@ -54,15 +54,39 @@ class DashboardController extends Controller
             });
         $projeks = Projek::where('status', 'Dalam proses')
             ->with(['projekDetails' => function ($query) {
-                $query->select('projek_id', 'sub_total');
+                $query->select('projek_id', 'sub_total', 'jml_bahan', 'used_materials');
             }])
-            ->get();
+            ->get()
+            ->map(function ($projek) {
+                $totalSubTotalProjek = $projek->projekDetails->sum('sub_total'); // Sum of all sub_totals for each production
+                $totalBahanProjek = $projek->projekDetails->sum('jml_bahan'); // Total bahan needed
+                $totalUsedProjek = $projek->projekDetails->sum('used_materials'); // Total used materials
+
+                $completionPercentageProjek = $totalBahanProjek > 0 ? round(($totalUsedProjek / $totalBahanProjek) * 100) : 0; // Calculate percentage
+
+                $projek->total_subtotal = $totalSubTotalProjek;
+                $projek->completion_percentage_projek = $completionPercentageProjek;
+
+                return $projek;
+            });
 
         $projeks_rnd = ProjekRnd::where('status', 'Dalam proses')
             ->with(['projekRndDetails' => function ($query) {
-                $query->select('projek_rnd_id', 'sub_total');
+                $query->select('projek_rnd_id', 'jml_bahan', 'used_materials', 'sub_total');
             }])
-            ->get();
+            ->get()
+            ->map(function ($projekrnd) {
+                $totalSubTotalProjekRnd = $projekrnd->projekRndDetails->sum('sub_total'); // Sum of all sub_totals for each production
+                $totalBahanProjekRnd = $projekrnd->projekRndDetails->sum('jml_bahan'); // Total bahan needed
+                $totalUsedProjekRnd = $projekrnd->projekRndDetails->sum('used_materials'); // Total used materials
+
+                $completionPercentageProjekRnd = $totalBahanProjekRnd > 0 ? round(($totalUsedProjekRnd / $totalBahanProjekRnd) * 100) : 0; // Calculate percentage
+
+                $projekrnd->total_subtotal = $totalSubTotalProjekRnd;
+                $projekrnd->completion_percentage_projekrnd = $completionPercentageProjekRnd;
+
+                return $projekrnd;
+            });
 
         $year = $request->input('year', Carbon::now()->year);
         $period = $request->input('period', '7_days');

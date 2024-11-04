@@ -260,6 +260,9 @@
                                     <th class="p-2">
                                         <div class="font-semibold text-center">Mulai Projek</div>
                                     </th>
+                                    <th class="p-2">
+                                        <div class="font-semibold text-center">Penyelesaian</div>
+                                    </th>
                                 </tr>
                             </thead>
                             <!-- Table body -->
@@ -271,6 +274,16 @@
                                     </td>
                                     <td class="p-2">
                                         <div class="text-center">{{ $projek->mulai_projek }}</div>
+                                    </td>
+                                    <td class="p-2">
+                                        <div class="text-center text-sky-500">
+                                            <div class="w-10/12 mx-auto">
+                                                <p class="antialiased font-sans mb-1 block text-xs font-medium text-blue-gray-600">{{ $projek->completion_percentage_projek }}%</p>
+                                                <div class="flex flex-start bg-blue-gray-50 overflow-hidden w-full rounded-sm font-sans text-xs font-medium h-1">
+                                                    <div class="flex justify-center items-center h-full bg-gradient-to-tr from-blue-600 to-blue-400 text-white" style="width: {{ $projek->completion_percentage_projek }}%;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty
@@ -310,6 +323,9 @@
                                     <th class="p-2">
                                         <div class="font-semibold text-center">Mulai Projek</div>
                                     </th>
+                                    <th class="p-2">
+                                        <div class="font-semibold text-center">Penyelesaian</div>
+                                    </th>
                                 </tr>
                             </thead>
                             <!-- Table body -->
@@ -321,6 +337,16 @@
                                     </td>
                                     <td class="p-2">
                                         <div class="text-center">{{ $projek_rnd->mulai_projek_rnd }}</div>
+                                    </td>
+                                    <td class="p-2">
+                                        <div class="text-center text-sky-500">
+                                            <div class="w-10/12 mx-auto">
+                                                <p class="antialiased font-sans mb-1 block text-xs font-medium text-blue-gray-600">{{ $projek_rnd->completion_percentage_projekrnd }}%</p>
+                                                <div class="flex flex-start bg-blue-gray-50 overflow-hidden w-full rounded-sm font-sans text-xs font-medium h-1">
+                                                    <div class="flex justify-center items-center h-full bg-gradient-to-tr from-blue-600 to-blue-400 text-white" style="width: {{ $projek_rnd->completion_percentage_projekrnd }}%;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty

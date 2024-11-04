@@ -148,12 +148,26 @@ class ProjekController extends Controller
         // Ambil bahan yang ada di projekDetails
         $existingBahanIds = $projek->projekDetails->pluck('dataBahan.id')->toArray();
 
+        $isComplete = true;
+        if ($projek->projekDetails && count($projek->projekDetails) > 0) {
+            foreach ($projek->projekDetails as $detail) {
+                $kebutuhan = $detail->jml_bahan - $detail->used_materials;
+                if ($kebutuhan > 0) {
+                    $isComplete = false;
+                    break;
+                }
+            }
+        } else {
+            $isComplete = false;
+        }
+
         return view('pages.projek.edit', [
             'projekId' => $id,
             'bahanProjek' => $bahanProjek,
             'projek' => $projek,
             'units' => $units,
-            'existingBahanIds' => $existingBahanIds, // Kirimkan id bahan yang sudah ada
+            'existingBahanIds' => $existingBahanIds,
+            'isComplete' => $isComplete,
         ]);
     }
 
@@ -189,11 +203,13 @@ class ProjekController extends Controller
                 if (!isset($groupedItems[$item['id']])) {
                     $groupedItems[$item['id']] = [
                         'qty' => 0,
+                        'jml_bahan' => 0,
                         'details' => $item['details'],
                         'sub_total' => 0,
                     ];
                 }
                 $groupedItems[$item['id']]['qty'] += $item['qty'];
+                $groupedItems[$item['id']]['jml_bahan'] += $item['jml_bahan'];
                 $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
                 $totalQty += $item['qty'];  // Tambahkan qty item ke total qty
             }
@@ -215,6 +231,7 @@ class ProjekController extends Controller
                         'bahan_keluar_id' => $bahan_keluar->id,
                         'bahan_id' => $bahan_id,
                         'qty' => $details['qty'],
+                        'jml_bahan' => $details['jml_bahan'],
                         'used_materials' => 0,
                         'details' => json_encode($details['details']),
                         'sub_total' => $details['sub_total'],

@@ -7,11 +7,19 @@ use App\Models\Unit;
 use App\Models\Bahan;
 use App\Models\DataFeed;
 use App\Models\Purchase;
+use App\Models\BahanRetur;
+use App\Models\BahanRusak;
 use App\Models\JenisBahan;
+use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
 use App\Models\ProdukProduksi;
 use App\Models\PurchaseDetail;
 use App\Models\BahanKeluarDetails;
+use Illuminate\Support\Facades\DB;
+use App\Models\BahanSetengahjadiDetails;
+use App\Models\Produksi;
+use App\Models\Projek;
+use App\Models\ProjekRnd;
 
 class DashboardController extends Controller
 {
@@ -23,6 +31,38 @@ class DashboardController extends Controller
         $totalJenisBahan = JenisBahan::where('nama', '!=', 'Produksi')->count();
         $totalSatuanUnit = Unit::count();
         $totalProdukProduksi = ProdukProduksi::count();
+
+        $totalPengajuanBahanKeluar = BahanKeluar::where('status', '=', 'Belum disetujui')->count();
+        $totalPengajuanBahanRetur = BahanRetur::where('status', '=', 'Belum disetujui')->count();
+        $totalPengajuanBahanRusak = BahanRusak::where('status', '=', 'Belum disetujui')->count();
+        $prosesProduksi = Produksi::where('status', 'Dalam proses')
+            ->with(['produksiDetails' => function ($query) {
+                $query->select('produksi_id', 'jml_bahan', 'used_materials', 'sub_total');
+            }])
+            ->get()
+            ->map(function ($produksi) {
+                $totalSubTotal = $produksi->produksiDetails->sum('sub_total'); // Sum of all sub_totals for each production
+                $totalBahan = $produksi->produksiDetails->sum('jml_bahan'); // Total bahan needed
+                $totalUsed = $produksi->produksiDetails->sum('used_materials'); // Total used materials
+
+                $completionPercentage = $totalBahan > 0 ? round(($totalUsed / $totalBahan) * 100) : 0; // Calculate percentage
+
+                $produksi->total_subtotal = $totalSubTotal;
+                $produksi->completion_percentage = $completionPercentage;
+
+                return $produksi;
+            });
+        $projeks = Projek::where('status', 'Dalam proses')
+            ->with(['projekDetails' => function ($query) {
+                $query->select('projek_id', 'sub_total');
+            }])
+            ->get();
+
+        $projeks_rnd = ProjekRnd::where('status', 'Dalam proses')
+            ->with(['projekRndDetails' => function ($query) {
+                $query->select('projek_rnd_id', 'sub_total');
+            }])
+            ->get();
 
         $year = $request->input('year', Carbon::now()->year);
         $period = $request->input('period', '7_days');
@@ -71,8 +111,24 @@ class DashboardController extends Controller
             })->toArray();
         }
 
+
+        // Retrieve total quantities for each material in bahan_setengahjadi_details
+        $materialsData = BahanSetengahjadiDetails::select('bahan_id', DB::raw('SUM(sisa) as total_qty'))
+            ->groupBy('bahan_id')
+            ->get();
+
+            // Prepare data for the pie chart
+        $chartLabels = [];
+        $chartData = [];
+
+        foreach ($materialsData as $data) {
+            $material = Bahan::find($data->bahan_id); // Get material name from bahan table
+            $chartLabels[] = $material->nama_bahan; // Assuming 'name' is a column in bahan
+            $chartData[] = $data->total_qty;
+        }
+
         return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalSatuanUnit', 'dates', 'chartDataMasuk', 'chartDataKeluar',
-        'availableYears', 'year', 'period'));
+        'availableYears', 'year', 'period', 'totalPengajuanBahanKeluar','totalPengajuanBahanRetur','totalPengajuanBahanRusak', 'chartLabels', 'chartData','prosesProduksi','projeks','projeks_rnd'));
     }
 
     /**

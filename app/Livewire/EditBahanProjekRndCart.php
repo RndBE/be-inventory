@@ -13,6 +13,7 @@ class EditBahanProjekRndCart extends Component
 {
     public $cart = [];
     public $qty = [];
+    public $jml_bahan = [];
     public $details = [];
     public $details_raw = [];
     public $subtotals = [];
@@ -38,7 +39,9 @@ class EditBahanProjekRndCart extends Component
         $this->loadBahanKeluar();
 
         foreach ($this->projekRndDetails as $detail) {
-            $this->qty[$detail['bahan']->id] = $detail['used_materials'];
+            $bahanId = $detail['bahan']->id;
+            $this->jml_bahan[$bahanId] = $detail['jml_bahan'] ?? 0; // Default to 0 if not set
+            $this->qty[$bahanId] = $detail['used_materials'] ?? 0;
         }
     }
 
@@ -53,7 +56,7 @@ class EditBahanProjekRndCart extends Component
                     'bahan' => Bahan::find($detail->bahan_id), // Ensure this returns an object
                     'qty' => $detail->qty,
                     'jml_bahan' => $detail->jml_bahan,
-                    'used_materials' => $detail->used_materials,
+                    'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,
                     'details' => json_decode($detail->details, true),
                 ];
@@ -485,6 +488,7 @@ class EditBahanProjekRndCart extends Component
             $projekRndDetails[] = [
                 'id' => $bahanId,
                 'qty' => $this->qty[$bahanId],
+                'jml_bahan' => $this->jml_bahan[$bahanId] ?? 0,
                 'details' => $details,
                 'sub_total' => $totalPrice,
             ];

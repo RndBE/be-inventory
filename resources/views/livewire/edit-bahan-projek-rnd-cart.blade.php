@@ -6,6 +6,7 @@
                     <tr>
                         <th scope="col" class="px-6 py-3 w-1/5">Bahan</th>
                         <th scope="col" class="px-6 py-3 w-0.5">Kebutuhan</th>
+                        <th scope="col" class="px-6 py-3 w-0.5">Ambil Stok</th>
                         <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total 1</th>
                         <th scope="col" class="px-6 py-3 text-right w-1">Details</th>
                         <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total 2</th>
@@ -20,6 +21,14 @@
                     <input type="hidden" name="projekRndDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']->nama_bahan }}</td>
+                        <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
+                            <input value="{{ old('jml_bahan.'.$detail['bahan']->id, $this->jml_bahan[$detail['bahan']->id] ?? 0) }}"
+                                type="number"
+                                wire:model="jml_bahan.{{ $detail['bahan']->id }}"
+                                wire:keyup="updateQuantity({{ $detail['bahan']->id }})"
+                                class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="0" min="0" required />
+                        </td>
                         <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
                             <div class="flex items-center">
                                 <input value="{{ old('qty.'.$detail['bahan']->id, $qty[$detail['bahan']->id] ?? 0) }}"
@@ -81,7 +90,7 @@
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
                         <td class="px-6 py-4 text-right text-black"></td>
-
+                        <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><strong>Rp.</strong> {{ number_format($grandTotal, 0, ',', '.') }}</span></td>
                         <td class="px-6 py-4 text-center text-black">+</td>
 
@@ -91,6 +100,7 @@
                     </tr>
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
+                        <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                         <td class="px-6 py-4 text-right text-black"><strong>Total Harga</strong></td>

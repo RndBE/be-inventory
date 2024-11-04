@@ -132,15 +132,26 @@ class ProjekRndController extends Controller
             $query->where('nama', 'like', '%Produksi%');
         })->get();
         $projek_rnd = ProjekRnd::with(['projekRndDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
-        // if ($projek_rnd->bahanKeluar->status != 'Disetujui') {
-        //     return redirect()->back()->with('error', 'Projek belum disetujui. Anda tidak dapat mengakses halaman tersebut.');
-        // }
+
+        $isComplete = true;
+        if ($projek_rnd->projekDetails && count($projek_rnd->projekDetails) > 0) {
+            foreach ($projek_rnd->projekDetails as $detail) {
+                $kebutuhan = $detail->jml_bahan - $detail->used_materials;
+                if ($kebutuhan > 0) {
+                    $isComplete = false;
+                    break;
+                }
+            }
+        } else {
+            $isComplete = false;
+        }
         return view('pages.projek-rnd.edit', [
             'projekId' => $projek_rnd->id,
             'bahanProjek' => $bahanProjek,
             'projek_rnd' => $projek_rnd,
             'units' => $units,
-            'id' => $id
+            'id' => $id,
+            'isComplete' => $isComplete,
         ]);
     }
 
@@ -175,11 +186,13 @@ class ProjekRndController extends Controller
                 if (!isset($groupedItems[$item['id']])) {
                     $groupedItems[$item['id']] = [
                         'qty' => 0,
+                        'jml_bahan' => 0,
                         'details' => $item['details'],
                         'sub_total' => 0,
                     ];
                 }
                 $groupedItems[$item['id']]['qty'] += $item['qty'];
+                $groupedItems[$item['id']]['jml_bahan'] += $item['jml_bahan'];
                 $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
                 $totalQty += $item['qty'];  // Tambahkan qty item ke total qty
             }
@@ -201,6 +214,7 @@ class ProjekRndController extends Controller
                         'bahan_keluar_id' => $bahan_keluar->id,
                         'bahan_id' => $bahan_id,
                         'qty' => $details['qty'],
+                        'jml_bahan' => $details['jml_bahan'],
                         'used_materials' => 0,
                         'details' => json_encode($details['details']),
                         'sub_total' => $details['sub_total'],

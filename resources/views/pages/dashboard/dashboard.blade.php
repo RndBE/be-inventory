@@ -121,7 +121,7 @@
                 </div>
             </div>
 
-            <div class="flex flex-col col-span-full sm:col-span-4 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+            <div class="flex flex-col col-span-full sm:col-span-3 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100">Pengajuan Bahan</h2>
                 </header>

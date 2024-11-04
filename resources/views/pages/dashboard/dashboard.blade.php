@@ -104,57 +104,21 @@
 
             <div class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
-                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Bahan Masuk - Sub Total 7 Hari Terakhir</h2>
+                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Bahan Masuk vs Bahan Keluar</h2>
                 </header>
                 <div class="grow">
                     <canvas id="data-bahan-masuk" width="595" height="248"></canvas>
                 </div>
             </div>
 
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const ctx = document.getElementById('data-bahan-masuk').getContext('2d');
-
-                    const data = {
-                        labels: @json($chartLabels),
-                        datasets: [{
-                            label: 'Sub Total Bahan Masuk',
-                            data: @json($chartData),
-                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1,
-                        }]
-                    };
-
-                    const options = {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
-                                    }
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                            }
-                        }
-                    };
-
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: data,
-                        options: options
-                    });
-                });
-            </script>
-
+            <div class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+                <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Bahan Masuk vs Bahan Keluar</h2>
+                </header>
+                <div class="grow">
+                    <div id="dashboard-bar-chart"></div>
+                </div>
+            </div>
 
             <!-- Line chart (Real Time Value) -->
             {{-- <x-dashboard.dashboard-card-05 /> --}}
@@ -186,4 +150,80 @@
         </div>
 
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const options = {
+                chart: {
+                    type: 'bar',
+                    height: 350,
+                    toolbar: {
+                        show: false
+                    },
+                },
+                series: [
+                    {
+                        name: 'Sub Total Bahan Masuk',
+                        data: @json($chartDataMasuk),
+                    },
+                    {
+                        name: 'Sub Total Bahan Keluar',
+                        data: @json($chartDataKeluar),
+                    }
+                ],
+                xaxis: {
+                    categories: @json($dates),
+                    labels: {
+                        rotate: -45,
+                    },
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function(value) {
+                            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
+                        }
+                    },
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '55%',
+                        endingShape: 'rounded'
+                    },
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                fill: {
+                    opacity: 1
+                },
+                colors: ['#3b82f6', '#f97316'],  // Bahan Masuk (blue), Bahan Keluar (orange)
+                tooltip: {
+                    y: {
+                        formatter: function (value) {
+                            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
+                        }
+                    }
+                },
+                title: {
+                    text: 'Sub Total Bahan Masuk vs Bahan Keluar - 7 Hari Terakhir',
+                    align: 'center',
+                    style: {
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        color: '#333'
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'center',
+                    labels: {
+                        colors: ['#3b82f6', '#f97316']
+                    }
+                }
+            };
+
+            const chart = new ApexCharts(document.querySelector("#dashboard-bar-chart"), options);
+            chart.render();
+        });
+    </script>
 </x-app-layout>

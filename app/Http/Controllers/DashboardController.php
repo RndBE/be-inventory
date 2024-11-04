@@ -10,34 +10,12 @@ use App\Models\JenisBahan;
 use Illuminate\Http\Request;
 use App\Models\ProdukProduksi;
 use App\Models\PurchaseDetail;
+use App\Models\BahanKeluarDetails;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Get today and last 6 days
-        $dates = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $dates[Carbon::now()->subDays($i)->format('Y-m-d')] = 0;
-        }
-
-        // Fetch data from the last 7 days, grouped by date
-        $last7DaysData = PurchaseDetail::selectRaw('DATE(purchases.tgl_masuk) as date, SUM(purchase_details.sub_total) as total_sub_total')
-            ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
-            ->where('purchases.tgl_masuk', '>=', Carbon::now()->subDays(6)->startOfDay())
-            ->groupBy('date')
-            ->orderBy('date', 'asc')
-            ->get();
-
-        // Fill in the dates array with actual data
-        foreach ($last7DaysData as $dayData) {
-            $dates[$dayData->date] = $dayData->total_sub_total;
-        }
-
-        // Separate labels (dates) and data (sub_totals) for the chart
-        $chartLabels = array_keys($dates);
-        $chartData = array_values($dates);
-
         $totalBahan = Bahan::whereDoesntHave('jenisBahan', function ($query) {
             $query->where('nama', 'Produksi');
         })->count();
@@ -45,7 +23,26 @@ class DashboardController extends Controller
         $totalSatuanUnit = Unit::count();
         $totalProdukProduksi = ProdukProduksi::count();
 
-        return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalSatuanUnit', 'chartLabels', 'chartData'));
+       // Get the last 7 days of dates
+        $dates = collect(range(0, 6))->map(function ($i) {
+            return Carbon::today()->subDays($i)->toDateString();
+        })->reverse()->values();
+
+        // Prepare data for "Bahan Masuk"
+        $chartDataMasuk = $dates->map(function ($date) {
+            return PurchaseDetail::whereHas('purchase', function ($query) use ($date) {
+                $query->whereDate('tgl_masuk', $date);
+            })->sum('sub_total');
+        })->toArray();
+
+        // Prepare data for "Bahan Keluar"
+        $chartDataKeluar = $dates->map(function ($date) {
+            return BahanKeluarDetails::whereHas('bahanKeluar', function ($query) use ($date) {
+                $query->whereDate('tgl_keluar', $date);
+            })->sum('sub_total');
+        })->toArray();
+
+        return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalSatuanUnit', 'dates', 'chartDataMasuk', 'chartDataKeluar'));
     }
 
     /**

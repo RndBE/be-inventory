@@ -12,6 +12,7 @@ class BahanProjekCart extends Component
 {
     public $cart = [];
     public $qty = [];
+    public $jml_bahan = [];
     public $details = [];
     public $details_raw = [];
     public $subtotals = [];
@@ -49,7 +50,8 @@ class BahanProjekCart extends Component
 
             // Tambahkan item ke keranjang
             $this->cart[] = $item;
-            $this->qty[$bahan->id] = null;
+            $this->qty[$bahan->id] = 0;
+            $this->jml_bahan[$bahan->id] = 0;
         }
 
         // Simpan ke sesi
@@ -71,6 +73,7 @@ class BahanProjekCart extends Component
             foreach ($storedItems as $storedItem) {
                 $this->cart[] = (object) ['id' => $storedItem['id'], 'nama_bahan' => Bahan::find($storedItem['id'])->nama_bahan];
                 $this->qty[$storedItem['id']] = $storedItem['qty'];
+                $this->jml_bahan[$storedItem['id']] = $storedItem['jml_bahan'];
                 $this->subtotals[$storedItem['id']] = $storedItem['sub_total'];
             }
             $this->calculateTotalHarga();
@@ -271,6 +274,7 @@ class BahanProjekCart extends Component
             $items[] = [
                 'id' => $itemId,
                 'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
+                'jml_bahan' => isset($this->jml_bahan[$itemId]) ? $this->jml_bahan[$itemId] : 0,
                 'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
                 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
             ];

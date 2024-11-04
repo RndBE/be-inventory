@@ -102,6 +102,8 @@ class BahanKeluarController extends Controller
                                     'projek_id' => $data->projek_id,
                                     'bahan_id' => $detail->bahan_id,
                                     'qty' => 0,
+                                    'jml_bahan' => $detail->jml_bahan,
+                                    'used_materials' => 0,
                                     'details' => json_encode([]),
                                     'sub_total' => 0,
                                 ]);
@@ -117,6 +119,8 @@ class BahanKeluarController extends Controller
                                     'projek_rnd_id' => $data->projek_rnd_id,
                                     'bahan_id' => $detail->bahan_id,
                                     'qty' => 0,
+                                    'jml_bahan' => $detail->jml_bahan,
+                                    'used_materials' => 0,
                                     'details' => json_encode([]),
                                     'sub_total' => 0,
                                 ]);
@@ -283,6 +287,8 @@ class BahanKeluarController extends Controller
                                         'projek_id' => $data->projek_id,
                                         'bahan_id' => $detail->bahan_id,
                                         'qty' => $group['qty'],
+                                        'jml_bahan' => $detail->jml_bahan,
+                                        'used_materials' => $group['qty'],
                                         'details' => json_encode([$group]), // use an array of groups
                                         'sub_total' => $group['qty'] * $unitPrice,
                                     ]);
@@ -324,6 +330,8 @@ class BahanKeluarController extends Controller
                                         'projek_rnd_id' => $data->projek_rnd_id,
                                         'bahan_id' => $detail->bahan_id,
                                         'qty' => $group['qty'],
+                                        'jml_bahan' => $detail->jml_bahan,
+                                        'used_materials' => $group['qty'],
                                         'details' => json_encode([$group]), // use an array of groups
                                         'sub_total' => $group['qty'] * $unitPrice,
                                     ]);

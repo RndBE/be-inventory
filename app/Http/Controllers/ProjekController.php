@@ -54,7 +54,7 @@ class ProjekController extends Controller
     public function store(Request $request)
     {
         try {
-
+            //dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
                 'nama_projek' => $request->nama_projek,
@@ -103,10 +103,14 @@ class ProjekController extends Controller
             foreach ($cartItems as $item) {
                 $itemId = $item['id'];
                 $groupedItems[$itemId] = [
-                    'qty' => $item['qty'],
+                    'qty' => 0,
+                    'jml_bahan' => 0,
                     'details' => $item['details'] ?? [],
-                    'sub_total' => $item['sub_total'] ?? 0,
+                    'sub_total' => 0,
                 ];
+                $groupedItems[$item['id']]['qty'] += $item['qty'];
+                $groupedItems[$item['id']]['jml_bahan'] += $item['jml_bahan'];
+                $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
             }
 
             // Save items to BahanKeluarDetails and ProjekDetails
@@ -115,7 +119,7 @@ class ProjekController extends Controller
                     'bahan_keluar_id' => $bahan_keluar->id,
                     'bahan_id' => $bahan_id,
                     'qty' => $details['qty'],
-                    'jml_bahan' => 0,
+                    'jml_bahan' => $details['jml_bahan'],
                     'used_materials' => 0,
                     'details' => json_encode($details['details']),
                     'sub_total' => $details['sub_total'],

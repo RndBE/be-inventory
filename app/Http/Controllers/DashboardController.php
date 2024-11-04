@@ -18,7 +18,7 @@ class DashboardController extends Controller
         $totalBahan = Bahan::whereDoesntHave('jenisBahan', function ($query) {
             $query->where('nama', 'Produksi');
         })->count();
-        $totalJenisBahan = JenisBahan::count();
+        $totalJenisBahan = JenisBahan::where('nama', '!=', 'Produksi')->count();
         $totalSatuanUnit = Unit::count();
         $totalProdukProduksi = ProdukProduksi::count();
 
@@ -31,18 +31,18 @@ class DashboardController extends Controller
      *
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function analytics()
-    {
-        return view('pages/dashboard/analytics');
-    }
+    // public function analytics()
+    // {
+    //     return view('pages/dashboard/analytics');
+    // }
 
     /**
      * Displays the fintech screen
      *
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function fintech()
-    {
-        return view('pages/dashboard/fintech');
-    }
+    // public function fintech()
+    // {
+    //     return view('pages/dashboard/fintech');
+    // }
 }

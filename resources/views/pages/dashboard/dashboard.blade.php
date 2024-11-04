@@ -20,6 +20,7 @@
         <!-- Cards -->
         <div class="grid grid-cols-12 gap-6">
 
+            {{-- Card Data Master --}}
             <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-archive"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 3m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z" /><path d="M19 9c.513 0 .936 .463 .993 1.06l.007 .14v7.2c0 1.917 -1.249 3.484 -2.824 3.594l-.176 .006h-10c-1.598 0 -2.904 -1.499 -2.995 -3.388l-.005 -.212v-7.2c0 -.663 .448 -1.2 1 -1.2h14zm-5 2h-4l-.117 .007a1 1 0 0 0 0 1.986l.117 .007h4l.117 -.007a1 1 0 0 0 0 -1.986l-.117 -.007z" /></svg>
@@ -88,41 +89,10 @@
                 </div>
             </div>
 
-            {{-- <div class="flex flex-col col-span-full sm:col-span-8 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-                <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
-                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Bahan Masuk vs Bahan Keluar</h2>
-                    <form method="GET" action="{{ route('dashboard') }}" class="flex gap-2">
-                        <div>
-                            <select id="year" name="year" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
-                                @foreach($availableYears as $availableYear)
-                                    <option value="{{ $availableYear }}" {{ $year == $availableYear ? 'selected' : '' }}>
-                                        {{ $availableYear }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <select id="period" name="period" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
-                                <option value="7_days" {{ $period == '7_days' ? 'selected' : '' }}>7 Days</option>
-                                <option value="monthly" {{ $period == 'monthly' ? 'selected' : '' }}>Monthly</option>
-                            </select>
-                        </div>
-
-                        <div class="flex items-end">
-                            <button type="submit" class="px-3 py-1 bg-green-600 text-white rounded-lg text-sm">Apply</button>
-                        </div>
-                    </form>
-                </header>
-
-
-                <div class="grow">
-                    <div id="dashboard-bar-chart"></div>
-                </div>
-            </div> --}}
+            {{-- Bahan Masuk vs Bahan Keluar  --}}
             <div class="col-span-full xl:col-span-8 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
-                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Proses Produksi</h2>
+                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Bahan Masuk vs Bahan Keluar</h2>
                     <form method="GET" action="{{ route('dashboard') }}" class="flex gap-2">
                         <div>
                             <select id="year" name="year" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
@@ -151,6 +121,7 @@
                 </div>
             </div>
 
+            {{-- Jumlah Pengajuan --}}
             <div class="flex flex-col col-span-full sm:col-span-4 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100">Pengajuan Bahan</h2>
@@ -192,6 +163,7 @@
                 </div>
             </div>
 
+            {{-- Total Bahan Setengah Jadi --}}
             <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60"><h2 class="font-semibold text-gray-800 dark:text-gray-100">Produk Setengah Jadi</h2>
                 </header>
@@ -200,6 +172,7 @@
                 </div>
             </div>
 
+            {{-- Proses Produksi --}}
             <div class="col-span-full xl:col-span-8 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100">Proses Produksi</h2>
@@ -222,9 +195,6 @@
                                         <div class="font-semibold text-center">Jumlah Produksi</div>
                                     </th>
                                     <th class="p-2">
-                                        <div class="font-semibold text-center">Subtotal</div>
-                                    </th>
-                                    <th class="p-2">
                                         <div class="font-semibold text-center">Penyelesaian</div>
                                     </th>
                                 </tr>
@@ -241,9 +211,6 @@
                                     </td>
                                     <td class="p-2">
                                         <div class="text-center text-green-500">{{ $produksi->jml_produksi }}</div>
-                                    </td>
-                                    <td class="p-2">
-                                        <div class="text-center">Rp {{ number_format($produksi->total_subtotal, 0, ',', '.') }}</div>
                                     </td>
                                     <td class="p-2">
                                         <div class="text-center text-sky-500">
@@ -274,7 +241,7 @@
                 </div>
             </div>
 
-
+            {{-- Projek --}}
             <div class="col-span-full xl:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100">Projek</h2>
@@ -293,9 +260,6 @@
                                     <th class="p-2">
                                         <div class="font-semibold text-center">Mulai Projek</div>
                                     </th>
-                                    <th class="p-2">
-                                        <div class="font-semibold text-center">Subtotal</div>
-                                    </th>
                                 </tr>
                             </thead>
                             <!-- Table body -->
@@ -308,10 +272,6 @@
                                     <td class="p-2">
                                         <div class="text-center">{{ $projek->mulai_projek }}</div>
                                     </td>
-                                    <td class="p-2">
-                                        <div class="text-center">Rp {{ number_format($projek->total_subtotal, 0, ',', '.') }}</div>
-                                    </td>
-
                                 </tr>
                                 @empty
                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
@@ -331,6 +291,7 @@
                 </div>
             </div>
 
+            {{-- Projek RnD --}}
             <div class="col-span-full xl:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100">Projek RnD</h2>
@@ -349,9 +310,6 @@
                                     <th class="p-2">
                                         <div class="font-semibold text-center">Mulai Projek</div>
                                     </th>
-                                    <th class="p-2">
-                                        <div class="font-semibold text-center">Subtotal</div>
-                                    </th>
                                 </tr>
                             </thead>
                             <!-- Table body -->
@@ -363,9 +321,6 @@
                                     </td>
                                     <td class="p-2">
                                         <div class="text-center">{{ $projek_rnd->mulai_projek_rnd }}</div>
-                                    </td>
-                                    <td class="p-2">
-                                        <div class="text-center">Rp {{ number_format($projek_rnd->total_subtotal, 0, ',', '.') }}</div>
                                     </td>
                                 </tr>
                                 @empty
@@ -385,10 +340,6 @@
                     </div>
                 </div>
             </div>
-
-
-
-
 
     </div>
     <script>

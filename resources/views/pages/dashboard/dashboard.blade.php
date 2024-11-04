@@ -102,118 +102,103 @@
             </div>
 
             <div class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-                <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+                <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100">Bahan Masuk vs Bahan Keluar</h2>
+                    <form method="GET" action="{{ route('dashboard') }}" class="flex gap-2">
+                        <div>
+                            <select id="year" name="year" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
+                                @foreach($availableYears as $availableYear)
+                                    <option value="{{ $availableYear }}" {{ $year == $availableYear ? 'selected' : '' }}>
+                                        {{ $availableYear }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <select id="period" name="period" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
+                                <option value="7_days" {{ $period == '7_days' ? 'selected' : '' }}>7 Days</option>
+                                <option value="monthly" {{ $period == 'monthly' ? 'selected' : '' }}>Monthly</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-end">
+                            <button type="submit" class="px-3 py-1 bg-green-600 text-white rounded-lg text-sm">Apply</button>
+                        </div>
+                    </form>
                 </header>
+
+
                 <div class="grow">
                     <div id="dashboard-bar-chart"></div>
                 </div>
             </div>
 
-            <!-- Line chart (Real Time Value) -->
-            {{-- <x-dashboard.dashboard-card-05 /> --}}
+            <script>
+                function formatRupiah(value) {
+                    return value === 0 ? '' : 'Rp ' + value.toLocaleString('id-ID'); // Format as Rupiah
+                }
+                var options = {
+                    chart: {
+                        type: 'bar',
+                        height: '350',
+                    },
+                    series: [
+                        {
+                            name: 'Sub Total Bahan Masuk',
+                            data: @json($chartDataMasuk)
+                        },
+                        {
+                            name: 'Sub Total Bahan Keluar',
+                            data: @json($chartDataKeluar)
+                        }
+                    ],
+                    xaxis: {
+                        categories: @json($dates),
+                        labels: {
+                            formatter: function (value) {
+                                return value.includes('-') ? new Date(value).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }) : value;
+                            }
+                        }
+                    },
+                    colors: ['#1E90FF', '#FF6347'],
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function (val) {
+                            return formatRupiah(val);
+                        },
+                        style: {
+                            colors: ['#000']
+                        }
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return formatRupiah(val);
+                            }
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            borderRadius: 10,
+                            dataLabels: {
+                                position: 'top',
+                            }
+                        }
+                    }
+                };
+                var chart = new ApexCharts(document.querySelector("#dashboard-bar-chart"), options);
+                chart.render();
+            </script>
 
-            <!-- Doughnut chart (Top Countries) -->
-            {{-- <x-dashboard.dashboard-card-06 /> --}}
 
-            <!-- Table (Top Channels) -->
-            {{-- <x-dashboard.dashboard-card-07 /> --}}
 
-            <!-- Line chart (Sales Over Time) -->
-            {{-- <x-dashboard.dashboard-card-08 /> --}}
 
-            <!-- Stacked bar chart (Sales VS Refunds) -->
-            {{-- <x-dashboard.dashboard-card-09 /> --}}
 
-            <!-- Card (Customers) -->
-            {{-- <x-dashboard.dashboard-card-10 /> --}}
 
-            <!-- Card (Reasons for Refunds) -->
-            {{-- <x-dashboard.dashboard-card-11 /> --}}
 
-            <!-- Card (Recent Activity) -->
-            {{-- <x-dashboard.dashboard-card-12 /> --}}
-
-            <!-- Card (Income/Expenses) -->
-            {{-- <x-dashboard.dashboard-card-13 /> --}}
 
         </div>
 
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const options = {
-                chart: {
-                    type: 'bar',
-                    height: 350,
-                    toolbar: {
-                        show: false
-                    },
-                },
-                series: [
-                    {
-                        name: 'Sub Total Bahan Masuk',
-                        data: @json($chartDataMasuk),
-                    },
-                    {
-                        name: 'Sub Total Bahan Keluar',
-                        data: @json($chartDataKeluar),
-                    }
-                ],
-                xaxis: {
-                    categories: @json($dates),
-                    labels: {
-                        rotate: -45,
-                    },
-                },
-                yaxis: {
-                    labels: {
-                        formatter: function(value) {
-                            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
-                        }
-                    },
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: false,
-                        columnWidth: '55%',
-                        endingShape: 'rounded'
-                    },
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                fill: {
-                    opacity: 1
-                },
-                colors: ['#3b82f6', '#f97316'],  // Bahan Masuk (blue), Bahan Keluar (orange)
-                tooltip: {
-                    y: {
-                        formatter: function (value) {
-                            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
-                        }
-                    }
-                },
-                title: {
-                    text: 'Sub Total Bahan Masuk vs Bahan Keluar - 7 Hari Terakhir',
-                    align: 'center',
-                    style: {
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        color: '#333'
-                    }
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'center',
-                    labels: {
-                        colors: ['#3b82f6', '#f97316']
-                    }
-                }
-            };
-
-            const chart = new ApexCharts(document.querySelector("#dashboard-bar-chart"), options);
-            chart.render();
-        });
-    </script>
 </x-app-layout>

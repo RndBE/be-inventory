@@ -10,6 +10,8 @@ use App\Helpers\LogHelper;
 use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
 use App\Exports\PurchasesExport;
+use App\Models\BahanKeluarDetails;
+use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 
@@ -195,4 +197,70 @@ class PurchaseController extends Controller
 	// 	}
     // }
 
+    public function notifTransaksi()
+    {
+        $tanggal = Carbon::today();
+        $awal = $tanggal->startOfDay()->toDateTimeString();
+        $akhir = $tanggal->endOfDay()->toDateTimeString();
+
+        // Fetch data for today's purchases (entries)
+        $masuk = PurchaseDetail::with('dataBahan')
+            ->whereHas('purchase', function($query) use ($awal, $akhir) {
+                $query->whereBetween('tgl_masuk', [$awal, $akhir]);
+            })
+            ->get();
+
+        // Fetch data for today's bahan keluar (exits)
+        $keluar = BahanKeluarDetails::with('dataBahan')
+            ->whereHas('bahanKeluar', function($query) use ($awal, $akhir) {
+                $query->whereBetween('tgl_keluar', [$awal, $akhir]);
+            })
+            ->get();
+
+        // Format messages for WhatsApp
+        $message = "Tanggal *" . $tanggal->toDateString() . "* \n\n";
+        $message .= "List Barang Masuk:\n";
+        if ($masuk->isNotEmpty()) {
+            foreach ($masuk as $key => $item) {
+                $message .= ($key + 1) . '. ' . $item->dataBahan->nama_bahan . ' - ' . $item->qty . " pcs\n";
+            }
+        } else {
+            $message .= "- \n";
+        }
+
+        $message .= "\nList Barang Keluar:\n";
+        if ($keluar->isNotEmpty()) {
+            foreach ($keluar as $key => $item) {
+                $message .= ($key + 1) . '. ' . $item->dataBahan->nama_bahan . ' - ' . $item->qty . " pcs\n";
+            }
+        } else {
+            $message .= "- \n";
+        }
+
+        $message .= "\nPesan Otomatis:\n";
+        $message .= "https://stesy.monitoring4system.com/bahan";
+
+        // Send message to WhatsApp group via API
+        if ($masuk->isNotEmpty() || $keluar->isNotEmpty()) {
+            $response = Http::withHeaders([
+                'x-api-key' => env('WHATSAPP_API_KEY'),
+                'Content-Type' => 'application/json',
+            ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                'chatId' => '6282242966796-1553841116@g.us',
+                'contentType' => 'string',
+                'content' => $message
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Notification sent successfully',
+                'response' => $response->body()
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'No transactions for today'
+            ]);
+        }
+    }
 }

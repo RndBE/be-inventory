@@ -83,7 +83,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('purchases', PurchaseController::class);
     Route::get('purchases-export', [PurchaseController::class, 'export'])->name('purchases-export.export');
 
-    Route::get('notif_transaksi', [PurchaseController::class, 'notif_transaksi']);
+    Route::get('/notif-transaksi', [PurchaseController::class, 'notifTransaksi']);
 
     Route::resource('bahan-keluars', BahanKeluarController::class);
     Route::resource('stok-produksis', StokProduksiController::class);

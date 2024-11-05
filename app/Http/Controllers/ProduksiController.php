@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\Models\DetailProduksi;
 use App\Models\ProdukProduksi;
 use App\Models\PurchaseDetail;
+use App\Exports\ProduksiExport;
 use App\Models\ProduksiDetails;
 use App\Models\BahanJadiDetails;
 use App\Models\BahanReturDetails;
@@ -22,6 +23,7 @@ use App\Models\BahanRusakDetails;
 use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
 
@@ -35,6 +37,17 @@ class ProduksiController extends Controller
         $this->middleware('permission:tambah-proses-produksi', ['only' => ['create','store']]);
         $this->middleware('permission:edit-proses-produksi', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-proses-produksi', ['only' => ['destroy']]);
+    }
+
+    public function export($produksi_id)
+    {
+        // Ambil nama proyek berdasarkan `projek_id`
+        $produksi = Produksi::findOrFail($produksi_id); // Mengambil produksi dengan id terkait
+
+        // Gunakan nama proyek di nama file ekspor
+        $fileName = 'HPP_Produksi_' . $produksi->dataBahan->nama_bahan . '_be-inventory.xlsx';
+
+        return Excel::download(new ProduksiExport($produksi_id), $fileName);
     }
 
     public function index()

@@ -3,25 +3,24 @@
 namespace App\Exports;
 
 use Carbon\Carbon;
-use App\Models\Projek;
-use PhpOffice\PhpSpreadsheet\Style\Font;
+use App\Models\Produksi;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use PhpOffice\PhpSpreadsheet\Style\Color;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Style\Border;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyles, WithTitle
+class ProduksiExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyles, WithTitle
 {
-    protected $projek_id;
+    protected $produksi_id;
 
-    public function __construct($projek_id)
+    public function __construct($produksi_id)
     {
-        $this->projek_id = $projek_id;
+        $this->produksi_id = $produksi_id;
     }
 
     public function array(): array
@@ -29,22 +28,22 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
         $data = [];
         $totalQty = 0;
         $totalSubTotal = 0;
-        $projek = Projek::with('projekDetails.dataBahan', 'projekDetails.dataBahan.dataUnit')->findOrFail($this->projek_id);
+        $produksi = Produksi::with('produksiDetails.dataBahan', 'produksiDetails.dataBahan.dataUnit')->findOrFail($this->produksi_id);
 
-        $formattedStartDate = Carbon::parse($projek->mulai_projek)->format('d F Y');
-        $formattedEndDate = Carbon::parse($projek->selesai_projek)->format('d F Y');
+        $formattedStartDate = Carbon::parse($produksi->mulai_produkis)->format('d F Y');
+        $formattedEndDate = Carbon::parse($produksi->selesai_produksi)->format('d F Y');
 
         $data[] = ['PT ARTA TEKNOLOGI COMUNINDO', '', '', '', '', '', ''];
-        $data[] = ['HPP PROJECT', '', '', '', '', '', ''];
+        $data[] = ['HPP PRODUKSI', '', '', '', '', '', ''];
         $data[] = [''];
 
-        $data[] = ['Nama Projek', '', ': '.$projek->nama_projek];
+        $data[] = ['Nama Produk', '', ': '.$produksi->dataBahan->nama_bahan];
         $data[] = ['Masa Pekerjaan', '', ': '.$formattedStartDate . ' - ' . $formattedEndDate];
         $data[] = [''];
 
         $data[] = ['No', 'Nama Barang/Bahan', 'Qty', 'Satuan', 'Harga Satuan', 'Total'];
 
-        foreach ($projek->projekDetails as $index => $detail) {
+        foreach ($produksi->produksiDetails as $index => $detail) {
             // Assuming $detail->details contains the JSON string
             $detailsArray = json_decode($detail->details, true); // Decode the JSON into an associative array
             $detailsFormatted = [];
@@ -72,7 +71,7 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
 
 
         $data[] = [
-            'Total HPP Project',
+            'Total HPP Produksi',
             '',
             $totalQty,
             '',
@@ -140,8 +139,6 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
 
     public function title(): string
     {
-        return 'HPP PROJECT';
+        return 'HPP PRODUKSI';
     }
 }
-
-

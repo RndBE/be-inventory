@@ -3,7 +3,7 @@
 namespace App\Exports;
 
 use Carbon\Carbon;
-use App\Models\Projek;
+use App\Models\ProjekRnd;
 use PhpOffice\PhpSpreadsheet\Style\Font;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -12,16 +12,17 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyles, WithTitle
+class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyles, WithTitle
 {
-    protected $projek_id;
+    protected $projek_rnd_id;
 
-    public function __construct($projek_id)
+    public function __construct($projek_rnd_id)
     {
-        $this->projek_id = $projek_id;
+        $this->projek_rnd_id = $projek_rnd_id;
     }
 
     public function array(): array
@@ -29,22 +30,22 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
         $data = [];
         $totalQty = 0;
         $totalSubTotal = 0;
-        $projek = Projek::with('projekDetails.dataBahan', 'projekDetails.dataBahan.dataUnit')->findOrFail($this->projek_id);
+        $projek_rnd = ProjekRnd::with('projekRndDetails.dataBahan', 'projekRndDetails.dataBahan.dataUnit')->findOrFail($this->projek_rnd_id);
 
-        $formattedStartDate = Carbon::parse($projek->mulai_projek)->format('d F Y');
-        $formattedEndDate = Carbon::parse($projek->selesai_projek)->format('d F Y');
+        $formattedStartDate = Carbon::parse($projek_rnd->mulai_projek_rnd)->format('d F Y');
+        $formattedEndDate = Carbon::parse($projek_rnd->selesai_projek_rnd)->format('d F Y');
 
         $data[] = ['PT ARTA TEKNOLOGI COMUNINDO', '', '', '', '', '', ''];
-        $data[] = ['HPP PROJECT', '', '', '', '', '', ''];
+        $data[] = ['HPP PROJEK RnD', '', '', '', '', '', ''];
         $data[] = [''];
 
-        $data[] = ['Nama Projek', '', ': '.$projek->nama_projek];
+        $data[] = ['Nama Projek', '', ': '.$projek_rnd->nama_projek_rnd];
         $data[] = ['Masa Pekerjaan', '', ': '.$formattedStartDate . ' - ' . $formattedEndDate];
         $data[] = [''];
 
         $data[] = ['No', 'Nama Barang/Bahan', 'Qty', 'Satuan', 'Harga Satuan', 'Total'];
 
-        foreach ($projek->projekDetails as $index => $detail) {
+        foreach ($projek_rnd->projekRndDetails as $index => $detail) {
             $detailsArray = json_decode($detail->details, true);
             $detailsFormatted = [];
 
@@ -69,7 +70,7 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
 
 
         $data[] = [
-            'Total HPP Project',
+            'Total HPP Projek RnD',
             '',
             $totalQty,
             '',
@@ -87,6 +88,7 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
 
     public function styles(Worksheet $sheet)
     {
+        // Gaya untuk baris judul dan perusahaan
         $sheet->getStyle('A1:A2')->getFont()->setBold(true);
         $sheet->getStyle('A1:A2')->getFont()->setSize(12);
         $sheet->getStyle('A1:A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -132,8 +134,6 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
 
     public function title(): string
     {
-        return 'HPP PROJECT';
+        return 'HPP PROJEK RnD';
     }
 }
-
-

@@ -5,16 +5,18 @@ namespace App\Http\Controllers;
 use Throwable;
 use App\Models\Unit;
 use App\Models\Bahan;
+use App\Models\ProjekRnd;
 use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
 use App\Models\ProdukProduksi;
+use App\Exports\ProjekRndExport;
 use App\Models\BahanReturDetails;
 use App\Models\BahanRusakDetails;
 use App\Models\BahanKeluarDetails;
-use App\Models\ProjekRnd;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 
 class ProjekRndController extends Controller
@@ -26,6 +28,17 @@ class ProjekRndController extends Controller
         $this->middleware('permission:tambah-projek-rnd', ['only' => ['create','store']]);
         $this->middleware('permission:edit-projek-rnd', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-projek-rnd', ['only' => ['destroy']]);
+    }
+
+    public function export($projek_rnd_id)
+    {
+        // Ambil nama proyek berdasarkan `projek_rnd_id`
+        $projek_rnd = ProjekRnd::findOrFail($projek_rnd_id); // Mengambil projek dengan id terkait
+
+        // Gunakan nama proyek di nama file ekspor
+        $fileName = 'HPP_Projek_Rnd_' . $projek_rnd->nama_projek_rnd . '_be-inventory.xlsx';
+
+        return Excel::download(new ProjekRndExport($projek_rnd_id), $fileName);
     }
 
     public function index()
@@ -134,8 +147,8 @@ class ProjekRndController extends Controller
         $projek_rnd = ProjekRnd::with(['projekRndDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
 
         $isComplete = true;
-        if ($projek_rnd->projekDetails && count($projek_rnd->projekDetails) > 0) {
-            foreach ($projek_rnd->projekDetails as $detail) {
+        if ($projek_rnd->projekRndDetails && count($projek_rnd->projekRndDetails) > 0) {
+            foreach ($projek_rnd->projekRndDetails as $detail) {
                 $kebutuhan = $detail->jml_bahan - $detail->used_materials;
                 if ($kebutuhan > 0) {
                     $isComplete = false;

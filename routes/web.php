@@ -104,8 +104,10 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('bahan-jadis', BahanJadiController::class);
     Route::resource('produk-produksis', ProdukProduksiController::class);
     Route::resource('bahan-returs', BahanReturController::class);
+
     Route::resource('projek-rnd', ProjekRndController::class);
-    Route::put('projek-rnd/{projek}/selesai', [ProjekController::class, 'updateStatus'])->name('projek-rnd.updateStatus');
+    Route::put('projek-rnd/{projek}/selesai', [ProjekRndController::class, 'updateStatus'])->name('projek-rnd.updateStatus');
+    Route::get('projek-rnd-export/{projek_rnd_id}', [ProjekRndController::class, 'export'])->name('projek-rnd.export');
 
 
 

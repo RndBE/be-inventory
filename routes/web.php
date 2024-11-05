@@ -94,8 +94,11 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('stok-rnds', StokRndController::class);
     Route::resource('produksis', ProduksiController::class);
     Route::put('produksis/{produksi}/selesai', [ProduksiController::class, 'updateStatus'])->name('produksis.updateStatus');
+
     Route::resource('projeks', ProjekController::class);
     Route::put('projeks/{projek}/selesai', [ProjekController::class, 'updateStatus'])->name('projeks.updateStatus');
+    Route::get('projeks-export/{projek_id}', [ProjekController::class, 'export'])->name('projeks.export');
+
     Route::resource('bahan-rusaks', BahanRusakController::class);
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
     Route::resource('bahan-jadis', BahanJadiController::class);

@@ -12,6 +12,11 @@ class Projek extends Model
     protected $table = 'projek';
     protected $guarded = [];
 
+    protected $casts = [
+        'mulai_projek' => 'datetime',
+        'selesai_projek' => 'datetime',
+    ];
+
     public function projekDetails()
     {
         return $this->hasMany(ProjekDetails::class, 'projek_id', 'id');

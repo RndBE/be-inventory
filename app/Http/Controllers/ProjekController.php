@@ -13,6 +13,7 @@ use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
+use App\Exports\ProjekExport;
 use App\Models\ProjekDetails;
 use App\Models\DetailProduksi;
 use App\Models\ProdukProduksi;
@@ -24,6 +25,7 @@ use App\Models\BahanRusakDetails;
 use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
 
@@ -38,6 +40,19 @@ class ProjekController extends Controller
         $this->middleware('permission:edit-projek', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-projek', ['only' => ['destroy']]);
     }
+
+    public function export($projek_id)
+    {
+        // Ambil nama proyek berdasarkan `projek_id`
+        $projek = Projek::findOrFail($projek_id); // Mengambil projek dengan id terkait
+
+        // Gunakan nama proyek di nama file ekspor
+        $fileName = 'HPP_Project_' . $projek->nama_projek . '_be-inventory.xlsx';
+
+        return Excel::download(new ProjekExport($projek_id), $fileName);
+    }
+
+
 
     public function index()
     {

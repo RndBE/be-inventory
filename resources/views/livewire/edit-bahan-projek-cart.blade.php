@@ -27,7 +27,7 @@
                                 wire:model="jml_bahan.{{ $detail['bahan']->id }}"
                                 wire:keyup="updateQuantity({{ $detail['bahan']->id }})"
                                 class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="0" min="0" required />
+                                placeholder="0" min="0" required @if($this->produksiStatus === 'Selesai') disabled @endif/>
                         </td>
                         <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
                             <div class="flex items-center">
@@ -36,7 +36,7 @@
                                     wire:model="qty.{{ $detail['bahan']->id }}"
                                     wire:keyup="updateQuantity({{ $detail['bahan']->id }})"
                                     class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    placeholder="0" min="0" required />
+                                    placeholder="0" min="0" required @if($this->produksiStatus === 'Selesai') disabled @endif/>
                             </div>
                         </td>
                         <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">

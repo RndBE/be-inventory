@@ -35,17 +35,37 @@ class DashboardController extends Controller
         $totalPengajuanBahanKeluar = BahanKeluar::where('status', '=', 'Belum disetujui')->count();
         $totalPengajuanBahanRetur = BahanRetur::where('status', '=', 'Belum disetujui')->count();
         $totalPengajuanBahanRusak = BahanRusak::where('status', '=', 'Belum disetujui')->count();
+
+        $bahanSisaTerbanyak = PurchaseDetail::with('dataBahan')
+            ->select('bahan_id')
+            ->selectRaw('SUM(sisa) as total_sisa')
+            ->groupBy('bahan_id')
+            ->orderBy('total_sisa', 'desc')
+            ->take(10)
+            ->get();
+
+        // Hitung total sisa per bahan dan ambil 10 dengan sisa paling sedikit
+        $bahanSisaPalingSedikit = PurchaseDetail::with('dataBahan')
+            ->select('bahan_id')
+            ->selectRaw('SUM(sisa) as total_sisa')
+            ->groupBy('bahan_id')
+            ->orderBy('total_sisa', 'asc')
+            ->take(10)
+            ->get();
+
+
+
         $prosesProduksi = Produksi::where('status', 'Dalam proses')
             ->with(['produksiDetails' => function ($query) {
                 $query->select('produksi_id', 'jml_bahan', 'used_materials', 'sub_total');
             }])
             ->get()
             ->map(function ($produksi) {
-                $totalSubTotal = $produksi->produksiDetails->sum('sub_total'); // Sum of all sub_totals for each production
-                $totalBahan = $produksi->produksiDetails->sum('jml_bahan'); // Total bahan needed
-                $totalUsed = $produksi->produksiDetails->sum('used_materials'); // Total used materials
+                $totalSubTotal = $produksi->produksiDetails->sum('sub_total');
+                $totalBahan = $produksi->produksiDetails->sum('jml_bahan');
+                $totalUsed = $produksi->produksiDetails->sum('used_materials');
 
-                $completionPercentage = $totalBahan > 0 ? round(($totalUsed / $totalBahan) * 100) : 0; // Calculate percentage
+                $completionPercentage = $totalBahan > 0 ? round(($totalUsed / $totalBahan) * 100) : 0;
 
                 $produksi->total_subtotal = $totalSubTotal;
                 $produksi->completion_percentage = $completionPercentage;
@@ -58,11 +78,11 @@ class DashboardController extends Controller
             }])
             ->get()
             ->map(function ($projek) {
-                $totalSubTotalProjek = $projek->projekDetails->sum('sub_total'); // Sum of all sub_totals for each production
-                $totalBahanProjek = $projek->projekDetails->sum('jml_bahan'); // Total bahan needed
-                $totalUsedProjek = $projek->projekDetails->sum('used_materials'); // Total used materials
+                $totalSubTotalProjek = $projek->projekDetails->sum('sub_total');
+                $totalBahanProjek = $projek->projekDetails->sum('jml_bahan');
+                $totalUsedProjek = $projek->projekDetails->sum('used_materials');
 
-                $completionPercentageProjek = $totalBahanProjek > 0 ? round(($totalUsedProjek / $totalBahanProjek) * 100) : 0; // Calculate percentage
+                $completionPercentageProjek = $totalBahanProjek > 0 ? round(($totalUsedProjek / $totalBahanProjek) * 100) : 0;
 
                 $projek->total_subtotal = $totalSubTotalProjek;
                 $projek->completion_percentage_projek = $completionPercentageProjek;
@@ -76,11 +96,11 @@ class DashboardController extends Controller
             }])
             ->get()
             ->map(function ($projekrnd) {
-                $totalSubTotalProjekRnd = $projekrnd->projekRndDetails->sum('sub_total'); // Sum of all sub_totals for each production
-                $totalBahanProjekRnd = $projekrnd->projekRndDetails->sum('jml_bahan'); // Total bahan needed
-                $totalUsedProjekRnd = $projekrnd->projekRndDetails->sum('used_materials'); // Total used materials
+                $totalSubTotalProjekRnd = $projekrnd->projekRndDetails->sum('sub_total');
+                $totalBahanProjekRnd = $projekrnd->projekRndDetails->sum('jml_bahan');
+                $totalUsedProjekRnd = $projekrnd->projekRndDetails->sum('used_materials');
 
-                $completionPercentageProjekRnd = $totalBahanProjekRnd > 0 ? round(($totalUsedProjekRnd / $totalBahanProjekRnd) * 100) : 0; // Calculate percentage
+                $completionPercentageProjekRnd = $totalBahanProjekRnd > 0 ? round(($totalUsedProjekRnd / $totalBahanProjekRnd) * 100) : 0;
 
                 $projekrnd->total_subtotal = $totalSubTotalProjekRnd;
                 $projekrnd->completion_percentage_projekrnd = $completionPercentageProjekRnd;
@@ -151,8 +171,7 @@ class DashboardController extends Controller
             $chartData[] = $data->total_qty;
         }
 
-        return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalSatuanUnit', 'dates', 'chartDataMasuk', 'chartDataKeluar',
-        'availableYears', 'year', 'period', 'totalPengajuanBahanKeluar','totalPengajuanBahanRetur','totalPengajuanBahanRusak', 'chartLabels', 'chartData','prosesProduksi','projeks','projeks_rnd'));
+        return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalSatuanUnit', 'dates', 'chartDataMasuk', 'chartDataKeluar','availableYears', 'year', 'period', 'totalPengajuanBahanKeluar','totalPengajuanBahanRetur','totalPengajuanBahanRusak', 'chartLabels', 'chartData','prosesProduksi','projeks','projeks_rnd', 'bahanSisaTerbanyak','bahanSisaPalingSedikit'));
     }
 
     /**

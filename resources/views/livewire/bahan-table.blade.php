@@ -83,9 +83,9 @@
                         <th scope="col" class="px-6 py-3">
                             Jenis Bahan
                         </th>
-                        {{-- <th scope="col" class="px-6 py-3">
-                            Stok Awal
-                        </th> --}}
+                        <th scope="col" class="px-6 py-3">
+                            Supplier
+                        </th>
                         <th scope="col" class="px-6 py-3">
                             Total Stok
                         </th>
@@ -108,7 +108,7 @@
                             <td class="px-6 py-3">{{ $row->kode_bahan }}</td>
                             <td class="px-6 py-3">{{ $row->nama_bahan }}</td>
                             <td class="px-6 py-3">{{ $row->jenisBahan->nama ?? 'N/A' }}</td>
-                            {{-- <td class="px-6 py-4"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $row->stok_awal }} {{ $row->dataUnit->nama ?? 'N/A' }}</span></td> --}}
+                            <td class="px-6 py-4">{{ $row->dataSupplier->nama ?? 'N/A' }}</td>
                             <td class="px-6 py-4">
                                 <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">
                                     {{ $row->total_stok }} {{ $row->dataUnit->nama ?? 'N/A' }}

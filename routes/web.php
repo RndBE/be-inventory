@@ -33,6 +33,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\StokProduksiController;
 use App\Http\Controllers\ProdukProduksiController;
 use App\Http\Controllers\BahanSetengahjadiController;
+use App\Http\Controllers\SupplierController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +77,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::delete('/bahan/{id}', [BahanController::class, 'destroy'])->name('bahan.destroy');
     Route::get('bahan-export', [BahanController::class, 'export'])->name('bahan.export');
 
+
+    Route::resource('supplier', SupplierController::class);
+    Route::get('supplier-export', [SupplierController::class, 'export'])->name('supplier.export');
     Route::resource('jenis-bahan', JenisBahanController::class);
     Route::get('jenisbahan-expot', [JenisBahanController::class, 'export'])->name('jenisbahan-expot.export');
     Route::resource('unit', UnitController::class);

@@ -132,6 +132,21 @@
                             </div>
                             </div>
 
+                            <div class="sm:col-span-2">
+                                <label for="supplier_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Supplier</label>
+                                <div class="mt-2">
+                                    <select id="supplier_id" name="supplier_id" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                                        <option value="" selected>Pilih Supplier</option>
+                                        @foreach($suppliers as $supplier)
+                                            <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('supplier_id')
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
                             {{-- <div class="col-span-full">
                                 <label for="gambar" class="block text-sm font-medium leading-6 text-gray-900">Gambar</label>
                                 <div class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">

@@ -22,6 +22,11 @@ class Bahan extends Model
         return $this->belongsTo(Unit::class, 'unit_id');
     }
 
+    public function dataSupplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
+
     public function produksiDetails()
     {
         return $this->hasMany(ProduksiDetails::class, 'bahan_id');

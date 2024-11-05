@@ -151,7 +151,7 @@
                                 <label for="unit_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Unit</label>
                                 <div class="mt-2">
                                     <select id="unit_id" name="unit_id" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-                                        <option value="" disabled>Pilih Satuan Unit</option>
+                                        <option value="">Pilih Satuan Unit</option>
                                         @foreach($units as $unit)
                                             <option value="{{ $unit->id }}" {{ old('unit_id', $bahan->unit_id) == $unit->id ? 'selected' : '' }}>
                                                 {{ $unit->nama }}
@@ -173,6 +173,23 @@
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="supplier_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Supplier</label>
+                                <div class="mt-2">
+                                    <select id="supplier_id" name="supplier_id" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                                        <option value="">Pilih Supplier</option>
+                                        @foreach($suppliers as $supplier)
+                                            <option value="{{ $supplier->id }}" {{ old('supplier_id', $bahan->supplier_id) == $supplier->id ? 'selected' : '' }}>
+                                                {{ $supplier->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('supplier')
+                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             </div>
 
                             {{-- <div class="col-span-full">

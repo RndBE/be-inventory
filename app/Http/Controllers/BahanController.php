@@ -24,6 +24,7 @@ use App\Models\ProdukProduksiDetail;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use App\Models\BahanSetengahjadiDetails;
+use App\Models\Supplier;
 use Illuminate\Validation\ValidationException;
 
 class BahanController extends Controller
@@ -51,8 +52,9 @@ class BahanController extends Controller
     public function create()
     {
         $units = Unit::all();
+        $suppliers = Supplier::all();
         $jenisBahan = JenisBahan::all();
-        return view('pages.bahan.create', compact('units', 'jenisBahan'));
+        return view('pages.bahan.create', compact('units', 'suppliers', 'jenisBahan'));
     }
 
     public function store(Request $request)
@@ -64,6 +66,7 @@ class BahanController extends Controller
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 // 'stok_awal' => 'required|integer',
                 'unit_id' => 'required|exists:unit,id',
+                'supplier_id' => 'required|exists:supplier,id',
                 'penempatan' => 'required|string|max:255',
                 'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             ]);
@@ -89,10 +92,11 @@ class BahanController extends Controller
     {
         $units = Unit::all();
         $jenisBahan = JenisBahan::all();
+        $suppliers = Supplier::all();
         $bahan = Bahan::with('jenisBahan', 'dataUnit', 'purchaseDetails')->findOrFail($id);
         $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
         return view('pages.bahan.edit',
-            compact('bahan', 'units', 'jenisBahan')
+            compact('bahan', 'units', 'suppliers', 'jenisBahan')
         );
     }
 
@@ -106,6 +110,7 @@ class BahanController extends Controller
                 'nama_bahan' => 'required|string|max:255',
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 'unit_id' => 'required|exists:unit,id',
+                'supplier_id' => 'required|exists:supplier,id',
                 'penempatan' => 'required|string|max:255',
                 'gambar' => 'nullable|image|max:2048',
             ]);

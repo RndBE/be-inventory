@@ -50,7 +50,7 @@ Route::get('/', function () {
 });
 
 Route::post('/login', [AuthController::class, 'login']);
-
+Route::get('/notif-transaksi', [PurchaseController::class, 'notifTransaksi']);
 Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     // Route::get('/log-activities', [LogActivityController::class, 'index'])->name('log.activities.index');
     Route::resource('log-activities', LogActivityController::class);
@@ -83,7 +83,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('purchases', PurchaseController::class);
     Route::get('purchases-export', [PurchaseController::class, 'export'])->name('purchases-export.export');
 
-    Route::get('/notif-transaksi', [PurchaseController::class, 'notifTransaksi']);
+
 
     Route::resource('bahan-keluars', BahanKeluarController::class);
     Route::resource('stok-produksis', StokProduksiController::class);

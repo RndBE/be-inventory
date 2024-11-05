@@ -11,6 +11,16 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class SupplierController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-supplier', ['only' => ['index']]);
+        $this->middleware('permission:tambah-supplier', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-supplier', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-supplier', ['only' => ['destroy']]);
+        $this->middleware('permission:export-supplier', ['only' => ['export']]);
+    }
+
     public function export()
     {
         return Excel::download(new SupplierExport, 'Supplier_be-inventory.xlsx');

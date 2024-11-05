@@ -66,7 +66,7 @@ class BahanController extends Controller
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 // 'stok_awal' => 'required|integer',
                 'unit_id' => 'required|exists:unit,id',
-                'supplier_id' => 'required|exists:supplier,id',
+                'supplier_id' => 'nullable|exists:supplier,id',
                 'penempatan' => 'required|string|max:255',
                 'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             ]);
@@ -110,7 +110,7 @@ class BahanController extends Controller
                 'nama_bahan' => 'required|string|max:255',
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 'unit_id' => 'required|exists:unit,id',
-                'supplier_id' => 'required|exists:supplier,id',
+                'supplier_id' => 'nullable|exists:supplier,id',
                 'penempatan' => 'required|string|max:255',
                 'gambar' => 'nullable|image|max:2048',
             ]);

@@ -41,7 +41,7 @@ class EditBahanProjekRndCart extends Component
         foreach ($this->projekRndDetails as $detail) {
             $bahanId = $detail['bahan']->id;
             $this->jml_bahan[$bahanId] = $detail['jml_bahan'] ?? 0; // Default to 0 if not set
-            $this->qty[$bahanId] = $detail['used_materials'] ?? 0;
+            // $this->qty[$bahanId] = $detail['used_materials'] ?? 0;
         }
     }
 
@@ -54,7 +54,7 @@ class EditBahanProjekRndCart extends Component
             foreach ($projekRnd->projekRndDetails as $detail) {
                 $this->projekRndDetails[] = [
                     'bahan' => Bahan::find($detail->bahan_id), // Ensure this returns an object
-                    'qty' => $detail->qty,
+                    // 'qty' => $detail->qty,
                     'jml_bahan' => $detail->jml_bahan,
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,

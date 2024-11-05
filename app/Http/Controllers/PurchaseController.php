@@ -200,6 +200,7 @@ class PurchaseController extends Controller
     public function notifTransaksi()
     {
         $tanggal = Carbon::today();
+        // $tanggal = Carbon::create(2024, 11, 4);
         $awal = $tanggal->startOfDay()->toDateTimeString();
         $akhir = $tanggal->endOfDay()->toDateTimeString();
 
@@ -217,36 +218,66 @@ class PurchaseController extends Controller
             })
             ->get();
 
+        $consolidatedMasuk = [];
+        foreach ($masuk as $item) {
+            $bahanId = $item->dataBahan->id;
+            if (isset($consolidatedMasuk[$bahanId])) {
+                $consolidatedMasuk[$bahanId]['qty'] += $item->qty;
+            } else {
+                $consolidatedMasuk[$bahanId] = [
+                    'nama_bahan' => $item->dataBahan->nama_bahan,
+                    'qty' => $item->qty
+                ];
+            }
+        }
+
+        $consolidatedKeluar = [];
+        foreach ($keluar as $item) {
+            $bahanId = $item->dataBahan->id;
+            if (isset($consolidatedKeluar[$bahanId])) {
+                $consolidatedKeluar[$bahanId]['qty'] += $item->qty;
+            } else {
+                $consolidatedKeluar[$bahanId] = [
+                    'nama_bahan' => $item->dataBahan->nama_bahan,
+                    'qty' => $item->qty
+                ];
+            }
+        }
+
         // Format messages for WhatsApp
         $message = "Tanggal *" . $tanggal->toDateString() . "* \n\n";
         $message .= "List Barang Masuk:\n";
-        if ($masuk->isNotEmpty()) {
-            foreach ($masuk as $key => $item) {
-                $message .= ($key + 1) . '. ' . $item->dataBahan->nama_bahan . ' - ' . $item->qty . " pcs\n";
+        if (!empty($consolidatedMasuk)) {
+            $index = 1;
+            foreach ($consolidatedMasuk as $item) {
+                $message .= $index . '. ' . $item['nama_bahan'] . ' - ' . $item['qty'] . " pcs\n";
+                $index++;
             }
         } else {
             $message .= "- \n";
         }
 
         $message .= "\nList Barang Keluar:\n";
-        if ($keluar->isNotEmpty()) {
-            foreach ($keluar as $key => $item) {
-                $message .= ($key + 1) . '. ' . $item->dataBahan->nama_bahan . ' - ' . $item->qty . " pcs\n";
+        if (!empty($consolidatedKeluar)) {
+            $index = 1;
+            foreach ($consolidatedKeluar as $item) {
+                $message .= $index . '. ' . $item['nama_bahan'] . ' - ' . $item['qty'] . " pcs\n";
+                $index++;
             }
         } else {
             $message .= "- \n";
         }
 
         $message .= "\nPesan Otomatis:\n";
-        $message .= "https://stesy.monitoring4system.com/bahan";
+        $message .= "https://inventory.beacontelemetry.com/";
 
-        // Send message to WhatsApp group via API
-        if ($masuk->isNotEmpty() || $keluar->isNotEmpty()) {
+        if (!empty($consolidatedMasuk) || !empty($consolidatedKeluar)) {
             $response = Http::withHeaders([
                 'x-api-key' => env('WHATSAPP_API_KEY'),
                 'Content-Type' => 'application/json',
             ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
                 'chatId' => '6282242966796-1553841116@g.us',
+                // 'chatId' => '6289514761334@c.us',
                 'contentType' => 'string',
                 'content' => $message
             ]);

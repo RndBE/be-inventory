@@ -93,9 +93,9 @@
                             <h6 class="p-4 text-2xl text-gray-800 dark:text-gray-100 font-bold">Role : {{ $role->name }}</h6>
 
                             @foreach ($permissions as $category => $permissionGroup)
-                            <div class="p-4 flex flex-wrap gap-6">
+                            <div class="p-4 flex flex-wrap space-x-6">
                                 @foreach ($permissionGroup as $permission)
-                                    <div class="w-1/2 md:w-1/4 lg:w-1/6">
+                                    <div class="flex items-center">
                                         <label>
                                             <input
                                                 type="checkbox"

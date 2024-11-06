@@ -90,31 +90,35 @@
                     @method('PUT')
                     <div class="space-y-12">
                         <div class="border-gray-900/10 pb-12">
-                            <h6 class="p-4 text-2xl text-gray-800 dark:text-gray-100 font-bold">Role : {{ $role->name }}</h6>
+                            <h6 class="p-4 text-2xl text-gray-800 dark:text-gray-100 font-bold">Role: {{ $role->name }}</h6>
 
                             @foreach ($permissions as $category => $permissionGroup)
-                            <div class="p-4 flex flex-wrap space-x-6">
-                                @foreach ($permissionGroup as $permission)
-                                    <div class="flex items-center">
-                                        <label>
-                                            <input
-                                                type="checkbox"
-                                                name="permission[]"
-                                                value="{{ $permission->name }}"
-                                                {{ in_array($permission->id, $rolePermissions) ? 'checked':'' }}
-                                            />
-                                            {{ $permission->name }}
-                                        </label>
-                                    </div>
-                                @endforeach
-                            </div>
+                                <div class="p-4">
+                                    <h3 class="text-xl font-semibold">{{ $category }}</h3> <!-- Display category name -->
 
+                                    <div class="flex flex-wrap gap-6">
+                                        @foreach ($permissionGroup as $permission)
+                                            <div class="flex items-center w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/6">
+                                                <label class="flex items-center space-x-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="permission[]"
+                                                        value="{{ $permission->name }}"
+                                                        {{ in_array($permission->id, $rolePermissions) ? 'checked':'' }}
+                                                    />
+                                                    <span>{{ $permission->name }}</span>
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
                     </div>
                 </form>
             </div>
         </div>
+
 
     </div>
 <script>

@@ -80,7 +80,7 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
                 $item->kode_bahan,
                 $item->nama_bahan,
                 $item->seri_bahan,
-                $item->dataUnit->nama,
+                $item->dataUnit->nama ?? Null,
                 $stokAwal
             ];
 

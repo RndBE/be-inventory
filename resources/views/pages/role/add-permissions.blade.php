@@ -90,23 +90,23 @@
                     @method('PUT')
                     <div class="space-y-12">
                         <div class="border-gray-900/10 pb-12">
-                            <h6 class="p-4 text-2xl text-gray-800 dark:text-gray-100 font-bold">Role: {{ $role->name }}</h6>
+                            <h6 class="p-4 text-2xl text-gray-800 dark:text-gray-100 font-bold">Role : {{ $role->name }}</h6>
 
-                            @foreach ($permissions as $category => $permissionGroup)
-                                <div class="p-4">
-                                    <h3 class="text-xl font-semibold">{{ $category }}</h3> <!-- Display category name -->
+                            @foreach ($permissions as $category => $permissionGroup) <!-- Mengelompokkan berdasarkan kategori -->
+                                <div class="p-4 flex flex-wrap space-x-2">
+                                    <h4 class="p-4 text-lg font-semibold text-gray-600 dark:text-gray-300">{{ $category }}</h4> <!-- Nama kategori -->
 
-                                    <div class="flex flex-wrap gap-6">
+                                    <div class="p-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-4">
                                         @foreach ($permissionGroup as $permission)
-                                            <div class="flex items-center w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/6">
-                                                <label class="flex items-center space-x-2">
+                                            <div class="col-md-2">
+                                                <label>
                                                     <input
                                                         type="checkbox"
                                                         name="permission[]"
                                                         value="{{ $permission->name }}"
                                                         {{ in_array($permission->id, $rolePermissions) ? 'checked':'' }}
                                                     />
-                                                    <span>{{ $permission->name }}</span>
+                                                    {{ $permission->name }}
                                                 </label>
                                             </div>
                                         @endforeach
@@ -118,7 +118,6 @@
                 </form>
             </div>
         </div>
-
 
     </div>
 <script>

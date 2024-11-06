@@ -93,21 +93,22 @@
                             <h6 class="p-4 text-2xl text-gray-800 dark:text-gray-100 font-bold">Role : {{ $role->name }}</h6>
 
                             @foreach ($permissions as $category => $permissionGroup)
-                                    <div class="p-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-4">
-                                        @foreach ($permissionGroup as $permission)
-                                            <div class="col-md-2">
-                                                <label>
-                                                    <input
-                                                        type="checkbox"
-                                                        name="permission[]"
-                                                        value="{{ $permission->name }}"
-                                                        {{ in_array($permission->id, $rolePermissions) ? 'checked':'' }}
-                                                    />
-                                                    {{ $permission->name }}
-                                                </label>
-                                            </div>
-                                        @endforeach
+                            <div class="p-4 flex flex-wrap gap-6">
+                                @foreach ($permissionGroup as $permission)
+                                    <div class="w-1/2 md:w-1/4 lg:w-1/6">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                name="permission[]"
+                                                value="{{ $permission->name }}"
+                                                {{ in_array($permission->id, $rolePermissions) ? 'checked':'' }}
+                                            />
+                                            {{ $permission->name }}
+                                        </label>
                                     </div>
+                                @endforeach
+                            </div>
+
                             @endforeach
                         </div>
                     </div>

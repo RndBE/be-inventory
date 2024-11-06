@@ -105,7 +105,7 @@
                                     <!-- Use a flex container for checkboxes with wrapping for responsive layout -->
                                     <div class="flex flex-wrap gap-4">
                                         @foreach ($permissionGroup as $permission)
-                                            <div class="flex items-center w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/6">
+                                            <div class="flex items-center sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/6">
                                                 <label class="flex items-center space-x-2">
                                                     <input
                                                         type="checkbox"

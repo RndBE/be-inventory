@@ -10,6 +10,7 @@ use App\Models\ProjekDetails;
 use App\Models\ProduksiDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanRusakDetails;
+use Illuminate\Support\Facades\DB;
 
 class BahanRusakController extends Controller
 {
@@ -45,6 +46,7 @@ class BahanRusakController extends Controller
     public function update(Request $request, string $id)
     {
         try {
+            DB::beginTransaction();
             $validated = $request->validate([
                 'status' => 'required',
             ]);
@@ -189,9 +191,11 @@ class BahanRusakController extends Controller
             $bahanRusak->status = $validated['status'];
             $bahanRusak->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             $bahanRusak->save();
-
+            DB::commit();
             LogHelper::success('Berhasil Mengubah Status Bahan Rusak!');
         } catch (\Exception $e) {
+            DB::rollBack();
+            
             $errorMessage = $e->getMessage();
             $errorColumn = '';
 

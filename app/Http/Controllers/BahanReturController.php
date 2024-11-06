@@ -13,6 +13,7 @@ use App\Models\ProduksiDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanReturDetails;
 use App\Models\BahanSetengahjadi;
+use Illuminate\Support\Facades\DB;
 use App\Models\BahanSetengahjadiDetails;
 
 class BahanReturController extends Controller
@@ -69,6 +70,7 @@ class BahanReturController extends Controller
     public function update(Request $request, string $id)
     {
         try {
+            DB::beginTransaction();
             $validated = $request->validate([
                 'status' => 'required',
             ]);
@@ -239,9 +241,12 @@ class BahanReturController extends Controller
                 $bahanRetur->status = $validated['status'];
                 $bahanRetur->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                 $bahanRetur->save();
+                DB::commit();
                 LogHelper::success('Berhasil Mengubah Status Bahan Retur!');
             }
         } catch (\Exception $e) {
+            DB::rollBack();
+
             $errorMessage = $e->getMessage();
             $errorColumn = '';
             if (strpos($errorMessage, 'tgl_keluar') !== false) {

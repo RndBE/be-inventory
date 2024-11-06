@@ -97,7 +97,6 @@
                                 <div class="mb-4">
                                     <div class="p-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-4">
                                         @foreach ($permissionGroup as $permission)
-                                            <div class="col-md-2">
                                                     <input
                                                         type="checkbox"
                                                         name="permission[]"
@@ -105,7 +104,6 @@
                                                         {{ in_array($permission->id, $rolePermissions) ? 'checked':'' }}
                                                     />
                                                     {{ $permission->name }}
-                                            </div>
                                         @endforeach
                                     </div>
                                 </div>

@@ -129,9 +129,9 @@
                 <div class="flex justify-center items-center h-full">
                     <div class="group my-3 inline-flex flex-wrap justify-center items-center gap-12">
                         <div class="flex flex-col items-center">
-                            <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
-                                <h2 class="font-semibold text-5xl text-gray-800 dark:text-gray-100">{{ $totalPengajuanBahanKeluar }}</h2>
-                            </header>
+                            {{-- <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center"> --}}
+                                <h2 class="block antialiased tracking-normal font-sans text-5xl font-semibold leading-snug text-blue-gray-900">{{ $totalPengajuanBahanKeluar }}</h2>
+                            {{-- </header> --}}
                             <button class="rounded-full pointer-events-none border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
                                 <svg  xmlns="http://www.w3.org/2000/svg"  width="32"  height="32"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-door-exit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 12v.01" /><path d="M3 21h18" /><path d="M5 21v-16a2 2 0 0 1 2 -2h7.5m2.5 10.5v7.5" /><path d="M14 7h7m-3 -3l3 3l-3 3" /></svg>
                             </button>
@@ -139,9 +139,9 @@
                         </div>
 
                         <div class="flex flex-col items-center">
-                            <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
-                                <h2 class="font-semibold text-5xl text-gray-800 dark:text-gray-100">{{ $totalPengajuanBahanRusak }}</h2>
-                            </header>
+                            {{-- <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center"> --}}
+                                <h2 class="block antialiased tracking-normal font-sans text-5xl font-semibold leading-snug text-blue-gray-900">{{ $totalPengajuanBahanRusak }}</h2>
+                            {{-- </header> --}}
                             <button class="rounded-full pointer-events-none border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
                                 <svg class="shrink-0 fill-current" xmlns="http://www.w3.org/2000/svg" width="32"  height="32" viewBox="0 0 24 24">
                                     <path d="M18 17h-.09c.058-.33.088-.665.09-1v-1h1a1 1 0 0 0 0-2h-1.09a5.97 5.97 0 0 0-.26-1H17a2 2 0 0 0 2-2V8a1 1 0 1 0-2 0v2h-.54a6.239 6.239 0 0 0-.46-.46V8a3.963 3.963 0 0 0-.986-2.6l.693-.693A1 1 0 0 0 16 4V3a1 1 0 1 0-2 0v.586l-.661.661a3.753 3.753 0 0 0-2.678 0L10 3.586V3a1 1 0 1 0-2 0v1a1 1 0 0 0 .293.707l.693.693A3.963 3.963 0 0 0 8 8v1.54a6.239 6.239 0 0 0-.46.46H7V8a1 1 0 0 0-2 0v2a2 2 0 0 0 2 2h-.65a5.97 5.97 0 0 0-.26 1H5a1 1 0 0 0 0 2h1v1a6 6 0 0 0 .09 1H6a2 2 0 0 0-2 2v2a1 1 0 1 0 2 0v-2h.812A6.012 6.012 0 0 0 11 21.907V12a1 1 0 0 1 2 0v9.907A6.011 6.011 0 0 0 17.188 19H18v2a1 1 0 0 0 2 0v-2a2 2 0 0 0-2-2Zm-4-8.65a5.922 5.922 0 0 0-.941-.251l-.111-.017a5.52 5.52 0 0 0-1.9 0l-.111.017A5.925 5.925 0 0 0 10 8.35V8a2 2 0 1 1 4 0v.35Z"/>
@@ -151,9 +151,9 @@
                         </div>
 
                         <div class="flex flex-col items-center">
-                            <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
-                                <h2 class="font-semibold text-5xl text-gray-800 dark:text-gray-100">{{ $totalPengajuanBahanRetur }}</h2>
-                            </header>
+                            {{-- <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center"> --}}
+                                <h2 class="block antialiased tracking-normal font-sans text-5xl font-semibold leading-snug text-blue-gray-900">{{ $totalPengajuanBahanRetur }}</h2>
+                            {{-- </header> --}}
                             <button class="rounded-full pointer-events-none border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
                                 <svg  xmlns="http://www.w3.org/2000/svg"  width="32"  height="32"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler shrink-0 icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
                             </button>

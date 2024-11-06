@@ -10,6 +10,7 @@ export default {
     './storage/framework/views/*.php',
     './resources/views/**/*.blade.php',
     './resources/js/**/*.js',
+    './resources/**/*.vue',
   ],
   darkMode: 'class',
   theme: {

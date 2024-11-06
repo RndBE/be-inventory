@@ -1,8 +1,8 @@
 @section('title', 'Detail Transaksi Bahan Masuk | BE INVENTORY')
 <x-app-layout>
-    <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
-        <article class="overflow-hidden">
-            <div class="bg-white rounded-b-md">
+    <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600">
+        <article class="overflow-hidden ">
+            <div class="bg-white rounded-b-md dark:text-white dark:bg-gray-700 dark:border-gray-600">
                 <div class="p-9">
                     <div class="space-y-6 text-slate-700">
                         <img class="object-cover h-12" src="{{ asset('images/logo_be2.png') }}" />
@@ -12,11 +12,11 @@
                     <div class="flex w-full">
                         <div class="grid grid-cols-4 gap-12">
                             <div class="text-sm font-light text-slate-500">
-                                <p class="text-sm font-normal text-slate-700">Detail Transaksi:</p>
+                                <p class="text-sm font-normal text-slate-700 dark:text-white">Detail Transaksi:</p>
                                 <p>Kode Produksi: {{ $kode_produksi }}</p>
                             </div>
                             <div class="text-sm font-light text-slate-500">
-                                <p class="text-sm font-normal text-slate-700">Kode Transaksi:</p>
+                                <p class="text-sm font-normal text-slate-700 dark:text-white">Kode Transaksi:</p>
                                 <p>{{ $kode_transaksi }}</p>
                                 <p class="mt-2 text-sm font-normal text-slate-700">Tanggal Masuk</p>
                                 <p>{{ \Carbon\Carbon::parse($tgl_masuk)->format('d F Y H:i:s') }}</p> <!-- Format tanggal -->

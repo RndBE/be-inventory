@@ -21,13 +21,15 @@ class EditBahanProduksiCart extends Component
     public $bahanRusak = [];
     public $bahanRetur = [];
     public $produksiStatus;
+    public $isFirstTimePengajuan = [];
+    public $bahanKeluars = [];
 
     protected $listeners = [
         'bahanSelected' => 'addToCart',
         'bahanSetengahJadiSelected' => 'addToCart'
     ];
 
-    public $bahanKeluars = []; // Menyimpan bahan keluar yang akan ditampilkan
+    // Menyimpan bahan keluar yang akan ditampilkan
 
     public function mount($produksiId)
     {
@@ -61,14 +63,14 @@ class EditBahanProduksiCart extends Component
 
     public function loadBahanKeluar()
     {
-        // Ambil bahan keluar dengan status "Belum disetujui" dan produksi_id yang sama
-        $this->bahanKeluars = BahanKeluar::with('bahanKeluarDetails.dataBahan') // Menyertakan relasi bahan
-            ->where('status', 'Belum disetujui') // Filter berdasarkan status
-            ->where('produksi_id', $this->produksiId) // Filter berdasarkan produksi_id
+        $existingBahanKeluar = BahanKeluar::where('produksi_id', $this->produksiId)->exists();
+        $this->isFirstTimePengajuan = $existingBahanKeluar;
+        
+        $this->bahanKeluars = BahanKeluar::with('bahanKeluarDetails.dataBahan')
+            ->where('status', 'Belum disetujui')
+            ->where('produksi_id', $this->produksiId)
             ->get();
     }
-
-
 
     public function calculateSubTotal($itemId)
     {

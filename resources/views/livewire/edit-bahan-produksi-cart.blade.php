@@ -15,24 +15,54 @@
                         <div class="mt-2 mb-4 text-sm">
                             Berikut adalah daftar bahan yang diajukan untuk produksi ini:
                         </div>
-                        <ul class="list-disc pl-5">
-                            @foreach($keluar->bahanKeluarDetails as $detail)
-                                <li>{{ $detail->dataBahan->nama_bahan }}: {{ $detail->qty }}</li>
-                            @endforeach
-                        </ul>
+                        @php
+                            $materials = $keluar->bahanKeluarDetails->map(function($detail) {
+                                return $detail->dataBahan->nama_bahan . ': ' . $detail->qty;
+                            })->implode(' , ');
+                        @endphp
+                        {{ $materials }}
                     @endforeach
-                    <div class="flex mt-3">
+                    <div class="flex justify-end mt-3">
                         <button type="button" class="text-red-800 bg-transparent border border-red-800 hover:bg-red-900 hover:text-white focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center dark:hover:bg-red-600 dark:border-red-600 dark:text-red-400 dark:hover:text-white dark:focus:ring-red-800" data-dismiss-target="#alert-additional-content-3" aria-label="Close">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            @elseif($isFirstTimePengajuan)
+                @php
+                    $firstTimeMaterials = $bahanKeluars->flatMap(function($keluar) {
+                        return $keluar->bahanKeluarDetails->map(function($detail) {
+                            return $detail->dataBahan->nama_bahan . ': ' . $detail->qty;
+                        });
+                    })->implode(' , ');
+                    $firstTimeStatus = $bahanKeluars->first()->status ?? 'Status tidak ditemukan';
+                @endphp
+                <div id="alert-additional-content-3" class="p-4 mb-4 text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
+                    <div class="flex items-center">
+                        <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <h3 class="text-lg font-medium">Informasi Pengajuan Bahan Produksi {{ $firstTimeStatus }}</h3>
+                    </div>
+                    <div class="mt-2 mb-4 text-sm">
+                        Berikut adalah daftar bahan yang diajukan untuk produksi ini:
+                    </div>
+                    {{ $firstTimeMaterials }}
+                    <div class="flex justify-end mt-3">
+                        <button type="button" class="text-red-800 bg-transparent border border-red-800 hover:bg-red-900 hover:text-white focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center dark:hover:bg-red-600 dark:border-red-600 dark:text-red-400 dark:hover:text-white dark:focus:ring-red-800" data-dismiss-target="#alert-additional-content-3" aria-label="Close">
                             Tutup
                         </button>
                     </div>
                 </div>
             @else
                 <div class="p-4 mb-4 text-sm text-green-800 border border-green-300 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800">
-                    Tidak ada pengajuan bahan untuk produksi ini.
+                    Tidak ada pengajuan!
                 </div>
             @endif
         </div>
+
+
 
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">

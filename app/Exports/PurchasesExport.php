@@ -3,17 +3,28 @@
 namespace App\Exports;
 
 use Carbon\Carbon;
-use App\Models\Purchase;
-use Maatwebsite\Excel\Events\AfterSheet;
+use App\Models\Bahan;
+use App\Models\PurchaseDetail;
+use App\Models\BahanKeluarDetails;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PurchasesExport implements FromArray, WithHeadings, WithEvents
+class PurchasesExport implements FromArray, WithHeadings, WithStyles
 {
     protected $startDate;
     protected $endDate;
     protected $companyName;
+
+    protected $startDay;
+    protected $endDay;
+    protected $startMonth;
+    protected $endMonth;
+    protected $monthYear;
 
     public function __construct($startDate, $endDate, $companyName)
     {
@@ -26,145 +37,235 @@ class PurchasesExport implements FromArray, WithHeadings, WithEvents
     {
         $data = [];
 
-        // Format the start and end dates
-        $formattedStartDate = Carbon::parse($this->startDate)->format('d-F-Y');
-        $formattedEndDate = Carbon::parse($this->endDate)->format('d-F-Y');
+        $this->startDay = Carbon::parse($this->startDate)->format('j');
+        $this->endDay = Carbon::parse($this->endDate)->format('j');
+        $this->startMonth = Carbon::parse($this->startDate)->format('n');
+        $this->endMonth = Carbon::parse($this->startDate)->format('n');
+        $this->monthYear = Carbon::parse($this->endDate)->translatedFormat('F Y');
 
-        // Add company name and period, merge them for A-G
-        $data[] = [$this->companyName];
-        $data[] = ["Periode: " . $formattedStartDate . " - " . $formattedEndDate];
-        $data[] = []; // Empty line for spacing
+        $formattedPeriod = "Periode $this->startDay-$this->endDay $this->monthYear";
 
-        // Get the purchase details
-        $purchases = Purchase::with(['purchaseDetails.dataBahan'])
-            ->whereBetween('tgl_masuk', [$this->startDate, $this->endDate])
-            ->get();
+        $data[] = ["LAPORAN STOK BARANG " . $this->companyName];
+        $data[] = ["Periode: " . $formattedPeriod];
 
-        // Group by bahan
-        $bahanDetails = [];
-        foreach ($purchases as $purchase) {
-            foreach ($purchase->purchaseDetails as $detail) {
-                $bahan = $detail->dataBahan;
-                if (!isset($bahanDetails[$bahan->id])) {
-                    $bahanDetails[$bahan->id] = [
-                        'bahan' => $bahan,
-                        'details' => [],
-                        'totalQty' => 0,
-                        'totalSubTotal' => 0,
-                    ];
-                }
+        $tglBlnHeaders = ['No', 'Kode Barang', 'Nama Barang', 'Seri Barang', 'Satuan', 'Stok Awal'];
 
-                $bahanDetails[$bahan->id]['details'][] = [
-                    'tgl_masuk' => \Carbon\Carbon::parse($purchase->tgl_masuk)->format('d-F-Y H:i:s'),
-                    'kode_transaksi' => $purchase->kode_transaksi,
-                    'unit_id' => $detail->dataBahan->dataUnit->nama ?? null, // Assuming this field exists
-                    'unit_price' => $detail->unit_price,
-                    'qty' => $detail->qty,
-                    'sub_total' => $detail->sub_total,
-                ];
-
-                // Update totals
-                $bahanDetails[$bahan->id]['totalQty'] += $detail->qty;
-                $bahanDetails[$bahan->id]['totalSubTotal'] += $detail->sub_total;
-            }
+        for ($day = $this->startDay; $day <= $this->endDay; $day++) {
+            $tglBlnHeaders[] = "$day/$this->startMonth";
         }
 
-        // Build the data array
-        foreach ($bahanDetails as $bahanDetail) {
-            // Header for each bahan
-            $data[] = [$bahanDetail['bahan']->kode_bahan, $bahanDetail['bahan']->nama_bahan];
-            $data[] = ['Tanggal Masuk', 'Kode Transaksi', 'Satuan Unit', 'Unit Price', 'Qty', 'Sub Total'];
+        $tglBlnHeaders[] = 'Stok Akhir';
 
-            // Add details for each bahan
-            foreach ($bahanDetail['details'] as $detail) {
-                $data[] = [
-                    $detail['tgl_masuk'],
-                    $detail['kode_transaksi'],
-                    $detail['unit_id'], // Ensure this field is provided in the PurchaseDetail model
-                    $detail['unit_price'],
-                    $detail['qty'],
-                    $detail['sub_total'],
-                ];
+        $data[] = $tglBlnHeaders;
+
+        $dateNames = [];
+        for ($day = $this->startDay; $day <= $this->endDay; $day++) {
+            $dateNames[] = "Stok Masuk";
+            $dateNames[] = "Harga Beli";
+            $dateNames[] = "Stok Keluar";
+        }
+
+        $data[] = array_merge([], [], [], [], [], [], $dateNames, []);
+
+        $bahan = Bahan::with(['dataUnit', 'jenisBahan'])
+            ->whereHas('jenisBahan', function ($query) {
+                $query->where('nama', '!=', 'Produksi');
+            })
+            ->get();
+
+        foreach ($bahan as $index => $item) {
+            $stokAwal = $this->getPreviousDayStokAkhir($item->id, $this->startDate);
+            $row = [
+                $index + 1,
+                $item->kode_bahan,
+                $item->nama_bahan,
+                $item->seri_bahan,
+                $item->dataUnit->nama,
+                $stokAwal
+            ];
+
+            $stokAkhir = $stokAwal;
+
+            for ($day = $this->startDay; $day <= $this->endDay; $day++) {
+                $stokMasuk = PurchaseDetail::whereHas('purchase', function ($query) use ($day) {
+                    $query->whereDate('tgl_masuk', Carbon::parse($this->startMonth . '/' . $day . '/' . $this->startDate)->toDateString());
+                })
+                ->where('bahan_id', $item->id)
+                ->sum('qty');
+
+                $hargaBeli = PurchaseDetail::whereHas('purchase', function ($query) use ($day) {
+                    $query->whereDate('tgl_masuk', Carbon::parse($this->startMonth . '/' . $day . '/' . $this->startDate)->toDateString());
+                })
+                ->where('bahan_id', $item->id)
+                ->value('unit_price') ?? '';
+                $hargaBeli = $hargaBeli ? number_format($hargaBeli, 2, ',', '.') : '';
+
+                $stokKeluar = BahanKeluarDetails::whereHas('bahanKeluar', function ($query) use ($day) {
+                    $query->whereDate('tgl_keluar', Carbon::parse($this->startMonth . '/' . $day . '/' . $this->startDate)->toDateString())
+                        ->where('status', 'Disetujui');
+                })
+                ->where('bahan_id', $item->id)
+                ->sum('qty');
+
+                $stokAkhir += $stokMasuk - $stokKeluar;
+
+                $row[] = $stokMasuk;
+                $row[] = $hargaBeli;
+                $row[] = $stokKeluar;
             }
 
-            // Summary for each bahan
-            $data[] = ['', '', '', 'Total:' , $bahanDetail['totalQty'], $bahanDetail['totalSubTotal']];
+            $row[] = $stokAkhir;
 
-            // Add an empty row for spacing (merge columns A to F)
-            $data[] = ['', '', '', '', '', '']; // Empty row for spacing
-            $data[] = []; // Add another empty row for more spacing
+            $data[] = $row;
         }
 
         return $data;
     }
+
+    private function getPreviousDayStokAkhir($bahanId, $startDate)
+    {
+        $previousDate = Carbon::parse($startDate)->subDay()->toDateString();
+
+        $stokMasuk = PurchaseDetail::whereHas('purchase', function ($query) use ($previousDate) {
+            $query->whereDate('tgl_masuk', '<=', $previousDate);
+        })
+        ->where('bahan_id', $bahanId)
+        ->sum('qty');
+
+        $stokKeluar = BahanKeluarDetails::whereHas('bahanKeluar', function ($query) use ($previousDate) {
+            $query->whereDate('tgl_keluar', '<=', $previousDate)
+                ->where('status', 'Disetujui');
+        })
+        ->where('bahan_id', $bahanId)
+        ->sum('qty');
+
+        $stokAwal = $stokMasuk - $stokKeluar;
+        return $stokAwal > 0 ? $stokAwal : 0;
+    }
+
 
     public function headings(): array
     {
         return [];
     }
 
-    public function registerEvents(): array
+    public function styles(Worksheet $sheet)
     {
-        return [
-            AfterSheet::class => function(AfterSheet $event) {
-                $sheet = $event->sheet->getDelegate();
+        $sheet->getStyle('A1:A2')->getFont()->setBold(true);
+        $sheet->getStyle('A1:A2')->getFont()->setSize(12);
+        $sheet->getStyle('A1:A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                // Merge cells for company name and period
-                $sheet->mergeCells('A1:F1');
-                $sheet->mergeCells('A2:F2');
-                $sheet->getStyle('A1:F1')->getFont()->setBold(true);
-                $sheet->getStyle('A2:F2')->getFont()->setBold(true);
-                $sheet->getStyle('A1:F1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle('A2:F2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->mergeCells('A3:A4');
+        $sheet->mergeCells('B3:B4');
+        $sheet->mergeCells('C3:C4');
+        $sheet->mergeCells('D3:D4');
+        $sheet->mergeCells('E3:E4');
+        $sheet->mergeCells('F3:F4');
+        $sheet->getStyle('A3:A4')->getFont()->setBold(true);
+        $sheet->getStyle('B3:B4')->getFont()->setBold(true);
+        $sheet->getStyle('C3:C4')->getFont()->setBold(true);
+        $sheet->getStyle('D3:D4')->getFont()->setBold(true);
+        $sheet->getStyle('E3:E4')->getFont()->setBold(true);
+        $sheet->getStyle('F3:F4')->getFont()->setBold(true);
+        $sheet->getStyle('A3:A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('B3:B4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('C3:C4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('D3:D4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('E3:E4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('F3:F4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                // Initialize row counter
-                $rowCounter = 4;
 
-                // Get the number of rows
-                $totalRows = count($sheet->toArray());
+        $colIndex = 6;
+        $dateHeaders = [];
 
-                // Loop through the sheet to style specific rows
-                foreach (range(4, $totalRows) as $row) {
+        for ($day = $this->startDay; $day <= $this->endDay; $day++) {
+            $columnIndex = 7 + ($day - $this->startDay) * 3 + 1; // Calculate column index for each "Harga Beli"
+            $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($columnIndex);
+            $sheet->getStyle($columnLetter)->getAlignment()->setHorizontal('right');
+            $columnLetter = $this->getColumnLetter($colIndex);
+            $endColumnLetter = $this->getColumnLetter($colIndex + 2);
 
-                    if ($rowCounter < $totalRows && $sheet->getCell("A{$rowCounter}")->getValue() === 'Tanggal Masuk') {
-                        // Set color for this header row
-                        $headerRange = "A{$rowCounter}:F{$rowCounter}";
-                        $sheet->getStyle($headerRange)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
-                        $sheet->getStyle($headerRange)->getFill()->getStartColor()->setARGB('d3d3d3'); // Color code
-                        $sheet->getStyle($headerRange)->getFont()->setBold(true);
-                        // Center the text in the header
-                        $sheet->getStyle($headerRange)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-                    }
-                    // Apply background color to the "Total" row
-                    if ($sheet->getCell("D{$rowCounter}")->getValue() === 'Total:') {
-                        $totalRowRange = "A{$rowCounter}:F{$rowCounter}";
-                        $sheet->getStyle($totalRowRange)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
-                        $sheet->getStyle($totalRowRange)->getFill()->getStartColor()->setARGB('d3d3d3'); // Light yellow color
-                        $sheet->getStyle($totalRowRange)->getFont()->setBold(true);
-                        $sheet->getStyle($totalRowRange)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-                    }
+            $sheet->mergeCells("{$columnLetter}3:{$endColumnLetter}3");
+            $sheet->setCellValue("{$columnLetter}3", "$day/" . $this->startMonth);
 
-                    // Check if this row is for summary to merge and style it
-                    if ($sheet->getCell("A{$rowCounter}")->getValue() === '') {
-                        $rowCounter++;
-                        continue;
-                    }
+            $sheet->getStyle("{$columnLetter}3:{$endColumnLetter}3")->getFont()->setBold(true);
+            $sheet->getStyle("{$columnLetter}3:{$endColumnLetter}3")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                    // Format the unit price and sub total columns as Rupiah currency
-                    $sheet->getStyle("D{$rowCounter}")->getNumberFormat()->setFormatCode('#,##0.00');
-                    $sheet->getStyle("F{$rowCounter}")->getNumberFormat()->setFormatCode('[$-421] #,##0');
+            $sheet->getStyle("{$columnLetter}4:{$endColumnLetter}4")->getFont()->setBold(true);
+            $sheet->getStyle("{$columnLetter}4:{$endColumnLetter}4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                    // Move to the next row
-                    $rowCounter++;
-                }
+            $colIndex += 3;
 
-                // Auto-size the columns
-                foreach (range('A', 'F') as $column) {
-                    $sheet->getColumnDimension($column)->setAutoSize(true);
-                }
-            },
+            $dateHeaders[] = $columnLetter;
+        }
+
+        $lastColumnIndex = $colIndex;
+        $lastColumnLetter = $this->getColumnLetter($lastColumnIndex);
+
+        $sheet->mergeCells("A1:{$lastColumnLetter}1");
+        $sheet->mergeCells("A2:{$lastColumnLetter}2");
+
+        $columnLetter = $this->getColumnLetter($colIndex);
+        $sheet->mergeCells("{$columnLetter}3:{$columnLetter}4");
+        $sheet->setCellValue("{$columnLetter}3", 'Stok Akhir');
+        $sheet->getStyle("{$columnLetter}3:{$columnLetter}4")->getFont()->setBold(true);
+        $sheet->getStyle("{$columnLetter}3:{$columnLetter}4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $colIndex++;
+
+        $headerFillStyle = [
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => '89D8FC'],
+            ],
         ];
+
+        $sheet->getStyle('A1:F1')->applyFromArray($headerFillStyle);
+        $sheet->getStyle('A2:F2')->applyFromArray($headerFillStyle);
+
+        $colIndex = 6;
+        $stokHeaders = ["Stok Masuk", "Harga Beli", "Stok Keluar"];
+
+        for ($i = 0; $i < count($dateHeaders); $i++) {
+            $columnLetter = $dateHeaders[$i];
+
+            foreach ($stokHeaders as $stokHeader) {
+                $sheet->setCellValue("{$columnLetter}4", $stokHeader);
+                $columnLetter = $this->getColumnLetter(++$colIndex);
+            }
+        }
+
+        $highestRow = $sheet->getHighestRow();
+        $highestColumn = $sheet->getHighestColumn();
+
+        $borderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => '000000'],
+                ],
+            ],
+        ];
+
+        $sheet->getStyle("A3:{$highestColumn}{$highestRow}")->applyFromArray($borderStyle);
+
+        $totalColumns = $colIndex + 2;
+        for ($i = 0; $i <= $totalColumns; $i++) {
+            $columnLetter = $this->getColumnLetter($i);
+            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+        }
     }
+
+    private function getColumnLetter($index)
+    {
+        $letters = '';
+        while ($index >= 0) {
+            $letters = chr($index % 26 + 65) . $letters;
+            $index = floor($index / 26) - 1;
+        }
+        return $letters;
+    }
+
+
 
 
 }

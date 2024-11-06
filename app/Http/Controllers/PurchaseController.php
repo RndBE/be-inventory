@@ -38,7 +38,7 @@ class PurchaseController extends Controller
         $startDate = $request->input('start_date') . ' 00:00:00';
         $endDate = $request->input('end_date') . ' 23:59:59';
 
-        $companyName = "PT Arta Teknologi Comunindo"; // Replace with your actual company name or a variable if needed
+        $companyName = "PT ARTA TEKNOLOGI COMUNINDO";
 
         return Excel::download(new PurchasesExport($startDate, $endDate, $companyName), 'purchases.xlsx');
     }

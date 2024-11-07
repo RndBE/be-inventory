@@ -64,8 +64,8 @@ class EditBahanProduksiCart extends Component
     public function loadBahanKeluar()
     {
         $existingBahanKeluar = BahanKeluar::where('produksi_id', $this->produksiId)->exists();
-        $this->isFirstTimePengajuan = $existingBahanKeluar;
-        
+        $this->isFirstTimePengajuan = !$existingBahanKeluar;
+
         $this->bahanKeluars = BahanKeluar::with('bahanKeluarDetails.dataBahan')
             ->where('status', 'Belum disetujui')
             ->where('produksi_id', $this->produksiId)

@@ -22,6 +22,7 @@ class EditBahanProjekCart extends Component
     public $projekDetails = [];
     public $bahanRusak = [];
     public $bahanRetur = [];
+    public $isFirstTimePengajuan = [];
     public $produksiStatus;
 
     protected $listeners = [
@@ -66,10 +67,12 @@ class EditBahanProjekCart extends Component
 
     public function loadBahanKeluar()
     {
-        // Ambil bahan keluar dengan status "Belum disetujui" dan produksi_id yang sama
-        $this->bahanKeluars = BahanKeluar::with('bahanKeluarDetails.dataBahan') // Menyertakan relasi bahan
-            ->where('status', 'Belum disetujui') // Filter berdasarkan status
-            ->where('produksi_id', $this->projekId) // Filter berdasarkan produksi_id
+        $existingBahanKeluar = BahanKeluar::where('projek_id', $this->projekId)->exists();
+        $this->isFirstTimePengajuan = !$existingBahanKeluar;
+
+        $this->bahanKeluars = BahanKeluar::with('bahanKeluarDetails.dataBahan')
+            ->where('status', 'Belum disetujui')
+            ->where('projek_id', $this->projekId)
             ->get();
     }
 

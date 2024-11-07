@@ -5,6 +5,8 @@ namespace App\Livewire;
 use App\Models\Bahan;
 use Livewire\Component;
 use App\Models\Produksi;
+use App\Models\BahanRetur;
+use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 
 class EditBahanProduksiCart extends Component
@@ -22,6 +24,10 @@ class EditBahanProduksiCart extends Component
     public $bahanRetur = [];
     public $produksiStatus;
     public $isFirstTimePengajuan = [];
+    public $isBahanReturPending = [];
+    public $pendingReturCount = [];
+    public $isBahanRusakPending = [];
+    public $pendingRusakCount = [];
     public $bahanKeluars = [];
 
     protected $listeners = [
@@ -70,6 +76,17 @@ class EditBahanProduksiCart extends Component
             ->where('status', 'Belum disetujui')
             ->where('produksi_id', $this->produksiId)
             ->get();
+
+        $this->pendingReturCount = BahanRetur::where('produksi_id', $this->produksiId)
+            ->where('status', 'Belum disetujui')
+            ->count();
+
+        $this->pendingRusakCount = BahanRusak::where('produksi_id', $this->produksiId)
+            ->where('status', 'Belum disetujui')
+            ->count();
+
+        $this->isBahanReturPending = $this->pendingReturCount > 0;
+        $this->isBahanRusakPending = $this->pendingRusakCount > 0;
     }
 
     public function calculateSubTotal($itemId)

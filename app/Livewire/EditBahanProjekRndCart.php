@@ -7,6 +7,8 @@ use App\Models\Projek;
 use Livewire\Component;
 use App\Models\Produksi;
 use App\Models\ProjekRnd;
+use App\Models\BahanRetur;
+use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 
 class EditBahanProjekRndCart extends Component
@@ -24,6 +26,10 @@ class EditBahanProjekRndCart extends Component
     public $bahanRusak = [];
     public $bahanRetur = [];
     public $isFirstTimePengajuan = [];
+    public $isBahanReturPending = [];
+    public $pendingReturCount = [];
+    public $isBahanRusakPending = [];
+    public $pendingRusakCount = [];
     public $projekRndStatus;
 
     protected $listeners = [
@@ -75,6 +81,17 @@ class EditBahanProjekRndCart extends Component
             ->where('status', 'Belum disetujui')
             ->where('projek_rnd_id', $this->projekId)
             ->get();
+
+            $this->pendingReturCount = BahanRetur::where('projek_rnd_id', $this->projekId)
+            ->where('status', 'Belum disetujui')
+            ->count();
+
+        $this->pendingRusakCount = BahanRusak::where('projek_rnd_id', $this->projekId)
+            ->where('status', 'Belum disetujui')
+            ->count();
+
+        $this->isBahanReturPending = $this->pendingReturCount > 0;
+        $this->isBahanRusakPending = $this->pendingRusakCount > 0;
     }
 
     public function addToCart($bahan)

@@ -1,4 +1,4 @@
-<div class="relative p-4">
+<div class="relative">
     <div class="card mb-0 border-0 shadow-sm bg-white">
         <div class="card-body">
             <div class="form-group mb-0">
@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <div wire:loading class="card absolute mt-1 border-0 left-4 right-4 z-10 bg-white shadow-lg p-4">
+    <div wire:loading class="card absolute mt-1 border-0 left-4 right-4 z-10 bg-white shadow-lg">
         <div class="card-body shadow">
             <div class="flex justify-center">
                 <div class="spinner-border text-primary" role="status">
@@ -34,7 +34,7 @@
     @if(!empty($query))
         <div wire:click="resetQuery" class="fixed w-full h-full left-0 top-0 z-10"></div>
         @if($search_results->isNotEmpty())
-            <div class="card absolute mt-1 left-4 right-4 rounded-lg border-0 z-20 bg-white shadow-lg">
+            <div class="card absolute mt-1 left-0 right-0 rounded-lg border-0 z-20 bg-white shadow-lg">
                 <div class="card-body shadow">
                     <ul class="list-group list-group-flush">
                         <!-- List Hasil Pencarian -->

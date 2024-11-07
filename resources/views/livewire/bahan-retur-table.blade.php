@@ -42,7 +42,7 @@
         </div>
     </div>
     <div class="relative overflow-x-auto">
-        <div class="relative overflow-x-auto">
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
                 <ul class="flex flex-wrap -m-1">
                     <li class="m-1">

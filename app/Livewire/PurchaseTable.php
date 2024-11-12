@@ -15,8 +15,14 @@ class PurchaseTable extends Component
     public function render()
     {
         $purchases = Purchase::with('purchaseDetails.dataBahan')->orderBy('id', 'desc')
-        ->where('tgl_masuk', 'like', '%' . $this->search . '%')
-            ->paginate($this->perPage);
+        ->where(function ($query) {
+            $query->where('tgl_masuk', 'like', '%' . $this->search . '%')
+                ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')
+                ->orWhereHas('purchaseDetails.dataBahan', function ($query) {
+                    $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                });
+        })
+        ->paginate($this->perPage);
 
         return view('livewire.purchase-table', [
             'purchases' => $purchases,

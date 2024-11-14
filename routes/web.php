@@ -20,8 +20,10 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\BahanJadiController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\ProjekRndController;
 use App\Http\Controllers\BahanReturController;
 use App\Http\Controllers\BahanRusakController;
@@ -33,7 +35,6 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\StokProduksiController;
 use App\Http\Controllers\ProdukProduksiController;
 use App\Http\Controllers\BahanSetengahjadiController;
-use App\Http\Controllers\SupplierController;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,6 +91,8 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
 
     Route::resource('bahan-keluars', BahanKeluarController::class);
+
+    Route::resource('pengajuans', PengajuanController::class);
 
     Route::resource('produksis', ProduksiController::class);
     Route::put('produksis/{produksi}/selesai', [ProduksiController::class, 'updateStatus'])->name('produksis.updateStatus');

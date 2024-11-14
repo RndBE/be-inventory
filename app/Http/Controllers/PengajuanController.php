@@ -6,15 +6,15 @@ use Throwable;
 use App\Models\Unit;
 use App\Models\Bahan;
 use App\Models\Produk;
-use App\Models\Projek;
+use App\Models\Pengajuan;
 use App\Models\BahanJadi;
 use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
-use App\Exports\ProjekExport;
-use App\Models\ProjekDetails;
+use App\Exports\PengajuanExport;
+use App\Models\PengajuanDetails;
 use App\Models\DetailProduksi;
 use App\Models\ProdukProduksi;
 use App\Models\PurchaseDetail;
@@ -29,41 +29,41 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
 
-class ProjekController extends Controller
+class PengajuanController extends Controller
 {
 
-    public function __construct()
-    {
-        $this->middleware('permission:lihat-projek', ['only' => ['index']]);
-        $this->middleware('permission:selesai-projek', ['only' => ['updateStatus']]);
-        $this->middleware('permission:tambah-projek', ['only' => ['create','store']]);
-        $this->middleware('permission:edit-projek', ['only' => ['update','edit']]);
-        $this->middleware('permission:hapus-projek', ['only' => ['destroy']]);
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('permission:lihat-pengajuan', ['only' => ['index']]);
+    //     $this->middleware('permission:selesai-pengajuan', ['only' => ['updateStatus']]);
+    //     $this->middleware('permission:tambah-pengajuan', ['only' => ['create','store']]);
+    //     $this->middleware('permission:edit-pengajuan', ['only' => ['update','edit']]);
+    //     $this->middleware('permission:hapus-pengajuan', ['only' => ['destroy']]);
+    // }
 
-    public function export($projek_id)
-    {
-        // Ambil nama proyek berdasarkan `projek_id`
-        $projek = Projek::findOrFail($projek_id); // Mengambil projek dengan id terkait
+    // public function export($pengajuan_id)
+    // {
+    //     // Ambil nama proyek berdasarkan `pengajuan_id`
+    //     $pengajuan = Pengajuan::findOrFail($pengajuan_id); // Mengambil pengajuan dengan id terkait
 
-        // Gunakan nama proyek di nama file ekspor
-        $fileName = 'HPP_Project_' . $projek->nama_projek . '_be-inventory.xlsx';
+    //     // Gunakan nama proyek di nama file ekspor
+    //     $fileName = 'HPP_Project_' . $pengajuan->keterangan . '_be-inventory.xlsx';
 
-        return Excel::download(new ProjekExport($projek_id), $fileName);
-    }
+    //     return Excel::download(new PengajuanExport($pengajuan_id), $fileName);
+    // }
 
 
 
     public function index()
     {
-        return view('pages.projek.index');
+        return view('pages.pengajuan.index');
     }
 
     public function create()
     {
         $units = Unit::all();
         $produkProduksi = ProdukProduksi::all();
-        return view('pages.projek.create', compact('units', 'produkProduksi'));
+        return view('pages.pengajuan.create', compact('units', 'produkProduksi'));
     }
 
     public function store(Request $request)
@@ -72,19 +72,19 @@ class ProjekController extends Controller
             //dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
-                'nama_projek' => $request->nama_projek,
-                'mulai_projek' => $request->mulai_projek,
+                'divisi' => $request->divisi,
+                'keterangan' => $request->keterangan,
                 'cartItems' => $cartItems
             ], [
-                'nama_projek' => 'required',
-                'mulai_projek' => 'required',
+                'divisi' => 'required',
+                'keterangan' => 'required',
                 'cartItems' => 'required|array',
             ]);
             if ($validator->fails()) {
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
-            $tujuan = $request->nama_projek;
+            $tujuan = $request->keterangan;
 
             // Create transaction code for BahanKeluar
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
@@ -92,24 +92,25 @@ class ProjekController extends Controller
             $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
             $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
-            // Create transaction code for Projek
-            $lastTransactionProjek = Projek::orderByRaw('CAST(SUBSTRING(kode_projek, 7) AS UNSIGNED) DESC')->first();
-            $new_transaction_number_produksi = ($lastTransactionProjek ? intval(substr($lastTransactionProjek->kode_projek, 6)) : 0) + 1;
-            $kode_projek = 'PRJ - ' . str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
+            // Create transaction code for Pengajuan
+            $lastTransactioPengajuan = Pengajuan::orderByRaw('CAST(SUBSTRING(kode_pengajuan, 7) AS UNSIGNED) DESC')->first();
+            $new_transaction_number_pengajuan = ($lastTransactioPengajuan ? intval(substr($lastTransactioPengajuan->kode_pengajuan, 6)) : 0) + 1;
+            $kode_pengajuan = 'PB - ' . str_pad($new_transaction_number_pengajuan, 5, '0', STR_PAD_LEFT);
 
-            $projek = Projek::create([
-                'kode_projek' => $kode_projek,
-                'nama_projek' => $request->nama_projek,
-                'mulai_projek' => $request->mulai_projek,
+            $pengajuan = Pengajuan::create([
+                'kode_pengajuan' => $kode_pengajuan,
+                'mulai_pengajuan' => $tgl_pengajuan,
+                'divisi' => $request->divisi,
+                'keterangan' => $request->keterangan,
                 'status' => 'Dalam Proses'
             ]);
 
             $bahan_keluar = BahanKeluar::create([
                 'kode_transaksi' => $kode_transaksi,
-                'projek_id' => $projek->id,
+                'pengajuan_id' => $pengajuan->id,
                 'tgl_pengajuan' => $tgl_pengajuan,
-                'tujuan' => 'Projek ' . $tujuan,
-                'divisi' => 'Produksi',
+                'tujuan' => $tujuan,
+                'divisi' => $request->divisi,
                 'status' => 'Belum disetujui'
             ]);
 
@@ -128,7 +129,7 @@ class ProjekController extends Controller
                 $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
             }
 
-            // Save items to BahanKeluarDetails and ProjekDetails
+            // Save items to BahanKeluarDetails and PengajuanDetails
             foreach ($groupedItems as $bahan_id => $details) {
                 BahanKeluarDetails::create([
                     'bahan_keluar_id' => $bahan_keluar->id,
@@ -142,8 +143,8 @@ class ProjekController extends Controller
 
             }
             $request->session()->forget('cartItems');
-            LogHelper::success('Berhasil Menambahkan Pengajuan Projek!');
-            return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Projek!');
+            LogHelper::success('Berhasil Menambahkan Pengajuan Bahan!');
+            return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Bahan!');
         } catch (\Exception $e) {
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan data: ' . $e->getMessage());
@@ -154,18 +155,18 @@ class ProjekController extends Controller
     public function edit(string $id)
     {
         $units = Unit::all();
-        $bahanProjek = Bahan::whereHas('jenisBahan', function ($query) {
+        $bahanPengajuan = Bahan::whereHas('jenisBahan', function ($query) {
             $query->where('nama', 'like', '%Produksi%');
         })->get();
 
-        $projek = Projek::with(['projekDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
+        $pengajuan = Pengajuan::with(['pengajuanDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
 
-        // Ambil bahan yang ada di projekDetails
-        $existingBahanIds = $projek->projekDetails->pluck('dataBahan.id')->toArray();
+        // Ambil bahan yang ada di pengajuanDetails
+        $existingBahanIds = $pengajuan->pengajuanDetails->pluck('dataBahan.id')->toArray();
 
         $isComplete = true;
-        if ($projek->projekDetails && count($projek->projekDetails) > 0) {
-            foreach ($projek->projekDetails as $detail) {
+        if ($pengajuan->pengajuanDetails && count($pengajuan->pengajuanDetails) > 0) {
+            foreach ($pengajuan->pengajuanDetails as $detail) {
                 $kebutuhan = $detail->jml_bahan - $detail->used_materials;
                 if ($kebutuhan > 0) {
                     $isComplete = false;
@@ -176,10 +177,10 @@ class ProjekController extends Controller
             $isComplete = false;
         }
 
-        return view('pages.projek.edit', [
-            'projekId' => $id,
-            'bahanProjek' => $bahanProjek,
-            'projek' => $projek,
+        return view('pages.pengajuan.edit', [
+            'pengajuanId' => $id,
+            'bahanPengajuan' => $bahanPengajuan,
+            'pengajuan' => $pengajuan,
             'units' => $units,
             'existingBahanIds' => $existingBahanIds,
             'isComplete' => $isComplete,
@@ -192,12 +193,12 @@ class ProjekController extends Controller
     {
         try {
             //dd($request->all());
-            $projekDetails = json_decode($request->projekDetails, true) ?? [];
+            $pengajuanDetails = json_decode($request->pengajuanDetails, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
-            $projek = Projek::findOrFail($id);
+            $pengajuan = Pengajuan::findOrFail($id);
 
-            $tujuan = $projek->nama_projek;
+            $tujuan = $pengajuan->keterangan;
 
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
             if ($lastTransaction) {
@@ -214,7 +215,7 @@ class ProjekController extends Controller
             $groupedItems = [];
             $totalQty = 0;  // Variabel untuk menghitung total qty
 
-            foreach ($projekDetails as $item) {
+            foreach ($pengajuanDetails as $item) {
                 if (!isset($groupedItems[$item['id']])) {
                     $groupedItems[$item['id']] = [
                         'qty' => 0,
@@ -233,10 +234,10 @@ class ProjekController extends Controller
                 // Simpan data ke Bahan Keluar
                 $bahan_keluar = new BahanKeluar();
                 $bahan_keluar->kode_transaksi = $kode_transaksi;
-                $bahan_keluar->projek_id = $projek->id;
+                $bahan_keluar->pengajuan_id = $pengajuan->id;
                 $bahan_keluar->tgl_pengajuan = $tgl_pengajuan;
-                $bahan_keluar->tujuan = 'Projek ' . $tujuan;
-                $bahan_keluar->divisi = 'Produksi';
+                $bahan_keluar->tujuan = $tujuan;
+                $bahan_keluar->divisi = $pengajuan->divisi;
                 $bahan_keluar->status = 'Belum disetujui';
                 $bahan_keluar->save();
 
@@ -269,7 +270,7 @@ class ProjekController extends Controller
                 $bahanRusakRecord = BahanRusak::create([
                     'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
                     'kode_transaksi' => $kode_transaksi,
-                    'projek_id' => $projek->id,
+                    'pengajuan_id' => $pengajuan->id,
                     'status' => 'Belum disetujui',
                 ]);
 
@@ -303,9 +304,9 @@ class ProjekController extends Controller
                 $bahanReturRecord = BahanRetur::create([
                     'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
                     'kode_transaksi' => $kode_transaksi,
-                    'projek_id' => $projek->id,
-                    'tujuan' => 'Projek ' . $tujuan,
-                    'divisi' => 'Produksi',
+                    'pengajuan_id' => $pengajuan->id,
+                    'tujuan' => $tujuan,
+                    'divisi' => $pengajuan->divisi,
                     'status' => 'Belum disetujui',
                 ]);
 
@@ -325,8 +326,8 @@ class ProjekController extends Controller
                 }
             }
 
-            LogHelper::success('Berhasil Mengubah Detail Projek!');
-            return redirect()->back()->with('success', 'Projek berhasil diperbarui!');
+            LogHelper::success('Berhasil Mengubah Detail Pengajuan!');
+            return redirect()->back()->with('success', 'Pengajuan berhasil diperbarui!');
         } catch (\Exception $e) {
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
@@ -336,13 +337,13 @@ class ProjekController extends Controller
     public function updateStatus(Request $request, $id)
     {
         try{
-            $projek = Projek::findOrFail($id);
-            //dd($projek);
-            $projek->status = 'Selesai';
-            $projek->selesai_projek = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-            $projek->save();
-            LogHelper::success('Berhasil menyelesaikan projek!');
-            return redirect()->back()->with('error', 'Projek tidak bisa diupdate ke selesai.');
+            $pengajuan = Pengajuan::findOrFail($id);
+            //dd($pengajuan);
+            $pengajuan->status = 'Selesai';
+            $pengajuan->selesai_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $pengajuan->save();
+            LogHelper::success('Berhasil menyelesaikan pengajuan!');
+            return redirect()->back()->with('error', 'Pengajuan tidak bisa diupdate ke selesai.');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
@@ -352,20 +353,20 @@ class ProjekController extends Controller
     public function destroy(string $id)
     {
         try{
-            $projek = Projek::find($id);
-            //dd($projek);
-            if (!$projek) {
-                return redirect()->back()->with('gagal', 'Projek tidak ditemukan.');
+            $pengajuan = Pengajuan::find($id);
+            //dd($pengajuan);
+            if (!$pengajuan) {
+                return redirect()->back()->with('gagal', 'Pengajuan tidak ditemukan.');
             }
-            if ($projek->status !== 'Konfirmasi') {
-                return redirect()->back()->with('gagal', 'Projek hanya dapat dihapus jika statusnya "Konfirmasi".');
+            if ($pengajuan->status !== 'Konfirmasi') {
+                return redirect()->back()->with('gagal', 'Pengajuan hanya dapat dihapus jika statusnya "Konfirmasi".');
             }
-            $bahanKeluar = BahanKeluar::find($projek->bahan_keluar_id);
-            $projek->delete();
+            $bahanKeluar = BahanKeluar::find($pengajuan->bahan_keluar_id);
+            $pengajuan->delete();
             if ($bahanKeluar) {
                 $bahanKeluar->delete();
             }
-            return redirect()->back()->with('success', 'Projek dan bahan keluar terkait berhasil dihapus.');
+            return redirect()->back()->with('success', 'Pengajuan dan bahan keluar terkait berhasil dihapus.');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

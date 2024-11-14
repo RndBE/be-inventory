@@ -234,7 +234,11 @@ class BahanReturController extends Controller
                         }
 
                         $pengajuanDetail->details = json_encode(array_values($currentDetails));
-                        $pengajuanDetail->save();
+                        if ($pengajuanDetail->qty == 0 && $pengajuanDetail->used_materials == 0) {
+                            $pengajuanDetail->delete();
+                        } else {
+                            $pengajuanDetail->save();
+                        }
                     }
                 }
 

@@ -8,6 +8,7 @@ use App\Models\BahanRusak;
 use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
 use App\Models\ProduksiDetails;
+use App\Models\PengajuanDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanRusakDetails;
 use Illuminate\Support\Facades\DB;
@@ -180,6 +181,41 @@ class BahanRusakController extends Controller
                         $projekRndDetail->details = json_encode(array_values($currentDetails));
                         $projekRndDetail->save();
                     }
+
+                    // Update untuk PengajuanDetails
+                    $pengajuanDetail = PengajuanDetails::where('pengajuan_id', $bahanRusak->pengajuan_id)
+                        ->where('bahan_id', $bahanId)
+                        ->first();
+
+                    if ($pengajuanDetail) {
+                        $currentDetails = json_decode($pengajuanDetail->details, true) ?? [];
+
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    break;
+                                }
+                            }
+                        }
+
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $pengajuanDetail->qty -= $totalQtyReduction;
+                        $pengajuanDetail->used_materials -= $totalQtyReduction;
+
+                        // Pastikan qty dan used_materials tidak negatif
+                        $pengajuanDetail->qty = max(0, $pengajuanDetail->qty);
+                        $pengajuanDetail->used_materials = max(0, $pengajuanDetail->used_materials);
+
+                        $pengajuanDetail->sub_total = 0;
+                        foreach ($currentDetails as $detail) {
+                            $pengajuanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                        }
+
+                        $pengajuanDetail->details = json_encode(array_values($currentDetails));
+                        $pengajuanDetail->save();
+                    }
                 }
                 foreach ($bahanRusakDetails as $returDetail) {
                     $returDetail->sisa = $returDetail->qty;
@@ -195,7 +231,7 @@ class BahanRusakController extends Controller
             LogHelper::success('Berhasil Mengubah Status Bahan Rusak!');
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             $errorMessage = $e->getMessage();
             $errorColumn = '';
 

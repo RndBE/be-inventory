@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
+use App\Models\PengajuanDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
@@ -454,6 +455,23 @@ class BahanKeluarController extends Controller
                                 ]);
                             }
                         }
+                        elseif ($data->pengajuan_id) {
+                            $existingDetail = PengajuanDetails::where('pengajuan_id', $data->pengajuan_id)
+                                ->where('bahan_id', $detail->bahan_id)
+                                ->first();
+
+                            if (!$existingDetail) {
+                                PengajuanDetails::create([
+                                    'pengajuan_id' => $data->pengajuan_id,
+                                    'bahan_id' => $detail->bahan_id,
+                                    'qty' => 0,
+                                    'jml_bahan' => $detail->jml_bahan,
+                                    'used_materials' => 0,
+                                    'details' => json_encode([]),
+                                    'sub_total' => 0,
+                                ]);
+                            }
+                        }
                         continue;
                     }
 
@@ -675,6 +693,54 @@ class BahanKeluarController extends Controller
                                     ]);
                                 }
                             }
+                        }if ($data->pengajuan_id) {
+                            foreach ($groupedDetails as $unitPrice => $group) {
+                                $pengajuanDetail = PengajuanDetails::where('pengajuan_id', $data->pengajuan_id)
+                                    ->where('bahan_id', $detail->bahan_id)
+                                    ->first();
+
+                                if ($pengajuanDetail) {
+                                    // Update existing entry
+                                    $pengajuanDetail->qty += $group['qty'];
+                                    $pengajuanDetail->used_materials += $group['qty'];
+                                    $pengajuanDetail->sub_total += $group['qty'] * $unitPrice;
+
+                                    if ($pengajuanDetail->jml_bahan !== $detail->jml_bahan) {
+                                        $pengajuanDetail->jml_bahan = $detail->jml_bahan; // Update jml_bahan
+                                    }
+
+                                    // Merge existing details with new grouped details
+                                    $currentDetails = json_decode($pengajuanDetail->details, true) ?? [];
+                                    $mergedDetails = [];
+
+                                    foreach ($currentDetails as $existingDetail) {
+                                        $price = $existingDetail['unit_price'];
+                                        $mergedDetails[$price] = $existingDetail;
+                                    }
+
+                                    // Update or add new quantities in mergedDetails
+                                    if (isset($mergedDetails[$unitPrice])) {
+                                        $mergedDetails[$unitPrice]['qty'] += $group['qty'];
+                                    } else {
+                                        $mergedDetails[$unitPrice] = $group; // add new entry
+                                    }
+
+                                    // Update the details field
+                                    $pengajuanDetail->details = json_encode(array_values($mergedDetails));
+                                    $pengajuanDetail->save();
+                                } else {
+                                    // Create new entry
+                                    PengajuanDetails::create([
+                                        'pengajuan_id' => $data->pengajuan_id,
+                                        'bahan_id' => $detail->bahan_id,
+                                        'qty' => $group['qty'],
+                                        'jml_bahan' => $detail->jml_bahan,
+                                        'used_materials' => $group['qty'],
+                                        'details' => json_encode([$group]), // use an array of groups
+                                        'sub_total' => $group['qty'] * $unitPrice,
+                                    ]);
+                                }
+                            }
                         }
                     }
                 }
@@ -693,7 +759,7 @@ class BahanKeluarController extends Controller
             LogHelper::success('Berhasil Mengubah Status Bahan Keluar!');
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             $errorMessage = $e->getMessage();
             $errorColumn = '';
             if (strpos($errorMessage, 'tgl_keluar') !== false) {

@@ -24,7 +24,10 @@ class BahanTable extends Component
                     // Pencarian berdasarkan nama jenisBahan
                     ->orWhereHas('jenisBahan', function ($query) {
                         $query->where('nama', 'like', '%' . $this->search . '%');
-                    });
+                    })
+                    ->orWhereHas('dataSupplier', function ($query) {
+                        $query->where('nama', 'like', '%' . $this->search . '%');
+                    });;
             })
             ->paginate($this->perPage);
 

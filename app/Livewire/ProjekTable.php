@@ -16,7 +16,13 @@ class ProjekTable extends Component
     public function render()
     {
         $projeks = Projek::with(['projekDetails', 'bahanKeluar'])->orderBy('id', 'desc')
-        ->where('mulai_projek', 'like', '%' . $this->search . '%')
+        ->where(function ($query) {
+            $query->where('mulai_projek', 'like', '%' . $this->search . '%')
+                ->orWhere('selesai_projek', 'like', '%' . $this->search . '%')
+                ->orWhere('nama_projek', 'like', '%' . $this->search . '%')
+                ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhere('kode_projek', 'like', '%' . $this->search . '%');
+        })
             ->paginate($this->perPage);
 
         return view('livewire.projek-table', [

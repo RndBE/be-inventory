@@ -62,7 +62,15 @@ class BahanRusakTabel extends Component
     public function render()
     {
         $bahan_rusaks = BahanRusak::with('bahanRusakDetails')->orderBy('id', 'desc')
-        ->where('kode_transaksi', 'like', '%' . $this->search . '%')
+        ->where(function ($query) {
+            $query->where('tgl_pengajuan', 'like', '%' . $this->search . '%')
+                ->orWhere('tgl_diterima', 'like', '%' . $this->search . '%')
+                ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')
+                ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhereHas('bahanRusakDetails.dataBahan', function ($query) {
+                    $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                });
+        })
             ->when($this->filter === 'Ditolak', function ($query) {
                 return $query->where('status', 'Ditolak');
             })

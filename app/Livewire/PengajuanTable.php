@@ -17,7 +17,14 @@ class PengajuanTable extends Component
     public function render()
     {
         $pengajuans = Pengajuan::with(['pengajuanDetails', 'bahanKeluar'])->orderBy('id', 'desc')
-        ->where('mulai_pengajuan', 'like', '%' . $this->search . '%')
+        ->where(function ($query) {
+            $query->where('mulai_pengajuan', 'like', '%' . $this->search . '%')
+                ->orWhere('selesai_pengajuan', 'like', '%' . $this->search . '%')
+                ->orWhere('divisi', 'like', '%' . $this->search . '%')
+                ->orWhere('keterangan', 'like', '%' . $this->search . '%')
+                ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhere('kode_pengajuan', 'like', '%' . $this->search . '%');
+        })
             ->paginate($this->perPage);
 
         return view('livewire.pengajuan-table', [

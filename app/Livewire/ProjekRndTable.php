@@ -17,7 +17,13 @@ class ProjekRndTable extends Component
     public function render()
     {
         $projek_rnds = ProjekRnd::with(['projekRndDetails', 'bahanKeluar'])->orderBy('id', 'desc')
-        ->where('mulai_projek_rnd', 'like', '%' . $this->search . '%')
+        ->where(function ($query) {
+            $query->where('mulai_projek_rnd', 'like', '%' . $this->search . '%')
+                ->orWhere('selesai_projek_rnd', 'like', '%' . $this->search . '%')
+                ->orWhere('nama_projek_rnd', 'like', '%' . $this->search . '%')
+                ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhere('kode_projek_rnd', 'like', '%' . $this->search . '%');
+        })
             ->paginate($this->perPage);
 
         return view('livewire.projek-rnd-table', [

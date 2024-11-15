@@ -65,7 +65,17 @@ class BahanReturTable extends Component
     public function render()
     {
         $bahan_returs = BahanRetur::with('bahanReturDetails')->orderBy('id', 'desc')
-        ->where('kode_transaksi', 'like', '%' . $this->search . '%')
+        ->where(function ($query) {
+            $query->where('tgl_pengajuan', 'like', '%' . $this->search . '%')
+                ->orWhere('tgl_diterima', 'like', '%' . $this->search . '%')
+                ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')
+                ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhere('tujuan', 'like', '%' . $this->search . '%')
+                ->orWhere('divisi', 'like', '%' . $this->search . '%')
+                ->orWhereHas('bahanReturDetails.dataBahan', function ($query) {
+                    $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                });
+        })
             ->when($this->filter === 'Ditolak', function ($query) {
                 return $query->where('status', 'Ditolak');
             })

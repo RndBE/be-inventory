@@ -62,7 +62,14 @@ class BahanKeluarTable extends Component
     public function render()
     {
         $bahan_keluars = BahanKeluar::with('bahanKeluarDetails')->orderBy('id', 'desc')
-        ->where('kode_transaksi', 'like', '%' . $this->search . '%')
+        ->where(function ($query) {
+            $query->where('tgl_keluar', 'like', '%' . $this->search . '%')
+                ->orWhere('tgl_pengajuan', 'like', '%' . $this->search . '%')
+                ->orWhere('tujuan', 'like', '%' . $this->search . '%')
+                ->orWhere('divisi', 'like', '%' . $this->search . '%')
+                ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%');
+        })
             ->when($this->filter === 'Ditolak', function ($query) {
                 return $query->where('status', 'Ditolak');
             })

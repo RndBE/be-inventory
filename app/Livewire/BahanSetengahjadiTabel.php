@@ -15,7 +15,13 @@ class BahanSetengahjadiTabel extends Component
     public function render()
     {
         $bahanSetengahjadis = BahanSetengahjadi::with('bahanSetengahjadiDetails.dataBahan')->orderBy('id', 'desc')
-        ->where('tgl_masuk', 'like', '%' . $this->search . '%')
+        ->where(function ($query) {
+            $query->where('tgl_masuk', 'like', '%' . $this->search . '%')
+                ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')
+                ->orWhereHas('bahanSetengahjadiDetails.dataBahan', function ($query) {
+                    $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                });
+        })
             ->paginate($this->perPage);
 
         return view('livewire.bahan-setengahjadi-tabel', [

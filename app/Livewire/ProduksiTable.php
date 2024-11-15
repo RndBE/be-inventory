@@ -15,7 +15,16 @@ class ProduksiTable extends Component
     public function render()
     {
         $produksis = Produksi::with(['produksiDetails', 'bahanKeluar'])->orderBy('id', 'desc')
-        ->where('mulai_produksi', 'like', '%' . $this->search . '%')
+        ->where(function ($query) {
+            $query->where('mulai_produksi', 'like', '%' . $this->search . '%')
+                ->orWhere('selesai_produksi', 'like', '%' . $this->search . '%')
+                ->orWhere('jenis_produksi', 'like', '%' . $this->search . '%')
+                ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhere('kode_produksi', 'like', '%' . $this->search . '%')
+                ->orWhereHas('dataBahan', function ($query) {
+                    $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                });
+        })
             ->paginate($this->perPage);
 
         return view('livewire.produksi-table', [

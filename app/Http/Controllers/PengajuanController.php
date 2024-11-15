@@ -32,14 +32,14 @@ use Illuminate\Support\Facades\Validator;
 class PengajuanController extends Controller
 {
 
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:lihat-pengajuan', ['only' => ['index']]);
-    //     $this->middleware('permission:selesai-pengajuan', ['only' => ['updateStatus']]);
-    //     $this->middleware('permission:tambah-pengajuan', ['only' => ['create','store']]);
-    //     $this->middleware('permission:edit-pengajuan', ['only' => ['update','edit']]);
-    //     $this->middleware('permission:hapus-pengajuan', ['only' => ['destroy']]);
-    // }
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-pengajuan', ['only' => ['index']]);
+        $this->middleware('permission:selesai-pengajuan', ['only' => ['updateStatus']]);
+        $this->middleware('permission:tambah-pengajuan', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-pengajuan', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-pengajuan', ['only' => ['destroy']]);
+    }
 
     // public function export($pengajuan_id)
     // {

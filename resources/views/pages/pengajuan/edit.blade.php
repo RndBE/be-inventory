@@ -41,13 +41,13 @@
                 @if($pengajuan->status !== 'Selesai')
                     <a href="{{ route('pengajuans.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
                     <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
-                    {{-- @can('selesai-pengajuan') --}}
+                    @can('selesai-pengajuan')
                         @if($isComplete)
                             <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
                                 Selesai
                             </button>
                         @endif
-                    {{-- @endcan --}}
+                    @endcan
                 @elseif ($pengajuan->status === 'Selesai')
                     <a href="{{ route('pengajuans.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                 @else
@@ -118,6 +118,7 @@
                                         <option value="Marketing" {{ (old('divisi') ?? $pengajuan->divisi) == 'Marketing' ? 'selected' : '' }}>Marketing</option>
                                         <option value="Purchasing" {{ (old('divisi') ?? $pengajuan->divisi) == 'Purchasing' ? 'selected' : '' }}>Purchasing</option>
                                         <option value="HSE" {{ (old('divisi') ?? $pengajuan->divisi) == 'HSE' ? 'selected' : '' }}>HSE</option>
+                                        <option value="OP" {{ (old('divisi') ?? $pengajuan->divisi) == 'OP' ? 'selected' : '' }}>OP</option>
                                         <option value="Administrasi" {{ (old('divisi') ?? $pengajuan->divisi) == 'Administrasi' ? 'selected' : '' }}>Administrasi</option>
                                         <option value="Sekretaris" {{ (old('divisi') ?? $pengajuan->divisi) == 'Sekretaris' ? 'selected' : '' }}>Sekretaris</option>
                                     </select>

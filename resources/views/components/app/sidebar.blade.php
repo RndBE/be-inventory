@@ -219,7 +219,7 @@
                     <span class="lg:hidden lg:sidebar-expanded:block 2xl:block">Pengajuan</span>
                 </h3>
                 <ul class="mt-3">
-                    {{-- @can('lihat-proses-produksi') --}}
+                    @can('lihat-pengajuan')
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['pengajuans'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['pengajuans.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('pengajuans.index') }}">
                                 <div class="flex items-center">
@@ -231,7 +231,7 @@
                                 </div>
                             </a>
                         </li>
-                    {{-- @endcan --}}
+                    @endcan
                 </ul>
             </div>
             <!-- Produksi -->

@@ -20,6 +20,7 @@
                     <option value="Marketing" {{ old('divisi') == 'Marketing' ? 'selected' : '' }}>Marketing</option>
                     <option value="Purchasing" {{ old('divisi') == 'Purchasing' ? 'selected' : '' }}>Purchasing</option>
                     <option value="HSE" {{ old('divisi') == 'HSE' ? 'selected' : '' }}>HSE</option>
+                    <option value="OP" {{ old('divisi') == 'OP' ? 'selected' : '' }}>OP</option>
                     <option value="Administrasi" {{ old('divisi') == 'Administrasi' ? 'selected' : '' }}>Administrasi</option>
                     <option value="Sekretaris" {{ old('divisi') == 'Sekretaris' ? 'selected' : '' }}>Sekretaris</option>
                 </select>

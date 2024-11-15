@@ -25,6 +25,24 @@ class PengajuanTable extends Component
 
         } elseif ($user->hasRole('produksi')) {
             $query->where('divisi', 'Produksi');
+        } elseif ($user->hasRole('rnd')) {
+            $query->where('divisi', 'RnD');
+        }elseif ($user->hasRole('publikasi')) {
+            $query->where('divisi', 'Publikasi');
+        }elseif ($user->hasRole('software')) {
+            $query->where('divisi', 'Software');
+        }elseif ($user->hasRole('marketing')) {
+            $query->where('divisi', 'Marketing');
+        }elseif ($user->hasRole('purchasing')) {
+            $query->where('divisi', 'Purchasing');
+        }elseif ($user->hasRole('hse')) {
+            $query->where('divisi', 'HSE');
+        }elseif ($user->hasRole('op')) {
+            $query->where('divisi', 'OP');
+        }elseif ($user->hasRole('administrasi')) {
+            $query->where('divisi', 'Administrasi');
+        }elseif ($user->hasRole('sekretaris')) {
+            $query->where('divisi', 'Sekretaris');
         }
 
         // Apply search filters

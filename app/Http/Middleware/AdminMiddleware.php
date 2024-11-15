@@ -19,7 +19,7 @@ class AdminMiddleware
         if (Auth::check()) {
             /** @var App\Models\User */
             $user = Auth::user();
-            if($user->hasRole(['superadmin','purchasing','accounting','produksi'])){
+            if($user->hasRole(['superadmin','purchasing','accounting','produksi','rnd','publikasi','software','marketing','hse','op','administrasi','sekretaris'])){
                 return $next($request);
             }
             abort(403, "User does not have correct role");

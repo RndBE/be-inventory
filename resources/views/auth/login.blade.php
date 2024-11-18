@@ -23,14 +23,15 @@
                         <div>
                             <x-label for="password" value="{{ __('Password') }}" />
 
+                                {{-- <x-input id="password" placeholder="••••••••" type="password" name="password" required autocomplete="current-password" /> --}}
                             <!-- Password Input Field -->
                             <div class="relative">
-                                <x-input id="password" placeholder="••••••••" type="password" name="password" required autocomplete="current-password" />
-
-                                <!-- Eye Icon to Toggle Password Visibility -->
-                                <button type="button" id="togglePassword" class="absolute right-2 top-1/2 transform -translate-y-1/2">
-                                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-eye"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>
-                                </button>
+                                <div class="flex items-center">
+                                    <input type="password" id="password" placeholder="••••••••" name="password" required autocomplete="current-password" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                                    <button type="button" id="togglePassword" class="ml-2 text-gray-600 dark:text-gray-300">
+                                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-eye"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

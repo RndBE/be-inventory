@@ -21,13 +21,14 @@ class BahanTable extends Component
                 $query->where('nama_bahan', 'like', '%' . $this->search . '%')
                     ->orWhere('penempatan', 'like', '%' . $this->search . '%')
                     ->orWhere('kode_bahan', 'like', '%' . $this->search . '%')
-                    // Pencarian berdasarkan nama jenisBahan
                     ->orWhereHas('jenisBahan', function ($query) {
+                        $query->where('nama', 'like', '%' . $this->search . '%');
+                    })->orWhereHas('dataUnit', function ($query) {
                         $query->where('nama', 'like', '%' . $this->search . '%');
                     })
                     ->orWhereHas('dataSupplier', function ($query) {
                         $query->where('nama', 'like', '%' . $this->search . '%');
-                    });;
+                    });
             })
             ->paginate($this->perPage);
 

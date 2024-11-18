@@ -164,7 +164,7 @@
                                         <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('bahan-keluars.index')){{ '!text-violet-500' }}@endif" href="{{ route('bahan-keluars.index') }}">
                                             <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Bahan Keluar
                                                 @if($jumlahBahanKeluar > 0)
-                                                    <span class="inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold text-indigo-800 bg-indigo-200 rounded-full">
+                                                    <span class="inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold text-indigo-800 bg-indigo-200 rounded-full" style="background-color: rgb(199, 210, 254)">
                                                         {{ $jumlahBahanKeluar }}
                                                     </span>
                                                 @endif
@@ -186,7 +186,7 @@
                                     </svg>
                                     <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Bahan Rusak
                                         @if($jumlahBahanRusak > 0)
-                                            <span class="inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold text-indigo-800 bg-indigo-200 rounded-full">
+                                            <span class="inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold text-indigo-800 bg-indigo-200 rounded-full" style="background-color: rgb(199, 210, 254)">
                                                 {{ $jumlahBahanRusak }}
                                             </span>
                                         @endif
@@ -203,7 +203,7 @@
 
                                     <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Bahan Retur
                                         @if($jumlahBahanRetur > 0)
-                                            <span class="inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold text-indigo-800 bg-indigo-200 rounded-full">
+                                            <span class="inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold text-indigo-800 bg-indigo-200 rounded-full" style="background-color: rgb(199, 210, 254)">
                                                 {{ $jumlahBahanRetur }}
                                             </span>
                                         @endif

@@ -12,7 +12,7 @@ class BahanTable extends Component
 
     public $search = '';
     public $perPage = 15;
-    public $id_bahan, $nama_bahan, $jenis_bahan_id, $stok_awal, $total_stok, $penempatan, $unit_id, $kondisi, $gambar, $kode_bahan;
+    public $id_bahan, $nama_bahan, $jenis_bahan_id, $stok_awal, $total_stok, $penempatan, $supplier, $unit_id, $kondisi, $gambar, $kode_bahan;
 
     public function render()
     {
@@ -53,6 +53,7 @@ class BahanTable extends Component
         $this->stok_awal = $Data->stok_awal;
         $this->total_stok = $Data->purchaseDetails->sum('sisa');
         $this->penempatan = $Data->penempatan;
+        $this->supplier = $Data->dataSupplier->nama ?? 'N/A';
         $this->kondisi = $Data->kondisi;
         $this->unit_id = $Data->dataUnit->nama ?? 'N/A';
         $this->gambar = $Data->gambar;

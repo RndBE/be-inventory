@@ -25,6 +25,7 @@
                         <li><h6>Stok Awal: <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $stok_awal }} {{ $unit_id }}</span></h6></li>
                         <li><h6>Total Stok: <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $total_stok }} {{ $unit_id }}</span></h6></li>
                         <li><h6>Penempatan: {{ $penempatan }}</h6></li>
+                        <li><h6>Supplier: {{ $supplier }}</h6></li>
                     </ul>
                 </div>
             </div>

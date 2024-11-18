@@ -23,22 +23,18 @@ class PengajuanTable extends Component
 
         if ($user->hasRole('superadmin') || $user->hasRole('purchasing')) {
 
-        } elseif ($user->hasRole('produksi')) {
-            $query->where('divisi', 'Produksi');
-        } elseif ($user->hasRole('rnd')) {
+        }elseif ($user->hasRole(['produksi', 'op', 'teknisi'])) {
+            $query->whereIn('divisi', ['Produksi', 'OP']);
+        }elseif ($user->hasRole('rnd')) {
             $query->where('divisi', 'RnD');
-        }elseif ($user->hasRole('publikasi')) {
-            $query->where('divisi', 'Publikasi');
-        }elseif ($user->hasRole('software')) {
-            $query->where('divisi', 'Software');
+        }elseif ($user->hasRole(['publikasi', 'software'])) {
+            $query->whereIn('divisi', ['Publikasi', 'Software']);
         }elseif ($user->hasRole('marketing')) {
             $query->where('divisi', 'Marketing');
-        }elseif ($user->hasRole('purchasing')) {
+        }elseif ($user->hasRole(['purchasing', 'helper'])) {
             $query->where('divisi', 'Purchasing');
         }elseif ($user->hasRole('hse')) {
             $query->where('divisi', 'HSE');
-        }elseif ($user->hasRole('op')) {
-            $query->where('divisi', 'OP');
         }elseif ($user->hasRole('administrasi')) {
             $query->where('divisi', 'Administrasi');
         }elseif ($user->hasRole('sekretaris')) {

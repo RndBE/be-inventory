@@ -16,13 +16,20 @@ class UsersTable extends Component
 
     public function render()
     {
-        $users = User::where('name', 'like', '%' . $this->search . '%')
+        $users = User::query()
+            ->where('name', 'like', '%' . $this->search . '%')
+            ->orWhere('email', 'like', '%' . $this->search . '%')
+            ->orWhereHas('roles', function ($query) {
+                $query->where('name', 'like', '%' . $this->search . '%');
+            })
             ->paginate($this->perPage);
 
         return view('livewire.users-table', [
             'users' => $users
         ]);
     }
+
+
 
     public function deleteUser(int $id)
     {

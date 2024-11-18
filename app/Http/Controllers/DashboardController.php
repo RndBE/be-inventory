@@ -155,23 +155,28 @@ class DashboardController extends Controller
             })->toArray();
         }
 
-
-        // Retrieve total quantities for each material in bahan_setengahjadi_details
         $materialsData = BahanSetengahjadiDetails::select('bahan_id', DB::raw('SUM(sisa) as total_qty'))
-            ->groupBy('bahan_id')
-            ->get();
+        ->groupBy('bahan_id')
+        ->get();
 
-            // Prepare data for the pie chart
         $chartLabels = [];
         $chartData = [];
+        $chartTotalQty = [];
+        $totalQuantity = 0;
 
         foreach ($materialsData as $data) {
-            $material = Bahan::find($data->bahan_id); // Get material name from bahan table
-            $chartLabels[] = $material->nama_bahan; // Assuming 'name' is a column in bahan
-            $chartData[] = $data->total_qty;
+            $totalQuantity += $data->total_qty;
         }
 
-        return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalSatuanUnit', 'dates', 'chartDataMasuk', 'chartDataKeluar','availableYears', 'year', 'period', 'totalPengajuanBahanKeluar','totalPengajuanBahanRetur','totalPengajuanBahanRusak', 'chartLabels', 'chartData','prosesProduksi','projeks','projeks_rnd', 'bahanSisaTerbanyak','bahanSisaPalingSedikit'));
+        foreach ($materialsData as $data) {
+            $material = Bahan::find($data->bahan_id);
+            $chartLabels[] = $material->nama_bahan;
+            $percentage = ($data->total_qty / $totalQuantity) * 100;
+            $chartData[] = $percentage;
+            $chartTotalQty[] = $data->total_qty;
+        }
+
+        return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalSatuanUnit', 'dates', 'chartDataMasuk', 'chartDataKeluar','availableYears', 'year', 'period', 'totalPengajuanBahanKeluar','totalPengajuanBahanRetur','totalPengajuanBahanRusak', 'chartLabels', 'chartData','prosesProduksi','projeks','projeks_rnd', 'bahanSisaTerbanyak','bahanSisaPalingSedikit', 'chartTotalQty'));
     }
 
     /**

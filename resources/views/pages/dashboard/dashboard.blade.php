@@ -523,7 +523,22 @@
             },
             series: @json($chartData),
             labels: @json($chartLabels),
-            colors: ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d', '#43aa8b', '#577590'], // Customize colors as needed
+            colors: ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d', '#43aa8b', '#577590'], 
+            tooltip: {
+                y: {
+                    formatter: function (value, { seriesIndex }) {
+                    var totalQty = @json($chartTotalQty)[seriesIndex];
+                    return totalQty ;
+                }
+                }
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '65%'
+                    }
+                }
+            }
         };
 
         var chart = new ApexCharts(document.querySelector("#bahan-pie-chart"), options);

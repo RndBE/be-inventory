@@ -50,7 +50,13 @@ use App\Http\Controllers\BahanSetengahjadiController;
 Route::get('/', function () {
     return redirect('/login');
 });
+Route::get('/register', function () {
+    abort(404);
+});
 
+Route::get('/forgot-password', function () {
+    abort(404);
+});
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/notif-transaksi', [PurchaseController::class, 'notifTransaksi']);
 Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {

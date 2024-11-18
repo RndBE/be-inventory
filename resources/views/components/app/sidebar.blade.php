@@ -136,7 +136,7 @@
 
                                     <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Transaksi
                                         @if($jumlahBahanKeluar > 0)
-                                            <span class="inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold text-red-800 bg-red-200 rounded-full">
+                                            <span class="inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold text-green-800 bg-green-200 rounded-full">
                                                 {{ $jumlahBahanKeluar }}
                                             </span>
                                         @endif

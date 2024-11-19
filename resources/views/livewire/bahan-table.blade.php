@@ -50,7 +50,7 @@
                 <li class="m-1">
                     @can('edit-bahan')
                         <button id="bulk-edit-button" wire:click="bulkEdit"
-                            class="mt-2 block w-fit rounded-md py-1.5 px-3 bg-yellow-600 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed" :disabled="selectedIds.length === 0">
+                            class="mt-2 block w-fit rounded-md py-1.5 px-3 bg-yellow-600 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed" disabled="selectedIds.length === 0">
                             Edit
                         </button>
                     @endcan

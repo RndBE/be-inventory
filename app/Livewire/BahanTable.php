@@ -11,9 +11,13 @@ class BahanTable extends Component
     use WithPagination;
 
     public $search = '';
-    public $perPage = 15;
+    public $perPage = 25;
     public $id_bahan, $nama_bahan, $jenis_bahan_id, $stok_awal, $total_stok, $penempatan, $supplier, $unit_id, $kondisi, $gambar, $kode_bahan;
 
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
     public function render()
     {
         $bahans = Bahan::with('jenisBahan', 'dataUnit', 'purchaseDetails')
@@ -64,9 +68,5 @@ class BahanTable extends Component
     public function deleteBahan(int $id)
     {
         $this->id_bahan = $id;
-    }
-
-    public function updatingSearch(){
-        $this->resetPage();
     }
 }

@@ -50,8 +50,8 @@ class BahanPengajuanCart extends Component
 
             // Tambahkan item ke keranjang
             $this->cart[] = $item;
-            $this->qty[$bahan->id] = 0;
-            $this->jml_bahan[$bahan->id] = 0;
+            $this->qty[$bahan->id] = null;
+            $this->jml_bahan[$bahan->id] = null;
         }
 
         // Simpan ke sesi

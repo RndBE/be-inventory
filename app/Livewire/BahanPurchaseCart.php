@@ -38,8 +38,8 @@ class BahanPurchaseCart extends Component
         } else {
             // Jika bahan belum ada, tambahkan ke keranjang
             $this->cart[] = $bahan;
-            $this->qty[$bahan->id] = 1; // Set kuantitas menjadi 1
-            $this->unit_price_raw[$bahan->id] = 0;
+            $this->qty[$bahan->id] = null; // Set kuantitas menjadi 1
+            $this->unit_price_raw[$bahan->id] = null;
             $this->unit_price[$bahan->id] = null;
         }
         // Hitung subtotal untuk item yang ditambahkan atau diperbarui
@@ -108,16 +108,16 @@ class BahanPurchaseCart extends Component
     }
 
     public function editItem($itemId)
-{
-    $this->editingItemId = $itemId; // Set ID item yang sedang diedit
+    {
+        $this->editingItemId = $itemId; // Set ID item yang sedang diedit
 
-    // Cek apakah unit_price[$itemId] ada sebelum mengaksesnya
-    if (isset($this->unit_price[$itemId])) {
-        $this->unit_price_raw[$itemId] = $this->unit_price[$itemId]; // Ambil nilai untuk diedit
-    } else {
-        $this->unit_price_raw[$itemId] = 0; // Set default jika tidak ada
+        // Cek apakah unit_price[$itemId] ada sebelum mengaksesnya
+        if (isset($this->unit_price[$itemId])) {
+            $this->unit_price_raw[$itemId] = $this->unit_price[$itemId]; // Ambil nilai untuk diedit
+        } else {
+            $this->unit_price_raw[$itemId] = null; // Set default jika tidak ada
+        }
     }
-}
 
 
     public function saveUnitPrice($itemId)

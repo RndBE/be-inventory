@@ -10,8 +10,14 @@ class PurchaseTable extends Component
 {
     use WithPagination;
     public $search = "";
-    public $perPage = 15;
+    public $perPage = 25;
     public $id_purchases;
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $purchases = Purchase::with('purchaseDetails.dataBahan')->orderBy('id', 'desc')
@@ -34,8 +40,4 @@ class PurchaseTable extends Component
         $this->id_purchases = $id;
     }
 
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
 }

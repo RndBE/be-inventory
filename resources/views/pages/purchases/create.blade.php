@@ -65,7 +65,7 @@
 
                             </div>
 
-                            <div class="sm:col-span-2">
+                            {{-- <div class="sm:col-span-2">
                                 <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900">Tanggal Masuk</label>
                                 <div class="mt-2">
                                     <div class="relative max-w-sm">
@@ -81,7 +81,7 @@
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                     <livewire:search-bahan/>

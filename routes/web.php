@@ -57,10 +57,15 @@ Route::get('/register', function () {
 Route::get('/forgot-password', function () {
     abort(404);
 });
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/notif-transaksi', [PurchaseController::class, 'notifTransaksi']);
+
+
+
+
 Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
-    // Route::get('/log-activities', [LogActivityController::class, 'index'])->name('log.activities.index');
+
     Route::resource('log-activities', LogActivityController::class);
     Route::resource('permissions', PermissionController::class);
     Route::resource('roles', RoleController::class);
@@ -76,6 +81,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
     // Route::resource('bahan', BahanController::class);
 
+    Route::get('/bahan/edit-multiple', [BahanController::class, 'editMultiple'])->name('bahan.editmultiple');
+    Route::put('/bahan/update-multiple', [BahanController::class, 'updateMultiple'])->name('bahan.update.multiple');
+
     Route::get('/bahan', [BahanController::class, 'index'])->name('bahan.index');
     Route::get('/bahan/create', [BahanController::class, 'create'])->name('bahan.create');
     Route::post('/bahan/store', [BahanController::class, 'store'])->name('bahan.store');
@@ -83,6 +91,10 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::put('/bahan/{id}', [BahanController::class, 'update'])->name('bahan.update');
     Route::delete('/bahan/{id}', [BahanController::class, 'destroy'])->name('bahan.destroy');
     Route::get('bahan-export', [BahanController::class, 'export'])->name('bahan.export');
+
+
+
+
 
 
     Route::resource('supplier', SupplierController::class);

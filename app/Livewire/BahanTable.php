@@ -13,11 +13,19 @@ class BahanTable extends Component
     public $search = '';
     public $perPage = 25;
     public $id_bahan, $nama_bahan, $jenis_bahan_id, $stok_awal, $total_stok, $penempatan, $supplier, $unit_id, $kondisi, $gambar, $kode_bahan;
-
+    public $selectedIds = [];
     public function updatedSearch()
     {
         $this->resetPage();
     }
+
+    public function bulkEdit()
+    {
+        if (!empty($this->selectedIds)) {
+            return redirect()->route('bahan.editmultiple', ['ids' => $this->selectedIds]);
+        }
+    }
+
     public function render()
     {
         $bahans = Bahan::with('jenisBahan', 'dataUnit', 'purchaseDetails')

@@ -7,6 +7,7 @@ use App\Models\Unit;
 use App\Models\Bahan;
 use App\Models\Produksi;
 use App\Models\Purchase;
+use App\Models\Supplier;
 use App\Helpers\LogHelper;
 use App\Models\JenisBahan;
 use App\Models\BahanKeluar;
@@ -19,12 +20,12 @@ use App\Models\ProduksiDetails;
 use Illuminate\Validation\Rule;
 use App\Models\BahanReturDetails;
 use App\Models\BahanRusakDetails;
+use Illuminate\Http\UploadedFile;
 use App\Models\BahanKeluarDetails;
 use App\Models\ProdukProduksiDetail;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use App\Models\BahanSetengahjadiDetails;
-use App\Models\Supplier;
 use Illuminate\Validation\ValidationException;
 
 class BahanController extends Controller
@@ -33,7 +34,7 @@ class BahanController extends Controller
     {
         $this->middleware('permission:lihat-bahan', ['only' => ['index']]);
         $this->middleware('permission:tambah-bahan', ['only' => ['create','store']]);
-        $this->middleware('permission:edit-bahan', ['only' => ['update','edit']]);
+        $this->middleware('permission:edit-bahan', ['only' => ['update','edit','updateMultiple','editMultiple']]);
         $this->middleware('permission:hapus-bahan', ['only' => ['destroy']]);
         $this->middleware('permission:export-bahan', ['only' => ['export']]);
     }
@@ -42,6 +43,8 @@ class BahanController extends Controller
     {
         return Excel::download(new BahansExport, 'bahan_be-inventory.xlsx');
     }
+
+
 
     public function index()
     {
@@ -131,6 +134,76 @@ class BahanController extends Controller
         } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         }catch(Throwable $e){
+            LogHelper::error($e->getMessage());
+            return view('pages.utility.404');
+        }
+    }
+
+    public function editMultiple(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:bahan,id',
+        ]);
+        $units = Unit::all();
+        $jenisBahan = JenisBahan::all();
+        $suppliers = Supplier::all();
+
+        $bahans = Bahan::with('jenisBahan', 'dataUnit', 'purchaseDetails')
+            ->whereIn('id', $validated['ids'])
+            ->get();
+
+        return view('pages.bahan.editmultiple', compact('bahans', 'units', 'suppliers', 'jenisBahan'));
+    }
+
+
+    public function updateMultiple(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'bahan' => 'required|array',
+                'bahan.*.id' => 'required|exists:bahan,id',
+                'bahan.*.kode_bahan' => 'required|string|max:255',
+                'bahan.*.nama_bahan' => 'required|string|max:255',
+                'bahan.*.jenis_bahan_id' => 'required|exists:jenis_bahan,id',
+                'bahan.*.unit_id' => 'required|exists:unit,id',
+                'bahan.*.supplier_id' => 'nullable|exists:supplier,id',
+                'bahan.*.penempatan' => 'required|string|max:255',
+                'bahan.*.gambar' => 'nullable|image|max:2048',
+            ]);
+            $updatedCount = 0;
+            foreach ($validated['bahan'] as $data) {
+                $bahan = Bahan::findOrFail($data['id']);
+
+                if (isset($data['gambar']) && $data['gambar'] instanceof UploadedFile) {
+                    if ($bahan->gambar && Storage::exists('public/' . $bahan->gambar)) {
+                        Storage::delete('public/' . $bahan->gambar);
+                    }
+
+                    $fileName = time() . '_' . $data['gambar']->getClientOriginalName();
+                    $filePath = $data['gambar']->storeAs('public/bahan', $fileName);
+                    $data['gambar'] = 'bahan/' . $fileName;
+                } else {
+                    $data['gambar'] = $bahan->gambar;
+                }
+
+                $bahan->update([
+                    'kode_bahan' => $data['kode_bahan'],
+                    'nama_bahan' => $data['nama_bahan'],
+                    'jenis_bahan_id' => $data['jenis_bahan_id'],
+                    'unit_id' => $data['unit_id'],
+                    'supplier_id' => $data['supplier_id'],
+                    'penempatan' => $data['penempatan'],
+                    'gambar' => $data['gambar'],
+                ]);
+
+                $updatedCount++;
+            }
+            LogHelper::success('Berhasil Mengubah Bahan!');
+            return redirect()->back()->with('success', "Berhasil mengubah $updatedCount bahan!");
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Throwable $e) {
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }

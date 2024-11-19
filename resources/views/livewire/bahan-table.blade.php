@@ -30,8 +30,6 @@
             <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Bahan</h6>
         </div>
 
-
-
         <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
             <ul class="flex flex-wrap -m-1">
                 <li class="m-1">
@@ -50,12 +48,21 @@
                     @endcan
                 </li>
                 <li class="m-1">
+                    @can('edit-bahan')
+                        <button id="bulk-edit-button" wire:click="bulkEdit"
+                            class="mt-2 block w-fit rounded-md py-1.5 px-3 bg-yellow-600 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed" :disabled="selectedIds.length === 0">
+                            Edit
+                        </button>
+                    @endcan
+                </li>
+                <li class="m-1">
                     @can('tambah-bahan')
-                        <a href="{{ route('bahan.create') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                        <a href="{{ route('bahan.create') }}" class="mt-2 block w-fit rounded-md py-1.5 px-3 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                             Tambah
                         </a>
                     @endcan
                 </li>
+
             </ul>
         </div>
     </div>
@@ -73,7 +80,8 @@
                         </th>
                         <th scope="col" class="p-4">
                             <div class="flex items-center">
-                                
+                                {{-- <input id="checkbox-all-search" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <label for="checkbox-all-search" class="sr-only">checkbox</label> --}}
                             </div>
                         </th>
                         <th scope="col" class="px-6 py-3">
@@ -105,8 +113,8 @@
                             <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $bahans->firstItem() + $index }}</div></td>
                             <td class="w-4 p-4">
                                 <div class="flex items-center">
-                                    <input id="checkbox-table-search-1" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                    <label for="checkbox-table-search-1" class="sr-only">checkbox</label>
+                                    <input type="checkbox" wire:model="selectedIds" value="{{ $row->id }}" class="checkbox-row w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded">
+
                                 </div>
                             </td>
                             <td class="px-6 py-4">
@@ -193,3 +201,61 @@
         }
     });
 </script>
+
+{{-- <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAllCheckbox = document.getElementById('checkbox-all-search');
+        const checkboxes = document.querySelectorAll('.checkbox-row');
+
+        selectAllCheckbox.addEventListener('change', function () {
+            const isChecked = this.checked;
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+        });
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                if (!this.checked) {
+                    selectAllCheckbox.checked = false;
+                } else if (Array.from(checkboxes).every(cb => cb.checked)) {
+                    selectAllCheckbox.checked = true;
+                }
+            });
+        });
+    });
+</script> --}}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // const selectAllCheckbox = document.getElementById('checkbox-all-search');
+        const checkboxes = document.querySelectorAll('.checkbox-row');
+        const bulkEditButton = document.getElementById('bulk-edit-button');
+
+        const updateButtonState = () => {
+            const selectedCheckboxes = Array.from(checkboxes).filter(cb => cb.checked);
+            bulkEditButton.disabled = selectedCheckboxes.length === 0;
+        };
+
+        // selectAllCheckbox.addEventListener('change', function () {
+        //     const isChecked = this.checked;
+        //     checkboxes.forEach(checkbox => {
+        //         checkbox.checked = isChecked;
+        //     });
+        //     updateButtonState();
+        // });
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                if (!this.checked) {
+                    selectAllCheckbox.checked = false;
+                } else if (Array.from(checkboxes).every(cb => cb.checked)) {
+                    selectAllCheckbox.checked = true;
+                }
+                updateButtonState();
+            });
+        });
+    });
+</script>
+
+

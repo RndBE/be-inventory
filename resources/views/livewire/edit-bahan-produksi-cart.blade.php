@@ -69,7 +69,7 @@
                         {{ $materials }}
                     @endforeach
                     <div class="flex justify-end mt-3">
-                        <button type="button" class="text-red-800 bg-transparent border border-red-800 hover:bg-red-900 hover:text-white focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center dark:hover:bg-red-600 dark:border-red-600 dark:text-red-400 dark:hover:text-white dark:focus:ring-red-800" data-dismiss-target="#alert-additional-content-3" aria-label="Close">
+                        <button type="button" class="text-red-800 bg-transparent border border-red-800 hover:bg-red-800 hover:text-white focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center dark:hover:bg-red-600 dark:border-red-600 dark:text-red-400 dark:hover:text-white dark:focus:ring-red-800" data-dismiss-target="#alert-additional-content-3" aria-label="Close">
                             Tutup
                         </button>
                     </div>
@@ -283,7 +283,7 @@
     </div>
     <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
         @if($produksiStatus !== 'Selesai')
-        <div class="border-b border-gray-900/10">
+        <div class=" border-gray-900/10">
             <h1 class="mt-6"><strong>Bahan Rusak</strong></h1>
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -320,7 +320,7 @@
         </div>
         @endif
         @if($produksiStatus !== 'Selesai')
-        <div class="border-b border-gray-900/10">
+        <div class=" border-gray-900/10">
             <h1 class="mt-6"><strong>Bahan Retur</strong></h1>
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
                 <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">

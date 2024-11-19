@@ -98,7 +98,7 @@
                 @method('PUT') <!-- Use PUT method for updating -->
                 <div class="space-y-6">
                     <div>
-                        <div class="border-b border-gray-900/10 pb-2">
+                        <div class="border-b border-gray-900/10 pb-2 mb-2">
                             <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                                 <div class="flex items-center">
                                     <label for="kode_projek" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Projek</label>

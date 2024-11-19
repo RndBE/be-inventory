@@ -73,7 +73,7 @@
 
         </div>
     </div>
-    <div class="border-b border-gray-900/10 pt-2">
+    <div class=" border-gray-900/10 pt-2">
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">

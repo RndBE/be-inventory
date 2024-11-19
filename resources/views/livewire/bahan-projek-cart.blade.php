@@ -1,6 +1,6 @@
 
 <div>
-    <div class="border-b border-gray-900/10 pb-2">
+    <div class="border-b border-gray-900/10 pb-2 mb-2">
         <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
             <div class="flex items-center">
                 <label for="kode_projek" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Projek</label>
@@ -55,9 +55,9 @@
 
         </div>
     </div>
-    <div class="border-b border-gray-900/10 pt-2">
-        <livewire:search-bahan-produksi/>
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-2">
+    <livewire:search-bahan-produksi/>
+    <div class=" border-gray-900/10 pt-2">
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                     <tr>

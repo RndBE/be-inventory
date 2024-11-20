@@ -24,7 +24,7 @@ class PengajuanTable extends Component
         if ($user->hasRole('superadmin') || $user->hasRole('purchasing')) {
 
         }elseif ($user->hasRole(['produksi', 'op', 'teknisi'])) {
-            $query->whereIn('divisi', ['Produksi', 'OP']);
+            $query->whereIn('divisi', ['Produksi', 'OP', 'Teknisi']);
         }elseif ($user->hasRole('rnd')) {
             $query->where('divisi', 'RnD');
         }elseif ($user->hasRole(['publikasi', 'software'])) {

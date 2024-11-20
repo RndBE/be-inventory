@@ -112,6 +112,7 @@
                                     <select disabled name="divisi" id="divisi" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
                                         <option value="">-- Pilih Divisi --</option>
                                         <option value="Produksi" {{ (old('divisi') ?? $pengajuan->divisi) == 'Produksi' ? 'selected' : '' }}>Produksi</option>
+                                        <option value="Teknisi" {{ (old('divisi') ?? $pengajuan->divisi) == 'Teknisi' ? 'selected' : '' }}>Teknisi</option>
                                         <option value="RnD" {{ (old('divisi') ?? $pengajuan->divisi) == 'RnD' ? 'selected' : '' }}>RnD</option>
                                         <option value="Publikasi" {{ (old('divisi') ?? $pengajuan->divisi) == 'Publikasi' ? 'selected' : '' }}>Publikasi</option>
                                         <option value="Software" {{ (old('divisi') ?? $pengajuan->divisi) == 'Software' ? 'selected' : '' }}>Software</option>

@@ -365,6 +365,16 @@
                                         </a>
                                     </li>
                                 @endcan
+                                <li class="mb-1 last:mb-0">
+                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('organization.index')){{ '!text-violet-500' }}@endif" href="{{ route('organization.index') }}">
+                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Organization</span>
+                                    </a>
+                                </li>
+                                <li class="mb-1 last:mb-0">
+                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('job-position.index')){{ '!text-violet-500' }}@endif" href="{{ route('job-position.index') }}">
+                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Job Position</span>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

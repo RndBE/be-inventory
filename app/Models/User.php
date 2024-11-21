@@ -61,4 +61,19 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+    public function atasanLevel1()
+    {
+        return $this->belongsTo(User::class, 'atasan_level1_id');
+    }
+
+    public function atasanLevel2()
+    {
+        return $this->belongsTo(User::class, 'atasan_level2_id');
+    }
+
+    public function atasanLevel3()
+    {
+        return $this->belongsTo(User::class, 'atasan_level3_id');
+    }
 }

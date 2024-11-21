@@ -30,8 +30,10 @@ use App\Http\Controllers\BahanRusakController;
 use App\Http\Controllers\JenisBahanController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\BahanKeluarController;
+use App\Http\Controllers\JobPositionController;
 use App\Http\Controllers\LogActivityController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\StokProduksiController;
 use App\Http\Controllers\ProdukProduksiController;
 use App\Http\Controllers\BahanSetengahjadiController;
@@ -105,6 +107,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('unit-export', [UnitController::class, 'export'])->name('unit.export');
     Route::resource('purchases', PurchaseController::class);
     Route::get('purchases-export', [PurchaseController::class, 'export'])->name('purchases-export.export');
+
+    Route::resource('organization', OrganizationController::class);
+    Route::resource('job-position', JobPositionController::class);
 
 
     Route::get('/bahan-keluars/pdf/{id}', [BahanKeluarController::class, 'downloadPdf'])->name('bahan-keluars.downloadPdf');

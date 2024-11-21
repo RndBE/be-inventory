@@ -65,7 +65,7 @@
                         <th scope="col" class="px-6 py-3">Kode Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Mulai Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Selesai Pengajuan</th>
-                        <th scope="col" class="px-6 py-3">Divisi</th>
+                        <th scope="col" class="px-6 py-3">Pengaju</th>
                         <th scope="col" class="px-6 py-3">Keterangan</th>
                         <th scope="col" class="px-6 py-3">Status</th>
                         {{-- <th scope="col" class="px-6 py-3">Total Harga</th> --}}
@@ -84,7 +84,12 @@
                             </td>
                             <td class="px-6 py-3">{{ $pengajuan->mulai_pengajuan }}</td>
                             <td class="px-6 py-3">{{ $pengajuan->selesai_pengajuan }}</td>
-                            <td class="px-6 py-3">{{ $pengajuan->divisi }}</td>
+                            <td class="px-6 py-3">
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ $pengajuan->pengaju }}
+                                </div>
+                                <div class="text-xs text-gray-500">{{ $pengajuan->divisi }}</div>
+                            </td>
                             <td class="px-6 py-3">{{ $pengajuan->keterangan }}</td>
                             {{-- <td class="px-6 py-3">{{ $pengajuan->produksiDetails->sum('qty') }}</td> --}}
                             <td class="px-6 py-3">{{ $pengajuan->status }}</td>

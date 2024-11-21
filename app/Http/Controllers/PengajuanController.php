@@ -6,25 +6,26 @@ use Throwable;
 use App\Models\Unit;
 use App\Models\Bahan;
 use App\Models\Produk;
-use App\Models\Pengajuan;
 use App\Models\BahanJadi;
+use App\Models\Pengajuan;
 use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
-use App\Exports\PengajuanExport;
-use App\Models\PengajuanDetails;
 use App\Models\DetailProduksi;
 use App\Models\ProdukProduksi;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
+use App\Exports\PengajuanExport;
 use App\Models\BahanJadiDetails;
+use App\Models\PengajuanDetails;
 use App\Models\BahanReturDetails;
 use App\Models\BahanRusakDetails;
 use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
@@ -101,6 +102,7 @@ class PengajuanController extends Controller
                 'kode_pengajuan' => $kode_pengajuan,
                 'mulai_pengajuan' => $tgl_pengajuan,
                 'divisi' => $request->divisi,
+                'pengaju' => Auth::user()->name,
                 'keterangan' => $request->keterangan,
                 'status' => 'Dalam Proses'
             ]);
@@ -111,6 +113,8 @@ class PengajuanController extends Controller
                 'tgl_pengajuan' => $tgl_pengajuan,
                 'tujuan' => $tujuan,
                 'divisi' => $request->divisi,
+                'pengaju' => Auth::user()->name,
+                'status_pengambilan' => 'Belum Diambil',
                 'status' => 'Belum disetujui'
             ]);
 

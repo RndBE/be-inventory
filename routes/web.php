@@ -107,8 +107,12 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('purchases-export', [PurchaseController::class, 'export'])->name('purchases-export.export');
 
 
+    Route::get('/bahan-keluars/pdf/{id}', [BahanKeluarController::class, 'downloadPdf'])->name('bahan-keluars.downloadPdf');
 
     Route::resource('bahan-keluars', BahanKeluarController::class);
+    Route::put('bahan-keluars/{id}/updatepengambilan', [BahanKeluarController::class, 'updatepengambilan'])->name('bahan-keluars.updatepengambilan');
+
+
 
     Route::resource('pengajuans', PengajuanController::class);
     Route::put('pengajuans/{pengajuan}/selesai', [PengajuanController::class, 'updateStatus'])->name('pengajuans.updateStatus');

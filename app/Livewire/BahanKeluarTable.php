@@ -12,10 +12,10 @@ class BahanKeluarTable extends Component
     public $search = "";
     public $perPage = 15;
     public $id_bahan_keluars, $status,
-    $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails;
+    $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails, $status_pengambilan;
     public $filter = 'semua';
     public $totalHarga;
-    public $isModalOpen = false;
+    // public $isModalOpen = false;
 
     public function mount()
     {
@@ -29,8 +29,8 @@ class BahanKeluarTable extends Component
         } else {
             $this->filter = $value;
         }
-        $this->resetPage();
-        $this->isModalOpen = true;
+        // $this->resetPage();
+        // $this->isModalOpen = true;
     }
 
     public function showBahanKeluar(int $id)
@@ -42,13 +42,13 @@ class BahanKeluarTable extends Component
         $this->divisi = $Data->divisi;
         $this->status = $Data->status;
         $this->bahanKeluarDetails  = $Data->bahanKeluarDetails;
-        $this->isModalOpen = true;
+        // $this->isModalOpen = true;
     }
 
-    public function closeModal()
-    {
-        $this->isModalOpen = false;
-    }
+    // public function closeModal()
+    // {
+    //     $this->isModalOpen = false;
+    // }
 
     public function calculateTotalHarga()
     {
@@ -91,13 +91,20 @@ class BahanKeluarTable extends Component
         $Data = BahanKeluar::findOrFail($id);
         $this->id_bahan_keluars = $id;
         $this->status = $Data->status;
-        $this->isModalOpen = true;
+        // $this->isModalOpen = true;
+    }
+
+    public function editPengambilanBahanKeluar(int $id)
+    {
+        $Data = BahanKeluar::findOrFail($id);
+        $this->id_bahan_keluars = $id;
+        $this->status_pengambilan = $Data->status_pengambilan;
     }
 
     public function deleteBahanKeluars(int $id)
     {
         $this->id_bahan_keluars = $id;
-        $this->isModalOpen = true;
+        // $this->isModalOpen = true;
     }
 
     public function updatingSearch()

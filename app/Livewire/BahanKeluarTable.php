@@ -10,9 +10,9 @@ class BahanKeluarTable extends Component
 {
     use WithPagination;
     public $search = "";
-    public $perPage = 15;
+    public $perPage = 25;
     public $id_bahan_keluars, $status,
-    $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails, $status_pengambilan;
+    $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager;
     public $filter = 'semua';
     public $totalHarga;
     // public $isModalOpen = false;
@@ -61,7 +61,7 @@ class BahanKeluarTable extends Component
 
     public function render()
     {
-        $bahan_keluars = BahanKeluar::with('bahanKeluarDetails')->orderBy('id', 'desc')
+        $bahan_keluars = BahanKeluar::with('dataUser','bahanKeluarDetails')->orderBy('id', 'desc')
         ->where(function ($query) {
             $query->where('tgl_keluar', 'like', '%' . $this->search . '%')
                 ->orWhere('tgl_pengajuan', 'like', '%' . $this->search . '%')
@@ -90,8 +90,12 @@ class BahanKeluarTable extends Component
     {
         $Data = BahanKeluar::findOrFail($id);
         $this->id_bahan_keluars = $id;
-        $this->status = $Data->status;
-        // $this->isModalOpen = true;
+        $this->status = $Data->status; //status untuk direktur di akhir
+        $this->status_leader = $Data->status_leader;
+        $this->status_purchasing = $Data->status_purchasing;
+        $this->status_manager = $Data->status_manager;
+        $this->status_finance = $Data->status_finance;
+        $this->status_admin_manager = $Data->status_admin_manager;
     }
 
     public function editPengambilanBahanKeluar(int $id)

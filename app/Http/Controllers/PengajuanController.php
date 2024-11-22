@@ -149,7 +149,7 @@ class PengajuanController extends Controller
             }
 
             $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
-            $message .= "Kode Pengajuan: $kode_pengajuan\n";
+            $message .= "Kode Transaksi: $kode_transaksi\n";
             $message .= "Pengajuan bahan baru telah ditambahkan dan memerlukan persetujuan.\n\n";
             $message .= "\nPesan Otomatis:\n";
             $message .= "https://inventory.beacontelemetry.com/";

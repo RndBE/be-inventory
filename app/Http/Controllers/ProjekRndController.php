@@ -16,6 +16,7 @@ use App\Exports\ProjekRndExport;
 use App\Models\BahanReturDetails;
 use App\Models\BahanRusakDetails;
 use App\Models\BahanKeluarDetails;
+use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 
@@ -128,6 +129,25 @@ class ProjekRndController extends Controller
                 ]);
 
             }
+            $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+            $message .= "Kode Transaksi: $kode_transaksi\n";
+            $message .= "Pengajuan bahan projek RnD telah ditambahkan dan memerlukan persetujuan.\n\n";
+            $message .= "\nPesan Otomatis:\n";
+            $message .= "https://inventory.beacontelemetry.com/";
+
+            $response = Http::withHeaders([
+                'x-api-key' => env('WHATSAPP_API_KEY'),
+                'Content-Type' => 'application/json',
+            ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                'chatId' => '6281127006443@c.us',
+                'contentType' => 'string',
+                'content' => $message,
+            ]);
+            if ($response->successful()) {
+                LogHelper::success('WhatsApp message sent for approval!');
+            } else {
+                LogHelper::error('Failed to send WhatsApp message.');
+            }
             $request->session()->forget('cartItems');
             LogHelper::success('Berhasil Menambahkan Pengajuan Projek RnD!');
             return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Projek RnD!');
@@ -233,6 +253,26 @@ class ProjekRndController extends Controller
                         'sub_total' => $details['sub_total'],
                     ]);
                 }
+
+                $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                $message .= "Kode Transaksi: $kode_transaksi\n";
+                $message .= "Pengajuan bahan projek RnD telah ditambahkan dan memerlukan persetujuan.\n\n";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
+
+                $response = Http::withHeaders([
+                    'x-api-key' => env('WHATSAPP_API_KEY'),
+                    'Content-Type' => 'application/json',
+                ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                    'chatId' => '6281127006443@c.us',
+                    'contentType' => 'string',
+                    'content' => $message,
+                ]);
+                if ($response->successful()) {
+                    LogHelper::success('WhatsApp message sent for approval!');
+                } else {
+                    LogHelper::error('Failed to send WhatsApp message.');
+                }
             }
 
             // Save bahan rusak if available
@@ -267,6 +307,26 @@ class ProjekRndController extends Controller
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
                     ]);
+                }
+                $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                $message .= "Kode Transaksi: $kode_transaksi\n";
+                $message .= "Pengajuan bahan rusak telah ditambahkan dan memerlukan persetujuan.\n\n";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
+
+                $response = Http::withHeaders([
+                    'x-api-key' => env('WHATSAPP_API_KEY'),
+                    'Content-Type' => 'application/json',
+                ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                    'chatId' => '6281127006443@c.us',
+                    'contentType' => 'string',
+                    'content' => $message,
+                ]);
+                if ($response->successful()) {
+                    LogHelper::success('WhatsApp message sent for approval!');
+                } else {
+                    LogHelper::error('Failed to send WhatsApp message.');
                 }
             }
 
@@ -303,6 +363,26 @@ class ProjekRndController extends Controller
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
                     ]);
+                }
+                $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                $message .= "Kode Transaksi: $kode_transaksi\n";
+                $message .= "Pengajuan bahan retur telah ditambahkan dan memerlukan persetujuan.\n\n";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
+
+                $response = Http::withHeaders([
+                    'x-api-key' => env('WHATSAPP_API_KEY'),
+                    'Content-Type' => 'application/json',
+                ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                    'chatId' => '6281127006443@c.us',
+                    'contentType' => 'string',
+                    'content' => $message,
+                ]);
+                if ($response->successful()) {
+                    LogHelper::success('WhatsApp message sent for approval!');
+                } else {
+                    LogHelper::error('Failed to send WhatsApp message.');
                 }
             }
 

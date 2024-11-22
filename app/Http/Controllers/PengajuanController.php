@@ -26,6 +26,7 @@ use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
@@ -113,7 +114,7 @@ class PengajuanController extends Controller
                 'tgl_pengajuan' => $tgl_pengajuan,
                 'tujuan' => $tujuan,
                 'divisi' => $request->divisi,
-                'pengaju' => Auth::user()->name,
+                'pengaju' => Auth::user()->id,
                 'status_pengambilan' => 'Belum Diambil',
                 'status' => 'Belum disetujui'
             ]);
@@ -146,6 +147,27 @@ class PengajuanController extends Controller
                 ]);
 
             }
+
+            $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+            $message .= "Kode Pengajuan: $kode_pengajuan\n";
+            $message .= "Pengajuan bahan baru telah ditambahkan dan memerlukan persetujuan.\n\n";
+            $message .= "\nPesan Otomatis:\n";
+            $message .= "https://inventory.beacontelemetry.com/";
+
+            $response = Http::withHeaders([
+                'x-api-key' => env('WHATSAPP_API_KEY'),
+                'Content-Type' => 'application/json',
+            ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                'chatId' => '6281127006443@c.us',
+                'contentType' => 'string',
+                'content' => $message,
+            ]);
+            if ($response->successful()) {
+                LogHelper::success('WhatsApp message sent for approval!');
+            } else {
+                LogHelper::error('Failed to send WhatsApp message.');
+            }
+
             $request->session()->forget('cartItems');
             LogHelper::success('Berhasil Menambahkan Pengajuan Bahan!');
             return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Bahan!');
@@ -361,9 +383,6 @@ class PengajuanController extends Controller
             //dd($pengajuan);
             if (!$pengajuan) {
                 return redirect()->back()->with('gagal', 'Pengajuan tidak ditemukan.');
-            }
-            if ($pengajuan->status !== 'Konfirmasi') {
-                return redirect()->back()->with('gagal', 'Pengajuan hanya dapat dihapus jika statusnya "Konfirmasi".');
             }
             $bahanKeluar = BahanKeluar::find($pengajuan->bahan_keluar_id);
             $pengajuan->delete();

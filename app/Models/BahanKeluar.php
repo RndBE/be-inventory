@@ -12,6 +12,11 @@ class BahanKeluar extends Model
     protected $table = 'bahan_keluars';
     protected $guarded = [];
 
+    public function dataUser()
+    {
+        return $this->belongsTo(User::class, 'pengaju');
+    }
+
     public function bahanKeluarDetails()
     {
         return $this->hasMany(BahanKeluarDetails::class, 'bahan_keluar_id');

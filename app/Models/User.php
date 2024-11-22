@@ -25,12 +25,8 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'usertype'
-    ];
+    protected $table = 'users';
+    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -75,5 +71,14 @@ class User extends Authenticatable
     public function atasanLevel3()
     {
         return $this->belongsTo(User::class, 'atasan_level3_id');
+    }
+
+    public function dataOrganization()
+    {
+        return $this->belongsTo(Organization::class, 'organization_id');
+    }
+    public function dataJobPosition()
+    {
+        return $this->belongsTo(JobPosition::class, 'job_position_id');
     }
 }

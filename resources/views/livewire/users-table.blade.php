@@ -56,21 +56,18 @@
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="p-4">
-                            No
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Nama
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Email
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Roles
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Action
-                        </th>
+                        <th scope="col" class="p-4">No</th>
+                        <th scope="col" class="px-6 py-3">Nama</th>
+                        <th scope="col" class="px-6 py-3">Organization</th>
+                        <th scope="col" class="px-6 py-3">Job Position</th>
+                        <th scope="col" class="px-6 py-3">Job Level</th>
+                        <th scope="col" class="px-6 py-3">Email</th>
+                        <th scope="col" class="px-6 py-3">Whatsapp</th>
+                        <th scope="col" class="px-6 py-3">Roles</th>
+                        <th scope="col" class="px-6 py-3">Atasan Lv3</th>
+                        <th scope="col" class="px-6 py-3">Atasan Lv2</th>
+                        <th scope="col" class="px-6 py-3">Atasan Lv1</th>
+                        <th scope="col" class="px-6 py-3">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -78,13 +75,21 @@
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $users->firstItem() + $index }}</div></td>
                             <td class="px-6 py-3">{{ $row->name }}</td>
+                            <td class="px-6 py-3">{{ $row->dataOrganization->nama ?? 'Null' }}</td>
+                            <td class="px-6 py-3">{{ $row->dataJobPosition->nama ?? 'Null' }}</td>
+                            <td class="px-6 py-3">{{ $row->job_level }}</td>
                             <td class="px-6 py-3">{{ $row->email }}</td>
+                            <td class="px-6 py-3">{{ $row->telephone }}</td>
                             <td class="px-6 py-3">
                                 @if (!empty($row->getRoleNames()))
-                                @foreach ($row->getRoleNames() as $rolename)
-                                    <label><span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">{{ $rolename }}</span></label>
-                                @endforeach
-                            @endif</td>
+                                    @foreach ($row->getRoleNames() as $rolename)
+                                        <label><span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">{{ $rolename }}</span></label>
+                                    @endforeach
+                                @endif
+                            </td>
+                            <td class="px-6 py-3">{{ $row->atasanLevel3?->name ?? '-' }}</td>
+                            <td class="px-6 py-3">{{ $row->atasanLevel2?->name ?? '-' }}</td>
+                            <td class="px-6 py-3">{{ $row->atasanLevel1?->name ?? '-' }}</td>
                             <td class="px-6 py-4">
                                 <div class="row flex space-x-2">
                                     <a href="{{ route('users.edit', $row->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">

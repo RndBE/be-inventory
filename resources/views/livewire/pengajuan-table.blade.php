@@ -112,7 +112,7 @@
                                             </a>
                                         @endcan
                                     @endif
-                                    @if ($pengajuan->status === 'Konfirmasi')
+                                    {{-- @if ($pengajuan->status === 'Konfirmasi') --}}
                                         @can('hapus-pengajuan')
                                             <button wire:click="deletePengajuans({{ $pengajuan->id }})"
                                                 data-modal-target="deleteproduksi-modal" data-modal-toggle="deleteproduksi-modal"
@@ -126,7 +126,7 @@
                                                         d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
                                                 </svg>
                                             </button>
-                                        @endcan
+                                        {{-- @endcan --}}
                                     @endif
                                 </div>
                             </td>

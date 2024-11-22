@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bahan_keluars', function (Blueprint $table) {
-            $table->string('pengaju')->nullable()->after('divisi');
+            $table->foreignId('pengaju')->nullable()->after('divisi')->constrained('users')->onDelete('set null')->onUpdate('cascade');
             $table->string('status_pengambilan')->nullable()->after('pengaju');
         });
     }
@@ -23,6 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('bahan_keluars', function (Blueprint $table) {
+            $table->dropForeign(['pengaju']);
             $table->dropColumn('pengaju');
             $table->dropColumn('status_pengambilan');
         });

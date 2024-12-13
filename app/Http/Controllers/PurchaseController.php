@@ -199,8 +199,8 @@ class PurchaseController extends Controller
 
     public function notifTransaksi()
     {
-        // $tanggal = Carbon::today();
-        $tanggal = Carbon::create(2024, 12, 12);
+        $tanggal = Carbon::today();
+        // $tanggal = Carbon::create(2024, 12, 12);
         $awal = $tanggal->startOfDay()->toDateTimeString();
         $akhir = $tanggal->endOfDay()->toDateTimeString();
 
@@ -282,8 +282,8 @@ class PurchaseController extends Controller
                 'x-api-key' => env('WHATSAPP_API_KEY'),
                 'Content-Type' => 'application/json',
             ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                // 'chatId' => '6282242966796-1553841116@g.us',
-                'chatId' => '6282137153589@c.us',
+                'chatId' => '6282242966796-1553841116@g.us',
+                // 'chatId' => '6282137153589@c.us',
                 'contentType' => 'string',
                 'content' => $message
             ]);

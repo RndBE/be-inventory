@@ -199,20 +199,20 @@ class PurchaseController extends Controller
 
     public function notifTransaksi()
     {
-        $tanggal = Carbon::today();
-        // $tanggal = Carbon::create(2024, 11, 4);
+        // $tanggal = Carbon::today();
+        $tanggal = Carbon::create(2024, 12, 12);
         $awal = $tanggal->startOfDay()->toDateTimeString();
         $akhir = $tanggal->endOfDay()->toDateTimeString();
 
         // Fetch data for today's purchases (entries)
-        $masuk = PurchaseDetail::with('dataBahan')
+        $masuk = PurchaseDetail::with('dataBahan.dataUnit')
             ->whereHas('purchase', function($query) use ($awal, $akhir) {
                 $query->whereBetween('tgl_masuk', [$awal, $akhir]);
             })
             ->get();
 
         // Fetch data for today's bahan keluar (exits)
-        $keluar = BahanKeluarDetails::with('dataBahan')
+        $keluar = BahanKeluarDetails::with('dataBahan.dataUnit')
             ->whereHas('bahanKeluar', function($query) use ($awal, $akhir) {
                 $query->whereBetween('tgl_keluar', [$awal, $akhir]);
             })
@@ -226,7 +226,8 @@ class PurchaseController extends Controller
             } else {
                 $consolidatedMasuk[$bahanId] = [
                     'nama_bahan' => $item->dataBahan->nama_bahan,
-                    'qty' => $item->qty
+                    'qty' => $item->qty,
+                    'unit' => $item->dataBahan->dataUnit->nama ?? '',
                 ];
             }
         }
@@ -239,10 +240,15 @@ class PurchaseController extends Controller
             } else {
                 $consolidatedKeluar[$bahanId] = [
                     'nama_bahan' => $item->dataBahan->nama_bahan,
-                    'qty' => $item->qty
+                    'qty' => $item->qty,
+                    'unit' => $item->dataBahan->dataUnit->nama ?? '',
                 ];
             }
         }
+
+        $consolidatedKeluar = array_filter($consolidatedKeluar, function ($item) {
+            return $item['qty'] > 0;
+        });
 
         // Format messages for WhatsApp
         $message = "Tanggal *" . $tanggal->toDateString() . "* \n\n";
@@ -250,7 +256,7 @@ class PurchaseController extends Controller
         if (!empty($consolidatedMasuk)) {
             $index = 1;
             foreach ($consolidatedMasuk as $item) {
-                $message .= $index . '. ' . $item['nama_bahan'] . ' - ' . $item['qty'] . " pcs\n";
+                $message .= $index . '. ' . $item['nama_bahan'] . ' - ' . $item['qty'] .' '. $item['unit'] . "\n";
                 $index++;
             }
         } else {
@@ -261,7 +267,7 @@ class PurchaseController extends Controller
         if (!empty($consolidatedKeluar)) {
             $index = 1;
             foreach ($consolidatedKeluar as $item) {
-                $message .= $index . '. ' . $item['nama_bahan'] . ' - ' . $item['qty'] . " pcs\n";
+                $message .= $index . '. ' . $item['nama_bahan'] . ' - ' . $item['qty'] .' '. $item['unit'] . "\n";
                 $index++;
             }
         } else {
@@ -276,8 +282,8 @@ class PurchaseController extends Controller
                 'x-api-key' => env('WHATSAPP_API_KEY'),
                 'Content-Type' => 'application/json',
             ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                'chatId' => '6282242966796-1553841116@g.us',
-                // 'chatId' => '6289514761334@c.us',
+                // 'chatId' => '6282242966796-1553841116@g.us',
+                'chatId' => '6282137153589@c.us',
                 'contentType' => 'string',
                 'content' => $message
             ]);

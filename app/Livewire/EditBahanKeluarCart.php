@@ -71,11 +71,18 @@ class EditBahanKeluarCart extends Component
 
                 } else {
                     // Stok dari purchase details
+                    // $purchaseDetails = $item->purchaseDetails()
+                    //     ->where('sisa', '>', 0)
+                    //     ->with(['purchase' => function ($query) {
+                    //         $query->orderBy('tgl_masuk', 'asc');
+                    //     }])->get();
                     $purchaseDetails = $item->purchaseDetails()
-                        ->where('sisa', '>', 0)
-                        ->with(['purchase' => function ($query) {
-                            $query->orderBy('tgl_masuk', 'asc');
-                        }])->get();
+                    ->where('sisa', '>', 0)
+                    ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+                    ->orderBy('purchases.tgl_masuk', 'asc')
+                    ->select('purchase_details.*', 'purchases.tgl_masuk')
+                    ->get();
+
 
                     $totalAvailable = $purchaseDetails->sum('sisa');
                     // Jika stok tersedia 0, gunakan requestedQty
@@ -238,11 +245,18 @@ class EditBahanKeluarCart extends Component
                     }
                 }
             } else {
+                // $purchaseDetails = $item['bahan']->purchaseDetails()
+                //     ->where('sisa', '>', 0)
+                //     ->with(['purchase' => function ($query) {
+                //         $query->orderBy('tgl_masuk', 'asc');
+                //     }])->get();
                 $purchaseDetails = $item['bahan']->purchaseDetails()
-                    ->where('sisa', '>', 0)
-                    ->with(['purchase' => function ($query) {
-                        $query->orderBy('tgl_masuk', 'asc');
-                    }])->get();
+                ->where('sisa', '>', 0)
+                ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+                ->orderBy('purchases.tgl_masuk', 'asc')
+                ->select('purchase_details.*', 'purchases.tgl_masuk')
+                ->get();
+
 
                 foreach ($purchaseDetails as $detail) {
                     if ($usedMaterials <= 0) break;

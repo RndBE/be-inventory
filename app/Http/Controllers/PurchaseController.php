@@ -71,10 +71,10 @@ class PurchaseController extends Controller
            //dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
-                // 'tgl_masuk' => $request->tgl_masuk,
+                'tgl_masuk' => $request->tgl_masuk,
                 'cartItems' => $cartItems
             ], [
-                // 'tgl_masuk' => 'required|date_format:Y-m-d',
+                'tgl_masuk' => 'required|date_format:Y-m-d',
                 'cartItems' => 'required|array',
                 'cartItems.*.id' => 'required|integer',
                 'cartItems.*.qty' => 'required|integer|min:1',
@@ -85,10 +85,10 @@ class PurchaseController extends Controller
                 return redirect()->back()->withErrors($validator)->withInput();
             }
             $kode_transaksi = 'KBM - ' . strtoupper(uniqid());
-            $tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            // $tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             $purchase = new Purchase();
             $purchase->kode_transaksi = $kode_transaksi;
-            $purchase->tgl_masuk = $tgl_masuk;
+            $purchase->tgl_masuk = $request->tgl_masuk;
             $purchase->save();
             foreach ($cartItems as $item) {
                 PurchaseDetail::create([

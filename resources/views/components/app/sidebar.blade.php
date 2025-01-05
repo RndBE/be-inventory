@@ -1,4 +1,4 @@
-<div class="min-w-fit">
+<div class="max-w-fit">
     <!-- Sidebar backdrop (mobile only) -->
     <div
         class="fixed inset-0 bg-gray-900 bg-opacity-30 z-40 lg:hidden lg:z-auto transition-opacity duration-200"
@@ -120,11 +120,18 @@
                                         </a>
                                     </li>
                                 @endcan
+                                {{-- @can('lihat-produk-produksi') --}}
+                                    <li class="mb-1 last:mb-0">
+                                        <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('kontrak.index')){{ '!text-violet-500' }}@endif" href="{{ route('kontrak.index') }}">
+                                            <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Kontrak</span>
+                                        </a>
+                                    </li>
+                                {{-- @endcan --}}
                             </ul>
                         </div>
                     </li>
                     <!-- Transaksi -->
-                    @role('superadmin|purchasing|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager')
+                    {{-- @role('superadmin|purchasing|purchasing level 3|rnd level 3|teknisi level 3|marketing level 3|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager') --}}
                     <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['transaksi'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif" x-data="{ open: {{ in_array(Request::segment(1), ['transaksi']) ? 1 : 0 }} }">
                         <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['transaksi'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                             <div class="flex items-center justify-between">
@@ -135,9 +142,9 @@
                                     </svg>
 
                                     <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Transaksi
-                                        @if($jumlahBahanKeluar > 0)
+                                        @if($jumlahBahanKeluar > 0 || $jumlahPembelianBahan > 0)
                                             <span class="inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold text-indigo-800  rounded-full" style="background-color: rgb(199, 210, 254)">
-                                                {{ $jumlahBahanKeluar }}
+                                                {{ $jumlahBahanKeluar + $jumlahPembelianBahan }}
                                             </span>
                                         @endif
                                     </span>
@@ -172,10 +179,23 @@
                                         </a>
                                     </li>
                                 @endcan
+                                @can('lihat-pembelian-bahan')
+                                    <li class="mb-1 last:mb-0">
+                                        <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('pengajuan-pembelian-bahan.index')){{ '!text-violet-500' }}@endif" href="{{ route('pengajuan-pembelian-bahan.index') }}">
+                                            <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Pembelian Bahan
+                                                @if($jumlahPembelianBahan > 0)
+                                                    <span class="inline-flex items-center justify-center w-4 h-4 ms-2 text-xs font-semibold text-indigo-800 bg-indigo-200 rounded-full" style="background-color: rgb(199, 210, 254)">
+                                                        {{ $jumlahPembelianBahan }}
+                                                    </span>
+                                                @endif
+                                            </span>
+                                        </a>
+                                    </li>
+                                @endcan
                             </ul>
                         </div>
                     </li>
-                    @endrole
+                    {{-- @endrole --}}
                     <!-- Bahan Rusak -->
                     @can('lihat-bahan-rusak')
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['bahan-rusaks'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">
@@ -218,7 +238,7 @@
             <div>
                 <h3 class="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
                     <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>
-                    <span class="lg:hidden lg:sidebar-expanded:block 2xl:block">Pengajuan</span>
+                    <span class="lg:hidden lg:sidebar-expanded:block 2xl:block">Pengajuan Pembelian Bahan</span>
                 </h3>
                 <ul class="mt-3">
                     @can('lihat-pengajuan')
@@ -229,7 +249,32 @@
                                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3.5 5.5l1.5 1.5l2.5 -2.5" /><path d="M3.5 11.5l1.5 1.5l2.5 -2.5" />
                                         <path d="M3.5 17.5l1.5 1.5l2.5 -2.5" /><path d="M11 6l9 0" /><path d="M11 12l9 0" /><path d="M11 18l9 0" />
                                     </svg>
-                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Pengajaun Bahan Lokal</span>
+                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Pengajaun Pembelian</span>
+                                </div>
+                            </a>
+                        </li>
+                    @endcan
+                </ul>
+            </div>
+            <!-- Pengambilan -->
+            <div>
+                <h3 class="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
+                    <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>
+                    <span class="lg:hidden lg:sidebar-expanded:block 2xl:block">Pengambilan Bahan</span>
+                </h3>
+                <ul class="mt-3">
+                    @can('lihat-pengambilan')
+                        <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['pengambilan-bahan'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">
+                            <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['pengambilan-bahan.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('pengambilan-bahan.index') }}">
+                                <div class="flex items-center">
+                                    <svg  class="shrink-0 fill-current @if(in_array(Request::segment(1), ['pengambilan-bahan'])){{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg"  width="16"  height="16"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list-check">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3.5 5.5l1.5 1.5l2.5 -2.5" /><path d="M3.5 11.5l1.5 1.5l2.5 -2.5" />
+                                        <path d="M3.5 17.5l1.5 1.5l2.5 -2.5" /><path d="M11 6l9 0" /><path d="M11 12l9 0" /><path d="M11 18l9 0" />
+                                    </svg>
+                                    <span
+                                        class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200 break-words whitespace-normal">
+                                        Pengambilan Bahan Non Projek/Produksi
+                                    </span>
                                 </div>
                             </a>
                         </li>
@@ -237,7 +282,7 @@
                 </ul>
             </div>
             <!-- Produksi -->
-            @role('superadmin|produksi|purchasing|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager')
+            @role('superadmin|produksi|purchasing|purchasing level 3|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager|teknisi|teknisi level 3')
             <div>
                 <h3 class="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
                     <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>
@@ -278,7 +323,7 @@
                                     <svg class="shrink-0 fill-current @if(in_array(Request::segment(1), ['projeks'])){{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                                         <path fill-rule="evenodd" d="M20.337 3.664c.213.212.354.486.404.782.294 1.711.657 5.195-.906 6.76-1.77 1.768-8.485 5.517-10.611 6.683a.987.987 0 0 1-1.176-.173l-.882-.88-.877-.884a.988.988 0 0 1-.173-1.177c1.165-2.126 4.913-8.841 6.682-10.611 1.562-1.563 5.046-1.198 6.757-.904.296.05.57.191.782.404ZM5.407 7.576l4-.341-2.69 4.48-2.857-.334a.996.996 0 0 1-.565-1.694l2.112-2.111Zm11.357 7.02-.34 4-2.111 2.113a.996.996 0 0 1-1.69-.565l-.422-2.807 4.563-2.74Zm.84-6.21a1.99 1.99 0 1 1-3.98 0 1.99 1.99 0 0 1 3.98 0Z" clip-rule="evenodd"/>
                                     </svg>
-                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Projek</span>
+                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Project</span>
                                 </div>
                             </a>
                         </li>
@@ -287,7 +332,7 @@
             </div>
             @endrole
             <!-- RnD -->
-            @role('superadmin|rnd|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager')
+            @role('superadmin|purchasing|purchasing level 3|rnd|rnd level 3|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager')
             <div>
                 <h3 class="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
                     <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>
@@ -299,7 +344,7 @@
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['projek-rnd.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('projek-rnd.index') }}">
                                 <div class="flex items-center">
                                     <svg  xmlns="http://www.w3.org/2000/svg"  width="16"  height="16"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="shrink-0 icon icon-tabler icons-tabler-outline icon-tabler-settings-search @if(in_array(Request::segment(1), ['projek-rnd'])){{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M11.646 20.965a1.67 1.67 0 0 1 -1.321 -1.282a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c.728 .177 1.154 .71 1.279 1.303" /><path d="M14.985 11.694a3 3 0 1 0 -3.29 3.29" /><path d="M18 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M20.2 20.2l1.8 1.8" /></svg>
-                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Projek RnD</span>
+                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Project RnD</span>
                                 </div>
                             </a>
                         </li>

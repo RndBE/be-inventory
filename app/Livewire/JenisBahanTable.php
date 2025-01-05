@@ -9,35 +9,47 @@ use Livewire\WithPagination;
 class JenisBahanTable extends Component
 {
     use WithPagination;
+
     public $search = "";
     public $perPage = 15;
     public $id_jenisbahan, $nama;
+    public $isEditModalOpen = false;
+    public $isDeleteModalOpen = false;
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
 
     public function editJenisBahan(int $id)
     {
-        $Data = JenisBahan::findOrFail($id);
+        $data = JenisBahan::findOrFail($id);
         $this->id_jenisbahan = $id;
-        $this->nama = $Data->nama;
+        $this->nama = $data->nama;
+        $this->isEditModalOpen = true;
     }
 
     public function deleteJenisBahan(int $id)
     {
         $this->id_jenisbahan = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isEditModalOpen = false;
+        $this->isDeleteModalOpen = false;
     }
 
     public function render()
     {
-        $Data = JenisBahan::orderBy('id', 'desc')
-        ->where('nama', 'like', '%' . $this->search . '%')
+        $data = JenisBahan::orderBy('id', 'desc')
+            ->where('nama', 'like', '%' . $this->search . '%')
             ->paginate($this->perPage);
 
         return view('livewire.jenis-bahan-table', [
-            'jenisbahans' => $Data,
+            'jenisbahans' => $data,
         ]);
     }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
 }
+

@@ -1,5 +1,6 @@
 <!-- Main modal -->
-<div wire:ignore.self id="showbahanretur-modal" tabindex="-1" aria-hidden="{{ $isModalOpen ? 'false' : 'true' }}" class="{{ $isModalOpen ? '' : 'hidden' }} overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+@if($isShowModalOpen)
+<div wire:ignore.self id="showbahanretur-modal" tabindex="-1" aria-hidden="true" class="fixed inset-0 flex items-center justify-center z-50 w-full h-full bg-black bg-opacity-50" wire:click.self="closeModal">
     <div class="relative p-4 pt-12 w-full max-w-md max-h-full">
         <!-- Modal content -->
         <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
@@ -34,7 +35,7 @@
                                 <span class="text-gray-400">Kode Transaksi:</span>
                                 <span>{{ $kode_transaksi }}</span>
                             </p>
-                            @if ($kode_produksi === null)
+                            {{-- @if ($kode_produksi === null)
                                 <p class="flex justify-between">
                                     <span class="text-gray-400">Kode Projek:</span>
                                     <span>{{ $kode_projek }}</span>
@@ -44,7 +45,7 @@
                                     <span class="text-gray-400">Kode Produksi:</span>
                                     <span>{{ $kode_produksi }}</span>
                                 </p>
-                            @endif
+                            @endif --}}
 
                             <p class="flex justify-between">
                                 <span class="text-gray-400">Status:</span>
@@ -103,3 +104,4 @@
         </div>
     </div>
 </div>
+@endif

@@ -38,7 +38,7 @@
         <!-- Header: Right side -->
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
-                @if($pengajuan->status !== 'Selesai')
+                {{-- @if($pengajuan->status !== 'Selesai')
                     <a href="{{ route('pengajuans.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
                     <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
                     @can('selesai-pengajuan')
@@ -50,9 +50,9 @@
                     @endcan
                 @elseif ($pengajuan->status === 'Selesai')
                     <a href="{{ route('pengajuans.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
-                @else
+                @else --}}
                     <a href="{{ route('pengajuans.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
-                @endif
+                {{-- @endif --}}
                 {{-- <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button> --}}
             </div>
         </div>
@@ -104,6 +104,19 @@
                                     <label for="kode_pengajuan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Pengajuan</label>
                                     <input type="text" id="kode_pengajuan" value="{{ $pengajuan->kode_pengajuan }}" disabled placeholder="PR - " class="block rounded-md w-3/4 border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" readonly>
                                 </div>
+
+                                <div class="flex items-center">
+                                    <label for="project" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                        Project <sup class="text-red-500 text-base">*</sup>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="project"
+                                        name="project" disabled
+                                        value="{{ old('project', $pengajuan->project) }}"
+                                        class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                </div>
+
 
                                 <div class="flex items-center">
                                     <label for="divisi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
@@ -159,7 +172,7 @@
                             </div>
                         </div>
                         @if ($pengajuan->status !== 'Selesai')
-                            <livewire:search-bahan-produksi/>
+                            {{-- <livewire:search-bahan-produksi/> --}}
                         @endif
                         {{-- <livewire:bahan-pengajuan-cart :pengajuanId="$pengajuanId" /> --}}
                         <livewire:edit-bahan-pengajuan-cart :pengajuanId="$pengajuanId" />

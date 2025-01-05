@@ -32,37 +32,39 @@
         h2 {
             margin: 0;
             padding: 0;
-        }
-        a {
-            text-decoration: none;
-            color: inherit;
+            font-size: 18px;
+            text-transform: uppercase;
         }
         h3 {
             text-align: center;
             margin: 0;
-            padding-top: 10;
+            padding-top: 10px;
             font-size: 16px;
             font-weight: bold;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
         }
     </style>
 </head>
 <body>
-    <table>
+    <table style=" width: 100%;border-collapse: collapse;">
         <tr>
             <th style="text-align: left;vertical-align: top;width: 30%;">
-                <img style="display: block;max-width: 250px;height: auto;" src="{{ public_path('images/Picture.png') }}" alt="Logo">
+                <img style="display: block;max-width: 100%;height: auto;" src="{{ public_path('images/Picture.png') }}" alt="Logo">
             </th>
-            <td style="border-bottom: 2px solid black;">
-                <h2>PT. ARTA TEKNOLOGI COMUNINDO</h2>
-                <p>Perum Pesona Bandara C-5 Juwangen Purwomartani, Kalasan, Sleman, <br> Daerah Istimewa Yogyakarta
-                Ph./Fax. (0274) 4986899 Website: <br> <a href="https://www.be-jogja.com" target="_blank">https://www.be-jogja.com</a>
+            <td style="border-bottom: 2px solid black;vertical-align: top;padding: 5px;text-align: left;">
+                <h2 style="font-size: 18px;">PT. ARTA TEKNOLOGI COMUNINDO</h2>
+                <p style="margin: 5px 0;line-height: 1.5;font-size: 12px;">Perum Pesona Bandara C-5 Juwangen Purwomartani, Kalasan, Sleman, Daerah Istimewa <br> Yogyakarta Ph./Fax. (0274) 4986899 Website: <a href="https://www.be-jogja.com" target="_blank">https://www.be-jogja.com</a>
                 </p>
             </td>
         </tr>
     </table>
 
     <!-- Centered H3 -->
-    <h3 class="pt-6">FORM PENGAJUAN BARANG/BAHAN LOKAL PT. ARTA TEKNOLOGI COMUNINDO</h3>
+    <h3 class="pt-6">FORM PENGAJUAN PENGAMBILAN BARANG PT. ARTA TEKNOLOGI COMUNINDO</h3>
 
     <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
         <tr style="text-align: left;vertical-align: top;">
@@ -70,22 +72,27 @@
             <td style="border: 1px solid black">: {{ $bahanKeluar->divisi }}</td>
         </tr>
         <tr>
-            <td style="border: 1px solid black;"><strong>Keterangan</strong></td>
+            <td style="border: 1px solid black;"><strong>Project</strong></td>
             <td style="border: 1px solid black">: {{ $bahanKeluar->tujuan }}</td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black;"><strong>Keterangan</strong></td>
+            <td style="border: 1px solid black">: {{ $bahanKeluar->keterangan }}</td>
         </tr>
     </table>
 
     <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
         <thead>
             <tr>
-                <th style="border: 1px solid black;">No</th>
-                <th style="border: 1px solid black;">Nama</th>
-                <th style="border: 1px solid black;">Spesifikasi</th>
-                <th style="border: 1px solid black;">Qty</th>
-                <th style="border: 1px solid black;">Satuan</th>
-                <th style="border: 1px solid black;">Harga Satuan</th>
-                <th style="border: 1px solid black;width: 20%;">Total Harga</th>
-                <th style="border: 1px solid black;">Keterangan Pembayaran</th>
+                <th style="border: 1px solid black; width: 5%;">No</th>
+            <th style="border: 1px solid black; width: 10%;">Kode Barang</th>
+            <th style="border: 1px solid black; width: 25%;">Nama</th> <!-- Kolom lebih lebar -->
+            <th style="border: 1px solid black; width: 25%;">Spesifikasi</th> <!-- Kolom lebih lebar -->
+            <th style="border: 1px solid black; width: 5%;">Qty</th>
+            <th style="border: 1px solid black; width: 10%;">Satuan</th>
+            <th style="border: 1px solid black; width: 10%;">Ceklis Purchasing</th>
+            <th style="border: 1px solid black; width: 10%;">Ceklis Pengambil</th>
+            <th style="border: 1px solid black; width: 25%;">Kondisi Barang</th>
             </tr>
         </thead>
         <tbody>
@@ -98,29 +105,27 @@
                 @endphp
                 <tr>
                     <td style="border: 1px solid black; text-align: center;">{{ $index + 1 }}</td>
+                    <td style="border: 1px solid black">{{ $detail->dataBahan->kode_bahan }}</td>
                     <td style="border: 1px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
                     <td style="border: 1px solid black"></td>
                     <td style="border: 1px solid black;text-align: center;">{{ $detail->qty }}</td>
                     <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama }}</td>
-                    <td style="border: 1px solid black;text-align: right;">
-                        @foreach ($details as $item)
-                            {{ $item['qty'] }} x {{ number_format($item['unit_price']) }}<br>
-                        @endforeach
-                    </td>
-                    <td style="border: 1px solid black;text-align: right;">{{ number_format($detail->sub_total) }}</td>
+                    <td style="border: 1px solid black"></td>
+                    <td style="border: 1px solid black"></td>
                     <td style="border: 1px solid black"></td>
                 </tr>
                 @php
-                    $totalSubTotal += $detail->sub_total;
+                    $totalSubTotal += $detail->qty;
                 @endphp
             @endforeach
             <tr>
-                <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Total Anggaran</td>
-                <td style="border: 1px solid black; text-align: right; border-right: none;">
-                    Rp. {{ number_format($totalSubTotal) }}
+                <td style="border: 1px solid black; text-align: left;"></td>
+                <td style="border: 1px solid black; text-align: left;"></td>
+                <td colspan="2" style="border: 1px solid black; text-align: right; font-weight: bold;"> Total Pengeluaran Barang </td>
+                <td style="border: 1px solid black; text-align: center; border-right: none;">
+                    {{ $totalSubTotal }}
                 </td>
-                <td style="border: 1px solid black; text-align: left; border-left: none;">
-                </td>
+                <td colspan="4" style="border: 1px solid black; text-align: right; font-weight: bold;"> </td>
             </tr>
         </tbody>
 
@@ -128,54 +133,59 @@
 
     <table style="width: 100%;border-collapse: collapse;padding-top:10;">
         <tr style="text-align: left; vertical-align: top;">
-            <td style=" text-align: center;"><strong>Pengaju</strong></td>
-            <td style=" text-align: center;"><strong>PJ/Leader</strong></td>
+            <td style=" text-align: center;"><strong>Pengambil</strong></td>
+            <td colspan="2" style=" text-align: center;"><strong></strong></td>
             <td style=" text-align: center;"><strong>Purchasing</strong></td>
-            <td style=" text-align: center;"><strong>Manager</strong></td>
         </tr>
         <tr>
-            <td style=" text-align: center;">
-                <img style="display: block; max-width: 100%; height: 80px;" src="{{ public_path('images/pngegg.png') }}" alt="Logo">
+            <td style="text-align: center; width: 25%;">
+                <div style="height: 80px; width: 150px;"></div>
             </td>
-            <td style=" text-align: center;">
-                <img style="display: block; max-width: 100%; height: 80px;" src="{{ public_path('images/pngegg.png') }}" alt="Logo">
+            <td style="text-align: center; width: 25%;">
+                <div style="height: 80px; width: 150px;"></div>
             </td>
-            <td style=" text-align: center;">
-                <img style="display: block; max-width: 100%; height: 80px;" src="{{ public_path('images/pngegg.png') }}" alt="Logo">
-            </td>
-            <td style=" text-align: center;">
-                <img style="display: block; max-width: 100%; height: 80px;" src="{{ public_path('images/pngegg.png') }}" alt="Logo">
+            <td style="text-align: center; width: 25%;">
+                <div style="height: 80px; width: 150px;"></div>
             </td>
         </tr>
+
         <tr style="text-align: left; vertical-align: top;">
-            <td style="text-align: center;">(FADEL MUHAMMAD IRSYAD)</td>
-            <td style="text-align: center;">(NOFIYANTO)</td>
-            <td style="text-align: center;">(AAQILAH ARUM SEKARWATI)</td>
-            <td style="text-align: center;">(NOFIYANTO)</td>
+            <td style="text-align: center;">
+                <p>(_________________________)</p>
+            </td>
+            <td colspan="2" style="text-align: center;">
+            </td>
+            <td style="text-align: center;">
+                {{ $purchasingUser->name }}
+            </td>
         </tr>
+
+
         <tr>
             <td colspan="4"  style="text-align: center;padding:7;"><strong> Mengetahui, </strong></td>
         </tr>
         <tr style="text-align: left; vertical-align: top;">
-            <td style=" text-align: center;"><strong>Finance</strong></td>
-            <td colspan="2" style=" text-align: center;"><strong>Manager Admin</strong></td>
-            <td style=" text-align: center;"><strong>Direktur</strong></td>
+            <td style=" text-align: center;"><strong></strong></td>
+            <td colspan="2" style=" text-align: center;"><strong>Manager</strong></td>
+            <td style=" text-align: center;"><strong></strong></td>
         </tr>
         <tr>
-            <td style=" text-align: center;">
-                <img style="display: block; max-width: 100%; height: 80px;" src="{{ public_path('images/pngegg.png') }}" alt="Logo">
+            <td style="text-align: center; width: 33%;">
+                <div style="height: 80px; width: 150px;"></div>
             </td>
-            <td colspan="2" style=" text-align: center;">
-                <img style="display: block; max-width: 100%; height: 80px;" src="{{ public_path('images/pngegg.png') }}" alt="Logo">
+            <td colspan="2" style="text-align: center;">
+                <div style="height: 80px; width: 150px;">
+                    <div style="height: 80px; width: 150px;"></div>
+                </div>
             </td>
-            <td style=" text-align: center;">
-                <img style="display: block; max-width: 100%; height: 80px;" src="{{ public_path('images/pngegg.png') }}" alt="Logo">
+            <td style="text-align: center; width: 33%;">
+                <div style="height: 80px; width: 150px;"></div>
             </td>
         </tr>
         <tr style="text-align: left; vertical-align: top;">
-            <td style="text-align: center;">(REVIDYA CHRISDWIMAYA PUTRI)</td>
-            <td colspan="2" style="text-align: center;">(WAHYU NURUL HARYANTO)</td>
-            <td style="text-align: center;">(SOFYAN ARIYANTO)</td>
+            <td style="text-align: center;"></td>
+            <td colspan="2" style="text-align: center;">{{ $managerName ?? '' }}</td>
+            <td style="text-align: center;"></td>
         </tr>
         <tr>
             <td colspan="4"  style="text-align: center;padding:7;"><strong>  </strong></td>
@@ -183,7 +193,7 @@
         <tr style="text-align: left; vertical-align: top;">
             <td style="text-align: center;"></td>
             <td style="text-align: center;"></td>
-            <td colspan="2" style="text-align: center;">Pembayaran: </td>
+            <td colspan="2" style="text-align: center;">Tgl Pengambilan: </td>
         </tr>
     </table>
 

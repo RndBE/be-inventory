@@ -29,24 +29,33 @@
                             <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
                         </svg>
                     </div>
-                    <input type="text" name="mulai_produksi" id="datetimepicker" placeholder="Pilih tanggal dan waktu" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
+                    <input type="text" name="mulai_produksi" id="datetimepicker" placeholder="Pilih tanggal dan waktu"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    required>
                 </div>
             </div>
 
-            <div class="flex items-center">
+            {{-- <div class="flex items-center">
                 <label for="jenis_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jenis Produksi<sup class="text-red-500 text-base">*</sup></label>
                 <div class="relative w-3/4 mr-2">
                     <div class="flex flex-wrap">
-                        {{-- <div class="flex items-center me-4">
+                        <div class="flex items-center me-4">
                             <input id="red-radio" type="radio" value="Produk Jadi" name="jenis_produksi" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                             <label for="red-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Produk Jadi</label>
-                        </div> --}}
+                        </div>
                         <div class="flex items-center me-4">
                             <input id="green-radio" type="radio" value="Produk Setengah Jadi" name="jenis_produksi" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                             <label for="green-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Produk Setengah Jadi</label>
                         </div>
                     </div>
                 </div>
+            </div> --}}
+
+            <div class="flex items-center">
+                <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                    Keterangan <sup class="text-red-500 text-base">*</sup>
+                </label>
+                <textarea id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan') }}</textarea>
             </div>
 
             <div class="flex items-center">
@@ -81,8 +90,8 @@
                         <th scope="col" class="px-6 py-3 w-2/4">Bahan</th>
                         <th scope="col" class="px-6 py-3 text-right w-0.5">Kebutuhan</th>
                         <th scope="col" class="px-6 py-3 text-right w-1/4">Ketersediaan</th>
-                        <th scope="col" class="px-6 py-3 text-right w-1/4">Sub Total</th>
-                        <th scope="col" class="px-6 py-3 text-right w-0.5">Action</th>
+                        {{-- <th scope="col" class="px-6 py-3 text-right w-1/4">Sub Total</th> --}}
+                        {{-- <th scope="col" class="px-6 py-3 text-right w-0.5">Action</th> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -112,18 +121,17 @@
 
                                 </div>
                             </td>
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><span><strong></strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span></td>
-                            <td class="px-6 py-4 text-right flex justify-end">
+                            {{-- <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><span><strong></strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span></td> --}}
+                            {{-- <td class="px-6 py-4 text-right flex justify-end">
                                 <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline" wire:click.prevent="removeItem({{ $item->id }})"><svg class="w-6 h-6 text-red-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                                     <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z" clip-rule="evenodd"/>
                                 </svg>
                                 </a>
-                            </td>
+                            </td> --}}
 
                         </tr>
                     @endforeach
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
+                    {{-- <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
                         <td class="px-6 py-4 text-right text-black dark:text-white">
                             <strong>Total Harga</strong>
@@ -131,12 +139,26 @@
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                             <span><strong>Rp.</strong> {{ number_format($totalharga, 0, ',', '.') }}</span>
                         </td>
-                    </tr>
+                    </tr> --}}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#datetimepicker", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i:S",
+            time_24hr: true,
+            disableMobile: true,
+            defaultDate: document.querySelector('#datetimepicker').value || null,
+            onChange: function(selectedDates, dateStr, instance) {
+                @this.set('selectedStartDate', dateStr);
+            }
+        });
+    });
+</script>
 {{-- <script>
     document.getElementById('bahan_id').addEventListener('change', function() {
         @this.call('bahanSelected', this.value);

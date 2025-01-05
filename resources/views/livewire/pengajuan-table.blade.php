@@ -28,7 +28,7 @@
 
         <div class="mb-4 sm:mb-0">
             {{-- <p>Total transaksi yang <strong>disetujui</strong></p> --}}
-            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Pengajuan</h6>
+            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Pengajuan Pembelian</h6>
         </div>
 
 
@@ -66,9 +66,9 @@
                         <th scope="col" class="px-6 py-3">Mulai Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Selesai Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Pengaju</th>
-                        <th scope="col" class="px-6 py-3">Keterangan</th>
+                        <th scope="col" class="px-6 py-3">Tujuan</th>
+                        <th scope="col" class="px-6 py-3">Jenis Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Status</th>
-                        {{-- <th scope="col" class="px-6 py-3">Total Harga</th> --}}
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -90,7 +90,13 @@
                                 </div>
                                 <div class="text-xs text-gray-500">{{ $pengajuan->divisi }}</div>
                             </td>
-                            <td class="px-6 py-3">{{ $pengajuan->keterangan }}</td>
+                            <td class="px-6 py-3">
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ $pengajuan->project ?? null }}
+                                </div>
+                                <div class="text-xs text-gray-500">{{ $pengajuan->keterangan }}</div>
+                            </td>
+                            <td class="px-6 py-3">{{ $pengajuan->jenis_pengajuan }}</td>
                             {{-- <td class="px-6 py-3">{{ $pengajuan->produksiDetails->sum('qty') }}</td> --}}
                             <td class="px-6 py-3">{{ $pengajuan->status }}</td>
                             {{-- <td class="px-6 py-3">Rp {{ number_format($pengajuan->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
@@ -115,7 +121,6 @@
                                     {{-- @if ($pengajuan->status === 'Konfirmasi') --}}
                                         @can('hapus-pengajuan')
                                             <button wire:click="deletePengajuans({{ $pengajuan->id }})"
-                                                data-modal-target="deleteproduksi-modal" data-modal-toggle="deleteproduksi-modal"
                                                 class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 active:border-red-600 active:text-white active:bg-red-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                                                 type="button">
                                                 <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true"
@@ -126,14 +131,14 @@
                                                         d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
                                                 </svg>
                                             </button>
-                                        {{-- @endcan --}}
-                                    @endif
+                                        @endcan
+                                    {{-- @endif --}}
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td colspan="8" class="px-6 py-4 text-center">
+                            <td colspan="9" class="px-6 py-4 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                                     <path stroke-linecap="round" stroke-linejoin="round"

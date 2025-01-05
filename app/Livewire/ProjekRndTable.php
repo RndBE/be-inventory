@@ -14,6 +14,24 @@ class ProjekRndTable extends Component
     public $search = "";
     public $perPage = 15;
     public $id_projek_rnd;
+    public $isDeleteModalOpen = false;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function deleteProjekRnd(int $id)
+    {
+        $this->id_projek_rnd = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
+    }
+
     public function render()
     {
         $projek_rnds = ProjekRnd::with(['projekRndDetails', 'bahanKeluar'])->orderBy('id', 'desc')
@@ -29,15 +47,5 @@ class ProjekRndTable extends Component
         return view('livewire.projek-rnd-table', [
             'projek_rnds' => $projek_rnds,
         ]);
-    }
-
-    public function deleteProjekRnd(int $id)
-    {
-        $this->id_projek_rnd = $id;
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 }

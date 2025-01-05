@@ -24,7 +24,7 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::get();
+        $users = User::with(['atasanLevel1','atasanLevel2','atasanLevel3'])->get();
         return view('pages.user.index', ['users' => $users]);
     }
 
@@ -70,7 +70,7 @@ class UserController extends Controller
                 if (!$file->isValid()) {
                     throw new \Exception('File upload failed.');
                 }
-
+  
                 $fileName = time() . '_' . $file->getClientOriginalName();
                 $filePath = $file->storeAs('public/tanda_tangan', $fileName);
                 $validated['tanda_tangan'] = 'tanda_tangan/' . $fileName;

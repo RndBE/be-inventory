@@ -113,10 +113,14 @@
                     </div>
                     <div class="mb-3">
                         <label for="atasan_level1_id">Atasan Level 1</label>
-                        <select name="atasan_level1_id" id="atasan_level1_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-full text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus >
+                        <select name="atasan_level1_id" id="atasan_level1_id"
+                                class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-full text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus>
                             <option value="" selected>-- Pilih Atasan Level 1 --</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('atasan_level1_id', $user->atasan_level1_id) == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                            @foreach($users as $potentialAtasan)
+                                <option value="{{ $potentialAtasan->id }}"
+                                    {{ old('atasan_level1_id', $user->atasan_level1_id) == $potentialAtasan->id ? 'selected' : '' }}>
+                                    {{ $potentialAtasan->name }}
+                                </option>
                             @endforeach
                         </select>
                         @error('atasan_level1_id')
@@ -127,8 +131,11 @@
                         <label for="atasan_level2_id">Atasan Level 2</label>
                         <select name="atasan_level2_id" id="atasan_level2_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-full text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus >
                             <option value="" selected>-- Pilih Atasan Level 2 --</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('atasan_level2_id', $user->atasan_level2_id) == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                            @foreach($users as $potentialAtasan)
+                                <option value="{{ $potentialAtasan->id }}"
+                                    {{ old('atasan_level2_id', $user->atasan_level2_id) == $potentialAtasan->id ? 'selected' : '' }}>
+                                    {{ $potentialAtasan->name }}
+                                </option>
                             @endforeach
                         </select>
                         @error('atasan_level2_id')
@@ -139,9 +146,12 @@
                         <label for="atasan_level3_id">Atasan Level 3</label>
                         <select name="atasan_level3_id" id="atasan_level3_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-full text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus>
                             <option value="" selected>-- Pilih Atasan Level 3 --</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('atasan_level3_id', $user->atasan_level3_id) == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
-                            @endforeach
+                            @foreach($users as $potentialAtasan)
+                            <option value="{{ $potentialAtasan->id }}"
+                                {{ old('atasan_level3_id', $user->atasan_level3_id) == $potentialAtasan->id ? 'selected' : '' }}>
+                                {{ $potentialAtasan->name }}
+                            </option>
+                        @endforeach
                         </select>
                         @error('atasan_level3_id')
                             <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>

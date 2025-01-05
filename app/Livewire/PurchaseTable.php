@@ -12,10 +12,22 @@ class PurchaseTable extends Component
     public $search = "";
     public $perPage = 25;
     public $id_purchases;
+    public $isDeleteModalOpen = false;
 
     public function updatedSearch()
     {
         $this->resetPage();
+    }
+
+    public function deletePurchases(int $id)
+    {
+        $this->id_purchases = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
     }
 
     public function render()
@@ -34,10 +46,4 @@ class PurchaseTable extends Component
             'purchases' => $purchases,
         ]);
     }
-
-    public function deletePurchases(int $id)
-    {
-        $this->id_purchases = $id;
-    }
-
 }

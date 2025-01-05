@@ -14,6 +14,9 @@ class BahanTable extends Component
     public $perPage = 25;
     public $id_bahan, $nama_bahan, $jenis_bahan_id, $stok_awal, $total_stok, $penempatan, $supplier, $unit_id, $kondisi, $gambar, $kode_bahan;
     public $selectedIds = [];
+    public $isDeleteModalOpen = false;
+    public $isShowModalOpen = false;
+
     public function updatedSearch()
     {
         $this->resetPage();
@@ -24,6 +27,36 @@ class BahanTable extends Component
         if (!empty($this->selectedIds)) {
             return redirect()->route('bahan.editmultiple', ['ids' => $this->selectedIds]);
         }
+    }
+
+    public function showBahan(int $id)
+    {
+        $Data = Bahan::with('purchaseDetails')->findOrFail($id);
+        $this->id_bahan = $id;
+        $this->kode_bahan = $Data->kode_bahan;
+        $this->nama_bahan = $Data->nama_bahan;
+        $this->jenis_bahan_id = $Data->jenisBahan->nama ?? 'N/A';
+        $this->stok_awal = $Data->stok_awal;
+        $this->total_stok = $Data->purchaseDetails->sum('sisa');
+        $this->penempatan = $Data->penempatan;
+        $this->supplier = $Data->dataSupplier->nama ?? 'N/A';
+        $this->kondisi = $Data->kondisi;
+        $this->unit_id = $Data->dataUnit->nama ?? 'N/A';
+        $this->gambar = $Data->gambar;
+        $this->isShowModalOpen = true;
+    }
+
+
+    public function deleteBahan(int $id)
+    {
+        $this->id_bahan = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
+        $this->isShowModalOpen = false;
     }
 
     public function render()
@@ -53,28 +86,5 @@ class BahanTable extends Component
         return view('livewire.bahan-table', [
             'bahans' => $bahans
         ]);
-    }
-
-
-    public function showBahan(int $id)
-    {
-        $Data = Bahan::with('purchaseDetails')->findOrFail($id);
-        $this->id_bahan = $id;
-        $this->kode_bahan = $Data->kode_bahan;
-        $this->nama_bahan = $Data->nama_bahan;
-        $this->jenis_bahan_id = $Data->jenisBahan->nama ?? 'N/A';
-        $this->stok_awal = $Data->stok_awal;
-        $this->total_stok = $Data->purchaseDetails->sum('sisa');
-        $this->penempatan = $Data->penempatan;
-        $this->supplier = $Data->dataSupplier->nama ?? 'N/A';
-        $this->kondisi = $Data->kondisi;
-        $this->unit_id = $Data->dataUnit->nama ?? 'N/A';
-        $this->gambar = $Data->gambar;
-    }
-
-
-    public function deleteBahan(int $id)
-    {
-        $this->id_bahan = $id;
     }
 }

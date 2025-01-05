@@ -28,7 +28,7 @@
 
         <div class="mb-4 sm:mb-0">
             {{-- <p>Total transaksi yang <strong>disetujui</strong></p> --}}
-            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Projek</h6>
+            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Project</h6>
         </div>
 
 
@@ -62,10 +62,11 @@
                         <th scope="col" class="p-4">
                             No
                         </th>
-                        <th scope="col" class="px-6 py-3">Kode Projek</th>
-                        <th scope="col" class="px-6 py-3">Mulai Projek</th>
-                        <th scope="col" class="px-6 py-3">Selesai Projek</th>
-                        <th scope="col" class="px-6 py-3">Nama Projek</th>
+                        <th scope="col" class="px-6 py-3">Kode Transaksi</th>
+                        <th scope="col" class="px-6 py-3">Mulai Project</th>
+                        <th scope="col" class="px-6 py-3">Selesai Project</th>
+                        <th scope="col" class="px-6 py-3">Pengaju</th>
+                        <th scope="col" class="px-6 py-3">Tujuan</th>
                         <th scope="col" class="px-6 py-3">Status</th>
                         {{-- <th scope="col" class="px-6 py-3">Total Harga</th> --}}
                         <th scope="col" class="px-6 py-3">Aksi</th>
@@ -83,7 +84,17 @@
                             </td>
                             <td class="px-6 py-3">{{ $projek->mulai_projek }}</td>
                             <td class="px-6 py-3">{{ $projek->selesai_projek }}</td>
-                            <td class="px-6 py-3">{{ $projek->nama_projek }}</td>
+                            <td class="px-6 py-3">
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ $projek->pengaju }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-3">
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ $projek->dataKontrak->nama_kontrak ?? null }}
+                                </div>
+                                <div class="text-xs text-gray-500">{{ $projek->keterangan }}</div>
+                            </td>
                             {{-- <td class="px-6 py-3">{{ $projek->produksiDetails->sum('qty') }}</td> --}}
                             <td class="px-6 py-3">{{ $projek->status }}</td>
                             {{-- <td class="px-6 py-3">Rp {{ number_format($projek->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
@@ -105,10 +116,9 @@
                                             </a>
                                         @endcan
                                     @endif
-                                    @if ($projek->status === 'Konfirmasi')
+                                    {{-- @if ($projek->status === 'Konfirmasi') --}}
                                         @can('hapus-projek')
                                             <button wire:click="deleteProjeks({{ $projek->id }})"
-                                                data-modal-target="deleteproduksi-modal" data-modal-toggle="deleteproduksi-modal"
                                                 class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 active:border-red-600 active:text-white active:bg-red-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                                                 type="button">
                                                 <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true"
@@ -120,13 +130,13 @@
                                                 </svg>
                                             </button>
                                         @endcan
-                                    @endif
+                                    {{-- @endif --}}
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td colspan="7" class="px-6 py-4 text-center">
+                            <td colspan="8" class="px-6 py-4 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                                     <path stroke-linecap="round" stroke-linejoin="round"

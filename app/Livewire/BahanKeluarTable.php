@@ -2,9 +2,10 @@
 
 namespace App\Livewire;
 
-use App\Models\BahanKeluar;
 use Livewire\Component;
+use App\Models\BahanKeluar;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Auth;
 
 class BahanKeluarTable extends Component
 {
@@ -15,7 +16,15 @@ class BahanKeluarTable extends Component
     $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager;
     public $filter = 'semua';
     public $totalHarga;
-    // public $isModalOpen = false;
+    public $isShowModalOpen = false;
+    public $isDeleteModalOpen = false;
+    public $isEditPengambilanModalOpen = false;
+    public $isApproveLeaderModalOpen = false;
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
 
     public function mount()
     {
@@ -29,8 +38,6 @@ class BahanKeluarTable extends Component
         } else {
             $this->filter = $value;
         }
-        // $this->resetPage();
-        // $this->isModalOpen = true;
     }
 
     public function showBahanKeluar(int $id)
@@ -42,13 +49,8 @@ class BahanKeluarTable extends Component
         $this->divisi = $Data->divisi;
         $this->status = $Data->status;
         $this->bahanKeluarDetails  = $Data->bahanKeluarDetails;
-        // $this->isModalOpen = true;
+        $this->isShowModalOpen = true;
     }
-
-    // public function closeModal()
-    // {
-    //     $this->isModalOpen = false;
-    // }
 
     public function calculateTotalHarga()
     {
@@ -59,10 +61,78 @@ class BahanKeluarTable extends Component
             });
     }
 
+    public function editBahanKeluar(int $id)
+    {
+        $Data = BahanKeluar::findOrFail($id);
+        $this->id_bahan_keluars = $id;
+        $this->status = $Data->status; //status untuk direktur di akhir
+        $this->status_leader = $Data->status_leader;
+        $this->status_purchasing = $Data->status_purchasing;
+        $this->status_manager = $Data->status_manager;
+        $this->status_finance = $Data->status_finance;
+        $this->status_admin_manager = $Data->status_admin_manager;
+        $this->isApproveLeaderModalOpen = true;
+    }
+
+    public function editPengambilanBahanKeluar(int $id)
+    {
+        $Data = BahanKeluar::findOrFail($id);
+        $this->id_bahan_keluars = $id;
+        $this->status_pengambilan = $Data->status_pengambilan;
+        $this->isEditPengambilanModalOpen = true;
+    }
+
+    public function deleteBahanKeluars(int $id)
+    {
+        $this->id_bahan_keluars = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
+        $this->isShowModalOpen = false;
+        $this->isEditPengambilanModalOpen = false;
+        $this->isApproveLeaderModalOpen = false;
+    }
+
     public function render()
     {
-        $bahan_keluars = BahanKeluar::with('dataUser','bahanKeluarDetails')->orderBy('id', 'desc')
-        ->where(function ($query) {
+        $user = Auth::user();
+
+        $bahan_keluars = BahanKeluar::with('dataUser', 'bahanKeluarDetails')
+            ->orderBy('id', 'desc');
+
+        if ($user->hasRole(['superadmin','administrasi','purchasing'])) {
+
+        }
+        elseif ($user->hasRole(['hardware manager'])) {
+            $bahan_keluars->whereIn('divisi', ['RnD', 'Purchasing', 'Helper','Teknisi','OP','Produksi']);
+        }elseif ($user->hasRole(['rnd','rnd level 3'])) {
+            $bahan_keluars->whereIn('divisi', ['RnD']);
+        }elseif ($user->hasRole(['purchasing level 3','helper'])) {
+            $bahan_keluars->whereIn('divisi', ['Purchasing','Helper']);
+        }elseif ($user->hasRole(['teknisi level 3','teknisi','op','produksi'])) {
+            $bahan_keluars->whereIn('divisi', ['Teknisi','OP','Produksi']);
+        }
+        elseif ($user->hasRole(['marketing manager','marketing','marketing level 3'])) {
+            $bahan_keluars->whereIn('divisi', ['Marketing']);
+        }
+        elseif ($user->hasRole(['software manager','software','publikasi'])) {
+            $bahan_keluars->whereIn('divisi', ['Software','Publikasi']);
+        }
+        elseif ($user->hasRole(['hse'])) {
+            $bahan_keluars->where('divisi', 'HSE');
+        }
+        elseif ($user->hasRole(['sekretaris'])) {
+            $bahan_keluars->where('divisi', 'Sekretaris');
+        }
+        elseif ($user->hasRole('administrasi')) {
+            $bahan_keluars->where('divisi', ['HSE','Sekretaris','Administrasi']);
+        }
+
+        // Pencarian dan filter tambahan
+        $bahan_keluars->where(function ($query) {
             $query->where('tgl_keluar', 'like', '%' . $this->search . '%')
                 ->orWhere('tgl_pengajuan', 'like', '%' . $this->search . '%')
                 ->orWhere('tujuan', 'like', '%' . $this->search . '%')
@@ -78,41 +148,14 @@ class BahanKeluarTable extends Component
             })
             ->when($this->filter === 'Belum disetujui', function ($query) {
                 return $query->where('status', 'Belum disetujui');
-            })
-            ->paginate($this->perPage);
+            });
 
+        // Paginate hasil query
+        $bahan_keluars = $bahan_keluars->paginate($this->perPage);
+
+        // Return ke view
         return view('livewire.bahan-keluar-table', [
             'bahan_keluars' => $bahan_keluars,
         ]);
-    }
-
-    public function editBahanKeluar(int $id)
-    {
-        $Data = BahanKeluar::findOrFail($id);
-        $this->id_bahan_keluars = $id;
-        $this->status = $Data->status; //status untuk direktur di akhir
-        $this->status_leader = $Data->status_leader;
-        $this->status_purchasing = $Data->status_purchasing;
-        $this->status_manager = $Data->status_manager;
-        $this->status_finance = $Data->status_finance;
-        $this->status_admin_manager = $Data->status_admin_manager;
-    }
-
-    public function editPengambilanBahanKeluar(int $id)
-    {
-        $Data = BahanKeluar::findOrFail($id);
-        $this->id_bahan_keluars = $id;
-        $this->status_pengambilan = $Data->status_pengambilan;
-    }
-
-    public function deleteBahanKeluars(int $id)
-    {
-        $this->id_bahan_keluars = $id;
-        // $this->isModalOpen = true;
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 }

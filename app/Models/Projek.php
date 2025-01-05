@@ -17,6 +17,11 @@ class Projek extends Model
         'selesai_projek' => 'datetime',
     ];
 
+    public function dataKontrak()
+    {
+        return $this->belongsTo(Kontrak::class, 'kontrak_id');
+    }
+
     public function projekDetails()
     {
         return $this->hasMany(ProjekDetails::class, 'projek_id', 'id');

@@ -15,7 +15,13 @@ class BahanRusakTabel extends Component
     $kode_transaksi, $tgl_diterima, $tgl_pengajuan, $bahanRusakDetails;
     public $filter = 'semua';
     public $totalHarga;
-    public $isModalOpen = false;
+    public $isDeleteModalOpen = false;
+    public $isEditModalOpen = false;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function mount()
     {
@@ -29,8 +35,6 @@ class BahanRusakTabel extends Component
         } else {
             $this->filter = $value;
         }
-        $this->resetPage();
-        $this->isModalOpen = true;
     }
 
     public function showBahanRusak(int $id)
@@ -42,12 +46,6 @@ class BahanRusakTabel extends Component
         $this->kode_transaksi = $Data->kode_transaksi;
         $this->status = $Data->status;
         $this->bahanRusakDetails  = $Data->bahanRusakDetails;
-        $this->isModalOpen = true;
-    }
-
-    public function closeModal()
-    {
-        $this->isModalOpen = false;
     }
 
     public function calculateTotalHarga()
@@ -57,6 +55,26 @@ class BahanRusakTabel extends Component
             ->sum(function ($bahanRusak) {
                 return $bahanRusak->bahanRusakDetails->sum('sub_total');
             });
+    }
+
+    public function editBahanRusak(int $id)
+    {
+        $Data = BahanRusak::findOrFail($id);
+        $this->id_bahan_rusaks = $id;
+        $this->status = $Data->status;
+        $this->isEditModalOpen = true;
+    }
+
+    public function deleteBahanRusaks(int $id)
+    {
+        $this->id_bahan_rusaks = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
+        $this->isEditModalOpen = false;
     }
 
     public function render()
@@ -85,24 +103,5 @@ class BahanRusakTabel extends Component
         return view('livewire.bahan-rusak-tabel', [
             'bahan_rusaks' => $bahan_rusaks,
         ]);
-    }
-
-    public function editBahanRusak(int $id)
-    {
-        $Data = BahanRusak::findOrFail($id);
-        $this->id_bahan_rusaks = $id;
-        $this->status = $Data->status;
-        $this->isModalOpen = true;
-    }
-
-    public function deleteBahanRusaks(int $id)
-    {
-        $this->id_bahan_rusaks = $id;
-        $this->isModalOpen = true;
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 }

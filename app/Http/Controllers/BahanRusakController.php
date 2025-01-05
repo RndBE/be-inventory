@@ -12,6 +12,7 @@ use App\Models\PengajuanDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanRusakDetails;
 use Illuminate\Support\Facades\DB;
+use App\Models\PengambilanBahanDetails;
 
 class BahanRusakController extends Controller
 {
@@ -220,13 +221,51 @@ class BahanRusakController extends Controller
                             $pengajuanDetail->save();
                         }
                     }
+
+                    // Update untuk PengambilanBahanDetails
+                    $pengambilanBahanDetail = PengambilanBahanDetails::where('pengambilan_bahan_id', $bahanRusak->pengambilan_bahan_id)
+                        ->where('bahan_id', $bahanId)
+                        ->first();
+
+                    if ($pengambilanBahanDetail) {
+                        $currentDetails = json_decode($pengambilanBahanDetail->details, true) ?? [];
+
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    break;
+                                }
+                            }
+                        }
+
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $pengambilanBahanDetail->qty -= $totalQtyReduction;
+                        $pengambilanBahanDetail->used_materials -= $totalQtyReduction;
+
+                        // Pastikan qty dan used_materials tidak negatif
+                        $pengambilanBahanDetail->qty = max(0, $pengambilanBahanDetail->qty);
+                        $pengambilanBahanDetail->used_materials = max(0, $pengambilanBahanDetail->used_materials);
+
+                        $pengambilanBahanDetail->sub_total = 0;
+                        foreach ($currentDetails as $detail) {
+                            $pengambilanBahanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                        }
+
+                        $pengambilanBahanDetail->details = json_encode(array_values($currentDetails));
+                        if ($pengambilanBahanDetail->qty == 0 && $pengambilanBahanDetail->used_materials == 0) {
+                            $pengambilanBahanDetail->delete();
+                        } else {
+                            $pengambilanBahanDetail->save();
+                        }
+                    }
                 }
                 foreach ($bahanRusakDetails as $returDetail) {
                     $returDetail->sisa = $returDetail->qty;
                     $returDetail->save();
                 }
             }
-
             // Update status bahan rusak
             $bahanRusak->status = $validated['status'];
             $bahanRusak->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
@@ -235,18 +274,9 @@ class BahanRusakController extends Controller
             LogHelper::success('Berhasil Mengubah Status Bahan Rusak!');
         } catch (\Exception $e) {
             DB::rollBack();
-
             $errorMessage = $e->getMessage();
-            $errorColumn = '';
-
-            if (strpos($errorMessage, 'tgl_keluar') !== false) {
-                $errorColumn = 'tgl_keluar';
-            } elseif (strpos($errorMessage, 'status') !== false) {
-                $errorColumn = 'status';
-            }
-
-            LogHelper::error($e->getMessage());
-            return redirect()->back()->with('error', "Terjadi kesalahan pada kolom: $errorColumn. Pesan error: $errorMessage");
+            LogHelper::error($errorMessage);
+            return redirect()->back()->with('error', "Pesan error: $errorMessage");
         }
 
         return redirect()->route('bahan-rusaks.index')->with('success', 'Status berhasil diubah.');

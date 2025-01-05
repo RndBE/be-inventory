@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Throwable;
 use App\Models\Unit;
+use App\Models\User;
 use App\Models\Bahan;
 use App\Models\Produk;
 use App\Models\Projek;
+use App\Models\Kontrak;
 use App\Models\BahanJadi;
 use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
@@ -25,6 +27,7 @@ use App\Models\BahanRusakDetails;
 use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\BahanSetengahjadiDetails;
@@ -44,12 +47,8 @@ class ProjekController extends Controller
 
     public function export($projek_id)
     {
-        // Ambil nama proyek berdasarkan `projek_id`
-        $projek = Projek::findOrFail($projek_id); // Mengambil projek dengan id terkait
-
-        // Gunakan nama proyek di nama file ekspor
+        $projek = Projek::findOrFail($projek_id);
         $fileName = 'HPP_Project_' . $projek->nama_projek . '_be-inventory.xlsx';
-
         return Excel::download(new ProjekExport($projek_id), $fileName);
     }
 
@@ -64,33 +63,45 @@ class ProjekController extends Controller
     {
         $units = Unit::all();
         $produkProduksi = ProdukProduksi::all();
-        return view('pages.projek.create', compact('units', 'produkProduksi'));
+        $kontraks = Kontrak::all();
+        return view('pages.projek.create', compact('units', 'produkProduksi', 'kontraks'));
     }
 
     public function store(Request $request)
     {
         try {
-            //dd($request->all());
+            // dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
-                'nama_projek' => $request->nama_projek,
+                'kontrak_id' => $request->kontrak_id,
                 'mulai_projek' => $request->mulai_projek,
+                'keterangan' => $request->keterangan,
                 'cartItems' => $cartItems
             ], [
-                'nama_projek' => 'required',
+                'kontrak_id' => 'required',
                 'mulai_projek' => 'required',
+                'keterangan' => 'required',
                 'cartItems' => 'required|array',
             ]);
             if ($validator->fails()) {
                 return redirect()->back()->withErrors($validator)->withInput();
             }
+            $kontrak = Kontrak::find($request->kontrak_id);
+            if (!$kontrak) {
+                return redirect()->back()->with('error', 'Kontrak tidak ditemukan!')->withInput();
+            }
+            $tujuan = $kontrak->nama_kontrak;
+            $user = Auth::user();
 
-            $tujuan = $request->nama_projek;
+            $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
+                $query->where('nama', 'Purchasing');
+            })->where('job_level', 3)->first();
+
 
             // Create transaction code for BahanKeluar
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
             $new_transaction_number = ($lastTransaction ? intval(substr($lastTransaction->kode_transaksi, 6)) : 0) + 1;
-            $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
+            $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT). ' PJPro';
             $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
             // Create transaction code for Projek
@@ -98,9 +109,42 @@ class ProjekController extends Controller
             $new_transaction_number_produksi = ($lastTransactionProjek ? intval(substr($lastTransactionProjek->kode_projek, 6)) : 0) + 1;
             $kode_projek = 'PRJ - ' . str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
 
+            if ($user->job_level == 3 && $user->atasan_level3_id === null) {
+                // Job level 3 dan atasan_level3_id null
+                $status_leader = 'Disetujui';
+                // Kirim notifikasi ke Purchasing
+                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            } elseif ($user->job_level == 4 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
+                // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                $status_leader = 'Disetujui';
+                // Kirim notifikasi ke Purchasing
+                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            } elseif ($user->job_level == 4 && $user->atasan_level3_id === null) {
+                // Job level 4 dan atasan_level3_id null
+                $status_leader = 'Belum disetujui';
+                // Kirim notifikasi ke atasan level 2
+                $targetPhone = $user->atasanLevel2 ? $user->atasanLevel2->telephone : null;
+                $recipientName = $user->atasanLevel2 ? $user->atasanLevel2->name : 'Manager';
+            } elseif ($user->job_level == 4) {
+                // Job level 4 dan atasan_level3_id tidak null
+                $status_leader = 'Belum disetujui';
+                // Kirim notifikasi ke atasan level 3
+                $targetPhone = $user->atasanLevel3 ? $user->atasanLevel3->telephone : null;
+                $recipientName = $user->atasanLevel3 ? $user->atasanLevel3->name : 'Leader';
+            } else {
+                // Job level lainnya, kirim ke Purchasing
+                $status_leader = 'Belum disetujui';
+                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            }
+
             $projek = Projek::create([
                 'kode_projek' => $kode_projek,
-                'nama_projek' => $request->nama_projek,
+                'kontrak_id' => $request->kontrak_id,
+                'pengaju' => $user->name,
+                'keterangan' => $request->keterangan,
                 'mulai_projek' => $request->mulai_projek,
                 'status' => 'Dalam Proses'
             ]);
@@ -109,9 +153,13 @@ class ProjekController extends Controller
                 'kode_transaksi' => $kode_transaksi,
                 'projek_id' => $projek->id,
                 'tgl_pengajuan' => $tgl_pengajuan,
-                'tujuan' => 'Projek ' . $tujuan,
-                'divisi' => 'Produksi',
-                'status' => 'Belum disetujui'
+                'tujuan' => $tujuan,
+                'keterangan' => $request->keterangan,
+                'divisi' => 'Teknisi',
+                'pengaju' => $user->id,
+                'status_pengambilan' => 'Belum Diambil',
+                'status' => 'Belum disetujui',
+                'status_leader' => $status_leader,
             ]);
 
             // Group items by bahan_id
@@ -142,26 +190,35 @@ class ProjekController extends Controller
                 ]);
 
             }
+            // Kirim notifikasi jika nomor telepon valid
+            if ($targetPhone) {
+                $message = "Halo {$recipientName},\n\n";
+                $message .= "Pengajuan bahan keluar dengan kode transaksi $kode_transaksi memerlukan persetujuan Anda.\n\n";
+                $message .= "Tgl Pengajuan: " . $tgl_pengajuan . "\nPengaju: {$user->name}\nDivisi: Teknisi\nProject: {$tujuan}\nKeterangan: {$request->keterangan}\n\n";
+                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
-            $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
-            $message .= "Kode Transaksi: $kode_transaksi\n";
-            $message .= "Pengajuan bahan projek telah ditambahkan dan memerlukan persetujuan.\n\n";
-            $message .= "\nPesan Otomatis:\n";
-            $message .= "https://inventory.beacontelemetry.com/";
+                try{
+                    $response = Http::withHeaders([
+                        'x-api-key' => env('WHATSAPP_API_KEY'),
+                        'Content-Type' => 'application/json',
+                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                        'chatId' => "{$targetPhone}@c.us",
+                        'contentType' => 'string',
+                        'content' => $message,
+                    ]);
 
-            $response = Http::withHeaders([
-                'x-api-key' => env('WHATSAPP_API_KEY'),
-                'Content-Type' => 'application/json',
-            ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                'chatId' => '6281127006443@c.us',
-                'contentType' => 'string',
-                'content' => $message,
-            ]);
-            if ($response->successful()) {
-                LogHelper::success('WhatsApp message sent for approval!');
+                    if ($response->successful()) {
+                        LogHelper::success("WhatsApp notification sent to: {$targetPhone}");
+                    } else {
+                        LogHelper::error("Failed to send WhatsApp notification to: {$targetPhone}");
+                    }
+                } catch (\Exception $e) {
+                    LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+                }
             } else {
-                LogHelper::error('Failed to send WhatsApp message.');
+                LogHelper::error('No valid phone number found for WhatsApp notification.');
             }
+
             $request->session()->forget('cartItems');
             LogHelper::success('Berhasil Menambahkan Pengajuan Projek!');
             return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Projek!');
@@ -175,6 +232,7 @@ class ProjekController extends Controller
     public function edit(string $id)
     {
         $units = Unit::all();
+        $kontraks = Kontrak::all();
         $bahanProjek = Bahan::whereHas('jenisBahan', function ($query) {
             $query->where('nama', 'like', '%Produksi%');
         })->get();
@@ -200,6 +258,7 @@ class ProjekController extends Controller
         return view('pages.projek.edit', [
             'projekId' => $id,
             'bahanProjek' => $bahanProjek,
+            'kontraks' => $kontraks,
             'projek' => $projek,
             'units' => $units,
             'existingBahanIds' => $existingBahanIds,
@@ -211,6 +270,9 @@ class ProjekController extends Controller
 
     public function update(Request $request, $id)
     {
+        $validatedData = $request->validate([
+            'keterangan' => 'required|string|max:255', // Validasi keterangan
+        ]);
         try {
             //dd($request->all());
             $projekDetails = json_decode($request->projekDetails, true) ?? [];
@@ -218,7 +280,16 @@ class ProjekController extends Controller
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $projek = Projek::findOrFail($id);
 
-            $tujuan = $projek->nama_projek;
+            $projek->update([
+                'keterangan' => $validatedData['keterangan'],
+            ]);
+
+            $tujuan = $projek->dataKontrak->nama_kontrak;
+            $user = Auth::user();
+
+            $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
+                $query->where('nama', 'Purchasing');
+            })->where('job_level', 3)->first();
 
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
             if ($lastTransaction) {
@@ -228,8 +299,39 @@ class ProjekController extends Controller
             }
             $new_transaction_number = $last_transaction_number + 1;
             $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-            $kode_transaksi = 'KBK - ' . $formatted_number;
+            $kode_transaksi = 'KBK - ' . $formatted_number. ' PJPro';
             $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+
+            if ($user->job_level == 3 && $user->atasan_level3_id === null) {
+                // Job level 3 dan atasan_level3_id null
+                $status_leader = 'Disetujui';
+                // Kirim notifikasi ke Purchasing
+                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            } elseif ($user->job_level == 4 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
+                // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                $status_leader = 'Disetujui';
+                // Kirim notifikasi ke Purchasing
+                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            } elseif ($user->job_level == 4 && $user->atasan_level3_id === null) {
+                // Job level 4 dan atasan_level3_id null
+                $status_leader = 'Belum disetujui';
+                // Kirim notifikasi ke atasan level 2
+                $targetPhone = $user->atasanLevel2 ? $user->atasanLevel2->telephone : null;
+                $recipientName = $user->atasanLevel2 ? $user->atasanLevel2->name : 'Manager';
+            } elseif ($user->job_level == 4) {
+                // Job level 4 dan atasan_level3_id tidak null
+                $status_leader = 'Belum disetujui';
+                // Kirim notifikasi ke atasan level 3
+                $targetPhone = $user->atasanLevel3 ? $user->atasanLevel3->telephone : null;
+                $recipientName = $user->atasanLevel3 ? $user->atasanLevel3->name : 'Leader';
+            } else {
+                // Job level lainnya, kirim ke Purchasing
+                $status_leader = 'Belum disetujui';
+                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            }
 
             // Kelompokkan item berdasarkan bahan_id dan jumlah
             $groupedItems = [];
@@ -251,15 +353,19 @@ class ProjekController extends Controller
             }
 
             if ($totalQty !== 0) {
-                // Simpan data ke Bahan Keluar
-                $bahan_keluar = new BahanKeluar();
-                $bahan_keluar->kode_transaksi = $kode_transaksi;
-                $bahan_keluar->projek_id = $projek->id;
-                $bahan_keluar->tgl_pengajuan = $tgl_pengajuan;
-                $bahan_keluar->tujuan = 'Projek ' . $tujuan;
-                $bahan_keluar->divisi = 'Produksi';
-                $bahan_keluar->status = 'Belum disetujui';
-                $bahan_keluar->save();
+
+                $bahan_keluar = BahanKeluar::create([
+                    'kode_transaksi' => $kode_transaksi,
+                    'projek_id' => $projek->id,
+                    'tgl_pengajuan' => $tgl_pengajuan,
+                    'tujuan' => $tujuan,
+                    'keterangan' => $projek->keterangan,
+                    'divisi' => 'Teknisi',
+                    'pengaju' => $user->id,
+                    'status_pengambilan' => 'Belum Diambil',
+                    'status' => 'Belum disetujui',
+                    'status_leader' => $status_leader,
+                ]);
 
                 // Simpan data ke Bahan Keluar Detail dan Produksi Detail
                 foreach ($groupedItems as $bahan_id => $details) {
@@ -274,24 +380,33 @@ class ProjekController extends Controller
                     ]);
                 }
 
-                $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
-                $message .= "Kode Transaksi: $kode_transaksi\n";
-                $message .= "Pengajuan bahan projek telah ditambahkan dan memerlukan persetujuan.\n\n";
-                $message .= "\nPesan Otomatis:\n";
-                $message .= "https://inventory.beacontelemetry.com/";
+                // Kirim notifikasi jika nomor telepon valid
+                if ($targetPhone) {
+                    $message = "Halo {$recipientName},\n\n";
+                    $message .= "Pengajuan bahan keluar dengan kode transaksi $kode_transaksi memerlukan persetujuan Anda.\n\n";
+                    $message .= "Tgl Pengajuan: " . $tgl_pengajuan . "\nPengaju: {$user->name}\nDivisi: Teknisi\nProject: {$tujuan}\nKeterangan: {$projek->keterangan}\n\n";
+                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
-                $response = Http::withHeaders([
-                    'x-api-key' => env('WHATSAPP_API_KEY'),
-                    'Content-Type' => 'application/json',
-                ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                    'chatId' => '6281127006443@c.us',
-                    'contentType' => 'string',
-                    'content' => $message,
-                ]);
-                if ($response->successful()) {
-                    LogHelper::success('WhatsApp message sent for approval!');
+                    try{
+                        $response = Http::withHeaders([
+                            'x-api-key' => env('WHATSAPP_API_KEY'),
+                            'Content-Type' => 'application/json',
+                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                            'chatId' => "{$targetPhone}@c.us",
+                            'contentType' => 'string',
+                            'content' => $message,
+                        ]);
+
+                        if ($response->successful()) {
+                            LogHelper::success("WhatsApp notification sent to: {$targetPhone}");
+                        } else {
+                            LogHelper::error("Failed to send WhatsApp notification to: {$targetPhone}");
+                        }
+                    } catch (\Exception $e) {
+                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+                    }
                 } else {
-                    LogHelper::error('Failed to send WhatsApp message.');
+                    LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
             }
 
@@ -305,7 +420,7 @@ class ProjekController extends Controller
                 }
                 $new_transaction_number = $last_transaction_number + 1;
                 $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-                $kode_transaksi = 'BR - ' . $formatted_number;
+                $kode_transaksi = 'BRS - ' . $formatted_number. ' PJPro';
 
                 $bahanRusakRecord = BahanRusak::create([
                     'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
@@ -328,25 +443,33 @@ class ProjekController extends Controller
                         'sub_total' => $sub_total,
                     ]);
                 }
+                $targetPhone = $purchasingUser->telephone;
                 $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
-                $message .= "Kode Transaksi: $kode_transaksi\n";
-                $message .= "Pengajuan bahan rusak telah ditambahkan dan memerlukan persetujuan.\n\n";
-                $message .= "\nPesan Otomatis:\n";
-                $message .= "https://inventory.beacontelemetry.com/";
-
-                $response = Http::withHeaders([
-                    'x-api-key' => env('WHATSAPP_API_KEY'),
-                    'Content-Type' => 'application/json',
-                ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                    'chatId' => '6281127006443@c.us',
-                    'contentType' => 'string',
-                    'content' => $message,
-                ]);
-                if ($response->successful()) {
-                    LogHelper::success('WhatsApp message sent for approval!');
+                if ($targetPhone) {
+                    $message = "Halo {$purchasingUser->name},\n\n";
+                    $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                    $message .= "Kode Transaksi: $kode_transaksi\n";
+                    $message .= "Pengajuan bahan rusak telah ditambahkan dan memerlukan persetujuan.\n\n";
+                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                    try{
+                        $response = Http::withHeaders([
+                            'x-api-key' => env('WHATSAPP_API_KEY'),
+                            'Content-Type' => 'application/json',
+                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                            'chatId' => "{$targetPhone}@c.us",
+                            'contentType' => 'string',
+                            'content' => $message,
+                        ]);
+                        if ($response->successful()) {
+                            LogHelper::success("WhatsApp message sent to: {$targetPhone}");
+                        } else {
+                            LogHelper::error("Failed to send WhatsApp message to: {$targetPhone}");
+                        }
+                    } catch (\Exception $e) {
+                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+                    }
                 } else {
-                    LogHelper::error('Failed to send WhatsApp message.');
+                    LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
             }
 
@@ -359,7 +482,7 @@ class ProjekController extends Controller
                 }
                 $new_transaction_number = $last_transaction_number + 1;
                 $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-                $kode_transaksi = 'BR - ' . $formatted_number;
+                $kode_transaksi = 'BRT - ' . $formatted_number. ' PJPro';
 
                 $bahanReturRecord = BahanRetur::create([
                     'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
@@ -384,25 +507,34 @@ class ProjekController extends Controller
                         'sub_total' => $sub_total,
                     ]);
                 }
+                $targetPhone = $purchasingUser->telephone;
                 $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
-                $message .= "Kode Transaksi: $kode_transaksi\n";
-                $message .= "Pengajuan bahan retur telah ditambahkan dan memerlukan persetujuan.\n\n";
-                $message .= "\nPesan Otomatis:\n";
-                $message .= "https://inventory.beacontelemetry.com/";
-
-                $response = Http::withHeaders([
-                    'x-api-key' => env('WHATSAPP_API_KEY'),
-                    'Content-Type' => 'application/json',
-                ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                    'chatId' => '6281127006443@c.us',
-                    'contentType' => 'string',
-                    'content' => $message,
-                ]);
-                if ($response->successful()) {
-                    LogHelper::success('WhatsApp message sent for approval!');
+                if ($targetPhone) {
+                    $message = "Halo {$purchasingUser->name},\n\n";
+                    $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                    $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                    $message .= "Kode Transaksi: $kode_transaksi\n";
+                    $message .= "Pengajuan bahan retur telah ditambahkan dan memerlukan persetujuan.\n\n";
+                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                    try{
+                        $response = Http::withHeaders([
+                            'x-api-key' => env('WHATSAPP_API_KEY'),
+                            'Content-Type' => 'application/json',
+                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                            'chatId' => "{$targetPhone}@c.us",
+                            'contentType' => 'string',
+                            'content' => $message,
+                        ]);
+                        if ($response->successful()) {
+                            LogHelper::success("WhatsApp message sent to: {$targetPhone}");
+                        } else {
+                            LogHelper::error("Failed to send WhatsApp message to: {$targetPhone}");
+                        }
+                    } catch (\Exception $e) {
+                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+                    }
                 } else {
-                    LogHelper::error('Failed to send WhatsApp message.');
+                    LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
             }
 
@@ -434,19 +566,12 @@ class ProjekController extends Controller
     {
         try{
             $projek = Projek::find($id);
-            //dd($projek);
             if (!$projek) {
                 return redirect()->back()->with('gagal', 'Projek tidak ditemukan.');
             }
-            if ($projek->status !== 'Konfirmasi') {
-                return redirect()->back()->with('gagal', 'Projek hanya dapat dihapus jika statusnya "Konfirmasi".');
-            }
-            $bahanKeluar = BahanKeluar::find($projek->bahan_keluar_id);
             $projek->delete();
-            if ($bahanKeluar) {
-                $bahanKeluar->delete();
-            }
-            return redirect()->back()->with('success', 'Projek dan bahan keluar terkait berhasil dihapus.');
+            LogHelper::success('Projek berhasil dihapus!');
+            return redirect()->back()->with('success', 'Projek berhasil dihapus!');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

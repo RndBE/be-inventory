@@ -129,8 +129,8 @@
                         <th scope="col" class="px-6 py-3 text-center w-0.5">Kebutuhan</th>
                         <th scope="col" class="px-6 py-3 text-center w-0.5">Kekurangan</th>
                         <th scope="col" class="px-6 py-3 text-center w-0.5">Stok</th>
-                        {{-- <th scope="col" class="px-6 py-3 text-center w-0.5">Ambil Stok</th> --}}
-                        <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total</th>
+                        <th scope="col" class="px-6 py-3 text-center w-0.5">Ambil Stok</th>
+                        {{-- <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total</th> --}}
                         <th scope="col" class="px-6 py-3 text-right w-1">Details</th>
                         <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total</th>
                     </tr>
@@ -180,7 +180,7 @@
                                                     $unitPrices[] = $bahan->unit_price; // Simpan unit price
 
                                                     // Jika unit price sudah disimpan, kita tambahkan total price
-                                                    $totalPrice += $qtyToUse * $bahan->unit_price; // Hitung total price per transaksi
+                                                    // $totalPrice += $qtyToUse * $bahan->unit_price; // Hitung total price per transaksi
                                                 }
                                             }
                                         } else {
@@ -201,27 +201,27 @@
                                                     $unitPrices[] = $purchase->unit_price; // Simpan unit price
 
                                                     // Jika unit price sudah disimpan, kita tambahkan total price
-                                                    $totalPrice += $qtyToUse * $purchase->unit_price; // Hitung total price per transaksi
+                                                    // $totalPrice += $qtyToUse * $purchase->unit_price; // Hitung total price per transaksi
                                                 }
                                             }
                                         }
 
                                         // Akumulasi grand total
-                                        $grandTotal += $totalPrice; // Update grand total
+                                        // $grandTotal += $totalPrice; // Update grand total
                                     @endphp
                                     {{ $stokSaatIni }}
                                 </div>
                             </div>
                         </td>
-                        {{-- <td class="px-6 py-4 font-semibold text-center text-gray-900 dark:text-white">
+                        <td class="px-6 py-4 font-semibold text-center text-gray-900 dark:text-white">
                             {{ $usedMaterials }}
-                        </td> --}}
-                        <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
+                        </td>
+                        {{-- <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
                             <span>
                                 <strong></strong>
                                 {{ $totalPrice > 0 ? number_format($totalPrice, 0, ',', '.') : 0 }}
                             </span>
-                        </td>
+                        </td> --}}
                         <td class="items-right px-6 py-4 text-right">
                             @foreach($detail['details'] as $d)
                             <div class="flex flex-col space-y-2">
@@ -254,27 +254,13 @@
                     @endforeach
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
-                        {{-- <td class="px-6 py-4 text-right text-black"></td> --}}
-                        <td class="px-6 py-4 text-right text-black"></td>
-                        <td class="px-6 py-4 text-right text-black"></td>
-                        <td class="px-6 py-4 text-right text-black"></td>
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><strong>Rp.</strong> {{ number_format($grandTotal, 0, ',', '.') }}</span></td>
-                        <td class="px-6 py-4 text-center text-black">+</td>
-
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                            <span><strong>Rp.</strong> {{ number_format($produksiTotal, 0, ',', '.') }}</span>
-                        </td>
-                    </tr>
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
-                        {{-- <td class="px-6 py-4 text-right text-black"></td> --}}
                         <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 text-right text-black"></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
-                        <td class="px-6 py-4 text-right text-black"><strong>Total Harga</strong></td>
+                        <td class="px-6 py-4 font-semibold text-center text-black">Total Harga</td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                            <span><strong>Rp.</strong> {{ number_format($produksiTotal+$grandTotal, 0, ',', '.') }}</span>
+                            <span><strong>Rp.</strong> {{ number_format($produksiTotal, 0, ',', '.') }}</span>
                         </td>
                     </tr>
                 </tbody>

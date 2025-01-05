@@ -12,17 +12,32 @@ class SupplierTable extends Component
     public $search = "";
     public $perPage = 15;
     public $id_supplier, $nama;
+    public $isDeleteModalOpen = false;
+    public $isEditModalOpen = false;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function editSupplier(int $id)
     {
         $Data = Supplier::findOrFail($id);
         $this->id_supplier = $id;
         $this->nama = $Data->nama;
+        $this->isEditModalOpen = true;
     }
 
     public function deleteSupplier(int $id)
     {
         $this->id_supplier = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
+        $this->isEditModalOpen = false;
     }
 
     public function render()
@@ -34,10 +49,5 @@ class SupplierTable extends Component
         return view('livewire.supplier-table', [
             'suppliers' => $Data,
         ]);
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 }

@@ -38,7 +38,7 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
         $data[] = ['HPP PROJECT', '', '', '', '', '', ''];
         $data[] = [''];
 
-        $data[] = ['Nama Projek', '', ': '.$projek->nama_projek];
+        $data[] = ['Nama Projek', '', ': '.$projek->dataKontrak->nama_kontrak];
         $data[] = ['Masa Pekerjaan', '', ': '.$formattedStartDate . ' - ' . $formattedEndDate];
         $data[] = [''];
 

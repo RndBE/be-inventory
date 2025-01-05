@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Throwable;
 use App\Models\Unit;
+use App\Models\User;
 use App\Models\Bahan;
 use App\Models\Produk;
 use App\Models\BahanJadi;
@@ -14,6 +15,7 @@ use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
 use App\Models\DetailProduksi;
+use App\Models\PembelianBahan;
 use App\Models\ProdukProduksi;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
@@ -28,6 +30,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Models\PembelianBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
 
@@ -71,111 +74,208 @@ class PengajuanController extends Controller
     public function store(Request $request)
     {
         try {
-            //dd($request->all());
+            // dd($request->all());
+            DB::beginTransaction();
+            // Validasi input
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
                 'divisi' => $request->divisi,
+                'project' => $request->project,
                 'keterangan' => $request->keterangan,
+                'jenis_pengajuan' => $request->jenis_pengajuan,
                 'cartItems' => $cartItems
             ], [
                 'divisi' => 'required',
+                'project' => 'required',
                 'keterangan' => 'required',
+                'jenis_pengajuan' => 'required',
                 'cartItems' => 'required|array',
             ]);
+
             if ($validator->fails()) {
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
-            $tujuan = $request->keterangan;
+            $tujuan = $request->project;
+            $user = Auth::user();
+            $jenisPengajuan = $request->jenis_pengajuan;
 
-            // Create transaction code for BahanKeluar
-            $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
+            $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
+                $query->where('nama', 'Purchasing');
+            })->where('job_level', 3)->first();
+
+            $generalManagerUser = User::whereHas('dataJobPosition', function ($query) {
+                $query->where('nama', 'Secretary');
+            })->where('job_level', 4)->first();
+
+            $lastTransaction = PembelianBahan::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
             $new_transaction_number = ($lastTransaction ? intval(substr($lastTransaction->kode_transaksi, 6)) : 0) + 1;
-            $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
+            $kode_transaksi = 'KPB - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT). ' PBL';
             $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
-            // Create transaction code for Pengajuan
-            $lastTransactioPengajuan = Pengajuan::orderByRaw('CAST(SUBSTRING(kode_pengajuan, 7) AS UNSIGNED) DESC')->first();
-            $new_transaction_number_pengajuan = ($lastTransactioPengajuan ? intval(substr($lastTransactioPengajuan->kode_pengajuan, 6)) : 0) + 1;
-            $kode_pengajuan = 'PB - ' . str_pad($new_transaction_number_pengajuan, 5, '0', STR_PAD_LEFT);
+            $lastTransactionProjek = Pengajuan::orderByRaw('CAST(SUBSTRING(kode_pengajuan, 7) AS UNSIGNED) DESC')->first();
+            $new_transaction_number_produksi = ($lastTransactionProjek ? intval(substr($lastTransactionProjek->kode_pengajuan, 6)) : 0) + 1;
+            $kode_pengajuan = 'PBL - ' . str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
 
+            if ($jenisPengajuan === 'Pembelian Bahan/Barang/Alat Lokal' || $jenisPengajuan === 'Pembelian Bahan/Barang/Alat Impor') {
+                if ($user->job_level == 3 && $user->atasan_level3_id === null) {
+                    // Job level 3 dan atasan_level3_id null
+                    $status_leader = 'Disetujui';
+                    $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke Purchasing
+                    $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                    $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+                } elseif ($user->job_level == 4 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
+                    // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                    $status_leader = 'Disetujui';
+                    $status_manager = 'Disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke Purchasing
+                    $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                    $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+                } elseif ($user->job_level == 4 && $user->atasan_level3_id === null) {
+                    // Job level 4 dan atasan_level3_id null
+                    $status_leader = 'Belum disetujui';
+                    $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke atasan level 2
+                    $targetPhone = $user->atasanLevel2 ? $user->atasanLevel2->telephone : null;
+                    $recipientName = $user->atasanLevel2 ? $user->atasanLevel2->name : 'Manager';
+                } elseif ($user->job_level == 4) {
+                    // Job level 4 dan atasan_level3_id tidak null
+                    $status_leader = 'Belum disetujui';
+                    $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke atasan level 3
+                    $targetPhone = $user->atasanLevel3 ? $user->atasanLevel3->telephone : null;
+                    $recipientName = $user->atasanLevel3 ? $user->atasanLevel3->name : 'Leader';
+                } else {
+                    // Job level lainnya, kirim ke Purchasing
+                    $status_leader = 'Belum disetujui';
+                    $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                    $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                    $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+                }
+            }else{
+                if ($user->job_level == 3 && $user->atasan_level3_id === null) {
+                    // Job level 3 dan atasan_level3_id null
+                    $status_leader = 'Disetujui';
+                    $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke Secretary
+                    $targetPhone = $generalManagerUser ? $generalManagerUser->telephone : null;
+                    $recipientName = $generalManagerUser ? $generalManagerUser->name : 'Secretary';
+                } elseif ($user->job_level == 4 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
+                    // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                    $status_leader = 'Disetujui';
+                    $status_manager = 'Disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke Secretary
+                    $targetPhone = $generalManagerUser ? $generalManagerUser->telephone : null;
+                    $recipientName = $generalManagerUser ? $generalManagerUser->name : 'Secretary';
+                } elseif ($user->job_level == 4 && $user->atasan_level3_id === null) {
+                    // Job level 4 dan atasan_level3_id null
+                    $status_leader = 'Belum disetujui';
+                    $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke atasan level 2
+                    $targetPhone = $user->atasanLevel2 ? $user->atasanLevel2->telephone : null;
+                    $recipientName = $user->atasanLevel2 ? $user->atasanLevel2->name : 'Manager';
+                } elseif ($user->job_level == 4) {
+                    // Job level 4 dan atasan_level3_id tidak null
+                    $status_leader = 'Belum disetujui';
+                    $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke atasan level 3
+                    $targetPhone = $user->atasanLevel3 ? $user->atasanLevel3->telephone : null;
+                    $recipientName = $user->atasanLevel3 ? $user->atasanLevel3->name : 'Leader';
+                } else {
+                    // Job level lainnya, kirim ke Secretary
+                    $status_leader = 'Belum disetujui';
+                    $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                    $targetPhone = $generalManagerUser ? $generalManagerUser->telephone : null;
+                    $recipientName = $generalManagerUser ? $generalManagerUser->name : 'Secretary';
+                }
+            }
+
+
+
+            // Simpan data pengajuan
             $pengajuan = Pengajuan::create([
                 'kode_pengajuan' => $kode_pengajuan,
                 'mulai_pengajuan' => $tgl_pengajuan,
                 'divisi' => $request->divisi,
-                'pengaju' => Auth::user()->name,
+                'pengaju' => $user->name,
+                'project' => $request->project,
                 'keterangan' => $request->keterangan,
+                'jenis_pengajuan' => $request->jenis_pengajuan,
                 'status' => 'Dalam Proses'
             ]);
 
-            $bahan_keluar = BahanKeluar::create([
+            $pembelian_bahan = PembelianBahan::create([
                 'kode_transaksi' => $kode_transaksi,
                 'pengajuan_id' => $pengajuan->id,
                 'tgl_pengajuan' => $tgl_pengajuan,
                 'tujuan' => $tujuan,
+                'keterangan' => $request->keterangan,
                 'divisi' => $request->divisi,
-                'pengaju' => Auth::user()->id,
-                'status_pengambilan' => 'Belum Diambil',
-                'status' => 'Belum disetujui'
+                'pengaju' => $user->id,
+                'jenis_pengajuan' => $request->jenis_pengajuan,
+                // 'status_pengambilan' => 'Belum Diambil',
+                'status' => 'Belum disetujui',
+                'status_leader' => $status_leader,
+                'status_manager' => $status_manager,
             ]);
 
-            // Group items by bahan_id
-            $groupedItems = [];
+            // Group items by bahan_id dan simpan
             foreach ($cartItems as $item) {
-                $itemId = $item['id'];
-                $groupedItems[$itemId] = [
-                    'qty' => 0,
-                    'jml_bahan' => 0,
-                    'details' => $item['details'] ?? [],
-                    'sub_total' => 0,
-                ];
-                $groupedItems[$item['id']]['qty'] += $item['qty'];
-                $groupedItems[$item['id']]['jml_bahan'] += $item['jml_bahan'];
-                $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
-            }
-
-            // Save items to BahanKeluarDetails and PengajuanDetails
-            foreach ($groupedItems as $bahan_id => $details) {
-                BahanKeluarDetails::create([
-                    'bahan_keluar_id' => $bahan_keluar->id,
-                    'bahan_id' => $bahan_id,
-                    'qty' => $details['qty'],
-                    'jml_bahan' => $details['jml_bahan'],
+                PembelianBahanDetails::create([
+                    'pembelian_bahan_id' => $pembelian_bahan->id,
+                    'bahan_id' => $item['id'],
+                    'qty' => $item['qty'],
+                    'jml_bahan' => $item['jml_bahan'],
                     'used_materials' => 0,
-                    'details' => json_encode($details['details']),
-                    'sub_total' => $details['sub_total'],
+                    'details' => json_encode($item['details']),
+                    'sub_total' => $item['sub_total'],
+                    'spesifikasi' => $item['spesifikasi'],
+                    'penanggungjawabaset' => $item['penanggungjawabaset'],
+                    'alasan' => $item['alasan'],
                 ]);
-
             }
 
-            $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
-            $message .= "Kode Transaksi: $kode_transaksi\n";
-            $message .= "Pengajuan bahan baru telah ditambahkan dan memerlukan persetujuan.\n\n";
-            $message .= "\nPesan Otomatis:\n";
-            $message .= "https://inventory.beacontelemetry.com/";
+            // Kirim notifikasi jika nomor telepon valid
+            if ($targetPhone) {
+                $message = "Halo {$recipientName},\n\n";
+                $message .= "Pengajuan pembelian bahan dengan kode transaksi $kode_transaksi memerlukan persetujuan Anda.\n\n";
+                $message .= "Tgl Pengajuan: " . $tgl_pengajuan . "\nPengaju: {$user->name}\nDivisi: {$request->divisi}\nProject: {$request->project}\nKeterangan: {$request->keterangan}\n\n";
+                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
-            $response = Http::withHeaders([
-                'x-api-key' => env('WHATSAPP_API_KEY'),
-                'Content-Type' => 'application/json',
-            ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                'chatId' => '6281127006443@c.us',
-                'contentType' => 'string',
-                'content' => $message,
-            ]);
-            if ($response->successful()) {
-                LogHelper::success('WhatsApp message sent for approval!');
+                try{
+                    $response = Http::withHeaders([
+                        'x-api-key' => env('WHATSAPP_API_KEY'),
+                        'Content-Type' => 'application/json',
+                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                        'chatId' => "{$targetPhone}@c.us",
+                        'contentType' => 'string',
+                        'content' => $message,
+                    ]);
+
+                    if ($response->successful()) {
+                        LogHelper::success("WhatsApp notification sent to: {$targetPhone}");
+                    } else {
+                        LogHelper::error("Failed to send WhatsApp notification to: {$targetPhone}");
+                    }
+                } catch (\Exception $e) {
+					LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+				}
             } else {
-                LogHelper::error('Failed to send WhatsApp message.');
+                LogHelper::error('No valid phone number found for WhatsApp notification.');
             }
 
+            DB::commit();
             $request->session()->forget('cartItems');
             LogHelper::success('Berhasil Menambahkan Pengajuan Bahan!');
             return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Bahan!');
         } catch (\Exception $e) {
+            DB::rollBack();
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan data: ' . $e->getMessage());
         }
     }
+
 
 
     public function edit(string $id)
@@ -224,7 +324,12 @@ class PengajuanController extends Controller
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $pengajuan = Pengajuan::findOrFail($id);
 
-            $tujuan = $pengajuan->keterangan;
+            $tujuan = $pengajuan->project;
+            $user = Auth::user();
+
+            $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
+                $query->where('nama', 'Purchasing');
+            })->where('job_level', 3)->first();
 
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
             if ($lastTransaction) {
@@ -236,6 +341,42 @@ class PengajuanController extends Controller
             $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
             $kode_transaksi = 'KBK - ' . $formatted_number;
             $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+
+            if ($user->job_level == 3 && $user->atasan_level3_id === null) {
+                // Job level 3 dan atasan_level3_id null
+                $status_leader = 'Disetujui';
+                $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                // Kirim notifikasi ke Purchasing
+                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            } elseif ($user->job_level == 4 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
+                // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                $status_leader = 'Disetujui';
+                $status_manager = 'Disetujui'; // Menunggu approval manager
+                // Kirim notifikasi ke Purchasing
+                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            } elseif ($user->job_level == 4 && $user->atasan_level3_id === null) {
+                // Job level 4 dan atasan_level3_id null
+                $status_leader = 'Belum disetujui';
+                $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                // Kirim notifikasi ke atasan level 2
+                $targetPhone = $user->atasanLevel2 ? $user->atasanLevel2->telephone : null;
+                $recipientName = $user->atasanLevel2 ? $user->atasanLevel2->name : 'Manager';
+            } elseif ($user->job_level == 4) {
+                // Job level 4 dan atasan_level3_id tidak null
+                $status_leader = 'Belum disetujui';
+                $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                // Kirim notifikasi ke atasan level 3
+                $targetPhone = $user->atasanLevel3 ? $user->atasanLevel3->telephone : null;
+                $recipientName = $user->atasanLevel3 ? $user->atasanLevel3->name : 'Leader';
+            } else {
+                // Job level lainnya, kirim ke Purchasing
+                $status_leader = 'Belum disetujui';
+                $status_manager = 'Belum disetujui'; // Menunggu approval manager
+                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            }
 
             // Kelompokkan item berdasarkan bahan_id dan jumlah
             $groupedItems = [];
@@ -263,8 +404,14 @@ class PengajuanController extends Controller
                 $bahan_keluar->pengajuan_id = $pengajuan->id;
                 $bahan_keluar->tgl_pengajuan = $tgl_pengajuan;
                 $bahan_keluar->tujuan = $tujuan;
+                $bahan_keluar->keterangan = $pengajuan->keterangan;
+                $bahan_keluar->status_pengambilan = 'Belum Diambil';
                 $bahan_keluar->divisi = $pengajuan->divisi;
+                $bahan_keluar->pengaju = $user->id;
+                $bahan_keluar->status_pengambilan = 'Belum Diambil';
                 $bahan_keluar->status = 'Belum disetujui';
+                $bahan_keluar->status_leader = $status_leader;
+                $bahan_keluar->status_manager = $status_manager;
                 $bahan_keluar->save();
 
                 // Simpan data ke Bahan Keluar Detail dan Produksi Detail
@@ -278,6 +425,35 @@ class PengajuanController extends Controller
                         'details' => json_encode($details['details']),
                         'sub_total' => $details['sub_total'],
                     ]);
+                }
+
+                // Kirim notifikasi jika nomor telepon valid
+                if ($targetPhone) {
+                    $message = "Halo {$recipientName},\n\n";
+                    $message .= "Pengajuan bahan keluar dengan kode transaksi $kode_transaksi memerlukan persetujuan Anda.\n\n";
+                    $message .= "Tgl Pengajuan: " . $tgl_pengajuan . "\nPengaju: {$user->name}\nDivisi: {$pengajuan->divisi}\nProject: {$pengajuan->project}\nKeterangan: {$pengajuan->keterangan}\n\n";
+                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+
+                    try{
+                        $response = Http::withHeaders([
+                            'x-api-key' => env('WHATSAPP_API_KEY'),
+                            'Content-Type' => 'application/json',
+                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                            'chatId' => "{$targetPhone}@c.us",
+                            'contentType' => 'string',
+                            'content' => $message,
+                        ]);
+
+                        if ($response->successful()) {
+                            LogHelper::success("WhatsApp notification sent to: {$targetPhone}");
+                        } else {
+                            LogHelper::error("Failed to send WhatsApp notification to: {$targetPhone}");
+                        }
+                    } catch (\Exception $e) {
+                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+                    }
+                } else {
+                    LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
             }
 
@@ -313,6 +489,30 @@ class PengajuanController extends Controller
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
                     ]);
+                }
+                $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                $message .= "Kode Transaksi: $kode_transaksi\n";
+                $message .= "Pengajuan bahan rusak telah ditambahkan dan memerlukan persetujuan.\n\n";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
+
+                try{
+                    $response = Http::withHeaders([
+                        'x-api-key' => env('WHATSAPP_API_KEY'),
+                        'Content-Type' => 'application/json',
+                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                        'chatId' => '6281127006443@c.us',
+                        'contentType' => 'string',
+                        'content' => $message,
+                    ]);
+                    if ($response->successful()) {
+                        LogHelper::success('WhatsApp message sent for approval!');
+                    } else {
+                        LogHelper::error('Failed to send WhatsApp message.');
+                    }
+                } catch (\Exception $e) {
+                    LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
                 }
             }
 
@@ -350,6 +550,30 @@ class PengajuanController extends Controller
                         'sub_total' => $sub_total,
                     ]);
                 }
+                $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                $message .= "Kode Transaksi: $kode_transaksi\n";
+                $message .= "Pengajuan bahan retur telah ditambahkan dan memerlukan persetujuan.\n\n";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
+
+                try{
+                    $response = Http::withHeaders([
+                        'x-api-key' => env('WHATSAPP_API_KEY'),
+                        'Content-Type' => 'application/json',
+                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                        'chatId' => '6281127006443@c.us',
+                        'contentType' => 'string',
+                        'content' => $message,
+                    ]);
+                    if ($response->successful()) {
+                        LogHelper::success('WhatsApp message sent for approval!');
+                    } else {
+                        LogHelper::error('Failed to send WhatsApp message.');
+                    }
+                } catch (\Exception $e) {
+                    LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+                }
             }
 
             LogHelper::success('Berhasil Mengubah Detail Pengajuan!');
@@ -384,12 +608,9 @@ class PengajuanController extends Controller
             if (!$pengajuan) {
                 return redirect()->back()->with('gagal', 'Pengajuan tidak ditemukan.');
             }
-            $bahanKeluar = BahanKeluar::find($pengajuan->bahan_keluar_id);
             $pengajuan->delete();
-            if ($bahanKeluar) {
-                $bahanKeluar->delete();
-            }
-            return redirect()->back()->with('success', 'Pengajuan dan bahan keluar terkait berhasil dihapus.');
+            LogHelper::success('Pengajuan pembelian bahan berhasil dihapus!');
+            return redirect()->back()->with('success', 'Pengajuan pembelian bahan berhasil dihapus.');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

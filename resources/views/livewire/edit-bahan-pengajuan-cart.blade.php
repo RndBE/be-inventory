@@ -1,306 +1,367 @@
 <div>
-    <div class="relative sm:rounded-lg pt-2">
-        @if (!$isFirstTimePengajuan && $bahanKeluars->isEmpty())
-            <div id="alert-2" class="flex items-center p-4 mb-4 text-sm text-green-800 border border-green-300 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800" role="alert">
-                <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                </svg>
-                <span class="sr-only">Info</span>
-                <div class="ms-3 text-sm font-medium">
-                    Tidak ada pengajuan bahan!
-                </div>
-                <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-2" aria-label="Close">
-                    <span class="sr-only">Close</span>
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                    </svg>
-                </button>
-            </div>
-        @endif
-        @if ($isFirstTimePengajuan && $bahanKeluars->isNotEmpty())
-            @php
-                $firstTimeMaterials = $bahanKeluars->flatMap(function($keluar) {
-                    return $keluar->bahanKeluarDetails->map(function($detail) {
-                        return $detail->dataBahan->nama_bahan . ': ' . $detail->qty;
-                    });
-                })->implode(' , ');
-
-                $firstTimeStatus = $bahanKeluars->first()->status ?? 'Status tidak ditemukan';
-            @endphp
-            <div id="alert-additional-content-3" class="p-4 mb-4 text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
-                <div class="flex items-center">
-                    <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                    </svg>
-                    <span class="sr-only">Info</span>
-                    <h3 class="text-lg font-medium">Informasi Pengajuan Bahan {{ $firstTimeStatus }}</h3>
-                </div>
-                <div class="mt-2 mb-4 text-sm">
-                    Berikut adalah daftar bahan yang diajukan untuk pengajuan ini:
-                </div>
-                {{ $firstTimeMaterials }}
-                <div class="flex justify-end mt-3">
-                    <button type="button" class="text-red-800 bg-transparent border border-red-800 hover:bg-red-900 hover:text-white focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center dark:hover:bg-red-600 dark:border-red-600 dark:text-red-400 dark:hover:text-white dark:focus:ring-red-800" data-dismiss-target="#alert-additional-content-3" aria-label="Close">
-                        Tutup
-                    </button>
-                </div>
-            </div>
-        @endif
-        @if (!$isFirstTimePengajuan && $bahanKeluars->isNotEmpty())
-            <div id="alert-additional-content-3" class="p-4 mb-4 text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
-                @foreach($bahanKeluars as $keluar)
-                    <div class="flex items-center">
-                        <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                        </svg>
-                        <span class="sr-only">Info</span>
-                        <h3 class="text-lg font-medium">Informasi Pengajuan Bahan {{ $keluar->status }}</h3>
-                    </div>
-                    <div class="mt-2 mb-4 text-sm">
-                        Berikut adalah daftar bahan yang diajukan untuk pengajuan ini:
-                    </div>
-                    @php
-                        $materials = $keluar->bahanKeluarDetails->map(function($detail) {
-                            return $detail->dataBahan->nama_bahan . ': ' . $detail->qty;
-                        })->implode(' , ');
-                    @endphp
-                    {{ $materials }}
-                @endforeach
-                <div class="flex justify-end mt-3">
-                    <button type="button" class="text-red-800 border border-red-600 hover:bg-red-800 hover:text-white focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center dark:hover:bg-red-600 dark:border-red-600 dark:text-red-400 dark:hover:text-white dark:focus:ring-red-800" data-dismiss-target="#alert-additional-content-3" aria-label="Close">
-                        Tutup
-                    </button>
-                </div>
-            </div>
-        @endif
-        @if (!$isBahanReturPending && !$isBahanRusakPending)
-            <!-- No pending submissions -->
-            <div id="alert-3" class="flex items-center p-4 mb-4 text-sm text-green-800 border border-green-300 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800" role="alert">
-                <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                </svg>
-                <span class="sr-only">Info</span>
-                <div class="ms-3 text-sm font-medium">
-                    Tidak ada pengajuan bahan retur atau bahan rusak!
-                </div>
-                <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-3" aria-label="Close">
-                    <span class="sr-only">Close</span>
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                    </svg>
-                </button>
-            </div>
-        @else
-            <!-- Display pending submissions count -->
-            <div id="alert-3" class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
-                <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                </svg>
-                <span class="sr-only">Info</span>
-                <div class="ms-3 text-sm font-medium">
-                    @if ($isBahanReturPending)
-                        Ada {{ $pendingReturCount }} pengajuan retur yang belum disetujui!
-                    @endif
-                    @if ($isBahanRusakPending)
-                        Ada {{ $pendingRusakCount }} pengajuan bahan rusak yang belum disetujui!
-                    @endif
-                </div>
-                <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-3" aria-label="Close">
-                    <span class="sr-only">Close</span>
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                    </svg>
-                </button>
-            </div>
-        @endif
-    </div>
     <div class="border-gray-900/10 pt-2">
+        @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Lokal')
+            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 w-1/5">Nama</th>
+                            <th scope="col" class="px-6 py-3 w-0.5">Spesifikasi</th>
+                            <th scope="col" class="px-6 py-3 text-center w-0.5">QTY</th>
+                            <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan</th>
+                            <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga</th>
+
+
+                            <th scope="col" class="px-6 py-3 w-0.5">Ket Pembayaran</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $grandTotal = 0;
+                            $newGrandTotal = 0;
+                            $ongkir = $ongkir ?? 0;
+                            $asuransi = $asuransi ?? 0;
+                            $layanan = $layanan ?? 0;
+                            $jasaAplikasi = $jasa_aplikasi ?? 0;
+                        @endphp
+                        @foreach ($pengajuanDetails as $detail)
+                        @php
+                            $newDetails = is_string($detail['new_details']) ? json_decode($detail['new_details'], true) : $detail['new_details'];
+                            // dd($newDetails);
+
+                            $unitPrice = $unit_price[$detail['bahan']->id] ?? 0;
+                            $newUnitPrice = $newDetails[0]['new_unit_price'] ?? 0;
+                            $jmlBahan = $detail['jml_bahan'] ?? 0;
+
+                            $finalUnitPrice = $newUnitPrice > 0 ? $newUnitPrice : $unitPrice;
+
+                            // $subTotal = $jmlBahan * $finalUnitPrice;
+                            // $grandTotal += $subTotal;
+
+                            $subTotal = $jmlBahan * $unitPrice;
+                            $newSubTotal = $jmlBahan * $newUnitPrice;
+                            $newSubTotalFinal = $jmlBahan * $finalUnitPrice;
+
+                            // Tambahkan ke grand total
+                            $grandTotal += $newSubTotalFinal;
+                        @endphp
+                        <input type="hidden" name="pengajuanDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']->nama_bahan }}</td>
+                            <td class="px-6 py-4 text-gray-900 dark:text-white">
+                                <span>{!! nl2br(e($detail['spesifikasi'] ?? '')) !!}</span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
+                                <span>{{ $detail['jml_bahan'] ?? 0 }}</span>
+                            </td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                @if($newUnitPrice === 0 || $newUnitPrice === null)
+                                    <span>{{ number_format($unitPrice, 0, ',', '.') }}</span>
+                                @else
+                                    <span style="text-decoration: line-through; color: red;">
+                                        {{ number_format($unitPrice, 0, ',', '.') }}
+                                    </span>
+                                    <br>
+                                    <span>{{ number_format($newUnitPrice, 0, ',', '.') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                @if($detail['new_sub_total'] === 0 || $detail['new_sub_total'] === null)
+                                    <span>{{ number_format($subTotal, 0, ',', '.') }}</span>
+                                @else
+                                    <span style="text-decoration: line-through; color: red;">
+                                        {{ number_format($subTotal, 0, ',', '.') }}
+                                    </span>
+                                    <br>
+                                    <span>{{ number_format($detail['new_sub_total'], 0, ',', '.') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-gray-900 dark:text-white">
+                                <span>{!! nl2br(e($detail['keterangan_pembayaran'] ?? '')) !!}</span>
+                            </td>
+                        </tr>
+                        @endforeach
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>Ongkos Kirim</strong></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                {{ number_format($ongkir, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>Asuransi</strong></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                {{ number_format($asuransi, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>Layanan</strong></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                {{ number_format($layanan, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>Jasa Aplikasi</strong></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                {{ number_format($jasaAplikasi, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran</strong></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                @php
+                                    $totalWithExtras = $grandTotal + $ongkir + $asuransi + $layanan + $jasaAplikasi;
+                                @endphp
+                                <span><strong>Rp.</strong> {{ number_format($totalWithExtras, 0, ',', '.') }}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        @endif
+        @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor')
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-6 py-3 w-1/5">Bahan</th>
-                        <th scope="col" class="px-6 py-3 w-0.5">Kebutuhan</th>
-                        <th scope="col" class="px-6 py-3 w-0.5">Ambil Stok</th>
-                        <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total 1</th>
-                        <th scope="col" class="px-6 py-3 text-right w-1">Details</th>
-                        <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total 2</th>
-                        <th scope="col" class="px-6 py-3 text-center w-0.5">Action</th>
+                        <th scope="col" class="px-6 py-3 w-1/5">Nama</th>
+                        <th scope="col" class="px-6 py-3 text-center w-0.5">QTY</th>
+                        <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan (USD)</th>
+                        <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga (USD)</th>
+                        <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan (Rp)</th>
+                        <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga (Rp)</th>
+                        <th scope="col" class="px-6 py-3 w-0.5">Ket Pembayaran</th>
                     </tr>
                 </thead>
                 <tbody>
                     @php
                         $grandTotal = 0;
+                        $grandTotalUSD = 0;
+                        $newGrandTotal = 0;
+                        $newGrandTotalUSD = 0;
+                        $shipping_cost = $shipping_cost ?? 0;
+                        $shipping_cost_usd = $shipping_cost_usd ?? 0;
+                        $full_amount_fee = $full_amount_fee ?? 0;
+                        $full_amount_fee_usd = $full_amount_fee_usd ?? 0;
+                        $value_today_fee = $value_today_fee ?? 0;
+                        $value_today_fee_usd = $value_today_fee_usd ?? 0;
+                        $new_shipping_cost = $new_shipping_cost ?? 0;
+                        $new_shipping_cost_usd = $new_shipping_cost_usd ?? 0;
+                        $new_full_amount_fee = $new_full_amount_fee ?? 0;
+                        $new_full_amount_fee_usd = $new_full_amount_fee_usd ?? 0;
+                        $new_value_today_fee = $new_value_today_fee ?? 0;
+                        $new_value_today_fee_usd = $new_value_today_fee_usd ?? 0;
                     @endphp
                     @foreach ($pengajuanDetails as $detail)
-                    <input type="hidden" name="pengajuanDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
+                        @php
+                            $newDetails = is_string($detail['new_details']) ? json_decode($detail['new_details'], true) : $detail['new_details'];
+                            $newDetailsUSD = is_string($detail['new_details_usd']) ? json_decode($detail['new_details_usd'], true) : $detail['new_details_usd'];
+                            // dd($newDetails);
+
+                            $unitPrice = $unit_price[$detail['bahan']->id] ?? 0;
+                            $unitPriceUSD = $unit_price_usd[$detail['bahan']->id] ?? 0;
+                            $newUnitPrice = $newDetails[0]['new_unit_price'] ?? 0;
+                            $newUnitPriceUSD = $newDetailsUSD[0]['new_unit_price_usd'] ?? 0;
+                            $jmlBahan = $detail['jml_bahan'] ?? 0;
+
+                            $finalUnitPrice = $newUnitPrice > 0 ? $newUnitPrice : $unitPrice;
+                            $finalUnitPriceUSD = $newUnitPriceUSD > 0 ? $newUnitPriceUSD : $unitPriceUSD;
+
+                            // Hitung subtotal menggunakan unit price yang sesuai
+                            // $subTotal = $jmlBahan * $finalUnitPrice;
+                            // $subTotalUSD = $jmlBahan * $finalUnitPriceUSD;
+
+                            // // Tambahkan ke grand total
+                            // $grandTotal += $subTotal;
+                            // $grandTotalUSD += $subTotalUSD;
+
+                            $subTotal = $jmlBahan * $unitPrice;
+                            $newSubTotal = $jmlBahan * $newUnitPrice;
+                            $newSubTotalFinal = $jmlBahan * $finalUnitPrice;
+
+                            $subTotalUSD = $jmlBahan * $unitPriceUSD;
+                            $newSubTotalUSD = $jmlBahan * $newUnitPriceUSD;
+                            $newSubTotalFinalUSD = $jmlBahan * $finalUnitPriceUSD;
+
+                            // Tambahkan ke grand total
+                            $grandTotal += $newSubTotalFinal;
+                            $grandTotalUSD += $newSubTotalFinalUSD
+                        @endphp
+                        <input type="hidden" name="pengajuanDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']->nama_bahan }}</td>
+                            <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
+                                <span>{{ $detail['jml_bahan'] ?? 0 }}</span>
+                            </td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                @if($newUnitPriceUSD === 0 || $newUnitPriceUSD === null)
+                                    <span>{{ number_format($unitPriceUSD, 2, ',', '.') }}</span>
+                                @else
+                                    <span style="text-decoration: line-through; color: red;">
+                                        {{ number_format($unitPriceUSD, 2, ',', '.') }}
+                                    </span>
+                                    <br>
+                                    <span>{{ number_format($newUnitPriceUSD, 2, ',', '.') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                @if($detail['new_sub_total_usd'] === 0 || $detail['new_sub_total_usd'] === null)
+                                    <span>{{ number_format($subTotalUSD, 2, ',', '.') }}</span>
+                                @else
+                                    <span style="text-decoration: line-through; color: red;">
+                                        {{ number_format($subTotalUSD, 2, ',', '.') }}
+                                    </span>
+                                    <br>
+                                    <span>{{ number_format($detail['new_sub_total_usd'], 2, ',', '.') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                @if($newUnitPrice === 0 || $newUnitPrice === null)
+                                    <span>{{ number_format($unitPrice, 0, ',', '.') }}</span>
+                                @else
+                                    <span style="text-decoration: line-through; color: red;">
+                                        {{ number_format($unitPrice, 0, ',', '.') }}
+                                    </span>
+                                    <br>
+                                    <span>{{ number_format($newUnitPrice, 0, ',', '.') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                @if($detail['new_sub_total'] === 0 || $detail['new_sub_total'] === null)
+                                    <span>{{ number_format($subTotal, 0, ',', '.') }}</span>
+                                @else
+                                    <span style="text-decoration: line-through; color: red;">
+                                        {{ number_format($subTotal, 0, ',', '.') }}
+                                    </span>
+                                    <br>
+                                    <span>{{ number_format($detail['new_sub_total'], 0, ',', '.') }}</span>
+                                @endif
+                            </td>
+
+                            <td class="px-6 py-4 text-gray-900 dark:text-white">
+                                <span>{!! nl2br(e($detail['keterangan_pembayaran'] ?? '')) !!}</span>
+                            </td>
+                        </tr>
+                    @endforeach
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']->nama_bahan }}</td>
-                        <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                            <input value="{{ old('jml_bahan.'.$detail['bahan']->id, $this->jml_bahan[$detail['bahan']->id] ?? 0) }}"
-                                type="number"
-                                wire:model="jml_bahan.{{ $detail['bahan']->id }}"
-                                wire:keyup="updateQuantity({{ $detail['bahan']->id }})"
-                                class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="0" min="0" required @if($this->produksiStatus === 'Selesai') disabled @endif/>
+                        <td class="px-6 py-4 text-black"><strong>Shipping Cost</strong></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                        <td class="px-6 py-4 text-black"></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                            @if($new_shipping_cost_usd == 0 || is_null($new_shipping_cost_usd))
+                                <span>{{ number_format($shipping_cost_usd, 2, ',', '.') }}</span>
+                            @else
+                                <span style="text-decoration: line-through; color: red;">
+                                    {{ number_format($shipping_cost_usd, 2, ',', '.') }}
+                                </span>
+                                <br>
+                                <span>{{ number_format($new_shipping_cost_usd, 2, ',', '.') }}</span>
+                            @endif
                         </td>
-                        <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                            <div class="flex items-center">
-                                <input value="{{ old('qty.'.$detail['bahan']->id, $qty[$detail['bahan']->id] ?? 0) }}"
-                                    type="number"
-                                    wire:model="qty.{{ $detail['bahan']->id }}"
-                                    wire:keyup="updateQuantity({{ $detail['bahan']->id }})"
-                                    class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    placeholder="0" min="0" required @if($this->produksiStatus === 'Selesai') disabled @endif/>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
-                            <span><strong>Rp.</strong> {{ number_format($subtotals[$detail['bahan']->id] ?? 0, 0, ',', '.') }}</span>
-                        </td>
-
-                        <td class="items-right px-6 py-4 text-right">
-                            @foreach($detail['details'] as $d)
-
-                            <div class="flex flex-col space-y-2">
-                                <div class="flex justify-end items-center">
-                                    <p>{{ $d['qty'] }} x {{ number_format($d['unit_price'], 0, ',', '.') }}</p>
-                                    @if($produksiStatus !== 'Selesai')
-                                        <button wire:click="decreaseQuantityPerPrice({{ $detail['bahan']->id }}, {{ $d['unit_price'] }})"
-                                            class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-                                            type="button">
-                                            <span class="sr-only">Decrease Quantity</span>
-                                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
-                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"/>
-                                            </svg>
-                                        </button>
-                                        <button wire:click="returQuantityPerPrice({{ $detail['bahan']->id }}, {{ $d['unit_price'] }})"
-                                            class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-                                            type="button">
-                                            <span class="sr-only">Retur Quantity</span>
-                                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-back"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11l-4 4l4 4m-4 -4h11a4 4 0 0 0 0 -8h-1" /></svg>
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-                            @endforeach
-                        </td>
-                        <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
-                            <span><strong></strong> {{ number_format($detail['sub_total'], 0, ',', '.') }}</span>
-                        </td>
-                        <td class="px-6 py-4 flex justify-center items-center">
-                            @if(isset($detail['newly_added']) && $detail['newly_added'])
-                                <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline" wire:click.prevent="removeItem({{ $detail['bahan']->id }})">
-                                    <svg class="w-6 h-6 text-red-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                        <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z" clip-rule="evenodd"/>
-                                    </svg>
-                                </a>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                            @if($new_shipping_cost == 0 || is_null($new_shipping_cost))
+                                <span>{{ number_format($shipping_cost, 0, ',', '.') }}</span>
+                            @else
+                                <span style="text-decoration: line-through; color: red;">
+                                    {{ number_format($shipping_cost, 0, ',', '.') }}
+                                </span>
+                                <br>
+                                <span>{{ number_format($new_shipping_cost, 0, ',', '.') }}</span>
                             @endif
                         </td>
                     </tr>
-                    @php
-                        $subtotal = $subtotals[$detail['bahan']->id] ?? 0;
-                        $grandTotal += $subtotal;
-                    @endphp
-                    @endforeach
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
-                        <td class="px-6 py-4 text-right text-black"></td>
-                        <td class="px-6 py-4 text-right text-black"></td>
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"><strong>Rp.</strong> {{ number_format($grandTotal, 0, ',', '.') }}</span></td>
-                        <td class="px-6 py-4 text-center text-black">+</td>
-
+                        <td class="px-6 py-4 text-black"><strong>Full Amount Fee</strong></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                        <td class="px-6 py-4 text-black"></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                            <span><strong>Rp.</strong> {{ number_format($produksiTotal, 0, ',', '.') }}</span>
+                            @if($new_full_amount_fee_usd === 0 || is_null($new_full_amount_fee))
+                                <span>{{ number_format($full_amount_fee_usd, 2, ',', '.') }}</span>
+                            @else
+                                <span style="text-decoration: line-through; color: red;">
+                                    {{ number_format($full_amount_fee_usd, 2, ',', '.') }}
+                                </span>
+                                <br>
+                                <span>{{ number_format($new_full_amount_fee_usd, 2, ',', '.') }}</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                            @if($new_full_amount_fee == 0 || is_null($new_full_amount_fee))
+                                <span>{{ number_format($full_amount_fee, 0, ',', '.') }}</span>
+                            @else
+                                <span style="text-decoration: line-through; color: red;">
+                                    {{ number_format($full_amount_fee, 0, ',', '.') }}
+                                </span>
+                                <br>
+                                <span>{{ number_format($new_full_amount_fee, 0, ',', '.') }}</span>
+                            @endif
                         </td>
                     </tr>
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"></td>
-                        <td class="px-6 py-4 text-right text-black"></td>
-                        <td class="px-6 py-4 text-right text-black"></td>
+                        <td class="px-6 py-4 text-black"><strong>Value Today Fee</strong></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
-                        <td class="px-6 py-4 text-right text-black"><strong>Total Harga</strong></td>
+                        <td class="px-6 py-4 text-black"></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                            <span><strong>Rp.</strong> {{ number_format($produksiTotal+$grandTotal, 0, ',', '.') }}</span>
+                            @if($new_value_today_fee_usd === 0 || is_null($new_value_today_fee_usd))
+                                <span>{{ number_format($value_today_fee_usd, 2, ',', '.') }}</span>
+                            @else
+                                <span style="text-decoration: line-through; color: red;">
+                                    {{ number_format($value_today_fee_usd, 2, ',', '.') }}
+                                </span>
+                                <br>
+                                <span>{{ number_format($new_value_today_fee_usd, 2, ',', '.') }}</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                            @if($new_value_today_fee == 0 || is_null($new_value_today_fee))
+                                <span>{{ number_format($value_today_fee, 0, ',', '.') }}</span>
+                            @else
+                                <span style="text-decoration: line-through; color: red;">
+                                    {{ number_format($value_today_fee, 0, ',', '.') }}
+                                </span>
+                                <br>
+                                <span>{{ number_format($new_value_today_fee, 0, ',', '.') }}</span>
+                            @endif
+                        </td>
+                    </tr>
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                        <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran</strong></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                            @php
+                                $totalWithExtrasUSD = $grandTotalUSD + ($new_shipping_cost_usd ?: $shipping_cost_usd) + ($new_full_amount_fee_usd ?: $full_amount_fee_usd) + ($new_value_today_fee_usd ?: $value_today_fee_usd);
+                            @endphp
+                            <span><strong>Rp.</strong> {{ number_format($totalWithExtrasUSD, 2, ',', '.') }}</span>
+                        </td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                            @php
+                                $totalWithExtras = $grandTotal + ($new_shipping_cost ?: $shipping_cost) + ($new_full_amount_fee ?: $full_amount_fee) + ($new_value_today_fee ?: $value_today_fee);
+                            @endphp
+                            <span><strong>Rp.</strong> {{ number_format($totalWithExtras, 0, ',', '.') }}</span>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-    </div>
-    <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
-        @if($produksiStatus !== 'Selesai')
-            <div class=" border-gray-900/10">
-                <h1 class="mt-6"><strong>Bahan Rusak</strong></h1>
-                <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
-                    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
-                            <tr>
-                                <th scope="col" class="px-6 py-3" style="width: 30%;">Bahan</th>
-                                <th scope="col" class="px-6 py-3 text-right">Qty</th>
-                                <th scope="col" class="px-6 py-3 text-right">Sub Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($bahanRusak as $rusak)
-                            <input type="hidden" name="bahanRusak" value="{{ json_encode($this->getCartItemsForBahanRusak()) }}">
-                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                    <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ App\Models\Bahan::find($rusak['id'])->nama_bahan ?? 'Unknown' }}</td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex justify-end items-center">
-                                            {{ $rusak['qty'] }} x {{ number_format($rusak['unit_price'], 0, ',', '.') }}
-                                            <button type="button" wire:click="returnToProduction({{ $rusak['id'] }}, {{ $rusak['unit_price'] }}, 1)" class="text-blue-600 hover:underline">
-                                                <svg class="w-6 h-6 text-red-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 10 3-3m0 0-3-3m3 3H5v3m3 4-3 3m0 0 3 3m-3-3h14v-3"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        {{ number_format($rusak['unit_price'] * $rusak['qty'], 0, ',', '.') }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        @endif
-        @if($produksiStatus !== 'Selesai')
-            <div class=" border-gray-900/10">
-                <h1 class="mt-6"><strong>Bahan Retur</strong></h1>
-                <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
-                    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
-                            <tr>
-                                <th scope="col" class="px-6 py-3" style="width: 30%;">Bahan</th>
-                                <th scope="col" class="px-6 py-3 text-right">Qty</th>
-                                <th scope="col" class="px-6 py-3 text-right">Sub Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($bahanRetur as $retur)
-                            <input type="hidden" name="bahanRetur" value="{{ json_encode($this->getCartItemsForBahanRetur()) }}">
-                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                    <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ App\Models\Bahan::find($retur['id'])->nama_bahan ?? 'Unknown' }}</td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex justify-end items-center">
-                                            {{ $retur['qty'] }} x {{ number_format($retur['unit_price'], 0, ',', '.') }}
-                                            <button type="button" wire:click="returnReturToProduction({{ $retur['id'] }}, {{ $retur['unit_price'] }}, 1)" class="text-blue-600 hover:underline">
-                                                <svg class="w-6 h-6 text-red-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 10 3-3m0 0-3-3m3 3H5v3m3 4-3 3m0 0 3 3m-3-3h14v-3"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        {{ number_format($retur['unit_price'] * $retur['qty'], 0, ',', '.') }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         @endif
     </div>
 

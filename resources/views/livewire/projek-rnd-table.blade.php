@@ -28,7 +28,7 @@
 
         <div class="mb-4 sm:mb-0">
             {{-- <p>Total transaksi yang <strong>disetujui</strong></p> --}}
-            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Projek RnD</h6>
+            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Project RnD</h6>
         </div>
 
 
@@ -62,10 +62,11 @@
                         <th scope="col" class="p-4">
                             No
                         </th>
-                        <th scope="col" class="px-6 py-3">Kode Projek</th>
-                        <th scope="col" class="px-6 py-3">Mulai Projek</th>
-                        <th scope="col" class="px-6 py-3">Selesai Projek</th>
-                        <th scope="col" class="px-6 py-3">Nama Projek</th>
+                        <th scope="col" class="px-6 py-3">Kode Transaksi</th>
+                        <th scope="col" class="px-6 py-3">Mulai Project</th>
+                        <th scope="col" class="px-6 py-3">Selesai Project</th>
+                        <th scope="col" class="px-6 py-3">Pengaju</th>
+                        <th scope="col" class="px-6 py-3">Tujuan</th>
                         <th scope="col" class="px-6 py-3">Status</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
@@ -82,7 +83,17 @@
                             </td>
                             <td class="px-6 py-3">{{ $projek_rnd->mulai_projek_rnd }}</td>
                             <td class="px-6 py-3">{{ $projek_rnd->selesai_projek_rnd }}</td>
-                            <td class="px-6 py-3">{{ $projek_rnd->nama_projek_rnd }}</td>
+                            <td class="px-6 py-3">
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ $projek_rnd->pengaju }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-3">
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ $projek_rnd->nama_projek_rnd ?? null }}
+                                </div>
+                                <div class="text-xs text-gray-500">{{ $projek_rnd->keterangan }}</div>
+                            </td>
                             {{-- <td class="px-6 py-3">{{ $projek->produksiDetails->sum('qty') }}</td> --}}
                             <td class="px-6 py-3">{{ $projek_rnd->status }}</td>
                             {{-- <td class="px-6 py-3">Rp {{ number_format($projek->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
@@ -104,7 +115,7 @@
                                             </a>
                                         @endcan
                                     @endif
-                                    @if ($projek_rnd->status === 'Konfirmasi')
+                                    {{-- @if ($projek_rnd->status === 'Konfirmasi') --}}
                                         @can('hapus-projek-rnd')
                                             <button wire:click="deleteProjekRnd({{ $projek_rnd->id }})"
                                                 data-modal-target="deleteprojekrnd-modal" data-modal-toggle="deleteprojekrnd-modal"
@@ -119,13 +130,13 @@
                                                 </svg>
                                             </button>
                                         @endcan
-                                    @endif
+                                    {{-- @endif --}}
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td colspan="9" class="px-6 py-4 text-center">
+                            <td colspan="11" class="px-6 py-4 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                                     <path stroke-linecap="round" stroke-linejoin="round"

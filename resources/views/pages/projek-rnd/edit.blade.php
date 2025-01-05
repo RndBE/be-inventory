@@ -105,12 +105,12 @@
                                 </div>
 
                                 <div class="flex items-center">
-                                    <label for="nama_projek_rnd" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Projek
+                                    <label for="bahan_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Projek
                                         <sup class="text-red-500 text-base">*</sup>
                                     </label>
-                                    <input type="text" name="nama_projek_rnd" value="{{ $projek_rnd->nama_projek_rnd }}" id="nama_projek_rnd"
+                                    <input type="text" name="bahan_id" value="{{ $projek_rnd->dataBahan->nama_bahan }}" id="bahan_id"
                                     placeholder="" class="block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $projek_rnd->status === 'Selesai' ? 'disabled' : '' }} required readonly disabled>
-                                    @error('nama_projek_rnd')
+                                    @error('bahan_id')
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -131,8 +131,10 @@
                                 </div>
 
                                 <div class="flex items-center">
-
-
+                                    <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                        Keterangan <sup class="text-red-500 text-base">*</sup>
+                                    </label>
+                                    <textarea id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $projek_rnd->status === 'Selesai' ? 'disabled' : '' }}>{{ old('keterangan', $projek_rnd->keterangan) }}</textarea>
                                 </div>
 
                                 <div class="flex items-center">

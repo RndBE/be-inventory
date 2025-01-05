@@ -12,6 +12,24 @@ class ProduksiTable extends Component
     public $search = "";
     public $perPage = 15;
     public $id_produksis;
+    public $isDeleteModalOpen = false;
+    
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function deleteProduksis(int $id)
+    {
+        $this->id_produksis = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
+    }
+
     public function render()
     {
         $produksis = Produksi::with(['produksiDetails', 'bahanKeluar'])->orderBy('id', 'desc')
@@ -30,15 +48,5 @@ class ProduksiTable extends Component
         return view('livewire.produksi-table', [
             'produksis' => $produksis,
         ]);
-    }
-
-    public function deleteProduksis(int $id)
-    {
-        $this->id_produksis = $id;
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 }

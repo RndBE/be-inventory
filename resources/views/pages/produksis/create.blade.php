@@ -90,15 +90,7 @@
             document.getElementById('produksiProdukForm').submit();
         });
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            flatpickr("#datetimepicker", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i:S",
-                time_24hr: true
-            });
-        });
-    </script>
+
 
     <script>
         // Fungsi untuk menghilangkan pesan error setelah 5 detik

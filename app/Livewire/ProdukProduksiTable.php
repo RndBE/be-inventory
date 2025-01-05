@@ -14,6 +14,12 @@ class ProdukProduksiTable extends Component
     public $perPage = 15;
     public $id_produkproduksi, $nama_bahan;
     public $filter = 'semua';
+    public $isDeleteModalOpen = false;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function setFilter($value)
     {
@@ -23,6 +29,17 @@ class ProdukProduksiTable extends Component
             $this->filter = $value;
         }
         $this->resetPage();
+    }
+
+    public function deleteprodukproduksis(int $id)
+    {
+        $this->id_produkproduksi = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
     }
 
     public function render()
@@ -37,15 +54,5 @@ class ProdukProduksiTable extends Component
             'produkproduksis' => $produkproduksis,
         ]);
 
-    }
-
-    public function deleteprodukproduksis(int $id)
-    {
-        $this->id_produkproduksi = $id;
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 }

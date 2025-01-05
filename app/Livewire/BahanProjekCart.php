@@ -40,6 +40,38 @@ class BahanProjekCart extends Component
         if ($existingItemKey !== false) {
             $this->updateQuantity($bahan->id);
         } else {
+            // Periksa apakah sisa bahan masih ada
+            $item = Bahan::find($bahan->id);
+            if ($item) {
+                if ($item->jenisBahan->nama === 'Produksi') {
+                    $bahanSetengahjadiDetails = $item->bahanSetengahjadiDetails()
+                        ->where('sisa', '>', 0)
+                        ->with(['bahanSetengahjadi' => function ($query) {
+                            $query->orderBy('tgl_masuk', 'asc');
+                        }])->get();
+
+                    $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
+                    if ($totalAvailable <= 0) {
+                        // Tampilkan pesan error jika sisa bahan tidak ada
+                        session()->flash('error', 'Sisa bahan tidak ada');
+                        return;
+                    }
+                } elseif ($item->jenisBahan->nama !== 'Produksi') {
+                    $purchaseDetails = $item->purchaseDetails()
+                        ->where('sisa', '>', 0)
+                        ->with(['purchase' => function ($query) {
+                            $query->orderBy('tgl_masuk', 'asc');
+                        }])->get();
+
+                    $totalAvailable = $purchaseDetails->sum('sisa');
+                    if ($totalAvailable <= 0) {
+                        // Tampilkan pesan error jika sisa bahan tidak ada
+                        session()->flash('error', 'Sisa bahan tidak ada');
+                        return;
+                    }
+                }
+            }
+
             // Buat objek item
             $item = (object)[
                 'id' => $bahan->id,
@@ -50,8 +82,8 @@ class BahanProjekCart extends Component
 
             // Tambahkan item ke keranjang
             $this->cart[] = $item;
-            $this->qty[$bahan->id] = 0;
-            $this->jml_bahan[$bahan->id] = 0;
+            $this->qty[$bahan->id] = null;
+            $this->jml_bahan[$bahan->id] = null;
         }
 
         // Simpan ke sesi
@@ -160,7 +192,7 @@ class BahanProjekCart extends Component
                 } else {
                     $this->qty[$itemId] = $requestedQty;
                 }
-                $this->updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $this->qty[$itemId], $bahanSetengahjadiDetails);
+                // $this->updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $this->qty[$itemId], $bahanSetengahjadiDetails);
             } elseif ($item->jenisBahan->nama !== 'Produksi') {
                 $purchaseDetails = $item->purchaseDetails()
                     ->where('sisa', '>', 0)
@@ -176,68 +208,68 @@ class BahanProjekCart extends Component
                 } else {
                     $this->qty[$itemId] = $requestedQty;
                 }
-                $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
+                // $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
             }
         }
     }
 
-    protected function updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $qty, $bahanSetengahjadiDetails)
-    {
-        $remainingQty = $qty;
-        $totalPrice = 0;
-        $this->details_raw[$itemId] = [];
-        $this->details[$itemId] = [];
+    // protected function updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $qty, $bahanSetengahjadiDetails)
+    // {
+    //     $remainingQty = $qty;
+    //     $totalPrice = 0;
+    //     $this->details_raw[$itemId] = [];
+    //     $this->details[$itemId] = [];
 
-        foreach ($bahanSetengahjadiDetails as $bahanSetengahjadiDetail) {
-            if ($remainingQty <= 0) break;
+    //     foreach ($bahanSetengahjadiDetails as $bahanSetengahjadiDetail) {
+    //         if ($remainingQty <= 0) break;
 
-            $availableQty = $bahanSetengahjadiDetail->sisa;
+    //         $availableQty = $bahanSetengahjadiDetail->sisa;
 
-            if ($availableQty > 0) {
-                $toTake = min($availableQty, $remainingQty);
-                $totalPrice += $toTake * $bahanSetengahjadiDetail->unit_price;
+    //         if ($availableQty > 0) {
+    //             $toTake = min($availableQty, $remainingQty);
+    //             $totalPrice += $toTake * $bahanSetengahjadiDetail->unit_price;
 
-                $this->details[$itemId][] = [
-                    'kode_transaksi' => $bahanSetengahjadiDetail->bahanSetengahjadi->kode_transaksi,
-                    'qty' => $toTake,
-                    'unit_price' => $bahanSetengahjadiDetail->unit_price
-                ];
-                $remainingQty -= $toTake;
-            }
-        }
+    //             $this->details[$itemId][] = [
+    //                 'kode_transaksi' => $bahanSetengahjadiDetail->bahanSetengahjadi->kode_transaksi,
+    //                 'qty' => $toTake,
+    //                 'unit_price' => $bahanSetengahjadiDetail->unit_price
+    //             ];
+    //             $remainingQty -= $toTake;
+    //         }
+    //     }
 
-        $this->subtotals[$itemId] = $totalPrice;
-        $this->calculateTotalHarga();
-    }
+    //     $this->subtotals[$itemId] = $totalPrice;
+    //     $this->calculateTotalHarga();
+    // }
 
-    protected function updateUnitPriceAndSubtotal($itemId, $qty, $purchaseDetails)
-    {
-        $remainingQty = $qty;
-        $totalPrice = 0;
-        $this->details_raw[$itemId] = [];
-        $this->details[$itemId] = [];
+    // protected function updateUnitPriceAndSubtotal($itemId, $qty, $purchaseDetails)
+    // {
+    //     $remainingQty = $qty;
+    //     $totalPrice = 0;
+    //     $this->details_raw[$itemId] = [];
+    //     $this->details[$itemId] = [];
 
-        foreach ($purchaseDetails as $purchaseDetail) {
-            if ($remainingQty <= 0) break;
+    //     foreach ($purchaseDetails as $purchaseDetail) {
+    //         if ($remainingQty <= 0) break;
 
-            $availableQty = $purchaseDetail->sisa;
+    //         $availableQty = $purchaseDetail->sisa;
 
-            if ($availableQty > 0) {
-                $toTake = min($availableQty, $remainingQty);
-                $totalPrice += $toTake * $purchaseDetail->unit_price;
+    //         if ($availableQty > 0) {
+    //             $toTake = min($availableQty, $remainingQty);
+    //             $totalPrice += $toTake * $purchaseDetail->unit_price;
 
-                $this->details[$itemId][] = [
-                    'kode_transaksi' => $purchaseDetail->purchase->kode_transaksi,
-                    'qty' => $toTake,
-                    'unit_price' => $purchaseDetail->unit_price
-                ];
-                $remainingQty -= $toTake;
-            }
-        }
+    //             $this->details[$itemId][] = [
+    //                 'kode_transaksi' => $purchaseDetail->purchase->kode_transaksi,
+    //                 'qty' => $toTake,
+    //                 'unit_price' => $purchaseDetail->unit_price
+    //             ];
+    //             $remainingQty -= $toTake;
+    //         }
+    //     }
 
-        $this->subtotals[$itemId] = $totalPrice;
-        $this->calculateTotalHarga();
-    }
+    //     $this->subtotals[$itemId] = $totalPrice;
+    //     $this->calculateTotalHarga();
+    // }
 
 
     public function editItem($itemId)

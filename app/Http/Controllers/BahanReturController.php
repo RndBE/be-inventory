@@ -15,6 +15,7 @@ use App\Models\ProjekRndDetails;
 use App\Models\BahanReturDetails;
 use App\Models\BahanSetengahjadi;
 use Illuminate\Support\Facades\DB;
+use App\Models\PengambilanBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
 
 class BahanReturController extends Controller
@@ -240,8 +241,39 @@ class BahanReturController extends Controller
                             $pengajuanDetail->save();
                         }
                     }
-                }
 
+                    // Update untuk PengambilanBahanDetails
+                    $pengambilanBahanDetail = PengambilanBahanDetails::where('pengambilan_bahan_id', $bahanRetur->pengambilan_bahan_id)
+                    ->where('bahan_id', $bahanId)
+                    ->first();
+                    if ($pengambilanBahanDetail) {
+                        $currentDetails = json_decode($pengambilanBahanDetail->details, true) ?? [];
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    break;
+                                }
+                            }
+                        }
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $pengambilanBahanDetail->qty -= $totalQtyReduction;
+                        $pengambilanBahanDetail->used_materials -= $totalQtyReduction;
+                        $pengambilanBahanDetail->qty = max(0, $pengambilanBahanDetail->qty);
+                        $pengambilanBahanDetail->used_materials = max(0, $pengambilanBahanDetail->used_materials);
+                        $pengambilanBahanDetail->sub_total = 0;
+                        foreach ($currentDetails as $detail) {
+                            $pengambilanBahanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                        }
+                        $pengambilanBahanDetail->details = json_encode(array_values($currentDetails));
+                        if ($pengambilanBahanDetail->qty == 0 && $pengambilanBahanDetail->used_materials == 0) {
+                            $pengambilanBahanDetail->delete();
+                        } else {
+                            $pengambilanBahanDetail->save();
+                        }
+                    }
+                }
                 // Tambahkan bahan retur ke purchase
                 $purchase = Purchase::firstOrCreate(
                     ['kode_transaksi' => 'RTR-' . uniqid()],
@@ -285,16 +317,9 @@ class BahanReturController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
-
             $errorMessage = $e->getMessage();
-            $errorColumn = '';
-            if (strpos($errorMessage, 'tgl_keluar') !== false) {
-                $errorColumn = 'tgl_keluar';
-            } elseif (strpos($errorMessage, 'status') !== false) {
-                $errorColumn = 'status';
-            }
             LogHelper::error($errorMessage);
-            return redirect()->back()->with('error', "Terjadi kesalahan pada kolom: $errorColumn. Pesan error: $errorMessage");
+            return redirect()->back()->with('error', "Pesan error: $errorMessage");
         }
         return redirect()->route('bahan-returs.index')->with('success', 'Status berhasil diubah.');
     }

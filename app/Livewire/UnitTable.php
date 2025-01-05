@@ -12,17 +12,32 @@ class UnitTable extends Component
     public $search = "";
     public $perPage = 15;
     public $id_unit, $nama;
+    public $isDeleteModalOpen = false;
+    public $isEditModalOpen = false;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function editUnit(int $id)
     {
         $Data = Unit::findOrFail($id);
         $this->id_unit = $id;
         $this->nama = $Data->nama;
+        $this->isEditModalOpen = true;
     }
 
     public function deleteUnit(int $id)
     {
         $this->id_unit = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
+        $this->isEditModalOpen = false;
     }
 
     public function render()
@@ -34,10 +49,5 @@ class UnitTable extends Component
         return view('livewire.unit-table', [
             'units' => $Data,
         ]);
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 }

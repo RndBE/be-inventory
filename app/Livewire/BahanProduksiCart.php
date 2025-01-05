@@ -23,6 +23,7 @@ class BahanProduksiCart extends Component
     public $jml_bahan = [];
     public $used_materials = [];
     public $jmlProduksi,$originalJmlBahan;
+    public $selectedStartDate;
 
     protected $listeners = [
         'bahanSelected' => 'addToCart',
@@ -32,6 +33,7 @@ class BahanProduksiCart extends Component
     public function mount()
     {
         $this->produkProduksi = ProdukProduksi::with('produkProduksiDetails.dataBahan')->get();
+        $this->selectedStartDate = now()->format('Y-m-d H:i:s');
     }
 
 
@@ -46,14 +48,9 @@ class BahanProduksiCart extends Component
         $this->subtotals = [];
         $this->totalharga = 0;
 
-        // Find the selected bahan using the selectedProdukId (now containing bahan_id)
         if ($this->selectedProdukId) {
             $bahan = Bahan::find($this->selectedProdukId);
-
-            // Add to cart logic
             if ($bahan) {
-                // You may need to get the corresponding produkProduksi here if necessary
-                // Assuming you have access to $produkProduksi with relations
                 $produkProduksi = ProdukProduksi::with('produkProduksiDetails.dataBahan')
                     ->where('bahan_id', $bahan->id)
                     ->first();
@@ -71,7 +68,6 @@ class BahanProduksiCart extends Component
         }
     }
 
-
     public function addToCart($bahan, $jmlBahan, $usedMaterials)
     {
         if (is_array($bahan)) {
@@ -84,7 +80,7 @@ class BahanProduksiCart extends Component
         if ($existingItemKey !== false) {
             if ($this->qty[$bahanId] < $currentStock) {
                 $this->qty[$bahanId]++;
-                $this->calculateSubTotal($bahanId);
+                // $this->calculateSubTotal($bahanId);
             }
         } else {
             $this->cart[] = $bahan;
@@ -99,7 +95,7 @@ class BahanProduksiCart extends Component
             $this->originalJmlBahan[$bahanId] = $jmlBahan;
             $this->jml_bahan[$bahanId] = $jmlBahan;
             $this->used_materials[$bahanId] = $usedMaterials;
-            $this->calculateSubTotal($bahanId);
+            // $this->calculateSubTotal($bahanId);
         }
     }
 
@@ -131,10 +127,10 @@ class BahanProduksiCart extends Component
             } else {
                 $this->qty[$bahanId] = $currentStock;
             }
-            $this->calculateSubTotal($bahanId);
+            // $this->calculateSubTotal($bahanId);
         }
 
-        $this->calculateTotalHarga();
+        // $this->calculateTotalHarga();
     }
 
     public function calculateSubTotal($itemId)
@@ -142,9 +138,7 @@ class BahanProduksiCart extends Component
         // Mendapatkan harga unit dari detail atau menghitung berdasarkan detail lain
         $unitPrice = isset($this->details[$itemId]) ? intval($this->details[$itemId]) : 0;
         $qty = isset($this->qty[$itemId]) ? intval($this->qty[$itemId]) : 0;
-
         $this->subtotals[$itemId] = $unitPrice * $qty;
-
         // Jika item adalah jenis produksi, lakukan pembaruan dari bahan setengah jadi
         $itemModel = Bahan::find($itemId);
         if ($itemModel && $itemModel->jenisBahan->nama === 'Produksi') {
@@ -163,10 +157,8 @@ class BahanProduksiCart extends Component
                 }])->get();
             $this->updateUnitPriceAndSubtotal($itemId, $qty, $purchaseDetails);
         }
-
         $this->calculateTotalHarga();
     }
-
 
     public function calculateTotalHarga()
     {
@@ -176,7 +168,6 @@ class BahanProduksiCart extends Component
     public function checkRemainingStock($itemId)
     {
         $item = Bahan::find($itemId);
-
         if ($item) {
             if ($item->jenisBahan->nama === 'Produksi') {
                 $bahanSetengahjadiDetails = $item->bahanSetengahjadiDetails()
@@ -185,10 +176,8 @@ class BahanProduksiCart extends Component
                         $query->orderBy('tgl_masuk', 'asc');
                     }])->get();
                 $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
-
-                // Ensure qty exists before passing it
                 $currentQty = isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0;
-                $this->updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $currentQty, $bahanSetengahjadiDetails);
+                // $this->updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $currentQty, $bahanSetengahjadiDetails);
             } elseif ($item->jenisBahan->nama !== 'Produksi') {
                 // Get purchase details with stock greater than 0
                 $purchaseDetails = $item->purchaseDetails()
@@ -197,12 +186,9 @@ class BahanProduksiCart extends Component
                         $query->orderBy('tgl_masuk', 'asc');
                     }])->get();
                 $totalAvailable = $purchaseDetails->sum('sisa');
-
-                // Ensure qty exists before passing it
                 $currentQty = isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0;
-                $this->updateUnitPriceAndSubtotal($itemId, $currentQty, $purchaseDetails);
+                // $this->updateUnitPriceAndSubtotal($itemId, $currentQty, $purchaseDetails);
             }
-
             if ($totalAvailable <= 0) {
                 return 'Not Available';
             }
@@ -215,7 +201,6 @@ class BahanProduksiCart extends Component
     {
         $requestedQty = $this->qty[$itemId] ?? 0;
         $item = Bahan::find($itemId);
-
         if ($item) {
             if ($item->jenisBahan->nama === 'Produksi') {
                 $bahanSetengahjadiDetails = $item->bahanSetengahjadiDetails()
@@ -232,9 +217,8 @@ class BahanProduksiCart extends Component
                 } else {
                     $this->qty[$itemId] = $requestedQty;
                 }
-                $this->updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $this->qty[$itemId], $bahanSetengahjadiDetails);
+                // $this->updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $this->qty[$itemId], $bahanSetengahjadiDetails);
             }
-
             elseif ($item->jenisBahan->nama !== 'Produksi') {
                 $purchaseDetails = $item->purchaseDetails()
                     ->where('sisa', '>', 0)
@@ -250,68 +234,68 @@ class BahanProduksiCart extends Component
                 } else {
                     $this->qty[$itemId] = $requestedQty;
                 }
-                $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
+                // $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
             }
         }
     }
 
-    protected function updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $qty, $bahanSetengahjadiDetails)
-    {
-        $remainingQty = $qty;
-        $totalPrice = 0;
-        $this->details_raw[$itemId] = [];
-        $this->details[$itemId] = [];
+    // protected function updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $qty, $bahanSetengahjadiDetails)
+    // {
+    //     $remainingQty = $qty;
+    //     $totalPrice = 0;
+    //     $this->details_raw[$itemId] = [];
+    //     $this->details[$itemId] = [];
 
-        foreach ($bahanSetengahjadiDetails as $bahanSetengahjadiDetail) {
-            if ($remainingQty <= 0) break;
+    //     foreach ($bahanSetengahjadiDetails as $bahanSetengahjadiDetail) {
+    //         if ($remainingQty <= 0) break;
 
-            $availableQty = $bahanSetengahjadiDetail->sisa;
+    //         $availableQty = $bahanSetengahjadiDetail->sisa;
 
-            if ($availableQty > 0) {
-                $toTake = min($availableQty, $remainingQty);
-                $totalPrice += $toTake * $bahanSetengahjadiDetail->unit_price;
+    //         if ($availableQty > 0) {
+    //             $toTake = min($availableQty, $remainingQty);
+    //             $totalPrice += $toTake * $bahanSetengahjadiDetail->unit_price;
 
-                $this->details[$itemId][] = [
-                    'kode_transaksi' => $bahanSetengahjadiDetail->bahanSetengahjadi->kode_transaksi,
-                    'qty' => $toTake,
-                    'unit_price' => $bahanSetengahjadiDetail->unit_price
-                ];
-                $remainingQty -= $toTake;
-            }
-        }
+    //             $this->details[$itemId][] = [
+    //                 'kode_transaksi' => $bahanSetengahjadiDetail->bahanSetengahjadi->kode_transaksi,
+    //                 'qty' => $toTake,
+    //                 'unit_price' => $bahanSetengahjadiDetail->unit_price
+    //             ];
+    //             $remainingQty -= $toTake;
+    //         }
+    //     }
 
-        $this->subtotals[$itemId] = $totalPrice;
-        $this->calculateTotalHarga();
-    }
+    //     $this->subtotals[$itemId] = $totalPrice;
+    //     $this->calculateTotalHarga();
+    // }
 
-    protected function updateUnitPriceAndSubtotal($itemId, $qty, $purchaseDetails)
-    {
-        $remainingQty = $qty;
-        $totalPrice = 0;
-        $this->details_raw[$itemId] = [];
-        $this->details[$itemId] = [];
+    // protected function updateUnitPriceAndSubtotal($itemId, $qty, $purchaseDetails)
+    // {
+    //     $remainingQty = $qty;
+    //     $totalPrice = 0;
+    //     $this->details_raw[$itemId] = [];
+    //     $this->details[$itemId] = [];
 
-        foreach ($purchaseDetails as $purchaseDetail) {
-            if ($remainingQty <= 0) break;
+    //     foreach ($purchaseDetails as $purchaseDetail) {
+    //         if ($remainingQty <= 0) break;
 
-            $availableQty = $purchaseDetail->sisa;
+    //         $availableQty = $purchaseDetail->sisa;
 
-            if ($availableQty > 0) {
-                $toTake = min($availableQty, $remainingQty);
-                $totalPrice += $toTake * $purchaseDetail->unit_price;
+    //         if ($availableQty > 0) {
+    //             $toTake = min($availableQty, $remainingQty);
+    //             $totalPrice += $toTake * $purchaseDetail->unit_price;
 
-                $this->details[$itemId][] = [
-                    'kode_transaksi' => $purchaseDetail->purchase->kode_transaksi,
-                    'qty' => $toTake,
-                    'unit_price' => $purchaseDetail->unit_price
-                ];
-                $remainingQty -= $toTake;
-            }
-        }
+    //             $this->details[$itemId][] = [
+    //                 'kode_transaksi' => $purchaseDetail->purchase->kode_transaksi,
+    //                 'qty' => $toTake,
+    //                 'unit_price' => $purchaseDetail->unit_price
+    //             ];
+    //             $remainingQty -= $toTake;
+    //         }
+    //     }
 
-        $this->subtotals[$itemId] = $totalPrice;
-        $this->calculateTotalHarga();
-    }
+    //     $this->subtotals[$itemId] = $totalPrice;
+    //     $this->calculateTotalHarga();
+    // }
 
     public function formatToRupiah($itemId)
     {

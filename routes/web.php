@@ -14,6 +14,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProjekController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\StokRndController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CustomerController;
@@ -35,7 +36,9 @@ use App\Http\Controllers\LogActivityController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\StokProduksiController;
+use App\Http\Controllers\PembelianBahanController;
 use App\Http\Controllers\ProdukProduksiController;
+use App\Http\Controllers\PengambilanBahanController;
 use App\Http\Controllers\BahanSetengahjadiController;
 
 /*
@@ -75,13 +78,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::put('roles/{roleId}/give-permissions', [RoleController::class, 'givePermissionToRole'])->name('roles.give-permissions');
 
     Route::resource('users', UserController::class);
-    // Route::get('users/{userId}/delete', [UserController::class, 'destroy']);
-    // Route for the getting the data feed
-    Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');
+    // Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Route::resource('bahan', BahanController::class);
 
     Route::get('/bahan/edit-multiple', [BahanController::class, 'editMultiple'])->name('bahan.editmultiple');
     Route::put('/bahan/update-multiple', [BahanController::class, 'updateMultiple'])->name('bahan.update.multiple');
@@ -94,11 +93,6 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::delete('/bahan/{id}', [BahanController::class, 'destroy'])->name('bahan.destroy');
     Route::get('bahan-export', [BahanController::class, 'export'])->name('bahan.export');
 
-
-
-
-
-
     Route::resource('supplier', SupplierController::class);
     Route::get('supplier-export', [SupplierController::class, 'export'])->name('supplier.export');
     Route::resource('jenis-bahan', JenisBahanController::class);
@@ -107,17 +101,31 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('unit-export', [UnitController::class, 'export'])->name('unit.export');
     Route::resource('purchases', PurchaseController::class);
     Route::get('purchases-export', [PurchaseController::class, 'export'])->name('purchases-export.export');
+    Route::resource('kontrak', KontrakController::class);
 
     Route::resource('organization', OrganizationController::class);
     Route::resource('job-position', JobPositionController::class);
 
-
     Route::get('/bahan-keluars/pdf/{id}', [BahanKeluarController::class, 'downloadPdf'])->name('bahan-keluars.downloadPdf');
-
     Route::resource('bahan-keluars', BahanKeluarController::class);
+    Route::put('/bahan-keluars/updateApprovalLeader/{id}', [BahanKeluarController::class, 'updateApprovalLeader'])->name('bahan-keluars.updateApprovalLeader');
     Route::put('bahan-keluars/{id}/updatepengambilan', [BahanKeluarController::class, 'updatepengambilan'])->name('bahan-keluars.updatepengambilan');
+    Route::post('/siap-ambil/{id}', [BahanKeluarController::class, 'sendWhatsApp'])->name('send.siap-ambil');
 
 
+    Route::get('/pengajuan-pembelian-bahan/pdf/{id}', [PembelianBahanController::class, 'downloadPdf'])->name('pengajuan-pembelian-bahan.downloadPdf');
+    Route::resource('pengajuan-pembelian-bahan', PembelianBahanController::class);
+    Route::put('/pengajuan-pembelian-bahan/updateApprovalLeader/{id}', [PembelianBahanController::class, 'updateApprovalLeader'])->name('pengajuan-pembelian-bahan.updateApprovalLeader');
+    Route::put('/pengajuan-pembelian-bahan/updateApprovalManager/{id}', [PembelianBahanController::class, 'updateApprovalManager'])->name('pengajuan-pembelian-bahan.updateApprovalManager');
+    Route::put('/pengajuan-pembelian-bahan/updateApprovalPurchasing/{id}', [PembelianBahanController::class, 'updateApprovalPurchasing'])->name('pengajuan-pembelian-bahan.updateApprovalPurchasing');
+    Route::put('/pengajuan-pembelian-bahan/updateApprovalFinance/{id}', [PembelianBahanController::class, 'updateApprovalFinance'])->name('pengajuan-pembelian-bahan.updateApprovalFinance');
+    Route::put('/pengajuan-pembelian-bahan/updateApprovalAdminManager/{id}', [PembelianBahanController::class, 'updateApprovalAdminManager'])->name('pengajuan-pembelian-bahan.updateApprovalAdminManager');
+    Route::put('/pengajuan-pembelian-bahan/updateApprovalDirektur/{id}', [PembelianBahanController::class, 'updateApprovalDirektur'])->name('pengajuan-pembelian-bahan.updateApprovalDirektur');
+    Route::get('/pengajuan-pembelian-bahan/{id}/editHarga', [PembelianBahanController::class, 'editHarga'])
+    ->name('pengajuan-pembelian-bahan.editHarga');
+    Route::put('/pengajuan-pembelian-bahan/{id}/updateHarga', [PembelianBahanController::class, 'updateHarga'])->name('pengajuan-pembelian-bahan.updateHarga');
+    // Route::put('pengajuan-pembelian-bahan/{id}/updatepengambilan', [PembelianBahanController::class, 'updatepengambilan'])->name('pengajuan-pembelian-bahan.updatepengambilan');
+    // Route::post('/siap-ambil/{id}', [BahanKeluarController::class, 'sendWhatsApp'])->name('send.siap-ambil');
 
     Route::resource('pengajuans', PengajuanController::class);
     Route::put('pengajuans/{pengajuan}/selesai', [PengajuanController::class, 'updateStatus'])->name('pengajuans.updateStatus');
@@ -141,118 +149,11 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('projek-rnd-export/{projek_rnd_id}', [ProjekRndController::class, 'export'])->name('projek-rnd.export');
 
 
+    Route::resource('pengambilan-bahan', PengambilanBahanController::class);
+    Route::put('pengambilan-bahan/{pengajuan}/selesai', [PengambilanBahanController::class, 'updateStatus'])->name('pengambilan-bahan.updateStatus');
 
-    Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('analytics');
-    Route::get('/dashboard/fintech', [DashboardController::class, 'fintech'])->name('fintech');
 
-    Route::get('/job/job-post', function () {
-        return view('pages/job/job-post');
-    })->name('job-post');
-    Route::get('/job/company-profile', function () {
-        return view('pages/job/company-profile');
-    })->name('company-profile');
-    Route::get('/messages', function () {
-        return view('pages/messages');
-    })->name('messages');
-    Route::get('/tasks/kanban', function () {
-        return view('pages/tasks/tasks-kanban');
-    })->name('tasks-kanban');
-    Route::get('/tasks/list', function () {
-        return view('pages/tasks/tasks-list');
-    })->name('tasks-list');
-    Route::get('/inbox', function () {
-        return view('pages/inbox');
-    })->name('inbox');
-    Route::get('/calendar', function () {
-        return view('pages/calendar');
-    })->name('calendar');
-    Route::get('/settings/account', function () {
-        return view('pages/settings/account');
-    })->name('account');
-    Route::get('/settings/notifications', function () {
-        return view('pages/settings/notifications');
-    })->name('notifications');
-    Route::get('/settings/apps', function () {
-        return view('pages/settings/apps');
-    })->name('apps');
-    Route::get('/settings/plans', function () {
-        return view('pages/settings/plans');
-    })->name('plans');
-    Route::get('/settings/billing', function () {
-        return view('pages/settings/billing');
-    })->name('billing');
-    Route::get('/settings/feedback', function () {
-        return view('pages/settings/feedback');
-    })->name('feedback');
-    Route::get('/utility/changelog', function () {
-        return view('pages/utility/changelog');
-    })->name('changelog');
-    Route::get('/utility/roadmap', function () {
-        return view('pages/utility/roadmap');
-    })->name('roadmap');
-    Route::get('/utility/faqs', function () {
-        return view('pages/utility/faqs');
-    })->name('faqs');
-    Route::get('/utility/empty-state', function () {
-        return view('pages/utility/empty-state');
-    })->name('empty-state');
-    Route::get('/utility/404', function () {
-        return view('pages/utility/404');
-    })->name('404');
-    Route::get('/utility/knowledge-base', function () {
-        return view('pages/utility/knowledge-base');
-    })->name('knowledge-base');
-    Route::get('/onboarding-01', function () {
-        return view('pages/onboarding-01');
-    })->name('onboarding-01');
-    Route::get('/onboarding-02', function () {
-        return view('pages/onboarding-02');
-    })->name('onboarding-02');
-    Route::get('/onboarding-03', function () {
-        return view('pages/onboarding-03');
-    })->name('onboarding-03');
-    Route::get('/onboarding-04', function () {
-        return view('pages/onboarding-04');
-    })->name('onboarding-04');
-    Route::get('/component/button', function () {
-        return view('pages/component/button-page');
-    })->name('button-page');
-    Route::get('/component/form', function () {
-        return view('pages/component/form-page');
-    })->name('form-page');
-    Route::get('/component/dropdown', function () {
-        return view('pages/component/dropdown-page');
-    })->name('dropdown-page');
-    Route::get('/component/alert', function () {
-        return view('pages/component/alert-page');
-    })->name('alert-page');
-    Route::get('/component/modal', function () {
-        return view('pages/component/modal-page');
-    })->name('modal-page');
-    Route::get('/component/pagination', function () {
-        return view('pages/component/pagination-page');
-    })->name('pagination-page');
-    Route::get('/component/tabs', function () {
-        return view('pages/component/tabs-page');
-    })->name('tabs-page');
-    Route::get('/component/breadcrumb', function () {
-        return view('pages/component/breadcrumb-page');
-    })->name('breadcrumb-page');
-    Route::get('/component/badge', function () {
-        return view('pages/component/badge-page');
-    })->name('badge-page');
-    Route::get('/component/avatar', function () {
-        return view('pages/component/avatar-page');
-    })->name('avatar-page');
-    Route::get('/component/tooltip', function () {
-        return view('pages/component/tooltip-page');
-    })->name('tooltip-page');
-    Route::get('/component/accordion', function () {
-        return view('pages/component/accordion-page');
-    })->name('accordion-page');
-    Route::get('/component/icons', function () {
-        return view('pages/component/icons-page');
-    })->name('icons-page');
+
     Route::fallback(function() {
         return view('pages/utility/404');
     });

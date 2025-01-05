@@ -70,8 +70,7 @@
                 <div class="mt-9 p-9">
                     <div class="border-t pt-9 border-slate-200">
                         <div class="mt-2 flex items-center justify-end gap-x-6">
-                            <a href="{{ route('purchases.index') }}" type="button" class="text-sm font-semibold leading-6 text-gray-900">Kembali</a>
-                            <button class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Print</button>
+                            <a href="{{ route('purchases.index') }}" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">Kembali</a>
                         </div>
                     </div>
                 </div>

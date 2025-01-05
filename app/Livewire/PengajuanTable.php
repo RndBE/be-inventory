@@ -13,8 +13,27 @@ class PengajuanTable extends Component
 {
     use WithPagination;
     public $search = "";
-    public $perPage = 15;
+    public $perPage = 25;
     public $id_pengajuans;
+    public $isDeleteModalOpen = false;
+
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function deletePengajuans(int $id)
+    {
+        $this->id_pengajuans = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
+    }
+
     public function render()
     {
         $user = Auth::user();
@@ -48,6 +67,7 @@ class PengajuanTable extends Component
                 ->orWhere('divisi', 'like', '%' . $this->search . '%')
                 ->orWhere('keterangan', 'like', '%' . $this->search . '%')
                 ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhere('jenis_pengajuan', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_pengajuan', 'like', '%' . $this->search . '%');
         });
 
@@ -57,16 +77,5 @@ class PengajuanTable extends Component
         return view('livewire.pengajuan-table', [
             'pengajuans' => $pengajuans,
         ]);
-    }
-
-
-    public function deletePengajuans(int $id)
-    {
-        $this->id_pengajuans = $id;
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 }

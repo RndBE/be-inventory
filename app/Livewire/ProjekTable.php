@@ -13,6 +13,24 @@ class ProjekTable extends Component
     public $search = "";
     public $perPage = 15;
     public $id_projeks;
+    public $isDeleteModalOpen = false;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function deleteProjeks(int $id)
+    {
+        $this->id_projeks = $id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isDeleteModalOpen = false;
+    }
+
     public function render()
     {
         $projeks = Projek::with(['projekDetails', 'bahanKeluar'])->orderBy('id', 'desc')
@@ -28,15 +46,5 @@ class ProjekTable extends Component
         return view('livewire.projek-table', [
             'projeks' => $projeks,
         ]);
-    }
-
-    public function deleteProjeks(int $id)
-    {
-        $this->id_projeks = $id;
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 }

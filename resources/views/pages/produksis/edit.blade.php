@@ -15,8 +15,8 @@
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/>
                             </svg>
                         </li>
-                        <li class="flex items-center {{ $produksi->status === 'Dalam Proses' ? 'text-blue-600 dark:text-blue-500' : '' }}">
-                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $produksi->status === 'Dalam Proses' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
+                        <li class="flex items-center {{ $produksi->status === 'Dalam proses' ? 'text-blue-600 dark:text-blue-500' : '' }}">
+                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $produksi->status === 'Dalam proses' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
                                 2
                             </span>
                             <span class="text-xs">Dalam Proses</span>
@@ -47,16 +47,12 @@
                                 Selesai
                             </button>
                         @endif
-                        {{-- <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
-                            Selesai
-                        </button> --}}
                     @endcan
                 @elseif ($produksi->status === 'Selesai')
                     <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                 @else
                     <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                 @endif
-                {{-- <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button> --}}
             </div>
         </div>
     </x-app.secondary-header>
@@ -100,8 +96,8 @@
                             <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                                 <div class="flex items-center">
                                     <label for="kode_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Produksi</label>
-                                    @if($isComplete)
-                                        <input type="text" id="kode_produksi" name="kode_produksi" value="{{ $produksi->kode_produksi }}" placeholder="PR - " class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                    @if($canInputKodeProduksi)
+                                        <input type="text" id="kode_produksi" name="kode_produksi" value="{{ $produksi->kode_produksi }}" placeholder="PR - " class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }}>
                                     @endif
 
                                 </div>
@@ -135,22 +131,22 @@
                                     @enderror
                                 </div>
 
-                                <div class="flex items-center">
+                                {{-- <div class="flex items-center">
                                     <label for="jenis_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
                                         Jenis Produksi<sup class="text-red-500 text-base">*</sup>
                                     </label>
                                     <div class="relative w-3/4 mr-2">
                                         <div class="flex flex-wrap">
-                                            <!-- Radio Button: Produk Jadi -->
-                                            {{-- <div class="flex items-center me-4">
+                                            Radio Button: Produk Jadi
+                                            <div class="flex items-center me-4">
                                                 <input id="produk_jadi" type="radio" value="Produk Jadi" name="jenis_produksi"
                                                     {{ $produksi->jenis_produksi == 'Produk Jadi' ? 'checked' : '' }}
                                                     class="w-4 h-4 cursor-default pointer-events-none"
                                                     {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} readonly>
                                                 <label for="produk_jadi" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Produk Jadi</label>
-                                            </div> --}}
+                                            </div>
 
-                                            <!-- Radio Button: Produk Setengah Jadi -->
+                                            Radio Button: Produk Setengah Jadi
                                             <div class="flex items-center me-4">
                                                 <input id="produk_setengah_jadi" type="radio" value="Produk Setengah Jadi" name="jenis_produksi"
                                                     {{ $produksi->jenis_produksi == 'Produk Setengah Jadi' ? 'checked' : '' }}
@@ -163,6 +159,12 @@
                                     @error('jenis_produksi')
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
+                                </div> --}}
+                                <div class="flex items-center">
+                                    <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                        Keterangan <sup class="text-red-500 text-base">*</sup>
+                                    </label>
+                                    <textarea id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }}>{{ old('keterangan', $produksi->keterangan) }}</textarea>
                                 </div>
 
                                 <div class="flex items-center">

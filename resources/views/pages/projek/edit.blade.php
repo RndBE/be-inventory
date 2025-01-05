@@ -101,12 +101,12 @@
                         <div class="border-b border-gray-900/10 pb-2 mb-2">
                             <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                                 <div class="flex items-center">
-                                    <label for="kode_projek" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Projek</label>
+                                    <label for="kode_projek" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Transaksi</label>
                                     <input type="text" id="kode_projek" value="{{ $projek->kode_projek }}" disabled placeholder="PR - " class="block rounded-md w-3/4 border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" readonly>
                                 </div>
 
-                                <div class="flex items-center">
-                                    <label for="nama_projek" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Projek
+                                {{-- <div class="flex items-center">
+                                    <label for="nama_projek" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Project
                                         <sup class="text-red-500 text-base">*</sup>
                                     </label>
                                     <input type="text" name="nama_projek" value="{{ $projek->nama_projek }}" id="nama_projek"
@@ -114,10 +114,24 @@
                                     @error('nama_projek')
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
+                                </div> --}}
+                                <div class="flex items-center">
+                                    <label for="kontrak_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">Project
+                                        <sup class="text-red-500 text-base">*</sup>
+                                    </label>
+                                    <select name="kontrak_id" id="kontrak_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"  {{ $projek->status == 'Selesai' ? 'disabled' : '' }} autofocus disabled>
+                                        <option value="">-- Pilih Project --</option>
+                                        @foreach($kontraks as $kontrak)
+                                            {{-- <option value="{{ $kontrak->id }}">{{ $kontrak->nama_kontrak }}</option> --}}
+                                            <option value="{{ $kontrak->id }}" {{ old('kontrak_id', $projek->kontrak_id) == $kontrak->id ? 'selected' : '' }}>
+                                                {{ $kontrak->nama_kontrak }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
                                 <div class="flex items-center">
-                                    <label for="mulai_projek" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Projek<sup class="text-red-500 text-base">*</sup></label>
+                                    <label for="mulai_projek" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Project<sup class="text-red-500 text-base">*</sup></label>
                                     <div class="relative w-3/4">
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                             <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -132,8 +146,10 @@
                                 </div>
 
                                 <div class="flex items-center">
-
-
+                                    <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                        Keterangan <sup class="text-red-500 text-base">*</sup>
+                                    </label>
+                                    <textarea id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $projek->status === 'Selesai' ? 'disabled' : '' }}>{{ old('keterangan', $projek->keterangan) }} </textarea>
                                 </div>
 
                                 <div class="flex items-center">

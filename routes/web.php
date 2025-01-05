@@ -33,6 +33,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\BahanKeluarController;
 use App\Http\Controllers\JobPositionController;
 use App\Http\Controllers\LogActivityController;
+use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\StokProduksiController;
@@ -143,6 +144,8 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('bahan-jadis', BahanJadiController::class);
     Route::resource('produk-produksis', ProdukProduksiController::class);
     Route::resource('bahan-returs', BahanReturController::class);
+
+    Route::resource('stock-opname', StockOpnameController::class);
 
     Route::resource('projek-rnd', ProjekRndController::class);
     Route::put('projek-rnd/{projek}/selesai', [ProjekRndController::class, 'updateStatus'])->name('projek-rnd.updateStatus');

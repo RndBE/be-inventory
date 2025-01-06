@@ -101,14 +101,14 @@
         <tbody>
             @foreach ($stockOpname->stockOpnameDetails as $index => $detail)
                 <tr>
-                    <td style="border:0px solid black; text-align: center;">{{ $detail->dataBahan->kode_bahan }}</td>
+                    <td style="border:0px solid black; text-align: left;">{{ $detail->dataBahan->kode_bahan }}</td>
                     <td style="border:0px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
                     <td style="border:0px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama }}</td>
                     <td style="border:0px solid black;text-align: center;">{{ $detail->tersedia_sistem }}</td>
                     <td style="border:0px solid black;text-align: center;">{{ $detail->tersedia_fisik }}</td>
                     <td style="border:0px solid black;text-align: center;">{{ $detail->selisih }}</td>
-                    <td style="border: 0px solid black;text-align: right;">{{ $detail->harga_satuan}}</td>
-                    <td style="border: 0px solid black;text-align: right;">{{ $detail->total_harga }}</td>
+                    <td style="border: 0px solid black;text-align: right;">{{ $detail->alokasi_harga }}</td>
+                    <td style="border: 0px solid black;text-align: right;">{{ number_format($detail->total_harga, 0, ',', '.') }}</td>
                     <td style="border: 0px solid black">{{ $detail->keterangan }}</td>
                 </tr>
             @endforeach

@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Bahan;
+use App\Models\StockOpname;
 use App\Models\StockOpnameDetails;
 use Livewire\Component;
 use Illuminate\Support\Facades\Session;
@@ -13,11 +14,15 @@ class EditBahanStockOpnameCart extends Component
     public $subtotals = [];
     public $stockOpnameId;
     public $editingItemId;
+    public $editingItemIdket;
 
-    public $tersedia_sistem = []; // Holds the system stock values
-    public $tersedia_fisik = [];  // Holds the physical stock values
-    public $selisih = [];         // Holds the difference values
+    public $tersedia_sistem = [];
+    public $tersedia_fisik = [];
+    public $selisih = [];
     public $tersedia_fisik_raw = [];
+    public $keterangan_raw = [];
+    public $keterangan = [];
+    public $status_direktur;
 
     protected $listeners = ['bahanSelected' => 'addToCart'];
 
@@ -30,6 +35,9 @@ class EditBahanStockOpnameCart extends Component
         } else {
             $this->cart = [];
         }
+
+        $stockOpname = StockOpname::findOrFail($stockOpnameId);
+        $this->status_direktur = $stockOpname->status_direktur;
     }
 
     public function loadCartItems()
@@ -48,10 +56,13 @@ class EditBahanStockOpnameCart extends Component
                 'tersedia_sistem' => $detail->tersedia_sistem ?? 0,
                 'tersedia_fisik' => $detail->tersedia_fisik ?? 0,
                 'selisih' => $detail->selisih ?? 0,
+                'keterangan' => $detail->keterangan ?? 0,
             ];
             $this->tersedia_sistem[$detail->dataBahan->id] = $detail->tersedia_sistem ?? 0;
             $this->tersedia_fisik[$detail->dataBahan->id] = $detail->tersedia_fisik ?? 0;
             $this->tersedia_fisik_raw[$detail->dataBahan->id] = $detail->tersedia_fisik ?? 0;
+            $this->keterangan[$detail->dataBahan->id] = $detail->keterangan ?? 0;
+            $this->keterangan_raw[$detail->dataBahan->id] = $detail->keterangan ?? 0;
         }
     }
 
@@ -73,15 +84,17 @@ class EditBahanStockOpnameCart extends Component
                 'tersedia_sistem' => $bahan->purchaseDetails->sum('sisa'),
                 'tersedia_fisik' => 0,
                 'selisih' => 0,
+                'keterangan' => 0,
             ];
 
             $this->tersedia_sistem[$bahan->id] = $bahan->purchaseDetails->sum('sisa');
             $this->tersedia_fisik[$bahan->id] = 0;
             $this->tersedia_fisik_raw[$bahan->id] = 0;
             $this->selisih[$bahan->id] = 0;
+            $this->keterangan[$bahan->id] = 0;
         }
     }
-    
+
     public function updateSession()
     {
         Session::put('cart', $this->cart);
@@ -94,13 +107,23 @@ class EditBahanStockOpnameCart extends Component
         $this->selisih[$itemId] = $this->getSelisih($itemId);
     }
 
+
     public function editItem($itemId)
     {
         $this->editingItemId = $itemId;
-        if (isset($this->unit_price[$itemId])) {
+        if (isset($this->tersedia_fisik[$itemId])) {
             $this->tersedia_fisik_raw[$itemId] = $this->tersedia_fisik[$itemId];
         } else {
             $this->tersedia_fisik_raw[$itemId] = null;
+        }
+    }
+    public function editItemKet($itemId)
+    {
+        $this->editingItemIdket = $itemId;
+        if (isset($this->keterangan[$itemId])) {
+            $this->keterangan_raw[$itemId] = $this->keterangan[$itemId];
+        } else {
+            $this->keterangan_raw[$itemId] = null;
         }
     }
 
@@ -119,18 +142,29 @@ class EditBahanStockOpnameCart extends Component
         $this->tersedia_fisik[$itemId] = intval(str_replace(['.', ' '], '', $this->tersedia_fisik_raw[$itemId]));
         $this->tersedia_fisik_raw[$itemId] = $this->tersedia_fisik[$itemId]; // Reflect the value back
 
-        // Recalculate the difference (selisih)
         $this->selisih[$itemId] = $this->getSelisih($itemId);
-
-        // Find the item in the cart and update its selisih
         $existingItemKey = array_search($itemId, array_column($this->cart, 'id'));
         if ($existingItemKey !== false) {
-            $this->cart[$existingItemKey]['tersedia_fisik'] = $this->tersedia_fisik[$itemId]; // Update cart with new physical stock
-            $this->cart[$existingItemKey]['selisih'] = $this->selisih[$itemId]; // Update cart with new selisih
-            session()->put('cart', $this->cart); // Save updated cart to session
+            $this->cart[$existingItemKey]['tersedia_fisik'] = $this->tersedia_fisik[$itemId];
+            $this->cart[$existingItemKey]['selisih'] = $this->selisih[$itemId];
+            session()->put('cart', $this->cart);
         }
 
-        $this->editingItemId = null; // Reset editing state
+        $this->editingItemId = null;
+    }
+
+    public function formatKet($itemId)
+    {
+        $this->keterangan[$itemId] = $this->keterangan_raw[$itemId];
+        $this->keterangan_raw[$itemId] = $this->keterangan[$itemId];
+        $existingItemKey = array_search($itemId, array_column($this->cart, 'id'));
+        if ($existingItemKey !== false) {
+            $this->cart[$existingItemKey]['keterangan'] = $this->keterangan[$itemId];
+
+            session()->put('cart', $this->cart);
+        }
+
+        $this->editingItemIdket = null;
     }
 
     public function getSelisih($itemId)

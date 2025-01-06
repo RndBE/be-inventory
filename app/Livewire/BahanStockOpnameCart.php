@@ -20,6 +20,7 @@ class BahanStockOpnameCart extends Component
     public $tersedia_fisik = [];  // Holds the physical stock values
     public $selisih = [];         // Holds the difference values
     public $tersedia_fisik_raw = [];
+    public $keterangan = [];
     protected $listeners = ['bahanSelected' => 'addToCart'];
 
     public function mount()
@@ -30,6 +31,11 @@ class BahanStockOpnameCart extends Component
         $this->tersedia_sistem = []; // Initialize system stock
         $this->tersedia_fisik = [];  // Initialize physical stock
         $this->selisih = [];         // Initialize selisih
+        $this->keterangan = [];
+
+        foreach ($this->cart as $item) {
+            $this->keterangan[$item->id] = $this->keterangan[$item->id] ?? '';  // Default ke string kosong jika belum ada
+        }
     }
 
     public function addToCart($bahan)
@@ -48,6 +54,7 @@ class BahanStockOpnameCart extends Component
             $this->unit_price[$bahan->id] = null;
             $this->tersedia_sistem[$bahan->id] = $bahan->purchaseDetails->sum('sisa'); // Initialize system stock from purchase details
             $this->tersedia_fisik[$bahan->id] = 0; // Default physical stock to 0 initially
+            $this->keterangan[$bahan->id] = '';
         }
         $this->calculateSubTotal($bahan->id);
 
@@ -60,6 +67,7 @@ class BahanStockOpnameCart extends Component
         Session::put('qty', $this->qty);
         Session::put('subtotals', $this->subtotals);
         Session::put('totalharga', $this->totalharga);
+        Session::put('keterangan', $this->keterangan);
     }
 
     public function calculateSubTotal($itemId)
@@ -84,13 +92,13 @@ class BahanStockOpnameCart extends Component
         $this->editingItemId = null;
     }
 
-    public function updateQuantity($itemId)
-    {
-        if (isset($this->qty[$itemId])) {
-            $this->qty[$itemId] = max(0, intval($this->qty[$itemId]));
-            $this->calculateSubTotal($itemId);
-        }
-    }
+    // public function updateQuantity($itemId)
+    // {
+    //     if (isset($this->qty[$itemId])) {
+    //         $this->qty[$itemId] = max(0, intval($this->qty[$itemId]));
+    //         $this->calculateSubTotal($itemId);
+    //     }
+    // }
 
     public function updatedTersediaFisikRaw($value, $itemId)
     {
@@ -142,6 +150,12 @@ class BahanStockOpnameCart extends Component
         return  $tersediaFisikRaw - $tersediaSistem;
     }
 
+    public function updateQuantity($itemId)
+    {
+        $requestedQty = $this->jml_bahan[$itemId] ?? 0;
+        $item = Bahan::find($itemId);
+    }
+
 
     public function getCartItemsForStorage()
     {
@@ -152,7 +166,8 @@ class BahanStockOpnameCart extends Component
                 'id' => $itemId,
                 'tersedia_sistem' => isset($this->tersedia_sistem[$itemId]) ? $this->tersedia_sistem[$itemId] : 0,
                 'tersedia_fisik' => isset($this->tersedia_fisik_raw[$itemId]) ? $this->tersedia_fisik_raw[$itemId] : 0,
-                'selisih' => $this->getSelisih($itemId), // Call the method instead of referencing as an array
+                'selisih' => $this->getSelisih($itemId),
+                'keterangan' => isset($this->keterangan[$itemId]) ? $this->keterangan[$itemId] : 0,
             ];
         }
         return $items;

@@ -148,6 +148,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('stock-opname', StockOpnameController::class);
     Route::put('/stock-opname/updateApprovalFinance/{id}', [StockOpnameController::class, 'updateApprovalFinance'])->name('stock-opname.updateApprovalFinance');
     Route::put('/stock-opname/updateApprovalDirektur/{id}', [StockOpnameController::class, 'updateApprovalDirektur'])->name('stock-opname.updateApprovalDirektur');
+    Route::put('/stock-opname/selesaiStockOpname/{id}', [StockOpnameController::class, 'selesaiStockOpname'])->name('stock-opname.selesaiStockOpname');
     Route::get('/stock-opnam/pdf/{id}', [StockOpnameController::class, 'downloadPdf'])->name('stock-opname.downloadPdf');
 
     Route::resource('projek-rnd', ProjekRndController::class);

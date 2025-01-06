@@ -9,6 +9,7 @@ use App\Models\Bahan;
 use App\Models\Purchase;
 use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
+use App\Models\BahanKeluar;
 use App\Models\StockOpname;
 use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
@@ -19,6 +20,7 @@ use App\Models\PengajuanDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanReturDetails;
 use App\Models\BahanSetengahjadi;
+use App\Models\BahanKeluarDetails;
 use App\Models\StockOpnameDetails;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -56,20 +58,35 @@ class StockOpnameController extends Controller
             ])->findOrFail($id);
 
             foreach ($stockOpname->stockOpnameDetails as $detail) {
+                $selisih = abs($detail->selisih); // Ambil selisih dalam nilai positif
                 $purchaseDetails = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
-                    ->where('sisa', '>', 0)
-                    ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
-                    ->orderBy('purchases.tgl_masuk', 'asc')
-                    ->select('purchase_details.*', 'purchases.tgl_masuk')
-                    ->get();
+                ->where('sisa', '>', 0)
+                ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+                ->orderBy('purchases.tgl_masuk', 'asc')
+                ->select('purchase_details.*', 'purchases.tgl_masuk')
+                ->get();
 
-                // Check if there are any purchase details and get the unit_price from the first one
-                $hargaSatuan = $purchaseDetails->isNotEmpty() ? $purchaseDetails->first()->unit_price : 0;
+                $alokasiHarga = [];
+                $totalHarga = 0;
 
-                $totalHarga = $hargaSatuan * $detail->selisih;
-                $detail->harga_satuan = $hargaSatuan;
+                foreach ($purchaseDetails as $purchase) {
+                    if ($selisih <= 0) break; // Jika selisih sudah terpenuhi, hentikan proses
+
+                    $qtyTerpakai = min($selisih, $purchase->sisa); // Ambil jumlah yang bisa digunakan dari transaksi ini
+                    $harga = $qtyTerpakai * $purchase->unit_price;
+
+                    $alokasiHarga[] = "{$qtyTerpakai} x " . number_format($purchase->unit_price, 0, ',', '.');
+                    $totalHarga += $harga;
+
+                    $selisih -= $qtyTerpakai; // Kurangi jumlah selisih dengan jumlah yang sudah diambil
+                }
+
+                // Simpan hasil alokasi ke dalam detail
+                $detail->alokasi_harga = implode(', ', $alokasiHarga);
                 $detail->total_harga = $totalHarga;
             }
+
+            // Hitung total keseluruhan untuk laporan
             $totalSelisih = $stockOpname->stockOpnameDetails->sum('selisih');
             $totalHargaAll = $stockOpname->stockOpnameDetails->sum('total_harga');
 
@@ -93,7 +110,7 @@ class StockOpnameController extends Controller
 
             $pdf = Pdf::loadView('pages.stock-opname.pdf', compact(
                 'stockOpname',
-                'formattedDate','hargaSatuan',
+                'formattedDate',
                 'tandaTanganPengaju',
                 'tandaTanganManager',
                 'tandaTanganDirektur',
@@ -140,6 +157,7 @@ class StockOpnameController extends Controller
             'cartItems.*.tersedia_sistem' => 'required|integer',
             'cartItems.*.tersedia_fisik' => 'required|integer',
             'cartItems.*.selisih' => 'required|integer',
+            'cartItems.*.keterangan' => 'nullable',
         ]);
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
@@ -165,6 +183,7 @@ class StockOpnameController extends Controller
                     'bahan_id' => $item['id'],
                     'tersedia_sistem' => $item['tersedia_sistem'],
                     'tersedia_fisik' => $item['tersedia_fisik'],
+                    'keterangan' => $item['keterangan'],
                 ]);
             }
             DB::commit();
@@ -245,6 +264,7 @@ class StockOpnameController extends Controller
                         [
                             'tersedia_sistem' => $item['tersedia_sistem'],
                             'tersedia_fisik' => $item['tersedia_fisik'],
+                            'keterangan' => $item['keterangan'],
                         ]
                     );
                 }
@@ -316,6 +336,7 @@ class StockOpnameController extends Controller
             ])->findOrFail($id);
 
             $data->status_direktur = $validated['status_direktur'];
+            $data->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             $data->save();
 
             if ($data->status_direktur === 'Disetujui') {
@@ -345,6 +366,96 @@ class StockOpnameController extends Controller
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
     }
+
+    public function selesaiStockOpname($id)
+    {
+        try {
+            DB::beginTransaction();
+            $stockOpname = StockOpname::findOrFail($id);
+            if ($stockOpname->status_direktur !== 'Disetujui') {
+                return redirect()->back()->with('error', 'Stock opname belum disetujui!');
+            }
+
+            $user = $stockOpname->pengaju;
+            $tujuan = $stockOpname->keterangan;
+
+            $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
+            $new_transaction_number = ($lastTransaction ? intval(substr($lastTransaction->kode_transaksi, 6)) : 0) + 1;
+            $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT) . ' SO';
+            $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+
+            $bahan_keluar = BahanKeluar::create([
+                'kode_transaksi' => $kode_transaksi,
+                'tujuan' => $tujuan,
+                'keterangan' => $tujuan,
+                'divisi' => 'Purchasing',
+                'status' => 'Disetujui',
+                'status_leader' => 'Disetujui',
+                'pengaju' => $user,
+                'status_pengambilan' => 'Sudah Diambil',
+                'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+                'tgl_keluar' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+            ]);
+
+            foreach ($stockOpname->stockOpnameDetails as $detail) {
+                $selisih = abs($detail->selisih);
+                $purchaseDetails = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
+                    ->where('sisa', '>', 0)
+                    ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+                    ->orderBy('purchases.tgl_masuk', 'asc')
+                    ->select('purchase_details.*', 'purchases.tgl_masuk')
+                    ->get();
+
+                $detailsArray = [];
+                $totalHarga = 0; // To accumulate total price
+
+                foreach ($purchaseDetails as $purchaseDetail) {
+                    if ($selisih <= 0) break;
+
+                    $qtyTerpakai = min($selisih, $purchaseDetail->sisa);
+                    $purchaseDetail->sisa -= $qtyTerpakai;
+                    $purchaseDetail->save();
+
+                    // Calculate price for the used quantity
+                    $harga = $qtyTerpakai * $purchaseDetail->unit_price;
+
+                    $detailsArray[] = [
+                        'kode_transaksi' => $purchaseDetail->kode_transaksi,
+                        'qty' => $qtyTerpakai,
+                        'unit_price' => $purchaseDetail->unit_price
+                    ];
+
+                    $selisih -= $qtyTerpakai;
+                    $totalHarga += $harga; // Accumulate total price
+                }
+
+                // Create BahanKeluarDetails with the calculated total price
+                BahanKeluarDetails::create([
+                    'bahan_keluar_id' => $bahan_keluar->id,
+                    'bahan_id' => $detail->dataBahan->id,
+                    'qty' => $qtyTerpakai,
+                    'jml_bahan' => $qtyTerpakai,
+                    'used_materials' => $qtyTerpakai,
+                    'details' => json_encode($detailsArray),
+                    'sub_total' => $totalHarga, // Use the accumulated total price
+                ]);
+            }
+
+            $stockOpname->status_selesai = 'Selesai';
+            $stockOpname->save();
+
+            DB::commit();
+            LogHelper::success('Stock opname selesai dan data sisa diperbarui.');
+            return redirect()->route('stock-opname.index')->with('success', 'Stock opname selesai dan data sisa diperbarui.');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            LogHelper::error($e->getMessage());
+            return view('pages.utility.404');
+        }
+    }
+
+
+
 
 
 

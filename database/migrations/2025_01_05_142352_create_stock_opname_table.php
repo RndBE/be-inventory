@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('stock_opname', function (Blueprint $table) {
             $table->id();
-            $table->date('tgl_pengajuan');
-            $table->date('tgl_diterima');
+            $table->date('tgl_pengajuan')->nullable();
+            $table->date('tgl_diterima')->nullable();
             $table->string('nomor_referensi')->unique();
             $table->text('keterangan')->nullable();
             $table->enum('status_finance', ['Belum disetujui', 'Disetujui', 'Ditolak'])->default('Belum disetujui');

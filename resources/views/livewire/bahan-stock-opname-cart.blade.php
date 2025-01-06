@@ -11,6 +11,7 @@
                         <th scope="col" class="px-6 py-3">Tersedia(Sistem)</th>
                         <th scope="col" class="px-6 py-3">Tersedia(Fisik)</th>
                         <th scope="col" class="px-6 py-3">Selisih</th>
+                        <th scope="col" class="px-6 py-3">Keterangan</th>
                         <th scope="col" class="px-6 py-3">Action</th>
                     </tr>
                 </thead>
@@ -52,6 +53,16 @@
 
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                 <span><strong></strong> {{ $this->getSelisih($item->id) }}</span>
+                            </td>
+
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                                <div class="flex justify-right items-right">
+                                    <textarea
+                                        wire:model="keterangan.{{ $item->id }}"
+                                        wire:keyup="updateQuantity({{ $item->id }})"
+                                        class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        >{{ old('keterangan.'.$item->id, $keterangan[$item->id] ?? '') }}</textarea>
+                                </div>
                             </td>
 
                             <td class="px-6 py-4">

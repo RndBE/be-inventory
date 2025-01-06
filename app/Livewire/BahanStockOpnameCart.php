@@ -139,7 +139,7 @@ class BahanStockOpnameCart extends Component
         $tersediaFisikRaw = isset($this->tersedia_fisik_raw[$itemId]) ? intval(str_replace(['.', ' '], '', $this->tersedia_fisik_raw[$itemId])) : 0;
 
         // Calculate and return the difference
-        return $tersediaSistem - $tersediaFisikRaw;
+        return  $tersediaFisikRaw - $tersediaSistem;
     }
 
 

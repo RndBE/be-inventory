@@ -15,4 +15,10 @@ class StockOpname extends Model
     {
         return $this->hasMany(StockOpnameDetails::class, 'stock_opname_id');
     }
+
+    public function pengajuUser()
+    {
+        return $this->belongsTo(User::class, 'pengaju');
+    }
+
 }

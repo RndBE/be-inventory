@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Throwable;
+use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Bahan;
 use App\Models\Purchase;
 use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
@@ -11,29 +14,105 @@ use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\PengajuanDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanReturDetails;
 use App\Models\BahanSetengahjadi;
+use App\Models\StockOpnameDetails;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Jobs\SendWhatsAppApproveLeader;
 use App\Models\PengambilanBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
 
 class StockOpnameController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:lihat-bahan-retur', ['only' => ['index']]);
-    //     $this->middleware('permission:detail-bahan-retur', ['only' => ['show']]);
-    //     $this->middleware('permission:edit-bahan-retur', ['only' => ['update','edit']]);
-    //     $this->middleware('permission:hapus-bahan-retur', ['only' => ['destroy']]);
-    // }
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-stock-opname', ['only' => ['index']]);
+        $this->middleware('permission:update-stock-opname', ['only' => ['update']]);
+        $this->middleware('permission:tambah-stock-opname', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-stock-opname', ['only' => ['edit']]);
+        $this->middleware('permission:hapus-stock-opname', ['only' => ['destroy']]);
+        $this->middleware('permission:approve-stock-opname-finance', ['only' => ['updateApprovalFinance']]);
+        $this->middleware('permission:approve-stock-opname-direktur', ['only' => ['updateApprovalDirektur']]);
+        $this->middleware('permission:selesai-stock-opname', ['only' => ['selesaiStockOpname']]);
+    }
 
     public function index()
     {
         $stock_opname = StockOpname::with('stockOpnameDetails')->get();
         return view('pages.stock-opname.index', compact('stock_opname'));
+    }
+
+    public function downloadPdf(int $id)
+    {
+        try {
+            $stockOpname = StockOpname::with([
+                'pengajuUser',
+                'stockOpnameDetails.dataBahan.dataUnit',
+            ])->findOrFail($id);
+
+            foreach ($stockOpname->stockOpnameDetails as $detail) {
+                $purchaseDetails = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
+                    ->where('sisa', '>', 0)
+                    ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+                    ->orderBy('purchases.tgl_masuk', 'asc')
+                    ->select('purchase_details.*', 'purchases.tgl_masuk')
+                    ->get();
+
+                // Check if there are any purchase details and get the unit_price from the first one
+                $hargaSatuan = $purchaseDetails->isNotEmpty() ? $purchaseDetails->first()->unit_price : 0;
+
+                $totalHarga = $hargaSatuan * $detail->selisih;
+                $detail->harga_satuan = $hargaSatuan;
+                $detail->total_harga = $totalHarga;
+            }
+            $totalSelisih = $stockOpname->stockOpnameDetails->sum('selisih');
+            $totalHargaAll = $stockOpname->stockOpnameDetails->sum('total_harga');
+
+            Carbon::setLocale('id');
+            $formattedDate = Carbon::parse($stockOpname->tgl_pengajuan)->translatedFormat('d F Y');
+            $tandaTanganPengaju = $stockOpname->pengajuUser->tanda_tangan ?? null;
+
+            $tandaTanganLeader = null;
+            $tandaTanganManager = $stockOpname->pengajuUser->atasanLevel2->tanda_tangan ?? null;
+            $tandaTanganDirektur = $stockOpname->pengajuUser->atasanLevel1->tanda_tangan ?? null;
+            $managerName = $stockOpname->pengajuUser->atasanLevel2 ? $stockOpname->pengajuUser->atasanLevel2->name : null;
+            $direkturName = $stockOpname->pengajuUser->atasanLevel1 ? $stockOpname->pengajuUser->atasanLevel1->name : null;
+
+            $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
+                return User::where('job_level', 2)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Admin Manager');
+                    })->first();
+            });
+            $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
+
+            $pdf = Pdf::loadView('pages.stock-opname.pdf', compact(
+                'stockOpname',
+                'formattedDate','hargaSatuan',
+                'tandaTanganPengaju',
+                'tandaTanganManager',
+                'tandaTanganDirektur',
+                'tandaTanganAdminManager',
+                'adminManagerceUser',
+                'managerName',
+                'direkturName',
+                'totalSelisih',
+                'totalHargaAll'
+            ))->setPaper('a4', 'potrait');;
+            return $pdf->stream("stock_opname_{$id}.pdf");
+
+            LogHelper::success('Berhasil generating PDF for stock opname ID {$id}!');
+            return $pdf->download("pembelian_bahan_{$id}.pdf");
+
+        } catch (\Exception $e) {
+            LogHelper::error("Error generating PDF for stock opname ID {$id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
+        }
     }
 
     /**
@@ -49,45 +128,60 @@ class StockOpnameController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
+        $cartItems = json_decode($request->cartItems, true);
+        $validator = Validator::make([
+            'tgl_pengajuan' => $request->tgl_pengajuan,
+            'cartItems' => $cartItems
+        ], [
+            'tgl_pengajuan' => 'required|date_format:Y-m-d',
+            'cartItems' => 'required|array',
+            'cartItems.*.id' => 'required|integer',
+            'cartItems.*.tersedia_sistem' => 'required|integer',
+            'cartItems.*.tersedia_fisik' => 'required|integer',
+            'cartItems.*.selisih' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        DB::beginTransaction();
         try {
-            dd($request->all());
-            $cartItems = json_decode($request->cartItems, true);
-            $validator = Validator::make([
-                'tgl_masuk' => $request->tgl_masuk,
-                'cartItems' => $cartItems
-            ], [
-                'tgl_masuk' => 'required|date_format:Y-m-d',
-                'cartItems' => 'required|array',
-                'cartItems.*.id' => 'required|integer',
-                'cartItems.*.qty' => 'required|integer|min:1',
-                'cartItems.*.unit_price' => 'required',
-                'cartItems.*.sub_total' => 'required',
+
+            $user = Auth::user();
+            // Simpan data utama stock opname
+            $stockOpname = StockOpname::create([
+                'tgl_pengajuan' => $request->tgl_pengajuan,
+                'tgl_diterima' => null,
+                'nomor_referensi' => $this->generateNomorReferensi(),
+                'keterangan' => $request->keterangan,
+                'status_finance' => 'Belum disetujui',
+                'status_direktur' => 'Belum disetujui',
+                'pengaju' => $user->id,
             ]);
-            if ($validator->fails()) {
-                return redirect()->back()->withErrors($validator)->withInput();
-            }
-            $kode_transaksi = 'KBM - ' . strtoupper(uniqid());
-            // $tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-            $purchase = new Purchase();
-            $purchase->kode_transaksi = $kode_transaksi;
-            $purchase->tgl_masuk = $request->tgl_masuk;
-            $purchase->save();
+
             foreach ($cartItems as $item) {
-                PurchaseDetail::create([
-                    'purchase_id' => $purchase->id,
+                StockOpnameDetails::create([
+                    'stock_opname_id' => $stockOpname->id,
                     'bahan_id' => $item['id'],
-                    'qty' => $item['qty'],
-                    'sisa' => $item['qty'],
-                    'unit_price' => $item['unit_price'],
-                    'sub_total' => $item['sub_total'],
+                    'tersedia_sistem' => $item['tersedia_sistem'],
+                    'tersedia_fisik' => $item['tersedia_fisik'],
                 ]);
             }
-            LogHelper::success('Berhasil Menambahkan Transaksi Bahan Masuk!');
-            return redirect()->route('purchases.index')->with('success', 'Berhasil Menambahkan Transaksi Bahan Masuk!');
-        } catch (Throwable $e) {
+            DB::commit();
+            LogHelper::success('Stock opname berhasil disimpan.');
+            return redirect()->route('stock-opname.index')->with('success', 'Stock opname berhasil disimpan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }
+    }
+
+    private function generateNomorReferensi()
+    {
+        $lastOpname = StockOpname::latest()->first();
+        $nextNumber = $lastOpname ? intval(substr($lastOpname->nomor_referensi, -4)) + 1 : 1;
+        return 'SO-' . date('Ymd') . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -101,268 +195,157 @@ class StockOpnameController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $stockOpname = StockOpname::with('stockOpnameDetails')->findOrFail($id);
+
+        $bahans = Bahan::whereHas('jenisBahan', function($query) {
+            $query->where('nama', 'Produksi');
+        })->get();
+
+        return view('pages.stock-opname.edit', [
+            'stockOpname' => $stockOpname,
+            'status_finance' => $stockOpname->status_finance,
+            'status_direktur' => $stockOpname->status_direktur,
+            'stockOpnameId' => $id,
+            'bahans' => $bahans,
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+
+    public function update(Request $request, $id)
     {
+        // dd($request->all());
+        $validator = Validator::make($request->all(), [
+            'tgl_pengajuan' => 'required|date_format:Y-m-d',
+            'keterangan' => 'required|string|max:255',
+            'cartItems' => 'required|array',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-            $validated = $request->validate([
-                'status' => 'required',
+            $stockOpname = StockOpname::findOrFail($id);
+            $stockOpname->update([
+                'tgl_pengajuan' => $request->tgl_pengajuan,
+                'keterangan' => $request->keterangan,
             ]);
 
-            $bahanRetur = BahanRetur::findOrFail($id);
-            $bahanReturDetails = BahanReturDetails::where('bahan_retur_id', $id)->get();
+            if ($request->has('cartItems')) {
+                $stockOpname->stockOpnameDetails()->delete();
 
-            if ($validated['status'] === 'Disetujui') {
-                $groupedDetails = [];
-
-                // Langkah 1: Kelompokkan bahanReturDetails berdasarkan bahan_id dan unit_price
-                foreach ($bahanReturDetails as $returDetail) {
-                    $bahanId = $returDetail->bahan_id;
-                    $unitPrice = $returDetail->unit_price;
-
-                    if (isset($groupedDetails[$bahanId][$unitPrice])) {
-                        $groupedDetails[$bahanId][$unitPrice]['qty'] += $returDetail->qty;
-                    } else {
-                        $groupedDetails[$bahanId][$unitPrice] = [
-                            'qty' => $returDetail->qty,
-                            'unit_price' => $unitPrice,
-                        ];
-                    }
+                foreach ($request->cartItems as $item) {
+                    $item = json_decode($item, true);
+                    $detail = StockOpnameDetails::updateOrCreate(
+                        ['stock_opname_id' => $stockOpname->id,
+                        'bahan_id' => $item['id']],
+                        [
+                            'tersedia_sistem' => $item['tersedia_sistem'],
+                            'tersedia_fisik' => $item['tersedia_fisik'],
+                        ]
+                    );
                 }
-
-                // Langkah 2: Kurangi qty di ProduksiDetails dan ProjekDetails sesuai groupedDetails
-                foreach ($groupedDetails as $bahanId => $detailsByPrice) {
-                    // Update untuk ProduksiDetails
-                    $produksiDetail = ProduksiDetails::where('produksi_id', $bahanRetur->produksi_id)
-                        ->where('bahan_id', $bahanId)
-                        ->first();
-
-                    if ($produksiDetail) {
-                        $currentDetails = json_decode($produksiDetail->details, true) ?? [];
-
-                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
-                            foreach ($currentDetails as $key => &$entry) {
-                                if ($entry['unit_price'] == $unitPrice) {
-                                    $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
-                                    break;
-                                }
-                            }
-                        }
-
-                        // Kurangi qty dan used_materials pada ProduksiDetails
-                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
-                        $produksiDetail->qty -= $totalQtyReduction;
-                        $produksiDetail->used_materials -= $totalQtyReduction;
-
-                        // Pastikan qty dan used_materials tidak negatif
-                        $produksiDetail->qty = max(0, $produksiDetail->qty);
-                        $produksiDetail->used_materials = max(0, $produksiDetail->used_materials);
-
-                        $produksiDetail->sub_total = 0;
-                        foreach ($currentDetails as $detail) {
-                            $produksiDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                        }
-
-                        $produksiDetail->details = json_encode(array_values($currentDetails));
-                        $produksiDetail->save();
-                    }
-
-                    // Update untuk ProjekDetails
-                    $projekDetail = ProjekDetails::where('projek_id', $bahanRetur->projek_id)
-                        ->where('bahan_id', $bahanId)
-                        ->first();
-
-                    if ($projekDetail) {
-                        $currentDetails = json_decode($projekDetail->details, true) ?? [];
-
-                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
-                            foreach ($currentDetails as $key => &$entry) {
-                                if ($entry['unit_price'] == $unitPrice) {
-                                    $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
-                                    break;
-                                }
-                            }
-                        }
-
-                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
-                        $projekDetail->qty -= $totalQtyReduction;
-                        $projekDetail->used_materials -= $totalQtyReduction;
-
-                        $projekDetail->qty = max(0, $projekDetail->qty);
-                        $projekDetail->used_materials = max(0, $projekDetail->used_materials);
-
-                        $projekDetail->sub_total = 0;
-                        foreach ($currentDetails as $detail) {
-                            $projekDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                        }
-
-                        $projekDetail->details = json_encode(array_values($currentDetails));
-                        $projekDetail->save();
-                    }
-
-                    // Update untuk ProjekDetails
-                    $projekRndDetail = ProjekRndDetails::where('projek_rnd_id', $bahanRetur->projek_rnd_id)
-                        ->where('bahan_id', $bahanId)
-                        ->first();
-
-                    if ($projekRndDetail) {
-                        $currentDetails = json_decode($projekRndDetail->details, true) ?? [];
-
-                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
-                            foreach ($currentDetails as $key => &$entry) {
-                                if ($entry['unit_price'] == $unitPrice) {
-                                    $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
-                                    break;
-                                }
-                            }
-                        }
-
-                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
-                        $projekRndDetail->qty -= $totalQtyReduction;
-                        $projekRndDetail->used_materials -= $totalQtyReduction;
-
-                        $projekRndDetail->qty = max(0, $projekRndDetail->qty);
-                        $projekRndDetail->used_materials = max(0, $projekRndDetail->used_materials);
-
-                        $projekRndDetail->sub_total = 0;
-                        foreach ($currentDetails as $detail) {
-                            $projekRndDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                        }
-
-                        $projekRndDetail->details = json_encode(array_values($currentDetails));
-                        $projekRndDetail->save();
-                    }
-
-                    // Update untuk PengajuanDetails
-                    $pengajuanDetail = PengajuanDetails::where('pengajuan_id', $bahanRetur->pengajuan_id)
-                    ->where('bahan_id', $bahanId)
-                    ->first();
-
-                    if ($pengajuanDetail) {
-                        $currentDetails = json_decode($pengajuanDetail->details, true) ?? [];
-
-                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
-                            foreach ($currentDetails as $key => &$entry) {
-                                if ($entry['unit_price'] == $unitPrice) {
-                                    $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
-                                    break;
-                                }
-                            }
-                        }
-
-                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
-                        $pengajuanDetail->qty -= $totalQtyReduction;
-                        $pengajuanDetail->used_materials -= $totalQtyReduction;
-
-                        $pengajuanDetail->qty = max(0, $pengajuanDetail->qty);
-                        $pengajuanDetail->used_materials = max(0, $pengajuanDetail->used_materials);
-
-                        $pengajuanDetail->sub_total = 0;
-                        foreach ($currentDetails as $detail) {
-                            $pengajuanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                        }
-
-                        $pengajuanDetail->details = json_encode(array_values($currentDetails));
-                        if ($pengajuanDetail->qty == 0 && $pengajuanDetail->used_materials == 0) {
-                            $pengajuanDetail->delete();
-                        } else {
-                            $pengajuanDetail->save();
-                        }
-                    }
-
-                    // Update untuk PengambilanBahanDetails
-                    $pengambilanBahanDetail = PengambilanBahanDetails::where('pengambilan_bahan_id', $bahanRetur->pengambilan_bahan_id)
-                    ->where('bahan_id', $bahanId)
-                    ->first();
-                    if ($pengambilanBahanDetail) {
-                        $currentDetails = json_decode($pengambilanBahanDetail->details, true) ?? [];
-                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
-                            foreach ($currentDetails as $key => &$entry) {
-                                if ($entry['unit_price'] == $unitPrice) {
-                                    $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
-                                    break;
-                                }
-                            }
-                        }
-                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
-                        $pengambilanBahanDetail->qty -= $totalQtyReduction;
-                        $pengambilanBahanDetail->used_materials -= $totalQtyReduction;
-                        $pengambilanBahanDetail->qty = max(0, $pengambilanBahanDetail->qty);
-                        $pengambilanBahanDetail->used_materials = max(0, $pengambilanBahanDetail->used_materials);
-                        $pengambilanBahanDetail->sub_total = 0;
-                        foreach ($currentDetails as $detail) {
-                            $pengambilanBahanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                        }
-                        $pengambilanBahanDetail->details = json_encode(array_values($currentDetails));
-                        if ($pengambilanBahanDetail->qty == 0 && $pengambilanBahanDetail->used_materials == 0) {
-                            $pengambilanBahanDetail->delete();
-                        } else {
-                            $pengambilanBahanDetail->save();
-                        }
-                    }
-                }
-                // Tambahkan bahan retur ke purchase
-                $purchase = Purchase::firstOrCreate(
-                    ['kode_transaksi' => 'RTR-' . uniqid()],
-                    ['tgl_masuk' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s')]
-                );
-
-                foreach ($bahanReturDetails as $returDetail) {
-                    $jenisBahan = $returDetail->dataBahan->jenisBahan->nama;
-
-                    if ($jenisBahan === 'Produksi') {
-                        $bahanSetengahJadi = BahanSetengahjadi::firstOrCreate([
-                            'kode_transaksi' => 'RTR-' . uniqid(),
-                            'tgl_masuk' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
-                        ]);
-
-                        BahanSetengahjadiDetails::create([
-                            'bahan_setengahjadi_id' => $bahanSetengahJadi->id,
-                            'bahan_id' => $returDetail->bahan_id,
-                            'qty' => $returDetail->qty,
-                            'sisa' => $returDetail->qty,
-                            'unit_price' => $returDetail->unit_price,
-                            'sub_total' => $returDetail->qty * $returDetail->unit_price,
-                        ]);
-                    } else {
-                        PurchaseDetail::create([
-                            'purchase_id' => $purchase->id,
-                            'bahan_id' => $returDetail->bahan_id,
-                            'qty' => $returDetail->qty,
-                            'sisa' => $returDetail->qty,
-                            'unit_price' => $returDetail->unit_price,
-                            'sub_total' => $returDetail->qty * $returDetail->unit_price,
-                        ]);
-                    }
-                }
-
-                $bahanRetur->status = $validated['status'];
-                $bahanRetur->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                $bahanRetur->save();
-                DB::commit();
-                LogHelper::success('Berhasil Mengubah Status Bahan Retur!');
             }
+
+            DB::commit();
+            LogHelper::success('Stock opname berhasil diperbarui.');
+            return redirect()->route('stock-opname.index')->with('success', 'Stock opname berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            LogHelper::error($e->getMessage());
+            return view('pages.utility.404');
+        }
+    }
+
+    public function updateApprovalFinance(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'status_finance' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+        ]);
+        try {
+            DB::beginTransaction();
+            $data = StockOpname::with([
+                'pengajuUser',
+                'stockOpnameDetails.dataBahan.dataUnit',
+            ])->findOrFail($id);
+
+            $data->status_finance = $validated['status_finance'];
+            $data->save();
+
+            if ($data->status_finance === 'Disetujui') {
+
+                //dd($purchasingUsers);
+
+                $targetPhone = $data->pengajuUser->telephone;
+                //dd($targetPhone);
+                if ($targetPhone) {
+                    $message = "Halo {$data->pengajuUser->name},\n\n";
+                    $message .= "Pengajuan stock opname dengan nomor referensi {$data->nomor_referensi} telah disetujui divisi finance.\n\n";
+                    $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->pengajuUser->name}\nKeterangan: {$data->keterangan}\n\n";
+                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                    SendWhatsAppApproveLeader::dispatch($targetPhone, $message);
+                    LogHelper::success("Pesan sedang dikirim.");
+                } else {
+                    LogHelper::error('No valid phone number found for WhatsApp notification.');
+                }
+            }
+            DB::commit();
+            LogHelper::success("Status approval finance berhasil diubah.");
+            return redirect()->route('stock-opname.index')->with('success', 'Status approval finance berhasil diubah.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
             LogHelper::error($errorMessage);
-            return redirect()->back()->with('error', "Pesan error: $errorMessage");
+            return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
-        return redirect()->route('bahan-returs.index')->with('success', 'Status berhasil diubah.');
     }
+
+    public function updateApprovalDirektur(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'status_direktur' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+        ]);
+        try {
+            DB::beginTransaction();
+            $data = StockOpname::with([
+                'pengajuUser',
+                'stockOpnameDetails.dataBahan.dataUnit',
+            ])->findOrFail($id);
+
+            $data->status_direktur = $validated['status_direktur'];
+            $data->save();
+
+            if ($data->status_direktur === 'Disetujui') {
+
+                //dd($purchasingUsers);
+
+                $targetPhone = $data->pengajuUser->telephone;
+                //dd($targetPhone);
+                if ($targetPhone) {
+                    $message = "Halo {$data->pengajuUser->name},\n\n";
+                    $message .= "Pengajuan stock opname dengan nomor referensi {$data->nomor_referensi} telah disetujui direktur.\n\n";
+                    $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->pengajuUser->name}\nKeterangan: {$data->keterangan}\n\n";
+                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                    SendWhatsAppApproveLeader::dispatch($targetPhone, $message);
+                    LogHelper::success("Pesan sedang dikirim.");
+                } else {
+                    LogHelper::error('No valid phone number found for WhatsApp notification.');
+                }
+            }
+            DB::commit();
+            LogHelper::success("Status approval finance berhasil diubah.");
+            return redirect()->route('stock-opname.index')->with('success', 'Status approval finance berhasil diubah.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $errorMessage = $e->getMessage();
+            LogHelper::error($errorMessage);
+            return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
+        }
+    }
+
 
 
     /**
@@ -371,13 +354,13 @@ class StockOpnameController extends Controller
     public function destroy(string $id)
     {
         try{
-            $data = BahanRetur::find($id);
+            $data = StockOpname::find($id);
             if (!$data) {
                 return redirect()->back()->with('gagal', 'Transaksi tidak ditemukan.');
             }
             $data->delete();
-            LogHelper::success('Berhasil Menghapus Pengajuan Bahan Retur!');
-            return redirect()->route('bahan-returs.index')->with('success', 'Berhasil Menghapus Pengajuan Bahan Retur!');
+            LogHelper::success('Berhasil Menghapus Pengajuan Stock Opname!');
+            return redirect()->route('stock-opname.index')->with('success', 'Berhasil Menghapus Pengajuan Stock Opname!');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

@@ -12,8 +12,8 @@ class BahanStockOpnameTable extends Component
     use WithPagination;
     public $search = "";
     public $perPage = 15;
-    public $id_bahan_returs, $status,
-    $kode_transaksi, $tgl_diterima, $tgl_pengajuan, $divisi, $bahanReturDetails, $kode_produksi, $kode_projek;
+    public $id_stock_opname, $status_finance, $status_direktur,
+    $nomor_referensi, $tgl_diterima, $tgl_pengajuan, $stockOpnameDetails;
     public $filter = 'semua';
     public $totalHarga;
     public $isDeleteModalOpen = false;
@@ -22,7 +22,7 @@ class BahanStockOpnameTable extends Component
 
     public function mount()
     {
-        $this->calculateTotalHarga();
+        // $this->calculateTotalHarga();
     }
 
     public function updatingSearch()
@@ -39,41 +39,40 @@ class BahanStockOpnameTable extends Component
         }
     }
 
-    public function showBahanRetur(int $id)
+    public function showStockOpname(int $id)
     {
-        $Data = BahanRetur::with('bahanReturDetails')->findOrFail($id);
-        $this->id_bahan_returs = $id;
+        $Data = StockOpname::with('stockOpnameDetails')->findOrFail($id);
+        $this->id_stock_opname = $id;
         $this->tgl_pengajuan = $Data->tgl_pengajuan;
         $this->tgl_diterima = $Data->tgl_diterima;
-        $this->kode_produksi = $Data->produksiS ? $Data->produksiS->kode_produksi : null;
-        $this->kode_projek = $Data->projek ? $Data->projek->kode_projek : null;
-        $this->kode_transaksi = $Data->kode_transaksi;
-        $this->divisi = $Data->divisi;
-        $this->status = $Data->status;
-        $this->bahanReturDetails  = $Data->bahanReturDetails;
+        $this->nomor_referensi = $Data->nomor_referensi;
+        $this->status_finance = $Data->status_finance;
+        $this->status_direktur = $Data->status_direktur;
+        $this->stockOpnameDetails  = $Data->stockOpnameDetails;
         $this->isShowModalOpen = true;
     }
 
-    public function calculateTotalHarga()
-    {
-        $this->totalHarga = BahanRetur::where('status', 'Disetujui')->with('bahanReturDetails')
-        ->get()
-            ->sum(function ($bahanRetur) {
-                return $bahanRetur->bahanReturDetails->sum('sub_total');
-            });
-    }
+    // public function calculateTotalHarga()
+    // {
+    //     $this->totalHarga = BahanRetur::where('status', 'Disetujui')->with('stockOpnameDetails')
+    //     ->get()
+    //         ->sum(function ($bahanRetur) {
+    //             return $bahanRetur->stockOpnameDetails->sum('sub_total');
+    //         });
+    // }
 
-    public function editBahanRetur(int $id)
+    public function editStockOpname(int $id)
     {
-        $Data = BahanRetur::findOrFail($id);
-        $this->id_bahan_returs = $id;
-        $this->status = $Data->status;
+        $Data = StockOpname::findOrFail($id);
+        $this->id_stock_opname = $id;
+        $this->status_finance = $Data->status_finance;
+        $this->status_direktur = $Data->status_direktur;
         $this->isEditModalOpen = true;
     }
 
-    public function deleteBahanReturs(int $id)
+    public function deleteStockOpname(int $id)
     {
-        $this->id_bahan_returs = $id;
+        $this->id_stock_opname = $id;
         $this->isDeleteModalOpen = true;
     }
 

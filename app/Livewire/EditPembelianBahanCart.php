@@ -180,6 +180,16 @@ class EditPembelianBahanCart extends Component
         $this->editingItemId = null;
     }
 
+    public function editItemPriceLocal($itemId)
+    {
+        $this->editingItemId = $itemId;
+        if (isset($this->unit_price[$itemId])) {
+            $this->unit_price_raw[$itemId] = $this->unit_price[$itemId];
+        } else {
+            $this->unit_price_raw[$itemId] = null;
+        }
+    }
+
     public function editItem($item)
     {
         $this->editingItemId = $item;

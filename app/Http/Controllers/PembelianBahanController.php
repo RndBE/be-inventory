@@ -59,6 +59,28 @@ class PembelianBahanController extends Controller
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
 
+            $ongkir = $pembelianBahan->ongkir ?? 0;
+            $asuransi = $pembelianBahan->asuransi ?? 0;
+            $layanan = $pembelianBahan->layanan ?? 0;
+            $jasa_aplikasi = $pembelianBahan->jasa_aplikasi ?? 0;
+            $status = $pembelianBahan->status ?? null;
+            $jenis_pengajuan = $pembelianBahan->jenis_pengajuan ?? null;
+            $shipping_cost = $pembelianBahan->shipping_cost ?? 0;
+            $full_amount_fee = $pembelianBahan->full_amount_fee ??  0;
+            $value_today_fee = $pembelianBahan->value_today_fee ??  0;
+
+            $new_shipping_cost = $pembelianBahan->new_shipping_cost ?? 0;
+            $new_full_amount_fee = $pembelianBahan->new_full_amount_fee ??  0;
+            $new_value_today_fee = $pembelianBahan->new_value_today_fee ??  0;
+
+            $shipping_cost_usd = $pembelianBahan->shipping_cost_usd ?? 0;
+            $full_amount_fee_usd = $pembelianBahan->full_amount_fee_usd ??  0;
+            $value_today_fee_usd = $pembelianBahan->value_today_fee_usd ??  0;
+
+            $new_shipping_cost_usd = $pembelianBahan->new_shipping_cost_usd ?? 0;
+            $new_full_amount_fee_usd = $pembelianBahan->new_full_amount_fee_usd ??  0;
+            $new_value_today_fee_usd = $pembelianBahan->new_value_today_fee_usd ??  0;
+
             $tandaTanganPengaju = $pembelianBahan->dataUser->tanda_tangan ?? null;
 
             $tandaTanganLeader = null;
@@ -112,13 +134,14 @@ class PembelianBahanController extends Controller
                 'tandaTanganDirektur',
                 'tandaTanganPurchasing',
                 'purchasingUser',
-                'tandaTanganFinance',
-                'financeUser',
-                'tandaTanganAdminManager',
-                'adminManagerceUser',
-                'leaderName',
-                'managerName'
+                'tandaTanganFinance','new_shipping_cost','new_full_amount_fee','new_value_today_fee',
+                'financeUser','new_shipping_cost_usd','new_full_amount_fee_usd','new_value_today_fee_usd',
+                'tandaTanganAdminManager','shipping_cost_usd','full_amount_fee_usd','value_today_fee_usd',
+                'adminManagerceUser','shipping_cost','full_amount_fee','value_today_fee',
+                'leaderName','status','jenis_pengajuan',
+                'managerName','ongkir','layanan','jasa_aplikasi','asuransi'
             ));
+            return $pdf->stream("pembelian_bahan_{$id}.pdf");
 
             LogHelper::success('Berhasil generating PDF for pembelianBahan ID {$id}!');
             return $pdf->download("pembelian_bahan_{$id}.pdf");

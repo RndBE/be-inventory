@@ -120,7 +120,7 @@ class StockOpnameController extends Controller
                 'direkturName',
                 'totalSelisih',
                 'totalHargaAll'
-            ))->setPaper('a4', 'potrait');;
+            ))->setPaper('a4', 'potrait');
             return $pdf->stream("stock_opname_{$id}.pdf");
 
             LogHelper::success('Berhasil generating PDF for stock opname ID {$id}!');

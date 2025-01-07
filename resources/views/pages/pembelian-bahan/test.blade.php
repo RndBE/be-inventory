@@ -186,6 +186,9 @@
                                 <table class="w-full text-left">
                                     <tbody>
                                         @if (!empty($this->pembelianBahanDetails))
+                                            @php
+                                                $totalWithExtras = 0;
+                                            @endphp
                                             @foreach($this->pembelianBahanDetails as $detail)
                                                 <tr class="flex">
                                                     <td class="flex-1 py-1">
@@ -200,6 +203,19 @@
                                                 @php
                                                     $unitPrices = json_decode($detail->details);
                                                     $newUnitPrices = json_decode($detail->new_details);
+
+                                                    $unitPrice = $unitPrices->unit_price ?? 0;
+                                                    $newUnitPrice = $newUnitPrices->new_unit_price ?? 0;
+                                                    $jmlBahan = $detail->jml_bahan ?? 0;
+
+                                                    $finalUnitPrice = $newUnitPrice > 0 ? $newUnitPrice : $unitPrice;
+
+                                                    // Hitung subtotal untuk unit lama dan unit baru
+                                                    $oldSubTotal = $jmlBahan * $unitPrice;
+                                                    $newSubTotal = $jmlBahan * $newUnitPrice;
+                                                    $newSubTotalFinal = $jmlBahan * $finalUnitPrice;
+
+                                                    $totalWithExtras += $newSubTotalFinal;
                                                 @endphp
                                                 <tr class="flex">
                                                     <td class="min-w-[44px]">{{ $detail->jml_bahan }} x</td>
@@ -239,36 +255,54 @@
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Shipping Cost: </strong></td>
-                                                <td class="w-[150px] text-right">{{ number_format($shipping_cost) }}</td>
+                                                <td class="w-[150px] text-right">
+                                                    @if($new_shipping_cost > 0)
+                                                        <span class="line-through text-red-500">{{ number_format($shipping_cost, 0, ',', '.') }}</span>
+                                                        {{ number_format($new_shipping_cost, 0, ',', '.') }}
+                                                    @else
+                                                        {{ number_format($shipping_cost, 0, ',', '.') }}
+                                                    @endif
+                                                </td>
+
                                             </tr>
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Full Amount Fee: </strong></td>
-                                                <td class="w-[150px] text-right">{{ number_format($full_amount_fee) }}</td>
+                                                <td class="w-[150px] text-right">
+                                                    @if($new_full_amount_fee > 0)
+                                                        <span class="line-through text-red-500">{{ number_format($full_amount_fee, 0, ',', '.') }}</span>
+                                                        {{ number_format($new_full_amount_fee, 0, ',', '.') }}
+                                                    @else
+                                                        {{ number_format($full_amount_fee, 0, ',', '.') }}
+                                                    @endif
+                                                </td>
+
                                             </tr>
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Value Today Fee: </strong></td>
-                                                <td class="w-[150px] text-right">{{ number_format($value_today_fee) }}</td>
+                                                <td class="w-[150px] text-right">
+                                                    @if($new_value_today_fee > 0)
+                                                        <span class="line-through text-red-500">{{ number_format($value_today_fee, 0, ',', '.') }}</span>
+                                                        {{ number_format($new_value_today_fee, 0, ',', '.') }}
+                                                    @else
+                                                        {{ number_format($value_today_fee, 0, ',', '.') }}
+                                                    @endif
+                                                </td>
+
                                             </tr>
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Total Harga: </strong></td>
                                                 <td class="w-[150px] text-right">Rp.
                                                     @php
-                                                        $oldTotalWithExtras = $this->pembelianBahanDetails->sum('sub_total') + ($shipping_cost ?? 0) + ($full_amount_fee ?? 0) + ($value_today_fee ?? 0);
-                                                        $newTotalWithExtras = $this->pembelianBahanDetails->sum('new_sub_total') + ($shipping_cost ?? 0) + ($full_amount_fee ?? 0) + ($value_today_fee ?? 0);
+                                                        $finalTotal = $totalWithExtras + ($new_shipping_cost > 0 ? $new_shipping_cost : $shipping_cost)
+                                                                    + ($new_full_amount_fee > 0 ? $new_full_amount_fee : $full_amount_fee)
+                                                                    + ($new_value_today_fee > 0 ? $new_value_today_fee : $value_today_fee);
                                                     @endphp
-
-                                                    @if($newUnitPrices->new_unit_price ?? false)
-                                                        <span class="line-through text-red-500">{{ number_format($oldTotalWithExtras, 0, ',', '.') }}</span>
-                                                        {{ number_format($newTotalWithExtras, 0, ',', '.') }}
-                                                    @else
-                                                        {{ number_format($oldTotalWithExtras, 0, ',', '.') }}
-                                                    @endif
+                                                    {{ number_format($finalTotal, 0, ',', '.') }}
                                                 </td>
                                             </tr>
-
                                         @else
                                             <tr>
                                                 <td colspan="3" class="text-center py-2">Tidak ada detail bahan keluar yang ditemukan.</td>

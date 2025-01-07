@@ -181,14 +181,6 @@
                             $finalUnitPrice = $newUnitPrice > 0 ? $newUnitPrice : $unitPrice;
                             $finalUnitPriceUSD = $newUnitPriceUSD > 0 ? $newUnitPriceUSD : $unitPriceUSD;
 
-                            // Hitung subtotal menggunakan unit price yang sesuai
-                            // $subTotal = $jmlBahan * $finalUnitPrice;
-                            // $subTotalUSD = $jmlBahan * $finalUnitPriceUSD;
-
-                            // // Tambahkan ke grand total
-                            // $grandTotal += $subTotal;
-                            // $grandTotalUSD += $subTotalUSD;
-
                             $subTotal = $jmlBahan * $unitPrice;
                             $newSubTotal = $jmlBahan * $newUnitPrice;
                             $newSubTotalFinal = $jmlBahan * $finalUnitPrice;
@@ -219,7 +211,7 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                @if($detail['new_sub_total_usd'] === 0 || $detail['new_sub_total_usd'] === null)
+                                @if(empty($detail['new_sub_total_usd']) || $detail['new_sub_total_usd'] === 0)
                                     <span>{{ number_format($subTotalUSD, 2, ',', '.') }}</span>
                                 @else
                                     <span style="text-decoration: line-through; color: red;">
@@ -290,7 +282,7 @@
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                         <td class="px-6 py-4 text-black"></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                            @if($new_full_amount_fee_usd === 0 || is_null($new_full_amount_fee))
+                            {{-- @if($new_full_amount_fee_usd === 0 || is_null($new_full_amount_fee))
                                 <span>{{ number_format($full_amount_fee_usd, 2, ',', '.') }}</span>
                             @else
                                 <span style="text-decoration: line-through; color: red;">
@@ -298,6 +290,12 @@
                                 </span>
                                 <br>
                                 <span>{{ number_format($new_full_amount_fee_usd, 2, ',', '.') }}</span>
+                            @endif --}}
+                            @if($new_full_amount_fee_usd > 0)
+                                <span class="line-through text-red-500">{{ number_format($full_amount_fee_usd, 2, ',', '.') }}</span>
+                                {{ number_format($new_full_amount_fee_usd, 2, ',', '.') }}
+                            @else
+                                {{ number_format($full_amount_fee_usd, 2, ',', '.') }}
                             @endif
                         </td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
@@ -318,7 +316,7 @@
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                         <td class="px-6 py-4 text-black"></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                            @if($new_value_today_fee_usd === 0 || is_null($new_value_today_fee_usd))
+                            {{-- @if($new_value_today_fee_usd === 0 || is_null($new_value_today_fee_usd))
                                 <span>{{ number_format($value_today_fee_usd, 2, ',', '.') }}</span>
                             @else
                                 <span style="text-decoration: line-through; color: red;">
@@ -326,6 +324,12 @@
                                 </span>
                                 <br>
                                 <span>{{ number_format($new_value_today_fee_usd, 2, ',', '.') }}</span>
+                            @endif --}}
+                            @if($new_value_today_fee_usd > 0)
+                                <span class="line-through text-red-500">{{ number_format($value_today_fee_usd, 2, ',', '.') }}</span>
+                                {{ number_format($new_value_today_fee_usd, 2, ',', '.') }}
+                            @else
+                                {{ number_format($value_today_fee_usd, 2, ',', '.') }}
                             @endif
                         </td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>

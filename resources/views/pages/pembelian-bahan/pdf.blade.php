@@ -67,7 +67,12 @@
     </table>
 
     <!-- Centered H3 -->
+    @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Lokal')
     <h3 class="pt-6">FORM PENGAJUAN BAHAN/BARANG/ALAT LOKAL PT. ARTA TEKNOLOGI COMUNINDO</h3>
+    @endif
+    @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor')
+    <h3 class="pt-6">FORM PENGAJUAN BAHAN/BARANG/ALAT IMPOR PT. ARTA TEKNOLOGI COMUNINDO</h3>
+    @endif
 
     <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
         <tr style="text-align: left;vertical-align: top;">
@@ -83,95 +88,353 @@
             <td style="border: 1px solid black">: {{ $pembelianBahan->keterangan }}</td>
         </tr>
     </table>
-
-    <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
-        <thead>
-            <tr>
-                <th style="border: 1px solid black;">No</th>
-                <th style="border: 1px solid black;">Nama</th>
-                <th style="border: 1px solid black;">Spesifikasi</th>
-                <th style="border: 1px solid black;">Qty</th>
-                <th style="border: 1px solid black;">Satuan</th>
-                <th style="border: 1px solid black;">Harga Satuan</th>
-                <th style="border: 1px solid black;width: 20%;">Total Harga</th>
-                <th style="border: 1px solid black;">Ket Pembayaran</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php
-                $totalSubTotal = 0;
-                $newtotalSubTotal = 0;
-            @endphp
-            @foreach ($pembelianBahan->pembelianBahanDetails as $index => $detail)
-            @php
-            $unitPrices = json_decode($detail->details);
-            $newUnitPrices = json_decode($detail->new_details);
-        @endphp
+    @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Lokal')
+        <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
+            <thead>
                 <tr>
-                    <td style="border: 1px solid black; text-align: center;">{{ $index + 1 }}</td>
-                    <td style="border: 1px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
-                    <td style="border: 1px solid black">{{ $detail->spesifikasi }}</td>
-                    <td style="border: 1px solid black;text-align: center;">{{ $detail->jml_bahan }}</td>
-                    <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama }}</td>
-                    <td style="border: 1px solid black; text-align: right; padding: 5px;">
-                        <div>
-                            @if($newUnitPrices->new_unit_price ?? false)
-                                <span class="line-through">{{ number_format($unitPrices->unit_price ?? 0) }}</span>
-                            @else
-                                {{ number_format($unitPrices->unit_price ?? 0) }}
-                            @endif
-                        </div>
-                        <div>
-                            @if($newUnitPrices->new_unit_price ?? false)
-                                {{ number_format($newUnitPrices->new_unit_price ?? 0) }}
-                            @else
-                                <span class="invisible"></span>
-                            @endif
-                        </div>
-                    </td>
-                    <td style="border: 1px solid black;text-align: right;">
-                        <div>
-                            @if($newUnitPrices->new_unit_price ?? false)
-                                <span class="line-through">{{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}</span>
-                            @else
-                                {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}
-                            @endif
-                        </div>
-                        <div>
-                            @if($newUnitPrices->new_unit_price ?? false)
-                                {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0)) }}
-                            @else
-                                <span class="invisible"></span>
-                            @endif
-                        </div>
-                    </td>
-                    <td style="border: 1px solid black">{{ $detail->keterangan_pembayaran }}</td>
+                    <th style="border: 1px solid black;">No</th>
+                    <th style="border: 1px solid black;">Nama</th>
+                    <th style="border: 1px solid black;">Spesifikasi</th>
+                    <th style="border: 1px solid black;">Qty</th>
+                    <th style="border: 1px solid black;">Satuan</th>
+                    <th style="border: 1px solid black;">Harga Satuan</th>
+                    <th style="border: 1px solid black;width: 20%;">Total Harga</th>
+                    <th style="border: 1px solid black;">Ket Pembayaran</th>
                 </tr>
+            </thead>
+            <tbody>
                 @php
-                    $totalSubTotal += $detail->sub_total;
-                    $newtotalSubTotal += $detail->new_sub_total;
+                    $totalSubTotal = 0;
+                    $newtotalSubTotal = 0;
+                    $totalWithExtras = 0;
                 @endphp
-            @endforeach
-            <tr>
-                <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Total Anggaran</td>
-                <td style="border: 1px solid black; text-align: right; border-right: none;">
-                    @if($newUnitPrices->new_unit_price ?? false)
-                        <span class="line-through">Rp. {{ number_format($totalSubTotal) }}</span>
-                    @else
-                        Rp. {{ number_format($totalSubTotal) }}
-                    @endif
-                </td>
-                <td style="border: 1px solid black; text-align: right; border-left: none;">
-                    @if($newUnitPrices->new_unit_price ?? false)
-                        Rp. {{ number_format($newtotalSubTotal) }}
-                    @else
-                        <span class="invisible"></span>
-                    @endif
-                </td>
-            </tr>
-        </tbody>
+                @foreach ($pembelianBahan->pembelianBahanDetails as $index => $detail)
+                    @php
+                        $unitPrices = json_decode($detail->details);
+                        $newUnitPrices = json_decode($detail->new_details);
 
-    </table>
+                        $unitPrice = $unitPrices->unit_price ?? 0;
+                        $newUnitPrice = $newUnitPrices->new_unit_price ?? 0;
+                        $jmlBahan = $detail->jml_bahan ?? 0;
+
+                        $finalUnitPrice = $newUnitPrice > 0 ? $newUnitPrice : $unitPrice;
+                        // Hitung subtotal untuk unit lama dan unit baru
+                        $oldSubTotal = $jmlBahan * $unitPrice;
+                        $newSubTotal = $jmlBahan * $newUnitPrice;
+                        $newSubTotalFinal = $jmlBahan * $finalUnitPrice;
+
+                        $totalWithExtras += $newSubTotalFinal;
+                    @endphp
+                    <tr>
+                        <td style="border: 1px solid black; text-align: center;">{{ $index + 1 }}</td>
+                        <td style="border: 1px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
+                        <td style="border: 1px solid black">{{ $detail->spesifikasi }}</td>
+                        <td style="border: 1px solid black;text-align: center;">{{ $detail->jml_bahan }}</td>
+                        <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama }}</td>
+                        <td style="border: 1px solid black; text-align: right; padding: 5px;">
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    <span class="line-through">{{ number_format($unitPrices->unit_price ?? 0) }}</span>
+                                @else
+                                    {{ number_format($unitPrices->unit_price ?? 0) }}
+                                @endif
+                            </div>
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    {{ number_format($newUnitPrices->new_unit_price ?? 0) }}
+                                @else
+                                    <span class="invisible"></span>
+                                @endif
+                            </div>
+                        </td>
+                        <td style="border: 1px solid black;text-align: right;">
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    <span class="line-through">{{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}</span>
+                                @else
+                                    {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}
+                                @endif
+                            </div>
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0)) }}
+                                @else
+                                    <span class="invisible"></span>
+                                @endif
+                            </div>
+                        </td>
+                        <td style="border: 1px solid black">{{ $detail->keterangan_pembayaran }}</td>
+                    </tr>
+                @endforeach
+                @if($status === 'Disetujui')
+                    <tr>
+                        <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Ongkos Kirim</td>
+                        <td style="border: 1px solid black; text-align: right; border-right: none;">
+                            {{ number_format($ongkir) }}
+                        </td>
+                        <td style="border: 1px solid black; text-align: right; border-left: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Asuransi</td>
+                        <td style="border: 1px solid black; text-align: right; border-right: none;">
+                            {{ number_format($asuransi) }}
+                        </td>
+                        <td style="border: 1px solid black; text-align: right; border-left: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Layanan</td>
+                        <td style="border: 1px solid black; text-align: right; border-right: none;">
+                            {{ number_format($layanan) }}
+                        </td>
+                        <td style="border: 1px solid black; text-align: right; border-left: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Jasa Aplikasi</td>
+                        <td style="border: 1px solid black; text-align: right; border-right: none;">
+                            {{ number_format($jasa_aplikasi) }}
+                        </td>
+                        <td style="border: 1px solid black; text-align: right; border-left: none;">
+                        </td>
+                    </tr>
+                @else
+                    @php
+                        $totalWithExtras += 0;
+                    @endphp
+                @endif
+                <tr>
+                    <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Total Anggaran</td>
+                    <td style="border: 1px solid black; text-align: right; border-right: none;">
+                        @php
+                            if ($status === 'Disetujui') {
+                                $totalWithExtras += ($ongkir ?? 0) + ($asuransi ?? 0) + ($layanan ?? 0) + ($jasa_aplikasi ?? 0);
+                            }
+                        @endphp
+                        {{ number_format($totalWithExtras, 0, ',', '.') }}
+                    </td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;">
+
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
+    @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor')
+        <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid black;">No</th>
+                    <th style="border: 1px solid black;">Nama</th>
+                    <th style="border: 1px solid black;">Qty</th>
+                    <th style="border: 1px solid black;">Harga Satuan (USD)</th>
+                    <th style="border: 1px solid black;width: 20%;">Total Harga (USD)</th>
+                    <th style="border: 1px solid black;">Harga Satuan (Rp)</th>
+                    <th style="border: 1px solid black;width: 20%;">Total Harga (Rp)</th>
+                    <th style="border: 1px solid black;">Ket</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $totalSubTotal = 0;
+                    $totalSubTotalUSD = 0;
+                    $newtotalSubTotal = 0;
+                    $newtotalSubTotalUSD = 0;
+                    $totalWithExtras = 0;
+                    $totalWithExtrasUSD = 0;
+                @endphp
+                @foreach ($pembelianBahan->pembelianBahanDetails as $index => $detail)
+                    @php
+                        $unitPrices = json_decode($detail->details);
+                        $unitPricesUSD = json_decode($detail->details_usd);
+
+                        $newUnitPrices = json_decode($detail->new_details);
+                        $newUnitPricesUSD = json_decode($detail->new_details_usd);
+
+                        $unitPrice = $unitPrices->unit_price ?? 0;
+                        $unitPriceUSD = $unitPricesUSD->unit_price_usd ?? 0;
+                        $newUnitPrice = $newUnitPrices->new_unit_price ?? 0;
+                        $newUnitPriceUSD = $newUnitPricesUSD->new_unit_price_usd ?? 0;
+                        $jmlBahan = $detail->jml_bahan ?? 0;
+
+                        $finalUnitPrice = $newUnitPrice > 0 ? $newUnitPrice : $unitPrice;
+                        $finalUnitPriceUSD = $newUnitPriceUSD > 0 ? $newUnitPriceUSD : $unitPriceUSD;
+                        // Hitung subtotal untuk unit lama dan unit baru
+                        $oldSubTotal = $jmlBahan * $unitPrice;
+                        $oldSubTotalUSD = $jmlBahan * $unitPriceUSD;
+                        $newSubTotal = $jmlBahan * $newUnitPrice;
+                        $newSubTotalUSD = $jmlBahan * $newUnitPriceUSD;
+                        $newSubTotalFinal = $jmlBahan * $finalUnitPrice;
+                        $newSubTotalFinalUSD = $jmlBahan * $finalUnitPriceUSD;
+
+                        $totalWithExtras += $newSubTotalFinal;
+                        $totalWithExtrasUSD += $newSubTotalFinalUSD;
+                    @endphp
+                    <tr>
+                        <td style="border: 1px solid black; text-align: center;">{{ $index + 1 }}</td>
+                        <td style="border: 1px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
+                        <td style="border: 1px solid black;text-align: center;">{{ $detail->jml_bahan }}</td>
+                        <td style="border: 1px solid black; text-align: right; padding: 5px;">
+                            <div>
+                                @if($newUnitPricesUSD->new_unit_price_usd ?? false)
+                                    <span class="line-through">{{ number_format(optional($unitPricesUSD)->unit_price_usd ?? 0, 2, '.', ',') }}</span>
+                                @else
+                                    {{ number_format(optional($unitPricesUSD)->unit_price_usd ?? 0, 2, '.', ',') }}
+                                @endif
+                            </div>
+                            <div>
+                                @if($newUnitPricesUSD->new_unit_price_usd ?? false)
+                                    {{ number_format(optional($newUnitPricesUSD)->new_unit_price_usd ?? 0, 2, '.', ',') }}
+                                @else
+                                    <span class="invisible"></span>
+                                @endif
+                            </div>
+                        </td>
+                        <td style="border: 1px solid black;text-align: right;">
+                            <div>
+                                @if(optional($newUnitPricesUSD)->new_unit_price_usd)
+                                    <span class="line-through">
+                                        {{ number_format(($detail->jml_bahan * (optional($unitPricesUSD)->unit_price_usd ?? 0)), 2, '.', ',') }}
+                                    </span>
+                                @else
+                                    {{ number_format(($detail->jml_bahan * (optional($unitPricesUSD)->unit_price_usd ?? 0)), 2, '.', ',') }}
+                                @endif
+                            </div>
+                            <div>
+                                @if(optional($newUnitPricesUSD)->new_unit_price_usd)
+                                    {{ number_format(($detail->jml_bahan * (optional($newUnitPricesUSD)->new_unit_price_usd ?? 0)), 2, '.', ',') }}
+                                @else
+                                    <span class="invisible"></span>
+                                @endif
+                            </div>
+                        </td>
+
+                        <td style="border: 1px solid black; text-align: right; padding: 5px;">
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    <span class="line-through">{{ number_format($unitPrices->unit_price ?? 0) }}</span>
+                                @else
+                                    {{ number_format($unitPrices->unit_price ?? 0) }}
+                                @endif
+                            </div>
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    {{ number_format($newUnitPrices->new_unit_price ?? 0) }}
+                                @else
+                                    <span class="invisible"></span>
+                                @endif
+                            </div>
+                        </td>
+                        <td style="border: 1px solid black;text-align: right;">
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    <span class="line-through">{{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}</span>
+                                @else
+                                    {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}
+                                @endif
+                            </div>
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0)) }}
+                                @else
+                                    <span class="invisible"></span>
+                                @endif
+                            </div>
+                        </td>
+
+                        <td style="border: 1px solid black">{{ $detail->keterangan_pembayaran }}</td>
+                    </tr>
+                @endforeach
+                <tr>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;"></td>
+                    <td style="border: 1px solid black; text-align: left; border-left: none;font-weight: bold;">Shipping Cost</td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;"></td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;"></td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;">
+                        @if($new_shipping_cost_usd > 0)
+                            <span class="line-through text-red-500">{{ number_format($shipping_cost_usd, 2, ',', '.') }}</span>
+                            {{ number_format($new_shipping_cost_usd, 2, ',', '.') }}
+                        @else
+                            {{ number_format($shipping_cost_usd, 2, ',', '.') }}
+                        @endif
+                    </td>
+                    <td style="border: 1px solid black; text-align: right; "></td>
+                    <td style="border: 1px solid black; text-align: right; ">
+                        @if($new_shipping_cost > 0)
+                            <span class="line-through text-red-500">{{ number_format($shipping_cost, 0, ',', '.') }}</span>
+                            {{ number_format($new_shipping_cost, 0, ',', '.') }}
+                        @else
+                            {{ number_format($shipping_cost, 0, ',', '.') }}
+                        @endif
+                    </td>
+                    <td style="border: 1px solid black; text-align: right; "></td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;"></td>
+                    <td style="border: 1px solid black; text-align: left; border-left: none;font-weight: bold;">Full Amount Fee</td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;"></td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;"></td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;">
+                        @if($new_full_amount_fee_usd > 0)
+                            <span class="line-through text-red-500">{{ number_format($full_amount_fee_usd, 2, ',', '.') }}</span>
+                            {{ number_format($new_full_amount_fee_usd, 2, ',', '.') }}
+                        @else
+                            {{ number_format($full_amount_fee_usd, 2, ',', '.') }}
+                        @endif
+                    </td>
+                    <td style="border: 1px solid black; text-align: right; "></td>
+                    <td style="border: 1px solid black; text-align: right; ">
+                        @if($new_full_amount_fee > 0)
+                            <span class="line-through text-red-500">{{ number_format($full_amount_fee, 0, ',', '.') }}</span>
+                            {{ number_format($new_full_amount_fee, 0, ',', '.') }}
+                        @else
+                            {{ number_format($full_amount_fee, 0, ',', '.') }}
+                        @endif
+                    </td>
+                    <td style="border: 1px solid black; text-align: right; "></td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;"></td>
+                    <td style="border: 1px solid black; text-align: left; border-left: none;font-weight: bold;">Value Today Fee</td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;"></td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;"></td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;">
+                        @if($new_value_today_fee_usd > 0)
+                            <span class="line-through text-red-500">{{ number_format($value_today_fee_usd, 2, ',', '.') }}</span>
+                            {{ number_format($new_value_today_fee_usd, 2, ',', '.') }}
+                        @else
+                            {{ number_format($value_today_fee_usd, 2, ',', '.') }}
+                        @endif
+                    </td>
+                    <td style="border: 1px solid black; text-align: right; "></td>
+                    <td style="border: 1px solid black; text-align: right; ">
+                        @if($new_value_today_fee > 0)
+                            <span class="line-through text-red-500">{{ number_format($value_today_fee, 0, ',', '.') }}</span>
+                            {{ number_format($new_value_today_fee, 0, ',', '.') }}
+                        @else
+                            {{ number_format($value_today_fee, 0, ',', '.') }}
+                        @endif
+                    </td>
+                    <td style="border: 1px solid black; text-align: right; "></td>
+                </tr>
+                <tr>
+                    <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Total Anggaran</td>
+                    <td style="border: 1px solid black; text-align: right; border-right: none;">
+                        @php
+                            $finalTotal = $totalWithExtras + ($new_shipping_cost > 0 ? $new_shipping_cost : $shipping_cost)
+                                        + ($new_full_amount_fee > 0 ? $new_full_amount_fee : $full_amount_fee)
+                                        + ($new_value_today_fee > 0 ? $new_value_today_fee : $value_today_fee);
+                        @endphp
+                        {{ number_format($finalTotal, 0, ',', '.') }}
+                    </td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;">
+
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
 
     <table style="width: 100%;border-collapse: collapse;padding-top:10;">
         <tr style="text-align: left; vertical-align: top;">

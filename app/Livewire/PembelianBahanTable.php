@@ -14,7 +14,7 @@ class PembelianBahanTable extends Component
     public $search = "";
     public $perPage = 25;
     public $id_pembelian_bahan, $status,
-    $kode_transaksi, $tgl_keluar, $divisi, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan;
+    $kode_transaksi, $tgl_keluar, $divisi, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $new_value_today_fee;
     public $filter = 'semua';
     public $totalHarga;
     public $isShowModalOpen = false;
@@ -62,6 +62,10 @@ class PembelianBahanTable extends Component
         $this->shipping_cost = $Data->shipping_cost;
         $this->full_amount_fee = $Data->full_amount_fee;
         $this->value_today_fee = $Data->value_today_fee;
+
+        $this->new_shipping_cost = $Data->new_shipping_cost;
+        $this->new_full_amount_fee = $Data->new_full_amount_fee;
+        $this->new_value_today_fee = $Data->new_value_today_fee;
         $this->isShowModalOpen = true;
     }
 

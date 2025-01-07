@@ -100,6 +100,16 @@ class PengajuanController extends Controller
             $user = Auth::user();
             $jenisPengajuan = $request->jenis_pengajuan;
 
+            if ($jenisPengajuan === 'Pembelian Bahan/Barang/Alat Lokal') {
+                $prefix = 'PBL-';
+            } elseif ($jenisPengajuan === 'Pembelian Bahan/Barang/Alat Impor') {
+                $prefix = 'PBI-';
+            } elseif ($jenisPengajuan === 'Pembelian Aset') {
+                $prefix = 'PA-';
+            } else {
+                $prefix = 'PB-';
+            }
+
             $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
                 $query->where('nama', 'Purchasing');
             })->where('job_level', 3)->first();
@@ -108,14 +118,17 @@ class PengajuanController extends Controller
                 $query->where('nama', 'Secretary');
             })->where('job_level', 4)->first();
 
-            $lastTransaction = PembelianBahan::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
-            $new_transaction_number = ($lastTransaction ? intval(substr($lastTransaction->kode_transaksi, 6)) : 0) + 1;
-            $kode_transaksi = 'KPB - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT). ' PBL';
             $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
-            $lastTransactionProjek = Pengajuan::orderByRaw('CAST(SUBSTRING(kode_pengajuan, 7) AS UNSIGNED) DESC')->first();
-            $new_transaction_number_produksi = ($lastTransactionProjek ? intval(substr($lastTransactionProjek->kode_pengajuan, 6)) : 0) + 1;
-            $kode_pengajuan = 'PBL - ' . str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
+            // Buat kode transaksi berdasarkan jenis pengajuan
+            $lastTransaksi = PembelianBahan::latest()->first();
+            $nextNumber = $lastTransaksi ? intval(substr($lastTransaksi->kode_transaksi, -4)) + 1 : 1;
+            $kode_transaksi = $prefix . date('Ymd') . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+            // Buat kode pengajuan berdasarkan jenis pengajuan
+            $lastPengajuan = Pengajuan::latest()->first();
+            $nextNumber = $lastPengajuan ? intval(substr($lastPengajuan->kode_pengajuan, -4)) + 1 : 1;
+            $kode_pengajuan = $prefix . date('Ymd') . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
             if ($jenisPengajuan === 'Pembelian Bahan/Barang/Alat Lokal' || $jenisPengajuan === 'Pembelian Bahan/Barang/Alat Impor') {
                 if ($user->job_level == 3 && $user->atasan_level3_id === null) {
@@ -190,8 +203,6 @@ class PengajuanController extends Controller
                     $recipientName = $generalManagerUser ? $generalManagerUser->name : 'Secretary';
                 }
             }
-
-
 
             // Simpan data pengajuan
             $pengajuan = Pengajuan::create([
@@ -275,8 +286,6 @@ class PengajuanController extends Controller
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan data: ' . $e->getMessage());
         }
     }
-
-
 
     public function edit(string $id)
     {

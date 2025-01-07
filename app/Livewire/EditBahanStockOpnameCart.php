@@ -22,7 +22,7 @@ class EditBahanStockOpnameCart extends Component
     public $tersedia_fisik_raw = [];
     public $keterangan_raw = [];
     public $keterangan = [];
-    public $status_direktur;
+    public $status_selesai;
 
     protected $listeners = ['bahanSelected' => 'addToCart'];
 
@@ -37,7 +37,7 @@ class EditBahanStockOpnameCart extends Component
         }
 
         $stockOpname = StockOpname::findOrFail($stockOpnameId);
-        $this->status_direktur = $stockOpname->status_direktur;
+        $this->status_selesai = $stockOpname->status_selesai;
     }
 
     public function loadCartItems()

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('bahan_keluar_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('bahan_keluar_id')->constrained('bahan_keluars')->onDelete('cascade');
-            $table->foreignId('bahan_id')->constrained('bahan'); // assuming 'bahan' table exists
+            $table->foreignId('bahan_id')->constrained('bahan');
             $table->integer('qty');
             $table->integer('jml_bahan')->nullable();
             $table->integer('used_materials')->nullable();

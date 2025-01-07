@@ -407,7 +407,7 @@ class StockOpnameController extends Controller
                     ->get();
 
                 $detailsArray = [];
-                $totalHarga = 0; // To accumulate total price
+                $totalHarga = 0;
 
                 foreach ($purchaseDetails as $purchaseDetail) {
                     if ($selisih <= 0) break;
@@ -416,9 +416,6 @@ class StockOpnameController extends Controller
                     $purchaseDetail->sisa -= $qtyTerpakai;
                     $purchaseDetail->save();
 
-                    // Calculate price for the used quantity
-                    $harga = $qtyTerpakai * $purchaseDetail->unit_price;
-
                     $detailsArray[] = [
                         'kode_transaksi' => $purchaseDetail->kode_transaksi,
                         'qty' => $qtyTerpakai,
@@ -426,18 +423,31 @@ class StockOpnameController extends Controller
                     ];
 
                     $selisih -= $qtyTerpakai;
-                    $totalHarga += $harga; // Accumulate total price
                 }
 
-                // Create BahanKeluarDetails with the calculated total price
+                $groupedDetails = [];
+                foreach ($detailsArray as $detailItem) {
+                    $unitPrice = $detailItem['unit_price'];
+                    if (isset($groupedDetails[$unitPrice])) {
+                        $groupedDetails[$unitPrice]['qty'] += $detailItem['qty'];
+                    } else {
+                        $groupedDetails[$unitPrice] = [
+                            'qty' => $detailItem['qty'],
+                            'unit_price' => $unitPrice,
+                        ];
+                    }
+                }
+
                 BahanKeluarDetails::create([
                     'bahan_keluar_id' => $bahan_keluar->id,
                     'bahan_id' => $detail->dataBahan->id,
-                    'qty' => $qtyTerpakai,
-                    'jml_bahan' => $qtyTerpakai,
-                    'used_materials' => $qtyTerpakai,
-                    'details' => json_encode($detailsArray),
-                    'sub_total' => $totalHarga, // Use the accumulated total price
+                    'qty' => array_sum(array_column($groupedDetails, 'qty')),
+                    'jml_bahan' => array_sum(array_column($groupedDetails, 'qty')),
+                    'used_materials' => array_sum(array_column($groupedDetails, 'qty')),
+                    'details' => json_encode(array_values($groupedDetails)),
+                    'sub_total' => array_sum(array_map(function($item) {
+                        return $item['qty'] * $item['unit_price'];
+                    }, $groupedDetails)),
                 ]);
             }
 

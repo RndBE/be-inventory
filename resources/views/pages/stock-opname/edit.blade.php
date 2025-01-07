@@ -102,15 +102,16 @@
                 <div class="mt-2 flex items-center justify-end gap-x-2">
                     <a href="{{ route('stock-opname.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
 
-                    <a href="{{ route('stock-opname.downloadPdf', $stockOpname->id) }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[20px] h-[20px] icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" />
-                            <path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" />
-                        </svg>
-                    </a>
-
+                    @if($stockOpname->status_selesai !== 'Selesai')
+                        <a href="{{ route('stock-opname.downloadPdf', $stockOpname->id) }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[20px] h-[20px] icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" />
+                                <path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" />
+                            </svg>
+                        </a>
+                    @endif
                     @can('selesai-stock-opname')
-                        @if($stockOpname->status_direktur === 'Disetujui')
+                        @if($stockOpname->status_direktur === 'Disetujui' && $stockOpname->status_selesai !== 'Selesai')
                             <button class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600" type="button" data-modal-target="statustockopnameselesai-modal"
                             data-modal-toggle="statustockopnameselesai-modal">Selesai
                             </button>
@@ -134,7 +135,7 @@
                     @endcan
 
                     @can('update-stock-opname')
-                        @if($stockOpname->status_direktur !== 'Disetujui' && $stockOpname->status_direktur !== 'Ditolak')
+                        @if($stockOpname->status_selesai !== 'Selesai')
                             <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
                         @endif
                     @endcan

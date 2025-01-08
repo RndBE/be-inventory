@@ -73,6 +73,9 @@
     @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor')
     <h3 class="pt-6">FORM PENGAJUAN BAHAN/BARANG/ALAT IMPOR PT. ARTA TEKNOLOGI COMUNINDO</h3>
     @endif
+    @if($jenis_pengajuan === 'Pembelian Aset')
+    <h3 class="pt-6">FORM PENGAJUAN ASET PT. ARTA TEKNOLOGI COMUNINDO</h3>
+    @endif
 
     <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
         <tr style="text-align: left;vertical-align: top;">
@@ -206,7 +209,7 @@
                 @endif
                 <tr>
                     <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Total Anggaran</td>
-                    <td style="border: 1px solid black; text-align: right; border-right: none;">
+                    <td style="border: 1px solid black; text-align: right; border-right: none;">Rp.
                         @php
                             if ($status === 'Disetujui') {
                                 $totalWithExtras += ($ongkir ?? 0) + ($asuransi ?? 0) + ($layanan ?? 0) + ($jasa_aplikasi ?? 0);
@@ -420,7 +423,7 @@
                 </tr>
                 <tr>
                     <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Total Anggaran</td>
-                    <td style="border: 1px solid black; text-align: right; border-right: none;">
+                    <td style="border: 1px solid black; text-align: right; border-right: none;">Rp.
                         @php
                             $finalTotal = $totalWithExtras + ($new_shipping_cost > 0 ? $new_shipping_cost : $shipping_cost)
                                         + ($new_full_amount_fee > 0 ? $new_full_amount_fee : $full_amount_fee)
@@ -435,104 +438,349 @@
             </tbody>
         </table>
     @endif
+    @if($jenis_pengajuan === 'Pembelian Aset')
+        <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid black;">No</th>
+                    <th style="border: 1px solid black;">Nama</th>
+                    <th style="border: 1px solid black;">Spesifikasi</th>
+                    <th style="border: 1px solid black;">Qty</th>
+                    <th style="border: 1px solid black;">Harga Satuan</th>
+                    <th style="border: 1px solid black;width: 20%;">Total Harga</th>
+                    <th style="border: 1px solid black;">Penanggung Jawab Aset</th>
+                    <th style="border: 1px solid black;">Keterangan/Alasan Pembelian Aset</th>
+                    <th style="border: 1px solid black;">Ket Pembayaran</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $totalSubTotal = 0;
+                    $newtotalSubTotal = 0;
+                    $totalWithExtras = 0;
+                @endphp
+                @foreach ($pembelianBahan->pembelianBahanDetails as $index => $detail)
+                    @php
+                        $unitPrices = json_decode($detail->details);
+                        $newUnitPrices = json_decode($detail->new_details);
 
-    <table style="width: 100%;border-collapse: collapse;padding-top:10;">
-        <tr style="text-align: left; vertical-align: top;">
-            <td style=" text-align: center;"><strong>Pengaju</strong></td>
-            <td style=" text-align: center;"><strong>PJ/Leader</strong></td>
-            <td style=" text-align: center;"><strong>Purchasing</strong></td>
-            <td style=" text-align: center;"><strong>Manager</strong></td>
-        </tr>
-        <tr>
-            <td style="text-align: center; width: 25%;">
-                @if($tandaTanganPengaju)
-                    <img src="{{ public_path('storage/' . $tandaTanganPengaju) }}" alt="Tanda Tangan Pengaju" style="height: 80px; width: 150px; object-fit: contain;">
-                @else
-                <div style="height: 80px; width: 150px;"></div>
-                @endif
-            </td>
-            <td style="text-align: center; width: 25%;">
-                @if($tandaTanganLeader)
-                    <img src="{{ public_path('storage/' . $tandaTanganLeader) }}" alt="Tanda Tangan Leader" style="height: 80px; width: 150px; object-fit: contain;">
-                @else
-                    <div style="height: 80px; width: 150px;"></div>
-                @endif
-            </td>
-            <td style="text-align: center; width: 25%;">
-                @if($tandaTanganPurchasing)
-                    <img src="{{ public_path('storage/' . $tandaTanganPurchasing) }}" alt="Tanda Tangan Purchasing" style="height: 80px; width: 150px; object-fit: contain;">
-                @else
-                    <div style="height: 80px; width: 150px;"></div>
-                @endif
-            </td>
-            <td style="text-align: center; width: 25%;">
-                @if($tandaTanganManager)
-                    <img src="{{ public_path('storage/' . $tandaTanganManager) }}" alt="Tanda Tangan Manager" style="height: 80px; width: 150px; object-fit: contain;">
-                @else
-                    <div style="height: 80px; width: 150px;"></div>
-                @endif
-            </td>
-        </tr>
+                        $unitPrice = $unitPrices->unit_price ?? 0;
+                        $newUnitPrice = $newUnitPrices->new_unit_price ?? 0;
+                        $jmlBahan = $detail->jml_bahan ?? 0;
 
-        <tr style="text-align: left; vertical-align: top;">
-            <td style="text-align: center;">
-                {{ $pembelianBahan->dataUser->name }}
-            </td>
-            <td style="text-align: center;">
-                {{ $leaderName ?? '' }}
-            </td>
-            <td style="text-align: center;">
-                {{ $purchasingUser->name }}
-            </td>
-            <td style="text-align: center;">
-                {{ $managerName ?? '' }}
-            </td>
-        </tr>
+                        $finalUnitPrice = $newUnitPrice > 0 ? $newUnitPrice : $unitPrice;
+                        // Hitung subtotal untuk unit lama dan unit baru
+                        $oldSubTotal = $jmlBahan * $unitPrice;
+                        $newSubTotal = $jmlBahan * $newUnitPrice;
+                        $newSubTotalFinal = $jmlBahan * $finalUnitPrice;
 
+                        $totalWithExtras += $newSubTotalFinal;
+                    @endphp
+                    <tr>
+                        <td style="border: 1px solid black; text-align: center;">{{ $index + 1 }}</td>
+                        <td style="border: 1px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
+                        <td style="border: 1px solid black">{{ $detail->spesifikasi }}</td>
+                        <td style="border: 1px solid black;text-align: center;">{{ $detail->jml_bahan }}</td>
+                        <td style="border: 1px solid black; text-align: right; padding: 5px;">
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    <span class="line-through">{{ number_format($unitPrices->unit_price ?? 0) }}</span>
+                                @else
+                                    {{ number_format($unitPrices->unit_price ?? 0) }}
+                                @endif
+                            </div>
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    {{ number_format($newUnitPrices->new_unit_price ?? 0) }}
+                                @else
+                                    <span class="invisible"></span>
+                                @endif
+                            </div>
+                        </td>
+                        <td style="border: 1px solid black;text-align: right;">
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    <span class="line-through">{{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}</span>
+                                @else
+                                    {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}
+                                @endif
+                            </div>
+                            <div>
+                                @if($newUnitPrices->new_unit_price ?? false)
+                                    {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0)) }}
+                                @else
+                                    <span class="invisible"></span>
+                                @endif
+                            </div>
+                        </td>
+                        <td style="border: 1px solid black">{{ $detail->penanggungjawabaset }}</td>
+                        <td style="border: 1px solid black">{{ $detail->alasan }}</td>
+                        <td style="border: 1px solid black">{{ $detail->keterangan_pembayaran }}</td>
+                    </tr>
+                @endforeach
+                <tr>
+                    <td colspan="5" style="border: 1px solid black; text-align: right; font-weight: bold;">Total Anggaran</td>
+                    <td style="border: 1px solid black; text-align: right;">Rp.
+                        {{ number_format($totalWithExtras, 0, ',', '.') }}
+                    </td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;">
 
-        <tr>
-            <td colspan="4"  style="text-align: center;padding:7;"><strong> Mengetahui, </strong></td>
-        </tr>
-        <tr style="text-align: left; vertical-align: top;">
-            <td style=" text-align: center;"><strong>Finance</strong></td>
-            <td colspan="2" style=" text-align: center;"><strong>Manager Admin</strong></td>
-            <td style=" text-align: center;"><strong>Direktur</strong></td>
-        </tr>
-        <tr>
-            <td style="text-align: center; width: 33%;">
-                @if($tandaTanganFinance)
-                    <img src="{{ public_path('storage/' . $tandaTanganFinance) }}" alt="Tanda Tangan Finance" style="height: 80px;">
-                @else
+                    </td>
+                    <td style="border: 1px solid black; text-align: right;">
+
+                    </td>
+                    <td style="border: 1px solid black; text-align: right; border-left: none;">
+
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
+    @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Lokal' && $jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor')
+        <table style="width: 100%;border-collapse: collapse;padding-top:10;">
+            <tr style="text-align: left; vertical-align: top;">
+                <td style=" text-align: center;"><strong>Pengaju</strong></td>
+                <td style=" text-align: center;"><strong>PJ/Leader</strong></td>
+                <td style=" text-align: center;"><strong>Purchasing</strong></td>
+                <td style=" text-align: center;"><strong>Manager</strong></td>
+            </tr>
+            <tr>
+                <td style="text-align: center; width: 25%;">
+                    @if($tandaTanganPengaju)
+                        <img src="{{ public_path('storage/' . $tandaTanganPengaju) }}" alt="Tanda Tangan Pengaju" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
                     <div style="height: 80px; width: 150px;"></div>
-                @endif
-            </td>
-            <td colspan="2" style="text-align: center;">
-                <div style="height: 80px; width: 150px;"></div>
-            </td>
-            <td style="text-align: center; width: 33%;">
-                <div style="height: 80px; width: 150px;"></div>
-            </td>
-        </tr>
-        <tr style="text-align: left; vertical-align: top;">
-            <td style="text-align: center;">{{ $financeUser->name }}</td>
-            <td colspan="2" style="text-align: center;">{{$adminManagerceUser->name}}</td>
-            <td style="text-align: center;">
-                @if($pembelianBahan->dataUser->atasanLevel1)
-                    {{ $pembelianBahan->dataUser->atasanLevel1->name }}
-                @else
+                    @endif
+                </td>
+                <td style="text-align: center; width: 25%;">
+                    @if($tandaTanganLeader)
+                        <img src="{{ public_path('storage/' . $tandaTanganLeader) }}" alt="Tanda Tangan Leader" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+                <td style="text-align: center; width: 25%;">
+                    @if($tandaTanganPurchasing)
+                        <img src="{{ public_path('storage/' . $tandaTanganPurchasing) }}" alt="Tanda Tangan Purchasing" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+                <td style="text-align: center; width: 25%;">
+                    @if($tandaTanganManager)
+                        <img src="{{ public_path('storage/' . $tandaTanganManager) }}" alt="Tanda Tangan Manager" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+            </tr>
+
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;">
                     {{ $pembelianBahan->dataUser->name }}
-                @endif
-            </td>
-        </tr>
-        <tr>
-            <td colspan="4"  style="text-align: center;padding:7;"><strong>  </strong></td>
-        </tr>
-        <tr style="text-align: left; vertical-align: top;">
-            <td style="text-align: center;"></td>
-            <td style="text-align: center;"></td>
-            <td colspan="2" style="text-align: center;">Pembayaran: </td>
-        </tr>
-    </table>
+                </td>
+                <td style="text-align: center;">
+                    {{ $leaderName ?? '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $purchasingUser->name }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $managerName ?? '' }}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td colspan="4"  style="text-align: center;padding:7;"><strong> Mengetahui, </strong></td>
+            </tr>
+            <tr style="text-align: left; vertical-align: top;">
+                <td style=" text-align: center;"><strong>Finance</strong></td>
+                <td colspan="2" style=" text-align: center;"><strong>Manager Admin</strong></td>
+                <td style=" text-align: center;"><strong>Direktur</strong></td>
+            </tr>
+            <tr>
+                <td style="text-align: center; width: 33%;">
+                    @if($tandaTanganFinance)
+                        <img src="{{ public_path('storage/' . $tandaTanganFinance) }}" alt="Tanda Tangan Finance" style="height: 80px;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+                <td colspan="2" style="text-align: center;">
+                    <div style="height: 80px; width: 150px;"></div>
+                </td>
+                <td style="text-align: center; width: 33%;">
+                    <div style="height: 80px; width: 150px;"></div>
+                </td>
+            </tr>
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;">{{ $financeUser->name }}</td>
+                <td colspan="2" style="text-align: center;">{{$adminManagerceUser->name}}</td>
+                <td style="text-align: center;">
+                    @if($pembelianBahan->dataUser->atasanLevel1)
+                        {{ $pembelianBahan->dataUser->atasanLevel1->name }}
+                    @else
+                        {{ $pembelianBahan->dataUser->name }}
+                    @endif
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4"  style="text-align: center;padding:7;"><strong>  </strong></td>
+            </tr>
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;"></td>
+                <td style="text-align: center;"></td>
+                <td colspan="2" style="text-align: center;">Pembayaran: </td>
+            </tr>
+        </table>
+    @else
+        <table style="width: 100%;border-collapse: collapse;padding-top:10;">
+            <tr style="text-align: left; vertical-align: top;">
+                <td style=" text-align: center;"><strong>Pengaju</strong></td>
+                <td style=" text-align: center;"><strong>PJ/Leader</strong></td>
+                <td style=" text-align: center;"><strong>General Affair</strong></td>
+                <td style=" text-align: center;"><strong>Purchasing</strong></td>
+            </tr>
+            <tr>
+                <td style="text-align: center; width: 25%;">
+                    @if($tandaTanganPengaju)
+                        <img src="{{ public_path('storage/' . $tandaTanganPengaju) }}" alt="Tanda Tangan Pengaju" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
+                    <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+                <td style="text-align: center; width: 25%;">
+                    @if($tandaTanganLeader)
+                        <img src="{{ public_path('storage/' . $tandaTanganLeader) }}" alt="Tanda Tangan Leader" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+                <td style="text-align: center; width: 25%;">
+                    @if($tandaTanganGeneral)
+                        <img src="{{ public_path('storage/' . $tandaTanganGeneral) }}" alt="Tanda Tangan General" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+                <td style="text-align: center; width: 25%;">
+                    @if($tandaTanganPurchasing)
+                        <img src="{{ public_path('storage/' . $tandaTanganPurchasing) }}" alt="Tanda Tangan Purchasing" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+            </tr>
+
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->dataUser->name }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $leaderName ?? '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $generalUser->name }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $purchasingUser->name }}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td colspan="4"  style="text-align: center;padding:7;"><strong> Mengetahui, </strong></td>
+            </tr>
+
+            <tr style="text-align: left; vertical-align: top;">
+                <td style=" text-align: center;"><strong>Manager</strong></td>
+                <td style=" text-align: center;"><strong>Finance</strong></td>
+                <td style=" text-align: center;"><strong>Manager Admin</strong></td>
+                <td style=" text-align: center;"><strong>Direktur</strong></td>
+            </tr>
+            <tr>
+                <td style="text-align: center; width: 25%;">
+                    @if($tandaTanganManager)
+                        <img src="{{ public_path('storage/' . $tandaTanganManager) }}" alt="Tanda Tangan Manager" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+                <td style="text-align: center; width: 25%;">
+                    @if($tandaTanganFinance)
+                        <img src="{{ public_path('storage/' . $tandaTanganFinance) }}" alt="Tanda Tangan Finance" style="height: 80px;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+                <td style="text-align: center; width: 25%;">
+
+                </td>
+                <td style="text-align: center; width: 25%;">
+
+                </td>
+            </tr>
+
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;">
+                    {{ $managerName ?? '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $financeUser->name }}
+                </td>
+                <td style="text-align: center;">
+                    {{$adminManagerceUser->name}}
+                </td>
+                <td style="text-align: center;">
+                    @if($pembelianBahan->dataUser->atasanLevel1)
+                        {{ $pembelianBahan->dataUser->atasanLevel1->name }}
+                    @else
+                        {{ $pembelianBahan->dataUser->name }}
+                    @endif
+                </td>
+            </tr>
+            {{-- <tr style="text-align: left; vertical-align: top;">
+                <td style=" text-align: center;"><strong>Finance</strong></td>
+                <td colspan="2" style=" text-align: center;"><strong>Manager Admin</strong></td>
+                <td style=" text-align: center;"><strong>Direktur</strong></td>
+            </tr>
+            <tr>
+                <td style="text-align: center; width: 33%;">
+                    @if($tandaTanganFinance)
+                        <img src="{{ public_path('storage/' . $tandaTanganFinance) }}" alt="Tanda Tangan Finance" style="height: 80px;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+                <td colspan="2" style="text-align: center;">
+                    <div style="height: 80px; width: 150px;"></div>
+                </td>
+                <td style="text-align: center; width: 33%;">
+                    <div style="height: 80px; width: 150px;"></div>
+                </td>
+            </tr>
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;">{{ $financeUser->name }}</td>
+                <td colspan="2" style="text-align: center;">{{$adminManagerceUser->name}}</td>
+                <td style="text-align: center;">
+                    @if($pembelianBahan->dataUser->atasanLevel1)
+                        {{ $pembelianBahan->dataUser->atasanLevel1->name }}
+                    @else
+                        {{ $pembelianBahan->dataUser->name }}
+                    @endif
+                </td>
+            </tr> --}}
+            <tr>
+                <td colspan="4"  style="text-align: center;padding:7;"><strong>  </strong></td>
+            </tr>
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;"></td>
+                <td style="text-align: center;"></td>
+                <td colspan="2" style="text-align: center;">Pembayaran: </td>
+            </tr>
+        </table>
+    @endif
 
     @livewireScripts
 </body>

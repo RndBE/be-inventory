@@ -163,6 +163,8 @@ class UpdateHargaPembelianBahanCart extends Component
                     'details' => $decodedDetails,
                     'keterangan_pembayaran' => $this->keterangan_pembayaran[$detail->bahan_id],
                     'spesifikasi' => $detail->spesifikasi ?? '',
+                    'alasan' => $detail->alasan ?? '',
+                    'penanggungjawabaset' => $detail->penanggungjawabaset ?? '',
                 ];
                 $this->new_unit_price[$detail->bahan_id] = $newUnitPrice;
                 $this->unit_price[$detail->bahan_id] = $unitPrice;

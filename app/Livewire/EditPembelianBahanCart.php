@@ -116,6 +116,8 @@ class EditPembelianBahanCart extends Component
                     'details' => $decodedDetails,
                     'keterangan_pembayaran' => $this->keterangan_pembayaran[$detail->bahan_id],
                     'spesifikasi' => $detail->spesifikasi ?? '',
+                    'penanggungjawabaset' => $detail->penanggungjawabaset ?? '',
+                    'alasan' => $detail->alasan ?? '',
                 ];
                 $this->unit_price[$detail->bahan_id] = $unitPrice;
                 $this->unit_price_usd[$detail->bahan_id] = $unitPriceUSD;

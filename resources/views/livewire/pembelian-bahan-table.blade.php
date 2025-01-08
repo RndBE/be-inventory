@@ -169,6 +169,12 @@
                                                 </button>
                                             @endif
                                         @endcan
+                                        @can('edit-approvepembelian-gm')
+                                            @if($pembelian_bahan->status_leader == 'Disetujui' && $pembelian_bahan->status_general_manager !== 'Disetujui' && $pembelian_bahan->status_general_manager !== 'Ditolak' && $pembelian_bahan->jenis_pengajuan == 'Pembelian Aset')
+                                                <button wire:click="editGMPembelianBahan({{ $pembelian_bahan->id }})" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">Approve General Manager
+                                                </button>
+                                            @endif
+                                        @endcan
                                         @can('edit-approve-purchasing')
                                             @if($pembelian_bahan->status_leader == 'Disetujui' && $pembelian_bahan->status_purchasing !== 'Disetujui' && $pembelian_bahan->status_purchasing !== 'Ditolak')
                                                 <button wire:click="editPurchasingPembelianBahan({{ $pembelian_bahan->id }})" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">Approve Purchasing
@@ -249,6 +255,7 @@
         {{-- MODAL --}}
         @include('pages.pembelian-bahan.test')
         @include('pages.pembelian-bahan.approval-leader')
+        @include('pages.pembelian-bahan.approval-general-manager')
         @include('pages.pembelian-bahan.approval-manager')
         @include('pages.pembelian-bahan.approval-purchasing')
         @include('pages.pembelian-bahan.approval-finance')

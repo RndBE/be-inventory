@@ -14,12 +14,13 @@ class PembelianBahanTable extends Component
     public $search = "";
     public $perPage = 25;
     public $id_pembelian_bahan, $status,
-    $kode_transaksi, $tgl_keluar, $divisi, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $new_value_today_fee;
+    $kode_transaksi, $tgl_keluar, $divisi, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $new_value_today_fee, $status_general_manager;
     public $filter = 'semua';
     public $totalHarga;
     public $isShowModalOpen = false;
     public $isDeleteModalOpen = false;
     public $isApproveLeaderModalOpen = false;
+    public $isApproveGMModalOpen = false;
     public $isApproveManagerModalOpen = false;
     public $isApprovePurchasingModalOpen = false;
     public $isApproveAdminManagerModalOpen = false;
@@ -94,6 +95,14 @@ class PembelianBahanTable extends Component
         $this->isApproveLeaderModalOpen = true;
     }
 
+    public function editGMPembelianBahan(int $id)
+    {
+        $Data = PembelianBahan::findOrFail($id);
+        $this->id_pembelian_bahan = $id;
+        $this->status_general_manager = $Data->status_general_manager;
+        $this->isApproveGMModalOpen = true;
+    }
+
     public function editPurchasingPembelianBahan(int $id)
     {
         $Data = PembelianBahan::findOrFail($id);
@@ -150,6 +159,7 @@ class PembelianBahanTable extends Component
         $this->isApproveFinanceModalOpen = false;
         $this->isApproveAdminManagerModalOpen = false;
         $this->isApproveDirekturModalOpen = false;
+        $this->isApproveGMModalOpen = false;
     }
 
     public function render()

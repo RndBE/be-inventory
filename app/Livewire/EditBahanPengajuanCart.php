@@ -144,6 +144,8 @@ class EditBahanPengajuanCart extends Component
                     'new_details_usd' => $newdecodedDetailsUSD,
                     'keterangan_pembayaran' => $detail->keterangan_pembayaran,
                     'spesifikasi' => $detail->spesifikasi,
+                    'alasan' => $detail->alasan,
+                    'penanggungjawabaset' => $detail->penanggungjawabaset,
                 ];
             }
         }

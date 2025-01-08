@@ -42,6 +42,7 @@ class PembelianBahanController extends Controller
         $this->middleware('permission:edit-pembelian-bahan', ['only' => ['updateApprovalFinance','updateApprovalAdminManager']]);
         $this->middleware('permission:edit-pengambilan', ['only' => ['updatepengambilan']]);
         $this->middleware('permission:edit-approvepembelian-leader', ['only' => ['updateApprovalLeader']]);
+        $this->middleware('permission:edit-approvepembelian-gm', ['only' => ['updateApprovalGM']]);
         $this->middleware('permission:edit-approve-purchasing', ['only' => ['update','edit','updateApprovalPurchasing']]);
         $this->middleware('permission:edit-approve-manager', ['only' => ['updateApprovalManager']]);
         $this->middleware('permission:update-harga-pembelian-bahan', ['only' => ['editHarga','updateHarga']]);
@@ -111,7 +112,17 @@ class PembelianBahanController extends Controller
                         $query->where('nama', 'Purchasing');
                     })->first();
             });
+
+            $generalUser = cache()->remember('general_user', 60, function () {
+                return User::where('job_level', 4)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Secretary');
+                    })->first();
+            });
+
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+
+            $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
                 return User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
@@ -132,8 +143,8 @@ class PembelianBahanController extends Controller
                 'tandaTanganLeader',
                 'tandaTanganManager',
                 'tandaTanganDirektur',
-                'tandaTanganPurchasing',
-                'purchasingUser',
+                'tandaTanganPurchasing','tandaTanganGeneral',
+                'purchasingUser','generalUser',
                 'tandaTanganFinance','new_shipping_cost','new_full_amount_fee','new_value_today_fee',
                 'financeUser','new_shipping_cost_usd','new_full_amount_fee_usd','new_value_today_fee_usd',
                 'tandaTanganAdminManager','shipping_cost_usd','full_amount_fee_usd','value_today_fee_usd',
@@ -464,15 +475,26 @@ class PembelianBahanController extends Controller
             $data->save();
 
             if ($data->status_leader === 'Disetujui') {
-                $purchasingUsers = User::whereHas('dataJobPosition', function ($query) {
-                    $query->where('nama', 'Purchasing');
-                })->where('job_level', 3)->first();
 
-                $targetPhone = $purchasingUsers->telephone;
+                if ($data->jenis_pengajuan === 'Pembelian Aset') {
+                    // Kirim notifikasi ke General Affair
+                    $targetUser = User::whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Secretary'); // Posisi General Affair
+                    })->where('job_level', 4)->first();
+                    $targetRole = "General Affair";
+                } else {
+                    // Kirim notifikasi ke Purchasing
+                    $targetUser = User::whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Purchasing');
+                    })->where('job_level', 3)->first();
+                    $targetRole = "Purchasing";
+                }
+
+                $targetPhone = $targetUser->telephone ?? null;
                 //dd($targetPhone);
                 if ($targetPhone) {
-                    $message = "Halo {$purchasingUsers->name},\n\n";
-                    $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Purchasing.\n\n";
+                    $message = "Halo {$targetUser->name},\n\n";
+                    $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai {$targetRole}.\n\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
                     try{
@@ -531,6 +553,105 @@ class PembelianBahanController extends Controller
             DB::commit();
             LogHelper::success('Status approval leader berhasil diubah.');
             return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval leader berhasil diubah.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $errorMessage = $e->getMessage();
+            LogHelper::error($errorMessage);
+            return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
+        }
+    }
+
+    //Approve General Affair
+    public function updateApprovalGM(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'status_general_manager' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+        ]);
+        try {
+            DB::beginTransaction();
+            $data = PembelianBahan::with([
+                'dataUser.atasanLevel1',
+                'dataUser.atasanLevel2',
+                'dataUser.atasanLevel3',
+                'pembelianBahanDetails.dataBahan.dataUnit',
+            ])->findOrFail($id);
+            // Periksa status Leader dan Manager
+            if ($data->status_leader === 'Disetujui') {
+                $data->status_general_manager = $validated['status_general_manager'];
+            } else {
+                LogHelper::error('Status general affair tidak dapat diubah karena leader belum menyetujui.');
+                return redirect()->back()->with('error', 'Status general affair tidak dapat diubah karena leader belum menyetujui.');
+            }
+            $data->save();
+
+            if ($data->status_general_manager === 'Disetujui') {
+                $purchasingUsers = User::whereHas('dataJobPosition', function ($query) {
+                    $query->where('nama', 'Purchasing');
+                })->where('job_level', 3)->first();
+
+                $targetPhone = $purchasingUsers->telephone;
+                //dd($targetPhone);
+                if ($targetPhone) {
+                    $message = "Halo {$purchasingUsers->name},\n\n";
+                    $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Purchasing.\n\n";
+                    $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
+                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                    try{
+                        $response = Http::withHeaders([
+                            'x-api-key' => env('WHATSAPP_API_KEY'),
+                            'Content-Type' => 'application/json',
+                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                            'chatId' => "{$targetPhone}@c.us",
+                            'contentType' => 'string',
+                            'content' => $message,
+                        ]);
+                        if ($response->successful()) {
+                            LogHelper::success("WhatsApp message sent to: {$targetPhone}");
+                        } else {
+                            LogHelper::error("Failed to send WhatsApp message to: {$targetPhone}");
+                        }
+                    } catch (\Exception $e) {
+                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+                    }
+                } else {
+                    LogHelper::error('No valid phone number found for WhatsApp notification.');
+                }
+                // Mengirim notifikasi ke pengaju tentang tahap approval
+                $pengajuPhone = $data->dataUser->telephone;
+                if ($pengajuPhone) {
+                    $statusMessage = match ($data->status_general_manager) {
+                        'Disetujui' => "telah *Disetujui* oleh General Affair.",
+                        'Ditolak' => "telah *Ditolak* oleh General Affair.",
+                        'Belum disetujui' => "masih *Menunggu Persetujuan* dari General Affair.",
+                        default => "dalam status yang tidak dikenal.",
+                    };
+                    $message = "Halo {$data->dataUser->name},\n\n";
+                    $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage}\n\n";
+                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                    try{
+                        $responsePengaju = Http::withHeaders([
+                            'x-api-key' => env('WHATSAPP_API_KEY'),
+                            'Content-Type' => 'application/json',
+                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                            'chatId' => "{$pengajuPhone}@c.us",
+                            'contentType' => 'string',
+                            'content' => $message,
+                        ]);
+                        if ($responsePengaju->successful()) {
+                            LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
+                        } else {
+                            LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
+                        }
+                    } catch (\Exception $e) {
+                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+                    }
+                }  else {
+                    LogHelper::error('No valid phone number found for pengaju.');
+                }
+            }
+            DB::commit();
+            LogHelper::success('Status approval general Affair berhasil diubah.');
+            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval general Affair berhasil diubah.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -1027,6 +1148,8 @@ class PembelianBahanController extends Controller
                                 'sub_total_usd' => $detail->jml_bahan * array_sum(array_column($groupedDetailsUSD, 'unit_price_usd')),
                                 'keterangan_pembayaran' => $detail->keterangan_pembayaran,
                                 'spesifikasi' => $detail->spesifikasi,
+                                'penanggungjawabaset' => $detail->penanggungjawabaset,
+                                'alasan' => $detail->alasan,
                             ]);
                         }
                         $pengajuan = Pengajuan::find($data->pengajuan_id);

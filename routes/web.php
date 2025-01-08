@@ -117,6 +117,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('/pengajuan-pembelian-bahan/pdf/{id}', [PembelianBahanController::class, 'downloadPdf'])->name('pengajuan-pembelian-bahan.downloadPdf');
     Route::resource('pengajuan-pembelian-bahan', PembelianBahanController::class);
     Route::put('/pengajuan-pembelian-bahan/updateApprovalLeader/{id}', [PembelianBahanController::class, 'updateApprovalLeader'])->name('pengajuan-pembelian-bahan.updateApprovalLeader');
+    Route::put('/pengajuan-pembelian-bahan/updateApprovalGM/{id}', [PembelianBahanController::class, 'updateApprovalGM'])->name('pengajuan-pembelian-bahan.updateApprovalGM');
     Route::put('/pengajuan-pembelian-bahan/updateApprovalManager/{id}', [PembelianBahanController::class, 'updateApprovalManager'])->name('pengajuan-pembelian-bahan.updateApprovalManager');
     Route::put('/pengajuan-pembelian-bahan/updateApprovalPurchasing/{id}', [PembelianBahanController::class, 'updateApprovalPurchasing'])->name('pengajuan-pembelian-bahan.updateApprovalPurchasing');
     Route::put('/pengajuan-pembelian-bahan/updateApprovalFinance/{id}', [PembelianBahanController::class, 'updateApprovalFinance'])->name('pengajuan-pembelian-bahan.updateApprovalFinance');

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('bahan_id')->constrained('bahan')->onDelete('cascade');
             $table->integer('tersedia_sistem')->nullable();
             $table->integer('tersedia_fisik')->nullable();
-            $table->integer('selisih')->storedAs('tersedia_fisik - tersedia_sistem');
+            $table->integer('selisih')->nullable();
             $table->timestamps();
         });
     }

@@ -12,14 +12,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class KontrakController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:lihat-jenis-bahan', ['only' => ['index']]);
-    //     $this->middleware('permission:tambah-jenis-bahan', ['only' => ['create','store']]);
-    //     $this->middleware('permission:edit-jenis-bahan', ['only' => ['update','edit']]);
-    //     $this->middleware('permission:hapus-jenis-bahan', ['only' => ['destroy']]);
-    //     $this->middleware('permission:export-jenisbahan', ['only' => ['export']]);
-    // }
+    public function __construct()
+    {
+        $this->middleware('permission:lihat-kontrak', ['only' => ['index']]);
+        $this->middleware('permission:tambah-kontrak', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-kontrak', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-kontrak', ['only' => ['destroy']]);
+    }
 
     // public function export()
     // {

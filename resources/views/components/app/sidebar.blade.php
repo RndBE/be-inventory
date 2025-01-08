@@ -120,13 +120,13 @@
                                         </a>
                                     </li>
                                 @endcan
-                                {{-- @can('lihat-produk-produksi') --}}
+                                @can('lihat-kontrak')
                                     <li class="mb-1 last:mb-0">
                                         <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('kontrak.index')){{ '!text-violet-500' }}@endif" href="{{ route('kontrak.index') }}">
                                             <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Kontrak</span>
                                         </a>
                                     </li>
-                                {{-- @endcan --}}
+                                @endcan
                             </ul>
                         </div>
                     </li>

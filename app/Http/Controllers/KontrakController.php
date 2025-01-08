@@ -28,7 +28,7 @@ class KontrakController extends Controller
     public function index(Request $request)
     {
         $kontrak = Kontrak::All();
-        return view('pages.Kontrak.index',[
+        return view('pages.kontrak.index',[
             "kontrak" => $kontrak
         ]);
     }

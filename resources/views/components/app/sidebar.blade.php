@@ -266,7 +266,7 @@
                                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3.5 5.5l1.5 1.5l2.5 -2.5" /><path d="M3.5 11.5l1.5 1.5l2.5 -2.5" />
                                         <path d="M3.5 17.5l1.5 1.5l2.5 -2.5" /><path d="M11 6l9 0" /><path d="M11 12l9 0" /><path d="M11 18l9 0" />
                                     </svg>
-                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Pengajaun Pembelian</span>
+                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Pengajuan Pembelian</span>
                                 </div>
                             </a>
                         </li>
@@ -290,7 +290,7 @@
                                     </svg>
                                     <span
                                         class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200 break-words whitespace-normal">
-                                        Pengambilan Bahan Non Projek/Produksi
+                                        Pengambilan Bahan Non <br> Projek/Produksi
                                     </span>
                                 </div>
                             </a>

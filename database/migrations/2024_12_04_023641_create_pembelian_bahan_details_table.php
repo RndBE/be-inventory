@@ -18,8 +18,8 @@ return new class extends Migration
             $table->integer('qty');
             $table->integer('jml_bahan')->nullable();
             $table->integer('used_materials')->nullable();
-            $table->json('details');
-            $table->json('new_details');
+            $table->text('details');
+            $table->text('new_details');
             $table->integer('sub_total');
             $table->integer('new_sub_total');
             $table->string('spesifikasi')->nullable();

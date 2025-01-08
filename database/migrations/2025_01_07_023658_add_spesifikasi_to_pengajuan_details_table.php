@@ -17,9 +17,9 @@ return new class extends Migration
             $table->text('penanggungjawabaset')->nullable();
             $table->text('alasan')->nullable();
             $table->text('details_usd')->nullable();
-            $table->float('subtotal_usd')->nullable();
+            $table->float('sub_total_usd')->nullable();
             $table->text('new_details_usd')->nullable();
-            $table->float('new_subtotal_usd')->nullable();
+            $table->float('new_sub_total_usd')->nullable();
         });
     }
 
@@ -34,9 +34,9 @@ return new class extends Migration
             $table->dropColumn('penanggungjawabaset');
             $table->dropColumn('alasan');
             $table->dropColumn('details_usd');
-            $table->dropColumn('subtotal_usd');
+            $table->dropColumn('sub_total_usd');
             $table->dropColumn('new_details_usd');
-            $table->dropColumn('new_subtotal_usd');
+            $table->dropColumn('new_sub_total_usd');
         });
     }
 };

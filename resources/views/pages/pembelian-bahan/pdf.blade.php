@@ -536,7 +536,7 @@
             </tbody>
         </table>
     @endif
-    @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Lokal' && $jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor')
+    @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Lokal' || $jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor')
         <table style="width: 100%;border-collapse: collapse;padding-top:10;">
             <tr style="text-align: left; vertical-align: top;">
                 <td style=" text-align: center;"><strong>Pengaju</strong></td>
@@ -634,7 +634,8 @@
                 <td colspan="2" style="text-align: center;">Pembayaran: </td>
             </tr>
         </table>
-    @else
+    @endif
+    @if($jenis_pengajuan === 'Pembelian Aset')
         <table style="width: 100%;border-collapse: collapse;padding-top:10;">
             <tr style="text-align: left; vertical-align: top;">
                 <td style=" text-align: center;"><strong>Pengaju</strong></td>

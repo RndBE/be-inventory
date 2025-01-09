@@ -14,7 +14,7 @@
                 </button>
             </div>
             <!-- Modal body -->
-            <div>
+            <div class="p-6 max-h-[75vh] overflow-y-auto">
                 <div class="flex w-full items-center justify-center">
                     <div class="w-[350px] rounded bg-gray-50 px-6 m-4 shadow-lg">
                         <img src="{{ asset('images/logo_be2.png') }}" alt="chippz" class="mx-auto w-32 py-4" />

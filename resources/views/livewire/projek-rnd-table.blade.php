@@ -90,7 +90,7 @@
                             </td>
                             <td class="px-6 py-3">
                                 <div class="text-sm text-gray-600 dark:text-gray-400">
-                                    {{ $projek_rnd->nama_projek_rnd ?? null }}
+                                    {{ $projek_rnd->nama_projek_rnd ?? $projek_rnd->dataBahan->nama_bahan ?? null }}
                                 </div>
                                 <div class="text-xs text-gray-500">{{ $projek_rnd->keterangan }}</div>
                             </td>

@@ -10,9 +10,9 @@
                         <th scope="col" class="px-6 py-3 w-1/5">Bahan</th>
                         <th scope="col" class="px-6 py-3 w-0.5">QTY</th>
                         @if ($status !== 'Disetujui')
-                            <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total 1</th>
+                            <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total</th>
                         @endif
-                        <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total 2</th>
+                        {{-- <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total 2</th> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -43,12 +43,12 @@
                             </td>
                             @php $grandTotal1 += $subtotals[$detail['bahan']->id] ?? 0; @endphp
                         @endif
-                        <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
+                        {{-- <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
                             {{ number_format($detail['sub_total'] ?? 0, 0, ',', '.') }}
                             @php
                                 $grandTotal2 += $detail['sub_total'] ?? 0;
                             @endphp
-                        </td>
+                        </td> --}}
                     </tr>
                     @endforeach
 

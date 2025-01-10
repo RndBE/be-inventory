@@ -26,6 +26,8 @@ use App\Jobs\SendWhatsAppMessage;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PembelianBahanExport;
 use App\Models\PembelianBahanDetails;
 use App\Models\PengambilanBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
@@ -48,6 +50,21 @@ class PembelianBahanController extends Controller
         $this->middleware('permission:update-harga-pembelian-bahan', ['only' => ['editHarga','updateHarga']]);
 
         $this->middleware('permission:hapus-pembelian-bahan', ['only' => ['destroy']]);
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $startDate = $request->input('start_date') . ' 00:00:00';
+        $endDate = $request->input('end_date') . ' 23:59:59';
+
+        $companyName = "PT ARTA TEKNOLOGI COMUNINDO";
+
+        return Excel::download(new PembelianBahanExport($startDate, $endDate, $companyName), 'Rekap Pembelian Bahan.xlsx');
     }
 
     public function downloadPdf(int $id)

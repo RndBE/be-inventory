@@ -1,46 +1,23 @@
-<div
-    x-data="{ isOpen: @entangle('isShowModalOpen') }"
-    x-show="isOpen"
-    class="fixed inset-0 flex items-center justify-center z-50 w-full h-full"
-    style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);"
-    @keydown.escape.window="isOpen = false; $wire.closeModal();"
-    x-transition:enter="transition ease-out duration-900"
-    x-transition:enter-start="opacity-0"
-    x-transition:enter-end="opacity-100"
-    x-transition:leave="transition ease-in duration-900"
-    x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
->
-    <div
-        class="relative p-2 pt-2 w-full max-w-md bg-white rounded-lg shadow dark:bg-gray-700 overflow-y-auto"
-        style="max-height: 80vh;"
-        x-show="isOpen"
-        @click.outside="isOpen = false; $wire.closeModal();"
-        x-transition:enter="transition ease-out duration-900 transform"
-        x-transition:enter-start="opacity-0 scale-95"
-        x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition ease-in duration-900 transform"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
-    >
+<!-- Main modal -->
+@if($isShowModalOpen)
+<div wire:ignore.self id="showbahankeluar-modal" tabindex="-1" aria-hidden="true" class="fixed inset-0 flex items-center justify-center z-50 w-full h-full bg-black bg-opacity-50" wire:click.self="closeModal">
+    <div class="relative p-4 pt-12 w-full max-w-md max-h-full">
         <!-- Modal content -->
-        <div class="flex items-center justify-between p-2 dark:border-gray-600">
-            <button
-                type="button"
-                @click="isOpen = false; $wire.closeModal();"
-                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-            >
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-        </div>
-        <!-- Modal body -->
-        {{-- <div class="p-6 max-h-[75vh] overflow-y-auto"> --}}
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-2 dark:border-gray-600">
+                <button wire:click="closeModal" type="button" class="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="showbahankeluar-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="p-6 max-h-[75vh] overflow-y-auto">
                 <div class="flex w-full items-center justify-center">
-                    <div class="w-[450px] rounded bg-gray-50 px-6 m-4 shadow-lg">
-                        <img src="{{ asset('images/logo_be2.png') }}" alt="chippz" class="mx-auto mt-10 w-32 py-4" />
+                    <div class="w-[350px] rounded bg-gray-50 px-6 m-4 shadow-lg">
+                        <img src="{{ asset('images/logo_be2.png') }}" alt="chippz" class="mx-auto w-32 py-4" />
                         <div class="flex flex-col justify-center items-center gap-2">
                             <h4 class="font-semibold">PT. Arta Teknologi Comunindo</h4>
                             <p class="text-xs text-center">Perum Pesona Bandara No. C-54, Cupuwatu I Purwomartani, Kec. Kalasan, Kabupaten Sleman, Daerah Istimewa Yogyakarta</p>
@@ -61,10 +38,6 @@
                             <p class="flex justify-between">
                                 <span class="text-gray-400">Divisi:</span>
                                 <span>{{ $divisi }}</span>
-                            </p>
-                            <p class="flex justify-between">
-                                <span class="text-gray-400">Tujuan:</span>
-                                <span>{{ $tujuan }}</span>
                             </p>
                         </div>
                         <div class="flex flex-col gap-3 pb-6 pt-2 text-xs">
@@ -115,8 +88,8 @@
                         </div>
                     </div>
                 </div>
-            {{-- </div> --}}
+            </div>
         </div>
     </div>
 </div>
-{{-- @endif--}}
+@endif

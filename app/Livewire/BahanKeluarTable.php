@@ -13,7 +13,7 @@ class BahanKeluarTable extends Component
     public $search = "";
     public $perPage = 25;
     public $id_bahan_keluars, $status,
-    $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager;
+    $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $tujuan;
     public $filter = 'semua';
     public $totalHarga;
     public $isShowModalOpen = false;
@@ -48,6 +48,7 @@ class BahanKeluarTable extends Component
         $this->kode_transaksi = $Data->kode_transaksi;
         $this->divisi = $Data->divisi;
         $this->status = $Data->status;
+        $this->tujuan = $Data->tujuan;
         $this->bahanKeluarDetails  = $Data->bahanKeluarDetails;
         $this->isShowModalOpen = true;
     }
@@ -140,7 +141,7 @@ class BahanKeluarTable extends Component
                 ->orWhere('status', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')
                 ->orWhereHas('dataUser', function ($query) {
-                    $query->where('name', 'like', '%' . $this->search . '%'); 
+                    $query->where('name', 'like', '%' . $this->search . '%');
                 });
         })
             ->when($this->filter === 'Ditolak', function ($query) {

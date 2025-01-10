@@ -1,5 +1,5 @@
 @if($isEditPengambilanModalOpen)
-<div wire:ignore.self id="editpengambilan-modal" tabindex="-1" aria-hidden="true" class="fixed inset-0 flex items-center justify-center z-50 w-full h-full bg-black bg-opacity-50" wire:click.self="closeModal">
+<div wire:ignore.self id="editpengambilan-modal" tabindex="-1" aria-hidden="true" class="fixed inset-0 flex items-center justify-center z-50 w-full h-full" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);" wire:click.self="closeModal">
     <div class="relative p-4 w-full max-w-md max-h-full">
         <!-- Modal content -->
         <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">

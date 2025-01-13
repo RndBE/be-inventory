@@ -5,8 +5,10 @@ namespace App\Exports;
 use Carbon\Carbon;
 use App\Models\Bahan;
 use App\Models\Purchase;
+use App\Models\PembelianBahan;
 use App\Models\PurchaseDetail;
 use App\Models\BahanKeluarDetails;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Maatwebsite\Excel\Concerns\FromArray;
@@ -48,20 +50,230 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
 
         $formattedPeriod = "Periode $this->startDay-$this->endDay $this->monthYear";
 
-        $data[] = ["LAPORAN STOK BARANG " . $this->companyName];
+        $data[] = ["Rekap Pengajuan Pembelian " . $this->companyName];
         $data[] = ["Periode: " . $formattedPeriod];
 
-        $tglBlnHeaders = ['No', 'Tgl Pengajuan', 'Divisi', 'Pengaju', 'Jenis/Project', 'Keterangan', 'Rincian Pengajuan', 'Qty', 'Harga Satuan', 'Sub Total', 'Tgl Keluar'];
+        $headers = [
+            'No', 'Tgl Pengajuan', 'Divisi', 'Pengaju', 'Jenis/Project', 'Keterangan',
+            'Rincian Pengajuan', 'Qty', 'Harga Satuan', 'Total Pengajuan', 'Tgl ACC', 'Harga Satuan', 'Nominal yang dibayar',
+        ];
 
+        $data[] = $headers;
 
-        $data[] = $tglBlnHeaders;
+        $transactions = PembelianBahan::with(['pembelianBahanDetails', 'dataUser'])
+            ->where('status', 'Disetujui')
+            ->whereBetween('tgl_pengajuan', [$this->startDate, $this->endDate])
+            ->orderBy('tgl_pengajuan')
+            ->get();
 
-        $data[] = array_merge([], [], [], [], [], [],[], [], [], [], [], [],);
+        // Isi data transaksi
+        $counter = 1;
+        $totalSemua = 0;
+        function formatRupiah($value)
+        {
+            return $value ? 'Rp ' . number_format($value, 0, ',', '.') : '-';
+        }
+
+        foreach ($transactions as $transaction) {
+            $transactionRow = [
+                $counter++,
+                $transaction->tgl_pengajuan,
+                $transaction->divisi,
+                $transaction->dataUser->name ?? '-',
+                '(' . $transaction->kode_transaksi . ') ' . $transaction->tujuan,
+                $transaction->keterangan,
+                '-',
+                '-',
+                '-',
+                '-',
+                $transaction->tgl_keluar,
+                '-',
+                '-',
+            ];
+
+            $data[] = $transactionRow;
+
+            $totalNominal = 0; // Untuk menghitung total nominal per transaksi
+
+            foreach ($transaction->pembelianBahanDetails as $detail) {
+                $details = json_decode($detail->details, true);
+                $newdetails = json_decode($detail->new_details, true);
+                $unitPrice = $details['unit_price'] ?? '-';
+                $newUnitPrice = $newdetails['new_unit_price'] ?? '-';
+
+                $nominalDibayarkan = $detail->new_sub_total && $detail->new_sub_total > 0
+                    ? $detail->new_sub_total
+                    : ($detail->sub_total ?? 0);
+
+                // Tambahkan nominal dibayarkan ke total nominal
+                $totalNominal += $nominalDibayarkan;
+
+                $data[] = [
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    $detail->dataBahan->nama_bahan ?? '-',
+                    $detail->jml_bahan ?? '-',
+                    $unitPrice,
+                    $detail->sub_total ?? 0,
+                    '',
+                    $newUnitPrice,
+                    $nominalDibayarkan,
+                ];
+            }
+
+            // Hitung biaya tambahan sesuai jenis pengajuan
+            if ($transaction->jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor') {
+                $shippingCostDibayarkan = $transaction->new_shipping_cost && $transaction->new_shipping_cost > 0
+                    ? $transaction->new_shipping_cost
+                    : ($transaction->shipping_cost ?? 0);
+                $fullAmountDibayarkan = $transaction->new_full_amount_fee && $transaction->new_full_amount_fee > 0
+                    ? $transaction->new_full_amount_fee
+                    : ($transaction->full_amount_fee ?? 0);
+                $valueTodayDibayarkan = $transaction->new_value_today_fee && $transaction->new_value_today_fee > 0
+                    ? $transaction->new_value_today_fee
+                    : ($transaction->value_today_fee ?? 0);
+
+                $totalNominal += $shippingCostDibayarkan + $fullAmountDibayarkan + $valueTodayDibayarkan;
+
+                $data[] = [
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    'Shipping Cost',
+                    '',
+                    $transaction->shipping_cost ?? '-',
+                    '',
+                    '',
+                    $transaction->new_shipping_cost ?? '-',
+                    $shippingCostDibayarkan,
+                ];
+                $data[] = [
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    'Full Amount Fee',
+                    '',
+                    $transaction->full_amount_fee ?? '-',
+                    '',
+                    '',
+                    $transaction->new_full_amount_fee ?? '-',
+                    $fullAmountDibayarkan,
+                ];
+                $data[] = [
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    'Value Today Fee',
+                    '',
+                    $transaction->value_today_fee ?? '-',
+                    '',
+                    '',
+                    $transaction->new_value_today_fee ?? '-',
+                    $valueTodayDibayarkan,
+                ];
+            } elseif ($transaction->jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Lokal') {
+                $ongkir = $transaction->ongkir ?? 0;
+                $asuransi = $transaction->asuransi ?? 0;
+                $layanan = $transaction->layanan ?? 0;
+                $jasaAplikasi = $transaction->jasa_aplikasi ?? 0;
+
+                $totalNominal += $ongkir + $asuransi + $layanan + $jasaAplikasi;
+
+                $data[] = [
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    'Ongkir',
+                    '',
+                    $transaction->ongkir ?? '-',
+                    '',
+                    '',
+                    '',
+                    $transaction->ongkir ?? '-',
+                ];
+                $data[] = [
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    'Asuransi',
+                    '',
+                    $transaction->asuransi ?? '-',
+                    '',
+                    '',
+                    '',
+                    $transaction->asuransi ?? '-',
+                ];
+                $data[] = [
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    'Layanan',
+                    '',
+                    $transaction->layanan ?? '-',
+                    '',
+                    '',
+                    '',
+                    $transaction->layanan ?? '-',
+                ];
+                $data[] = [
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    'Jasa Aplikasi',
+                    '',
+                    $transaction->jasa_aplikasi ?? '-',
+                    '',
+                    '',
+                    '',
+                    $transaction->jasa_aplikasi ?? '-',
+                ];
+            }
+
+            $data[] = [
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                'Total',
+                formatRupiah($totalNominal),
+            ];
+        }
+
 
         return $data;
     }
-
-
 
     public function headings(): array
     {
@@ -74,33 +286,17 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
         $sheet->getStyle('A1:A2')->getFont()->setSize(12);
         $sheet->getStyle('A1:A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->mergeCells('A3:A4');
-        $sheet->mergeCells('B3:B4');
-        $sheet->mergeCells('C3:C4');
-        $sheet->mergeCells('D3:D4');
-        $sheet->mergeCells('E3:E4');
-        $sheet->mergeCells('F3:F4');
-        $sheet->mergeCells('G3:G4');
-        $sheet->mergeCells('H3:H4');
-        $sheet->mergeCells('I3:I4');
-        $sheet->mergeCells('J3:J4');
-        $sheet->mergeCells('K3:K4');
-        $sheet->getStyle('A3:A4')->getFont()->setBold(true);
-        $sheet->getStyle('B3:B4')->getFont()->setBold(true);
-        $sheet->getStyle('C3:C4')->getFont()->setBold(true);
-        $sheet->getStyle('D3:D4')->getFont()->setBold(true);
-        $sheet->getStyle('E3:E4')->getFont()->setBold(true);
-        $sheet->getStyle('F3:F4')->getFont()->setBold(true);
-        $sheet->getStyle('G3:G4')->getFont()->setBold(true);
-        $sheet->getStyle('A3:A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('B3:B4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('C3:C4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('D3:D4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('E3:E4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('F3:F4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $columns = range('A', 'M');
+        foreach ($columns as $column) {
+            $sheet->mergeCells("{$column}3");
+            $sheet->getStyle("{$column}3")->getFont()->setBold(true);
+            $sheet->getStyle("{$column}3")->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                ->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("{$column}3")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('d2d2db');
+        }
 
-
-        $colIndex = 11;
+        $colIndex = 12;
         $dateHeaders = [];
 
         $lastColumnIndex = $colIndex;
@@ -110,7 +306,7 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
         $sheet->mergeCells("A2:{$lastColumnLetter}2");
 
         $columnLetter = $this->getColumnLetter($colIndex);
-        $sheet->mergeCells("{$columnLetter}3:{$columnLetter}4");
+        $sheet->mergeCells("{$columnLetter}3");
         $colIndex++;
 
         $headerFillStyle = [
@@ -141,6 +337,25 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
         for ($i = 0; $i <= $totalColumns; $i++) {
             $columnLetter = $this->getColumnLetter($i);
             $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+        }
+
+        $sheet->getStyle("L3:L{$highestRow}")
+        ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        $sheet->getStyle("M3:M{$highestRow}")
+            ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        for ($row = 3; $row <= $highestRow; $row++) {
+            $totalCell = $sheet->getCell("L{$row}");
+            if ($totalCell->getValue() === 'Total') {
+                $sheet->getStyle("G{$row}:M{$row}")
+                    ->getFont()->setBold(true);
+                $sheet->getStyle("G{$row}:M{$row}")
+                    ->getFill()->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFFF00');
+                $sheet->getStyle("L{$row}:M{$row}")
+                    ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            }
         }
     }
 

@@ -21,7 +21,7 @@
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->kode_bahan }}</td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->dataUnit->nama }}</td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->dataUnit->nama ?? null }}</td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 <input
                                     value="{{ old('tersedia_sistem.'.$item->id, $tersedia_sistem[$item->id] ?? 0) }}"

@@ -103,7 +103,7 @@
                 <tr>
                     <td style="border:0px solid black; text-align: left;">{{ $detail->dataBahan->kode_bahan }}</td>
                     <td style="border:0px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
-                    <td style="border:0px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama }}</td>
+                    <td style="border:0px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama ?? null }}</td>
                     <td style="border:0px solid black;text-align: center;">{{ $detail->tersedia_sistem }}</td>
                     <td style="border:0px solid black;text-align: center;">{{ $detail->tersedia_fisik }}</td>
                     <td style="border:0px solid black;text-align: center;">{{ $detail->selisih }}</td>

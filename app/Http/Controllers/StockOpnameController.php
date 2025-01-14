@@ -265,6 +265,7 @@ class StockOpnameController extends Controller
                         [
                             'tersedia_sistem' => $item['tersedia_sistem'],
                             'tersedia_fisik' => $item['tersedia_fisik'],
+                            'selisih' => $item['selisih'],
                             'keterangan' => $item['keterangan'],
                         ]
                     );

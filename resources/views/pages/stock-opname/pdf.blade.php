@@ -109,7 +109,7 @@
                     <td style="border:0px solid black;text-align: center;">{{ $detail->selisih }}</td>
                     <td style="border: 0px solid black;text-align: right;">{{ $detail->alokasi_harga }}</td>
                     <td style="border: 0px solid black;text-align: right;">{{ number_format($detail->total_harga, 0, ',', '.') }}</td>
-                    <td style="border: 0px solid black">{{ $detail->keterangan }}</td>
+                    <td style="border: 0px solid black">{{ $detail->keterangan ?: '' }}</td>
                 </tr>
             @endforeach
         </tbody>

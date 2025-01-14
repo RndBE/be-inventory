@@ -142,6 +142,11 @@ class BahanKeluarTable extends Component
                 ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')
                 ->orWhereHas('dataUser', function ($query) {
                     $query->where('name', 'like', '%' . $this->search . '%');
+                })
+                ->orWhereHas('bahanKeluarDetails', function ($query) {
+                    $query->whereHas('dataBahan', function ($query) {
+                        $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                    });
                 });
         })
             ->when($this->filter === 'Ditolak', function ($query) {

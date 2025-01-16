@@ -63,7 +63,13 @@ class ProjekController extends Controller
     {
         $units = Unit::all();
         $produkProduksi = ProdukProduksi::all();
-        $kontraks = Kontrak::all();
+        $kontraks = Kontrak::all()->sortBy(function ($kontrak) {
+            $parts = explode('/', $kontrak->kode_kontrak);
+            $nomor = isset($parts[0]) ? (int) $parts[0] : 0; // Bagian nomor
+            $tahun = isset($parts[5]) ? (int) $parts[5] : 0;  // Bagian tahun
+            return [$tahun, $nomor]; // Urutkan berdasarkan tahun, lalu nomor
+        });
+
         return view('pages.projek.create', compact('units', 'produkProduksi', 'kontraks'));
     }
 

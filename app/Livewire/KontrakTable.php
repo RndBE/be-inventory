@@ -46,17 +46,23 @@ class KontrakTable extends Component
     }
 
     public function render()
-    {
-        $data = Kontrak::orderBy('id', 'desc')
-            ->where('kode_kontrak', 'like', '%' . $this->search . '%')
-            ->orWhere('nama_kontrak', 'like', '%' . $this->search . '%')
-            ->orWhere('mulai_kontrak', 'like', '%' . $this->search . '%')
-            ->orWhere('selesai_kontrak', 'like', '%' . $this->search . '%')
-            ->orWhere('garansi', 'like', '%' . $this->search . '%')
-            ->paginate($this->perPage);
+{
+    $data = Kontrak::where(function ($query) {
+            $query->where('kode_kontrak', 'like', '%' . $this->search . '%')
+                ->orWhere('nama_kontrak', 'like', '%' . $this->search . '%')
+                ->orWhere('mulai_kontrak', 'like', '%' . $this->search . '%')
+                ->orWhere('selesai_kontrak', 'like', '%' . $this->search . '%')
+                ->orWhere('garansi', 'like', '%' . $this->search . '%');
+        })
+        ->orderByRaw("
+            CAST(SUBSTRING_INDEX(kode_kontrak, '/', -1) AS UNSIGNED) ASC,
+            CAST(SUBSTRING_INDEX(kode_kontrak, '/', 1) AS UNSIGNED) ASC
+        ")
+        ->paginate($this->perPage);
 
-        return view('livewire.kontrak-table', [
-            'kontraks' => $data,
-        ]);
-    }
+    return view('livewire.kontrak-table', [
+        'kontraks' => $data,
+    ]);
+}
+
 }

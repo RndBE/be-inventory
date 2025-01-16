@@ -11,7 +11,7 @@ class SupplierTable extends Component
     use WithPagination;
     public $search = "";
     public $perPage = 15;
-    public $id_supplier, $nama;
+    public $id_supplier, $nama, $alamat, $telepon, $npwp;
     public $isDeleteModalOpen = false;
     public $isEditModalOpen = false;
 
@@ -25,6 +25,9 @@ class SupplierTable extends Component
         $Data = Supplier::findOrFail($id);
         $this->id_supplier = $id;
         $this->nama = $Data->nama;
+        $this->alamat = $Data->alamat;
+        $this->telepon = $Data->telepon;
+        $this->npwp = $Data->npwp;
         $this->isEditModalOpen = true;
     }
 

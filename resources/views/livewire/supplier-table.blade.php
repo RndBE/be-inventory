@@ -73,6 +73,15 @@
                             Nama Supplier
                         </th>
                         <th scope="col" class="px-6 py-3">
+                            Alamat
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Telepon
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            NPWP/NIK
+                        </th>
+                        <th scope="col" class="px-6 py-3">
                             Action
                         </th>
                     </tr>
@@ -81,9 +90,10 @@
                     @forelse($suppliers as $index => $row)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $suppliers->firstItem() + $index }}</div></td>
-
-                            <td class="px-6 py-3">{{ $row->nama }}</td>
-
+                            <td class="px-6 py-3">{{ $row->nama ?? ''}}</td>
+                            <td class="px-6 py-3">{{ $row->alamat ?? '' }}</td>
+                            <td class="px-6 py-3">{{ $row->telepon ?? '' }}</td>
+                            <td class="px-6 py-3">{{ $row->npwp ?? '' }}</td>
                             <td class="px-6 py-4">
                                 @can('edit-supplier')
                                     <button wire:click="editSupplier({{$row->id}})" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">

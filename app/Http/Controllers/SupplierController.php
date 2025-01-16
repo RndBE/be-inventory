@@ -38,7 +38,10 @@ class SupplierController extends Controller
     {
         try{
             $validated = $request->validate([
-                'nama' => 'required',
+                'nama' => 'nullable',
+                'alamat' => 'nullable',
+                'telepon' => 'nullable',
+                'npwp' => 'nullable',
             ]);
             $supplier = Supplier::create($validated);
 
@@ -57,10 +60,16 @@ class SupplierController extends Controller
     {
         try{
             $validated = $request->validate([
-                'nama' => 'required',
+                'nama' => 'nullable',
+                'alamat' => 'nullable',
+                'telepon' => 'nullable',
+                'npwp' => 'nullable',
             ]);
             $data = Supplier::find($id);
             $data->nama = $validated['nama'];
+            $data->alamat = $validated['alamat'];
+            $data->telepon = $validated['telepon'];
+            $data->npwp = $validated['npwp'];
             $supplier = $data->save();
             if (!$supplier) {
                 return redirect()->back()->with('errors', 'Gagal menambahkan data');

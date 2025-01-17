@@ -169,7 +169,7 @@ class PembelianBahanTable extends Component
         $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails')
             ->orderBy('id', 'desc');
 
-        if ($user->hasRole(['superadmin','administrasi','purchasing'])) {
+        if ($user->hasRole(['superadmin','administrasi','purchasing','sekretaris'])) {
 
         }
         elseif ($user->hasRole(['hardware manager'])) {

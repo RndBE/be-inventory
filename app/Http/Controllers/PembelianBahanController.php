@@ -223,6 +223,7 @@ class PembelianBahanController extends Controller
         $validatedData = $request->validate([
             'pembelianBahanDetails' => 'required|string',
             'keterangan' => 'string',
+            'link' => 'string',
             'biaya' => 'required|string',
         ]);
 
@@ -235,6 +236,7 @@ class PembelianBahanController extends Controller
         // Update pembelianBahan record with new keterangan
         $pembelianBahan->update([
             'keterangan' => $validatedData['keterangan'],
+            'link' => $validatedData['link'],
             'ongkir' => $biaya['ongkir'] ?? 0,
             'asuransi' => $biaya['asuransi'] ?? 0,
             'layanan' => $biaya['layanan'] ?? 0,

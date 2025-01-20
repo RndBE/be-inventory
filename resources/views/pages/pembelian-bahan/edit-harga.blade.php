@@ -74,7 +74,7 @@
 
                                 <div class="flex items-center">
                                     <label for="tujuan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
-                                        Project <sup class="text-red-500 text-base">*</sup>
+                                        Project<sup class="text-red-500 text-base">*</sup>
                                     </label>
                                     <input
                                         type="text"
@@ -84,10 +84,21 @@
                                         class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                 </div>
 
+                                <div class="flex items-center">
+                                    <label for="link" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                        Link Invoice<sup class="text-red-500 text-base">*</sup>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="link"
+                                        name="link"
+                                        value="{{ old('link', $pembelian_bahan->link) }}"
+                                        class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                </div>
 
                                 <div class="flex items-center">
                                     <label for="divisi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
-                                        Divisi <sup class="text-red-500 text-base">*</sup>
+                                        Divisi<sup class="text-red-500 text-base">*</sup>
                                     </label>
                                     <select disabled name="divisi" id="divisi" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
                                         <option value="">-- Pilih Divisi --</option>
@@ -107,7 +118,7 @@
 
                                 <div class="flex items-center">
                                     <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
-                                        Keterangan <sup class="text-red-500 text-base">*</sup>
+                                        Keterangan<sup class="text-red-500 text-base">*</sup>
                                     </label>
                                     <textarea id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan', $pembelian_bahan->keterangan) }}</textarea>
                                 </div>

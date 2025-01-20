@@ -14,7 +14,7 @@ class PembelianBahanTable extends Component
     public $search = "";
     public $perPage = 25;
     public $id_pembelian_bahan, $status,
-    $kode_transaksi, $tgl_keluar, $divisi, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $new_value_today_fee, $status_general_manager;
+    $kode_transaksi, $tgl_keluar, $divisi,$link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $new_value_today_fee, $status_general_manager;
     public $filter = 'semua';
     public $totalHarga;
     public $isShowModalOpen = false;
@@ -26,6 +26,7 @@ class PembelianBahanTable extends Component
     public $isApproveAdminManagerModalOpen = false;
     public $isApproveFinanceModalOpen = false;
     public $isApproveDirekturModalOpen = false;
+    public $isShowInvoiceModalOpen = false;
 
     public function updatedSearch()
     {
@@ -135,6 +136,14 @@ class PembelianBahanTable extends Component
         $this->isApproveAdminManagerModalOpen = true;
     }
 
+    public function showInvoice(int $id)
+    {
+        $Data = PembelianBahan::findOrFail($id);
+        $this->id_pembelian_bahan = $id;
+        $this->link = $Data->link;
+        $this->isShowInvoiceModalOpen = true;
+    }
+
 
     public function editPengambilanPembelianBahan(int $id)
     {
@@ -160,6 +169,7 @@ class PembelianBahanTable extends Component
         $this->isApproveAdminManagerModalOpen = false;
         $this->isApproveDirekturModalOpen = false;
         $this->isApproveGMModalOpen = false;
+        $this->isShowInvoiceModalOpen = false;
     }
 
     public function render()

@@ -120,6 +120,7 @@
                         <th scope="col" class="px-6 py-3">Jenis Pengajuan</th>
                         {{-- <th scope="col" class="px-6 py-3">Status Pengambilan</th> --}}
                         <th scope="col" class="px-6 py-3">Status Pengajuan</th>
+                        <th scope="col" class="px-6 py-3">Link Invoice</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -169,6 +170,13 @@
                                     <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $pembelian_bahan->status }}</span>
                                 @endif
                             </td>
+                            <td class="px-6 py-4">
+                                @if($pembelian_bahan->link)
+                                    <button wire:click="showInvoice({{ $pembelian_bahan->id }})" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">Lihat
+                                    </button>
+                                @endif
+                            </td>
+
                             <td class="px-6 py-4">
                                 <div class="row flex space-x-2">
                                     @if($pembelian_bahan->status_finance === 'Disetujui')
@@ -282,6 +290,7 @@
         </div>
         {{-- MODAL --}}
         @include('pages.pembelian-bahan.test')
+        @include('pages.pembelian-bahan.invoice')
         @include('pages.pembelian-bahan.approval-leader')
         @include('pages.pembelian-bahan.approval-general-manager')
         @include('pages.pembelian-bahan.approval-manager')

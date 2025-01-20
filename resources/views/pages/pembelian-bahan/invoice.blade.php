@@ -11,7 +11,7 @@
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0">
 
-    <div class="relative p-4 w-full max-w-4xl max-h-full"
+    <div class="relative p-4 w-full max-w-2xl max-h-full"
         x-show="isOpen"
         @click.outside="isOpen = false; $wire.closeModal();"
         x-transition:enter="transition ease-out duration-900 transform"

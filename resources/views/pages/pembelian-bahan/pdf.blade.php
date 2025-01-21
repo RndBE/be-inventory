@@ -131,7 +131,23 @@
                     <tr>
                         <td style="border: 1px solid black; text-align: center;">{{ $index + 1 }}</td>
                         <td style="border: 1px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
-                        <td style="border: 1px solid black">{{ $detail->spesifikasi }}</td>
+                        <td style="border: 1px solid black; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">
+							@php
+								$fullText = $detail->spesifikasi; // Teks spesifikasi
+								$isUrl = filter_var($fullText, FILTER_VALIDATE_URL); // Periksa apakah teks adalah URL
+								$displayText = $isUrl && strlen($fullText) > 30
+									? substr($fullText, 0, 30) . '...'
+									: $fullText; // Potong hanya jika URL dan terlalu panjang
+							@endphp
+
+							@if ($isUrl)
+								<a href="{{ $fullText }}" target="_blank" style="color: black; text-decoration: none;">
+									{{ $displayText }}
+								</a>
+							@else
+								{{ $fullText }}
+							@endif
+						</td>
                         <td style="border: 1px solid black;text-align: center;">{{ $detail->jml_bahan }}</td>
                         <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama }}</td>
                         <td style="border: 1px solid black; text-align: right; padding: 5px;">
@@ -479,7 +495,23 @@
                     <tr>
                         <td style="border: 1px solid black; text-align: center;">{{ $index + 1 }}</td>
                         <td style="border: 1px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
-                        <td style="border: 1px solid black">{{ $detail->spesifikasi }}</td>
+                        <td style="border: 1px solid black; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">
+							@php
+								$fullText = $detail->spesifikasi; // Teks spesifikasi
+								$isUrl = filter_var($fullText, FILTER_VALIDATE_URL); // Periksa apakah teks adalah URL
+								$displayText = $isUrl && strlen($fullText) > 30
+									? substr($fullText, 0, 30) . '...'
+									: $fullText; // Potong hanya jika URL dan terlalu panjang
+							@endphp
+
+							@if ($isUrl)
+								<a href="{{ $fullText }}" target="_blank" style="color: black; text-decoration: none;">
+									{{ $displayText }}
+								</a>
+							@else
+								{{ $fullText }}
+							@endif
+						</td>
                         <td style="border: 1px solid black;text-align: center;">{{ $detail->jml_bahan }}</td>
                         <td style="border: 1px solid black; text-align: right; padding: 5px;">
                             <div>

@@ -179,7 +179,7 @@
 
                             <td class="px-6 py-4">
                                 <div class="row flex space-x-2">
-                                    @if($pembelian_bahan->status_finance === 'Disetujui')
+                                    {{-- @if($pembelian_bahan->status_finance === 'Disetujui') --}}
                                         <a href="{{ route('pengajuan-pembelian-bahan.downloadPdf', $pembelian_bahan->id) }}"
                                             class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 active:border-red-600 active:text-white active:bg-red-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none flex justify-center items-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[16px] h-[16px] icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf">
@@ -187,7 +187,7 @@
                                                 <path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" />
                                             </svg>
                                         </a>
-                                    @endif
+                                    {{-- @endif --}}
                                     @can('edit-approve-purchasing')
                                         @if($pembelian_bahan->status_finance !== 'Disetujui' && $pembelian_bahan->status_finance !== 'Ditolak')
                                             <a href="{{ route('pengajuan-pembelian-bahan.edit', $pembelian_bahan->id) }}"

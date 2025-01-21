@@ -585,21 +585,21 @@
                     @endif
                 </td>
                 <td style="text-align: center; width: 25%;">
-                    @if($tandaTanganLeader)
+                    @if($status_leader === 'Disetujui' && $tandaTanganLeader)
                         <img src="{{ public_path('storage/' . $tandaTanganLeader) }}" alt="Tanda Tangan Leader" style="height: 80px; width: 150px; object-fit: contain;">
                     @else
                         <div style="height: 80px; width: 150px;"></div>
                     @endif
                 </td>
                 <td style="text-align: center; width: 25%;">
-                    @if($tandaTanganPurchasing)
+                    @if($status_purchasing === 'Disetujui' && $tandaTanganPurchasing)
                         <img src="{{ public_path('storage/' . $tandaTanganPurchasing) }}" alt="Tanda Tangan Purchasing" style="height: 80px; width: 150px; object-fit: contain;">
                     @else
                         <div style="height: 80px; width: 150px;"></div>
                     @endif
                 </td>
                 <td style="text-align: center; width: 25%;">
-                    @if($tandaTanganManager)
+                    @if($status_manager === 'Disetujui' && $tandaTanganManager)
                         <img src="{{ public_path('storage/' . $tandaTanganManager) }}" alt="Tanda Tangan Manager" style="height: 80px; width: 150px; object-fit: contain;">
                     @else
                         <div style="height: 80px; width: 150px;"></div>
@@ -633,17 +633,25 @@
             </tr>
             <tr>
                 <td style="text-align: center; width: 33%;">
-                    @if($tandaTanganFinance)
+                    @if($status_finance === 'Disetujui' && $tandaTanganFinance)
                         <img src="{{ public_path('storage/' . $tandaTanganFinance) }}" alt="Tanda Tangan Finance" style="height: 80px;">
                     @else
                         <div style="height: 80px; width: 150px;"></div>
                     @endif
                 </td>
                 <td colspan="2" style="text-align: center;">
-                    <div style="height: 80px; width: 150px;"></div>
+                    @if($status_admin_manager === 'Disetujui' && $tandaTanganAdminManager)
+                        <img src="{{ public_path('storage/' . $tandaTanganAdminManager) }}" alt="Tanda Tangan Finance" style="height: 80px;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
                 </td>
                 <td style="text-align: center; width: 33%;">
-                    <div style="height: 80px; width: 150px;"></div>
+                    @if($status === 'Disetujui' && $tandaTanganDirektur)
+                        <img src="{{ public_path('storage/' . $tandaTanganDirektur) }}" alt="Tanda Tangan Finance" style="height: 80px;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
                 </td>
             </tr>
             <tr style="text-align: left; vertical-align: top;">
@@ -684,21 +692,21 @@
                     @endif
                 </td>
                 <td style="text-align: center; width: 25%;">
-                    @if($tandaTanganLeader)
+                    @if($status_leader === 'Disetujui' && $tandaTanganLeader)
                         <img src="{{ public_path('storage/' . $tandaTanganLeader) }}" alt="Tanda Tangan Leader" style="height: 80px; width: 150px; object-fit: contain;">
                     @else
                         <div style="height: 80px; width: 150px;"></div>
                     @endif
                 </td>
                 <td style="text-align: center; width: 25%;">
-                    @if($tandaTanganGeneral)
+                    @if($status_general_manager === 'Disetujui' && $tandaTanganGeneral)
                         <img src="{{ public_path('storage/' . $tandaTanganGeneral) }}" alt="Tanda Tangan General" style="height: 80px; width: 150px; object-fit: contain;">
                     @else
                         <div style="height: 80px; width: 150px;"></div>
                     @endif
                 </td>
                 <td style="text-align: center; width: 25%;">
-                    @if($tandaTanganPurchasing)
+                    @if($status_purchasing === 'Disetujui' && $tandaTanganPurchasing)
                         <img src="{{ public_path('storage/' . $tandaTanganPurchasing) }}" alt="Tanda Tangan Purchasing" style="height: 80px; width: 150px; object-fit: contain;">
                     @else
                         <div style="height: 80px; width: 150px;"></div>
@@ -734,24 +742,32 @@
             </tr>
             <tr>
                 <td style="text-align: center; width: 25%;">
-                    @if($tandaTanganManager)
+                    @if($status_manager === 'Disetujui' && $tandaTanganManager)
                         <img src="{{ public_path('storage/' . $tandaTanganManager) }}" alt="Tanda Tangan Manager" style="height: 80px; width: 150px; object-fit: contain;">
                     @else
                         <div style="height: 80px; width: 150px;"></div>
                     @endif
                 </td>
                 <td style="text-align: center; width: 25%;">
-                    @if($tandaTanganFinance)
+                    @if($status_finance === 'Disetujui' && $tandaTanganFinance)
                         <img src="{{ public_path('storage/' . $tandaTanganFinance) }}" alt="Tanda Tangan Finance" style="height: 80px;">
                     @else
                         <div style="height: 80px; width: 150px;"></div>
                     @endif
                 </td>
                 <td style="text-align: center; width: 25%;">
-
+                    @if($status_admin_manager === 'Disetujui' && $tandaTanganAdminManager)
+                        <img src="{{ public_path('storage/' . $tandaTanganAdminManager) }}" alt="Tanda Tangan Finance" style="height: 80px;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
                 </td>
                 <td style="text-align: center; width: 25%;">
-
+                    @if($status === 'Disetujui' && $tandaTanganDirektur)
+                        <img src="{{ public_path('storage/' . $tandaTanganDirektur) }}" alt="Tanda Tangan Finance" style="height: 80px;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
                 </td>
             </tr>
 

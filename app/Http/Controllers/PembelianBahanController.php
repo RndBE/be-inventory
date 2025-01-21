@@ -82,6 +82,12 @@ class PembelianBahanController extends Controller
             $layanan = $pembelianBahan->layanan ?? 0;
             $jasa_aplikasi = $pembelianBahan->jasa_aplikasi ?? 0;
             $status = $pembelianBahan->status ?? null;
+            $status_leader = $pembelianBahan->status_leader ?? null;
+            $status_purchasing = $pembelianBahan->status_purchasing ?? null;
+            $status_manager = $pembelianBahan->status_manager ?? null;
+            $status_finance = $pembelianBahan->status_finance ?? null;
+            $status_admin_manager = $pembelianBahan->status_admin_manager ?? null;
+            $status_general_manager = $pembelianBahan->status_general_manager ?? null;
             $jenis_pengajuan = $pembelianBahan->jenis_pengajuan ?? null;
             $shipping_cost = $pembelianBahan->shipping_cost ?? 0;
             $full_amount_fee = $pembelianBahan->full_amount_fee ??  0;
@@ -113,6 +119,7 @@ class PembelianBahanController extends Controller
 
             $leaderName = $pembelianBahan->dataUser->atasanLevel3 ? $pembelianBahan->dataUser->atasanLevel3->name : null;
             $managerName = $pembelianBahan->dataUser->atasanLevel2 ? $pembelianBahan->dataUser->atasanLevel2->name : null;
+            $direkturName = $pembelianBahan->dataUser->atasanLevel1 ? $pembelianBahan->dataUser->atasanLevel1->name : null;
 
             if (!$leaderName && $managerName) {
                 $leaderName = $managerName;
@@ -155,7 +162,7 @@ class PembelianBahanController extends Controller
             $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
 
             $pdf = Pdf::loadView('pages.pembelian-bahan.pdf', compact(
-                'pembelianBahan',
+                'pembelianBahan','status_leader','status_purchasing','status_manager','status_finance','status_admin_manager','status_general_manager',
                 'tandaTanganPengaju',
                 'tandaTanganLeader',
                 'tandaTanganManager',

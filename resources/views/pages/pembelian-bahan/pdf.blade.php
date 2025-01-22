@@ -46,7 +46,7 @@
         }
         .line-through {
             text-decoration: line-through;
-            color: red; /* Atau sesuaikan dengan warna yang diinginkan */
+            color: red;
         }
 
     </style>
@@ -622,6 +622,21 @@
                 </td>
             </tr>
 
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_pengajuan ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_pengajuan)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_leader ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_leader)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_purchasing ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_purchasing)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_manager ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_manager)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+            </tr>
+
 
             <tr>
                 <td colspan="4"  style="text-align: center;padding:7;"><strong> Mengetahui, </strong></td>
@@ -663,6 +678,17 @@
                     @else
                         {{ $pembelianBahan->dataUser->name }}
                     @endif
+                </td>
+            </tr>
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_finance ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_finance)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td colspan="2" style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_admin_manager ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_admin_manager)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_direktur ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_direktur)->translatedFormat('d F Y') . ')' : '' }}
                 </td>
             </tr>
             <tr>
@@ -729,6 +755,21 @@
                 </td>
             </tr>
 
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_pengajuan ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_pengajuan)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_leader ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_leader)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_general_manager ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_general_manager)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_purchasing ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_purchasing)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+            </tr>
+
 
             <tr>
                 <td colspan="4"  style="text-align: center;padding:7;"><strong> Mengetahui, </strong></td>
@@ -787,6 +828,21 @@
                     @else
                         {{ $pembelianBahan->dataUser->name }}
                     @endif
+                </td>
+            </tr>
+
+            <tr style="text-align: left; vertical-align: top;">
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_manager ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_manager)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_finance ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_finance)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_admin_manager ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_admin_manager)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
+                <td style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_direktur ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_direktur)->translatedFormat('d F Y') . ')' : '' }}
                 </td>
             </tr>
             {{-- <tr style="text-align: left; vertical-align: top;">

@@ -497,7 +497,10 @@ class PembelianBahanController extends Controller
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
 
+            $tgl_approve_leader = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+
             $data->status_leader = $validated['status_leader'];
+            $data->tgl_approve_leader = $tgl_approve_leader;
             $data->save();
 
             if ($data->status_leader === 'Disetujui') {
@@ -602,8 +605,10 @@ class PembelianBahanController extends Controller
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
             // Periksa status Leader dan Manager
+            $tgl_approve_general_manager = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             if ($data->status_leader === 'Disetujui') {
                 $data->status_general_manager = $validated['status_general_manager'];
+                $data->tgl_approve_general_manager = $tgl_approve_general_manager;
             } else {
                 LogHelper::error('Status general affair tidak dapat diubah karena leader belum menyetujui.');
                 return redirect()->back()->with('error', 'Status general affair tidak dapat diubah karena leader belum menyetujui.');
@@ -700,8 +705,10 @@ class PembelianBahanController extends Controller
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
             // Periksa status Leader dan Manager
+            $tgl_approve_purchasing = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             if ($data->status_leader === 'Disetujui') {
                 $data->status_purchasing = $validated['status_purchasing'];
+                $data->tgl_approve_purchasing = $tgl_approve_purchasing;
             } else {
                 LogHelper::error('Status purchasing tidak dapat diubah karena leader belum menyetujui.');
                 return redirect()->back()->with('error', 'Status purchasing tidak dapat diubah karena leader belum menyetujui.');
@@ -858,9 +865,10 @@ class PembelianBahanController extends Controller
                 'dataUser.atasanLevel3',
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
-
+            $tgl_approve_manager = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             if ($data->status_purchasing === 'Disetujui') {
                 $data->status_manager = $validated['status_manager'];
+                $data->tgl_approve_manager = $tgl_approve_manager;
             } else {
                 LogHelper::error('Status manager tidak dapat diubah karena purchasing belum menyetujui.');
                 return redirect()->back()->with('error', 'Status manager tidak dapat diubah karena purchasing belum menyetujui.');
@@ -955,9 +963,10 @@ class PembelianBahanController extends Controller
                 'dataUser.atasanLevel3',
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
-
+            $tgl_approve_finance = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             if ($data->status_manager === 'Disetujui') {
                 $data->status_finance = $validated['status_finance'];
+                $data->tgl_approve_finance = $tgl_approve_finance;
             } else {
                 LogHelper::error('Status finance tidak dapat diubah karena manager belum menyetujui.');
                 return redirect()->back()->with('error', 'Status finance tidak dapat diubah karena manager belum menyetujui.');
@@ -1022,9 +1031,10 @@ class PembelianBahanController extends Controller
                 'dataUser.atasanLevel3',
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
-
+            $tgl_approve_admin_manager = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             if ($data->status_finance === 'Disetujui') {
                 $data->status_admin_manager = $validated['status_admin_manager'];
+                $data->tgl_approve_admin_manager = $tgl_approve_admin_manager;
             } else {
                 LogHelper::error('Status admin manager tidak dapat diubah karena finance belum menyetujui.');
                 return redirect()->back()->with('error', 'Status admin manager tidak dapat diubah karena finance belum menyetujui.');
@@ -1088,13 +1098,14 @@ class PembelianBahanController extends Controller
                 'dataUser.atasanLevel3',
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
-
+            $tgl_approve_direktur = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             if ($data->status_admin_manager !== 'Disetujui') {
                 LogHelper::error('Status direktur tidak dapat diubah karena manager admin belum menyetujui.');
                 return redirect()->back()->with('error', 'Status direktur tidak dapat diubah karena manager admin belum menyetujui.');
             }
 
             $data->status = $validated['status'];
+            $data->tgl_approve_direktur = $tgl_approve_direktur;
             if ($validated['status'] === 'Disetujui') {
                 $data->tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 

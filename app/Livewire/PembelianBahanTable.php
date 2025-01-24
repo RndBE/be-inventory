@@ -179,7 +179,7 @@ class PembelianBahanTable extends Component
         $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails')
             ->orderBy('id', 'desc');
 
-        if ($user->hasRole(['superadmin','administrasi','purchasing'])) {
+        if ($user->hasRole(['superadmin','purchasing'])) {
 
         }
         elseif ($user->hasRole(['hardware manager'])) {
@@ -219,7 +219,7 @@ class PembelianBahanTable extends Component
             });
         }
         elseif ($user->hasRole('administrasi')) {
-            $pembelian_bahan->where('divisi', ['HSE','Sekretaris','Administrasi']);
+            // $pembelian_bahan->where('divisi', ['HSE','Sekretaris','Administrasi']);
             $pembelian_bahan->where(function ($query) {
                 $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset'])
                     ->where('status_manager', 'Disetujui');

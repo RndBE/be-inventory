@@ -134,6 +134,9 @@
                         <td style="border: 1px solid black; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">
 							@php
 								$fullText = $detail->spesifikasi; // Teks spesifikasi
+                                if (!$fullText || $fullText == '0') {
+                                    $fullText = ''; // Set menjadi string kosong jika spesifikasi 0 atau null
+                                }
 								$isUrl = filter_var($fullText, FILTER_VALIDATE_URL); // Periksa apakah teks adalah URL
 								$displayText = $isUrl && strlen($fullText) > 30
 									? substr($fullText, 0, 30) . '...'
@@ -498,6 +501,9 @@
                         <td style="border: 1px solid black; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">
 							@php
 								$fullText = $detail->spesifikasi; // Teks spesifikasi
+                                if (!$fullText || $fullText == '0') {
+                                    $fullText = ''; // Set menjadi string kosong jika spesifikasi 0 atau null
+                                }
 								$isUrl = filter_var($fullText, FILTER_VALIDATE_URL); // Periksa apakah teks adalah URL
 								$displayText = $isUrl && strlen($fullText) > 30
 									? substr($fullText, 0, 30) . '...'

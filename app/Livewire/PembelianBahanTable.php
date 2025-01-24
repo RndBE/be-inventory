@@ -179,11 +179,15 @@ class PembelianBahanTable extends Component
         $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails')
             ->orderBy('id', 'desc');
 
-        if ($user->hasRole(['superadmin','administrasi','purchasing','sekretaris'])) {
+        if ($user->hasRole(['superadmin','administrasi','purchasing'])) {
 
         }
         elseif ($user->hasRole(['hardware manager'])) {
             $pembelian_bahan->whereIn('divisi', ['RnD', 'Purchasing', 'Helper','Teknisi','OP','Produksi']);
+            $pembelian_bahan->where(function ($query) {
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset'])
+                    ->where('status_purchasing', 'Disetujui');
+            });
         }elseif ($user->hasRole(['rnd','rnd level 3'])) {
             $pembelian_bahan->whereIn('divisi', ['RnD']);
         }elseif ($user->hasRole(['purchasing level 3','helper'])) {
@@ -191,8 +195,15 @@ class PembelianBahanTable extends Component
         }elseif ($user->hasRole(['teknisi level 3','teknisi','op','produksi'])) {
             $pembelian_bahan->whereIn('divisi', ['Teknisi','OP','Produksi']);
         }
-        elseif ($user->hasRole(['marketing manager','marketing','marketing level 3'])) {
+        elseif ($user->hasRole(['marketing','marketing level 3'])) {
             $pembelian_bahan->whereIn('divisi', ['Marketing']);
+        }
+        elseif ($user->hasRole(['marketing manager'])) {
+            $pembelian_bahan->whereIn('divisi', ['Marketing']);
+            $pembelian_bahan->where(function ($query) {
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset'])
+                    ->where('status_purchasing', 'Disetujui');
+            });
         }
         elseif ($user->hasRole(['software manager','software','publikasi'])) {
             $pembelian_bahan->whereIn('divisi', ['Software','Publikasi']);
@@ -201,10 +212,18 @@ class PembelianBahanTable extends Component
             $pembelian_bahan->where('divisi', 'HSE');
         }
         elseif ($user->hasRole(['sekretaris'])) {
-            $pembelian_bahan->where('divisi', 'Sekretaris');
+            // $pembelian_bahan->where('divisi', 'Sekretaris');
+            $pembelian_bahan->where(function ($query) {
+                $query->whereIn('jenis_pengajuan', ['Pembelian Aset'])
+                    ->where('status_leader', 'Disetujui');
+            });
         }
         elseif ($user->hasRole('administrasi')) {
             $pembelian_bahan->where('divisi', ['HSE','Sekretaris','Administrasi']);
+            $pembelian_bahan->where(function ($query) {
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset'])
+                    ->where('status_manager', 'Disetujui');
+            });
         }
 
         // Pencarian dan filter tambahan

@@ -152,7 +152,7 @@
 							@endif
 						</td>
                         <td style="border: 1px solid black;text-align: center;">{{ $detail->jml_bahan }}</td>
-                        <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama }}</td>
+                        <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama ?? '' }}</td>
                         <td style="border: 1px solid black; text-align: right; padding: 5px;">
                             <div>
                                 @if($newUnitPrices->new_unit_price ?? false)

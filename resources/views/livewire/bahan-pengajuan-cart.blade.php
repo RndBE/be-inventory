@@ -185,7 +185,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($cartItems as $item)
+                        {{-- @foreach($cartItems as $item)
                             <input type="hidden" name="cartItems" value="{{ json_encode($this->getCartItemsForStorage()) }}">
 
                             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -233,7 +233,7 @@
                                 </td>
 
                             </tr>
-                        @endforeach
+                        @endforeach --}}
                     </tbody>
                 </table>
             </div>

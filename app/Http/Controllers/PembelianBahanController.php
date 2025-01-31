@@ -229,8 +229,8 @@ class PembelianBahanController extends Controller
         // dd($request->all());
         $validatedData = $request->validate([
             'pembelianBahanDetails' => 'required|string',
-            'keterangan' => 'string',
-            'link' => 'string',
+            'keterangan' => 'string|nullable',
+            'link' => 'string|nullable',
             'biaya' => 'required|string',
         ]);
 
@@ -1161,6 +1161,7 @@ class PembelianBahanController extends Controller
                             $existingDetail->sub_total += $detail->jml_bahan * array_sum(array_column($groupedDetails, 'unit_price'));
                             $existingDetail->sub_total_usd += $detail->jml_bahan * array_sum(array_column($groupedDetailsUSD, 'unit_price_usd'));
                             $existingDetail->jml_bahan = $detail->jml_bahan;
+                            $existingDetail->keterangan_pembayaran = $detail->keterangan_pembayaran;
                             // Gabungkan data details
                             $currentDetails = json_decode($existingDetail->details, true) ?? [];
                             $mergedDetails = array_merge($currentDetails, $groupedDetails);

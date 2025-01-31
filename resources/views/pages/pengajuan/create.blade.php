@@ -39,7 +39,10 @@
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
                 <a href="{{ route('pengajuans.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
-                <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
+                {{-- <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button> --}}
+                <button data-modal-target="konfirmsimpan-modal" data-modal-toggle="konfirmsimpan-modal" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500" type="button">
+                    Simpan
+                </button>
             </div>
         </div>
     </x-app.secondary-header>
@@ -85,6 +88,7 @@
             </form>
         </div>
     </div>
+    @include('pages.pengajuan.konfirmsimpan')
     <script>
         document.getElementById('saveButton').addEventListener('click', function() {
             document.getElementById('pengajuanForm').submit();

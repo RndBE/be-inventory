@@ -247,6 +247,21 @@ class PengajuanController extends Controller
                 ]);
             }
 
+            foreach ($cartItems as $item) {
+                PengajuanDetails::create([
+                    'pengajuan_id' => $pengajuan->id,
+                    'bahan_id' => $item['id'],
+                    'qty' => $item['qty'],
+                    'jml_bahan' => $item['jml_bahan'],
+                    'used_materials' => 0,
+                    'details' => json_encode($item['details']),
+                    'sub_total' => $item['sub_total'],
+                    'spesifikasi' => $item['spesifikasi'],
+                    'penanggungjawabaset' => $item['penanggungjawabaset'],
+                    'alasan' => $item['alasan'],
+                ]);
+            }
+
             // Kirim notifikasi jika nomor telepon valid
             if ($targetPhone) {
                 $message = "Halo {$recipientName},\n\n";

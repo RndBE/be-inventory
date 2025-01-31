@@ -62,7 +62,7 @@
                     <option value="">-- Pilih Jenis Pengajuan --</option>
                     <option value="Pembelian Bahan/Barang/Alat Lokal">Pembelian Bahan/Barang/Alat Lokal</option>
                     <option value="Pembelian Bahan/Barang/Alat Impor">Pembelian Bahan/Barang/Alat Impor</option>
-                    <option value="Pembelian Aset">Pembelian Aset</option>
+                    {{-- <option value="Pembelian Aset">Pembelian Aset</option> --}}
                 </select>
             </div>
 

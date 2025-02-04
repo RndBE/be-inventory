@@ -226,7 +226,7 @@
 
                     <div class="flex justify-end m-4">
                         <button wire:click.prevent="addRow"
-                            class="bg-blue-500 text-white p-8 px-4 py-2 rounded">
+                            class="bg-indigo-600 text-white p-8 px-4 py-2 rounded">
                             Tambah Baris
                         </button>
                     </div>

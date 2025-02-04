@@ -78,18 +78,21 @@ class PengajuanController extends Controller
             DB::beginTransaction();
             // Validasi input
             $cartItems = json_decode($request->cartItems, true);
+            $itemsAset = json_decode($request->itemsAset, true);
             $validator = Validator::make([
                 'divisi' => $request->divisi,
                 'project' => $request->project,
                 'keterangan' => $request->keterangan,
                 'jenis_pengajuan' => $request->jenis_pengajuan,
-                'cartItems' => $cartItems
+                'cartItems' => $cartItems,
+                'itemsAset' => $itemsAset,
             ], [
                 'divisi' => 'required',
                 'project' => 'required',
                 'keterangan' => 'required',
                 'jenis_pengajuan' => 'required',
-                'cartItems' => 'required|array',
+                'cartItems' => 'nullable|array',
+                'itemsAset' => 'nullable|array',
             ]);
 
             if ($validator->fails()) {
@@ -231,35 +234,63 @@ class PengajuanController extends Controller
                 'status_manager' => $status_manager,
             ]);
 
-            // Group items by bahan_id dan simpan
-            foreach ($cartItems as $item) {
-                PembelianBahanDetails::create([
-                    'pembelian_bahan_id' => $pembelian_bahan->id,
-                    'bahan_id' => $item['id'],
-                    'qty' => $item['qty'],
-                    'jml_bahan' => $item['jml_bahan'],
-                    'used_materials' => 0,
-                    'details' => json_encode($item['details']),
-                    'sub_total' => $item['sub_total'],
-                    'spesifikasi' => $item['spesifikasi'],
-                    'penanggungjawabaset' => $item['penanggungjawabaset'],
-                    'alasan' => $item['alasan'],
-                ]);
-            }
+            if ($jenisPengajuan === 'Pembelian Aset') {
+                foreach ($itemsAset as $item) {
+                    PembelianBahanDetails::create([
+                        'pembelian_bahan_id' => $pembelian_bahan->id,
+                        'nama_bahan' => $item['nama_bahan'],
+                        'qty' => 0,
+                        'jml_bahan' => $item['jml_bahan'],
+                        'used_materials' => 0,
+                        'spesifikasi' => $item['spesifikasi'],
+                        'penanggungjawabaset' => $item['penanggungjawabaset'],
+                        'alasan' => $item['alasan'],
+                    ]);
+                }
 
-            foreach ($cartItems as $item) {
-                PengajuanDetails::create([
-                    'pengajuan_id' => $pengajuan->id,
-                    'bahan_id' => $item['id'],
-                    'qty' => $item['qty'],
-                    'jml_bahan' => $item['jml_bahan'],
-                    'used_materials' => 0,
-                    'details' => json_encode($item['details']),
-                    'sub_total' => $item['sub_total'],
-                    'spesifikasi' => $item['spesifikasi'],
-                    'penanggungjawabaset' => $item['penanggungjawabaset'],
-                    'alasan' => $item['alasan'],
-                ]);
+                foreach ($itemsAset as $item) {
+                    PengajuanDetails::create([
+                        'pengajuan_id' => $pengajuan->id,
+                        'nama_bahan' => $item['nama_bahan'],
+                        'qty' => 0,
+                        'jml_bahan' => $item['jml_bahan'],
+                        'used_materials' => 0,
+                        'spesifikasi' => $item['spesifikasi'],
+                        'penanggungjawabaset' => $item['penanggungjawabaset'],
+                        'alasan' => $item['alasan'],
+                    ]);
+                }
+            } else {
+                // Group items by bahan_id dan simpan
+                foreach ($cartItems as $item) {
+                    PembelianBahanDetails::create([
+                        'pembelian_bahan_id' => $pembelian_bahan->id,
+                        'bahan_id' => $item['id'],
+                        'qty' => $item['qty'],
+                        'jml_bahan' => $item['jml_bahan'],
+                        'used_materials' => 0,
+                        'details' => json_encode($item['details']),
+                        'sub_total' => $item['sub_total'],
+                        'spesifikasi' => $item['spesifikasi'],
+                        'penanggungjawabaset' => $item['penanggungjawabaset'],
+                        'alasan' => $item['alasan'],
+                    ]);
+                }
+
+                foreach ($cartItems as $item) {
+                    PengajuanDetails::create([
+                        'pengajuan_id' => $pengajuan->id,
+                        'bahan_id' => $item['id'],
+                        'qty' => $item['qty'],
+                        'jml_bahan' => $item['jml_bahan'],
+                        'used_materials' => 0,
+                        'details' => json_encode($item['details']),
+                        'sub_total' => $item['sub_total'],
+                        'spesifikasi' => $item['spesifikasi'],
+                        'penanggungjawabaset' => $item['penanggungjawabaset'],
+                        'alasan' => $item['alasan'],
+                    ]);
+                }
             }
 
             // Kirim notifikasi jika nomor telepon valid

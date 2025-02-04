@@ -19,6 +19,7 @@ class EditPembelianBahanCart extends Component
     public $details = [];
     public $details_raw = [];
     public $unit_price = [];
+    public $unit_price_aset = [];
     public $unit_price_raw = [];
     public $unit_price_usd = [];
     public $unit_price_usd_raw = [];
@@ -47,6 +48,7 @@ class EditPembelianBahanCart extends Component
     public $totalharga = 0;
     public $totalhargausd = 0;
     public $editingItemId = null;
+    public $editingItemBahan = null;
     public $pembelianBahanId;
     public $pembelianBahanDetails = [];
     public $bahanRusak = [];
@@ -106,20 +108,24 @@ class EditPembelianBahanCart extends Component
                 $unitPrice = $decodedDetails['unit_price'] ?? 0;
                 $unitPriceUSD = $decodedDetailsUSD['unit_price_usd'] ?? 0;
 
-                $this->keterangan_pembayaran[$detail->bahan_id] = $detail->keterangan_pembayaran ?? '';
+                $bahanKey = $detail->bahan_id ?? $detail->nama_bahan;
+                $this->keterangan_pembayaran[$bahanKey] = $detail->keterangan_pembayaran ?? '';
+
 
                 $this->pembelianBahanDetails[] = [
                     'bahan' => Bahan::find($detail->bahan_id),
+                    'nama_bahan' => $detail->nama_bahan,
                     'jml_bahan' => $detail->jml_bahan,
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,
                     'details' => $decodedDetails,
-                    'keterangan_pembayaran' => $this->keterangan_pembayaran[$detail->bahan_id],
+                    'keterangan_pembayaran' => $this->keterangan_pembayaran[$bahanKey],
                     'spesifikasi' => $detail->spesifikasi ?? '',
                     'penanggungjawabaset' => $detail->penanggungjawabaset ?? '',
                     'alasan' => $detail->alasan ?? '',
                 ];
                 $this->unit_price[$detail->bahan_id] = $unitPrice;
+                $this->unit_price_aset[$detail->nama_bahan] = $unitPrice;
                 $this->unit_price_usd[$detail->bahan_id] = $unitPriceUSD;
             }
 
@@ -192,6 +198,12 @@ class EditPembelianBahanCart extends Component
         }
     }
 
+    public function editItemPriceLocalAset($itemBahan)
+    {
+        $this->editingItemBahan = $itemBahan;
+        $this->unit_price_raw[$itemBahan] = $this->unit_price_aset[$itemBahan] ?? 0;
+    }
+
     public function editItem($item)
     {
         $this->editingItemId = $item;
@@ -208,12 +220,27 @@ class EditPembelianBahanCart extends Component
         // Format harga dalam Rupiah
         $this->unit_price[$itemId] = intval(str_replace(['.', 'Rp'], '', $this->unit_price_raw[$itemId]));
         $this->unit_price_raw[$itemId] = number_format($this->unit_price[$itemId], 0, ',', '.');
-
         // Hitung Sub Total Rupiah
         $this->calculateSubTotal($itemId);
-
         // Tutup mode edit
         $this->editingItemId = null;
+    }
+
+    public function formatToRupiahPriceAset($itemBahan)
+    {
+        if (!isset($this->unit_price_raw[$itemBahan])) {
+            return;
+        }
+
+        // Format harga dalam Rupiah
+        $this->unit_price_aset[$itemBahan] = intval(str_replace(['.', 'Rp'], '', $this->unit_price_raw[$itemBahan]));
+        $this->unit_price_raw[$itemBahan] = number_format($this->unit_price_aset[$itemBahan], 0, ',', '.');
+
+        // Hitung Sub Total Rupiah
+        $this->calculateSubTotal($itemBahan);
+
+        // Tutup mode edit
+        $this->editingItemBahan = null;
     }
 
     public function formatToUSDPrice($itemId)
@@ -255,6 +282,12 @@ class EditPembelianBahanCart extends Component
     {
         $requestedQty = $this->keterangan_pembayaran[$itemId] ?? 0;
     }
+
+    public function changeKeteranganAset($itemBahan)
+    {
+        $requestedQty = $this->keterangan_pembayaran[$itemBahan] ?? 0;
+    }
+
     public function getCartItemsForStorage()
     {
         $pembelianBahanDetails = [];
@@ -262,7 +295,7 @@ class EditPembelianBahanCart extends Component
 
         // dd($this->keterangan_pembayaran);
         foreach ($this->pembelianBahanDetails as $item) {
-            $bahanId = $item['bahan']->id;
+            $bahanId = $item['bahan']->id ?? null;
             $unitPrice = $this->unit_price[$bahanId] ?? 0;
             $unitPriceUSD = $this->unit_price_usd[$bahanId] ?? 0;
             $subTotal = $item['jml_bahan'] * $unitPrice;
@@ -270,6 +303,39 @@ class EditPembelianBahanCart extends Component
             $keteranganPembayaran = $this->keterangan_pembayaran[$bahanId] ?? '';
             $pembelianBahanDetails[] = [
                 'id' => $bahanId,
+                'qty' => $this->qty[$bahanId] ?? 0,
+                'jml_bahan' => $item['jml_bahan'],
+                'details' => [
+                    'unit_price' => $unitPrice,
+                ],
+                'details_usd' => [
+                    'unit_price_usd' => $unitPriceUSD,
+                ],
+                'sub_total' => $subTotal,
+                'sub_total_usd' => $subTotalUSD,
+                'keterangan_pembayaran' => $keteranganPembayaran,
+            ];
+        }
+        $ongkir = $this->ongkir;
+        return $pembelianBahanDetails;
+        return $ongkir;
+    }
+
+    public function getCartItemsForAset()
+    {
+        $pembelianBahanDetails = [];
+        $ongkir = [];
+
+        // dd($this->keterangan_pembayaran);
+        foreach ($this->pembelianBahanDetails as $item) {
+            $bahanId = $item['nama_bahan'] ?? null;
+            $unitPrice = $this->unit_price_aset[$bahanId] ?? 0;
+            $unitPriceUSD = $this->unit_price_usd[$bahanId] ?? 0;
+            $subTotal = $item['jml_bahan'] * $unitPrice;
+            $subTotalUSD = $item['jml_bahan'] * $unitPriceUSD;
+            $keteranganPembayaran = $this->keterangan_pembayaran[$bahanId] ?? '';
+            $pembelianBahanDetails[] = [
+                'nama_bahan' => $bahanId,
                 'qty' => $this->qty[$bahanId] ?? 0,
                 'jml_bahan' => $item['jml_bahan'],
                 'details' => [

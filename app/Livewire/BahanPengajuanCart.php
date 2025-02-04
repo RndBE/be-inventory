@@ -22,12 +22,28 @@ class BahanPengajuanCart extends Component
     public $totalharga = 0;
     public $editingItemId = 0;
     public $jenisPengajuan = '';
+    public $showSearchBahanProduksi = false;
 
     protected $listeners = ['bahanSelected' => 'addToCart', 'bahanSetengahJadiSelected' => 'addToCart'];
 
+    public $itemsAset = [];
+
     public function mount()
     {
+        $this->itemsAset = [
+            ['nama_bahan' => '', 'spesifikasi' => '', 'jml_bahan' => '', 'penanggungjawabaset' => '', 'alasan' => '']
+        ];
+    }
 
+    public function addRow()
+    {
+        $this->itemsAset[] = ['nama_bahan' => '', 'spesifikasi' => '', 'jml_bahan' => '', 'penanggungjawabaset' => '', 'alasan' => ''];
+    }
+
+    public function removeRow($index)
+    {
+        unset($this->itemsAset[$index]);
+        $this->itemsAset = array_values($this->itemsAset);
     }
 
     public function addToCart($bahan)
@@ -250,6 +266,22 @@ class BahanPengajuanCart extends Component
         }
         return $items;
     }
+
+    public function getCartItemsForAset()
+    {
+        $itemsAset = [];
+        foreach ($this->itemsAset as $index => $item) {
+            $itemsAset[] = [
+                'nama_bahan' => $item['nama_bahan'] ?? '',
+                'spesifikasi' => $item['spesifikasi'] ?? '',
+                'jml_bahan' => $item['jml_bahan'] ?? 0,
+                'penanggungjawabaset' => $item['penanggungjawabaset'] ?? '',
+                'alasan' => $item['alasan'] ?? '',
+            ];
+        }
+        return $itemsAset;
+    }
+
 
     public function render()
     {

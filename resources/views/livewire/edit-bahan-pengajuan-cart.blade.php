@@ -396,7 +396,7 @@
                             $newDetails = is_string($detail['new_details']) ? json_decode($detail['new_details'], true) : $detail['new_details'];
                             // dd($newDetails);
 
-                            $unitPrice = $unit_price[$detail['bahan']->id] ?? 0;
+                            $unitPrice = $unit_price[$detail['nama_bahan']] ?? 0;
                             $newUnitPrice = $newDetails[0]['new_unit_price'] ?? 0;
                             $jmlBahan = $detail['jml_bahan'] ?? 0;
 
@@ -414,7 +414,7 @@
                         @endphp
                         <input type="hidden" name="pengajuanDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']->nama_bahan }}</td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['nama_bahan'] }}</td>
                             <td class="px-6 py-4 text-gray-900 dark:text-white">
                                 <span>{!! nl2br(e($detail['spesifikasi'] ?? '')) !!}</span>
                             </td>

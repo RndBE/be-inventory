@@ -151,23 +151,25 @@ class UpdateHargaPembelianBahanCart extends Component
                 $decodedNewDetailsUSD = json_decode($detail->new_details_usd, true);
                 $newUnitPriceUSD = $decodedNewDetailsUSD['new_unit_price_usd'] ?? 0;
 
-                $this->keterangan_pembayaran[$detail->bahan_id] = $detail->keterangan_pembayaran ?? '';
+                $bahanKey = $detail->bahan_id ?? $detail->nama_bahan;
+                $this->keterangan_pembayaran[$bahanKey] = $detail->keterangan_pembayaran ?? '';
 
                 $this->pembelianBahanDetails[] = [
                     'bahan' => Bahan::find($detail->bahan_id),
+                    'nama_bahan' => $detail->nama_bahan,
                     'jml_bahan' => $detail->jml_bahan,
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,
                     'sub_total' => $detail->sub_total,
                     'new_details' => $decodedNewDetails,
                     'details' => $decodedDetails,
-                    'keterangan_pembayaran' => $this->keterangan_pembayaran[$detail->bahan_id],
+                    'keterangan_pembayaran' => $this->keterangan_pembayaran[$bahanKey],
                     'spesifikasi' => $detail->spesifikasi ?? '',
                     'alasan' => $detail->alasan ?? '',
                     'penanggungjawabaset' => $detail->penanggungjawabaset ?? '',
                 ];
-                $this->new_unit_price[$detail->bahan_id] = $newUnitPrice;
-                $this->unit_price[$detail->bahan_id] = $unitPrice;
+                $this->new_unit_price[$bahanKey] = $newUnitPrice;
+                $this->unit_price[$bahanKey] = $unitPrice;
 
                 $this->new_unit_price_usd[$detail->bahan_id] = $newUnitPriceUSD;
                 $this->unit_price_usd[$detail->bahan_id] = $unitPriceUSD;
@@ -336,7 +338,8 @@ class UpdateHargaPembelianBahanCart extends Component
 
         // dd($this->keterangan_pembayaran);
         foreach ($this->pembelianBahanDetails as $item) {
-            $bahanId = $item['bahan']->id;
+
+            $bahanId = $item['bahan']->id ?? $item['nama_bahan'];
             $unitPrice = $this->unit_price[$bahanId] ?? 0;
             $newUnitPrice = $this->new_unit_price[$bahanId] ?? 0;
             $newUnitPriceUSD = $this->new_unit_price_usd[$bahanId] ?? 0;
@@ -348,6 +351,45 @@ class UpdateHargaPembelianBahanCart extends Component
             $keteranganPembayaran = $this->keterangan_pembayaran[$bahanId] ?? '';
             $pembelianBahanDetails[] = [
                 'id' => $bahanId,
+                'qty' => $this->qty[$bahanId] ?? 0,
+                'jml_bahan' => $item['jml_bahan'],
+                // 'details' => [
+                //     'unit_price' => $unitPrice,
+                // ],
+                'new_details' => [
+                    'new_unit_price' => $newUnitPrice,
+                ],
+                'new_details_usd' => [
+                    'new_unit_price_usd' => $newUnitPriceUSD,
+                ],
+                // 'sub_total' => $subTotal,
+                'new_sub_total' => $newSubTotal,
+                'new_sub_total_usd' => $newSubTotalUSD,
+                'keterangan_pembayaran' => $keteranganPembayaran,
+            ];
+        }
+        return $pembelianBahanDetails;
+    }
+
+    public function getCartItemsForStorageAset()
+    {
+        $pembelianBahanDetails = [];
+
+        // dd($this->keterangan_pembayaran);
+        foreach ($this->pembelianBahanDetails as $item) {
+
+            $bahanId = $item['nama_bahan'];
+            $unitPrice = $this->unit_price[$bahanId] ?? 0;
+            $newUnitPrice = $this->new_unit_price[$bahanId] ?? 0;
+            $newUnitPriceUSD = $this->new_unit_price_usd[$bahanId] ?? 0;
+
+            $subTotal = $item['jml_bahan'] * $unitPrice;
+            $newSubTotal = $item['jml_bahan'] * $newUnitPrice;
+            $newSubTotalUSD = $item['jml_bahan'] * $newUnitPriceUSD;
+
+            $keteranganPembayaran = $this->keterangan_pembayaran[$bahanId] ?? '';
+            $pembelianBahanDetails[] = [
+                'nama_bahan' => $bahanId,
                 'qty' => $this->qty[$bahanId] ?? 0,
                 'jml_bahan' => $item['jml_bahan'],
                 // 'details' => [

@@ -271,11 +271,21 @@ class PembelianBahanController extends Controller
         }
 
         // Process each pembelianBahanDetail
-        foreach ($pembelianBahanDetails as $item) {
-            // Update or create PembelianBahanDetails
+        foreach ($pembelianBahanDetails as $item) {$bahanId = $item['id'] ?? null;
+            $namaBahan = $item['nama_bahan'] ?? null;
+
+            // Tentukan kondisi pencarian: jika bahan_id ada, gunakan itu; jika tidak, gunakan nama_bahan
+            $conditions = ['pembelian_bahan_id' => $id];
+            if ($bahanId) {
+                $conditions['bahan_id'] = $bahanId;
+            } elseif ($namaBahan) {
+                $conditions['nama_bahan'] = $namaBahan;
+            }
             PembelianBahanDetails::updateOrCreate(
-                ['pembelian_bahan_id' => $id, 'bahan_id' => $item['id']],
+                $conditions,
                 [
+                    'bahan_id' => $bahanId, // Bisa null jika tidak ada bahan_id
+                    'nama_bahan' => $namaBahan,
                     'qty' => $item['qty'],
                     'jml_bahan' => $item['jml_bahan'],
                     'used_materials' => 0,
@@ -308,8 +318,14 @@ class PembelianBahanController extends Controller
             if ($pembelianBahan->pengajuan_id) {
                 // Look for existing PengajuanDetails based on pengajuan_id and bahan_id
                 $existingDetail = PengajuanDetails::where('pengajuan_id', $pembelianBahan->pengajuan_id)
-                    ->where('bahan_id', $detail->bahan_id)
-                    ->first();
+                ->where(function ($query) use ($detail) {
+                    if (!empty($detail->bahan_id)) {
+                        $query->where('bahan_id', $detail->bahan_id);
+                    } else {
+                        $query->where('nama_bahan', $detail->nama_bahan);
+                    }
+                })
+                ->first();
 
                 if (!is_array($transactionDetails) || isset($transactionDetails['new_unit_price'])) {
                     // Jika data berbentuk array asosiatif sederhana (single entry), bungkus ke dalam array
@@ -363,7 +379,8 @@ class PembelianBahanController extends Controller
                     // Create new PengajuanDetails if not found
                     PengajuanDetails::create([
                         'pengajuan_id' => $pembelianBahan->pengajuan_id,
-                        'bahan_id' => $detail->bahan_id,
+                        'bahan_id' => $detail->bahan_id ?? null,
+                        'nama_bahan' => $detail->nama_bahan ?? null,
                         'qty' => array_sum(array_column($transactionDetails, 'qty')),
                         'jml_bahan' => $detail->jml_bahan,
                         'used_materials' => $detail->jml_bahan,
@@ -431,9 +448,21 @@ class PembelianBahanController extends Controller
 
             // Update or create pembelian bahan details
             foreach ($pembelianBahanDetails as $item) {
+                $bahanId = $item['id'] ?? null;
+                $namaBahan = $item['nama_bahan'] ?? null;
+
+                // Tentukan kondisi pencarian: jika bahan_id ada, gunakan itu; jika tidak, gunakan nama_bahan
+                $conditions = ['pembelian_bahan_id' => $id];
+                if ($bahanId) {
+                    $conditions['bahan_id'] = $bahanId;
+                } elseif ($namaBahan) {
+                    $conditions['nama_bahan'] = $namaBahan;
+                }
                 PembelianBahanDetails::updateOrCreate(
-                    ['pembelian_bahan_id' => $id, 'bahan_id' => $item['id']],
+                    $conditions,
                     [
+                        'bahan_id' => $bahanId, // Bisa null jika tidak ada bahan_id
+                        'nama_bahan' => $namaBahan,
                         'qty' => $item['qty'],
                         'jml_bahan' => $item['jml_bahan'],
                         'used_materials' => 0,
@@ -1114,7 +1143,6 @@ class PembelianBahanController extends Controller
                 foreach ($details as $detail) {
                     $transactionDetails = json_decode($detail->details, true) ?? [];
                     $transactionDetailsUSD = json_decode($detail->details_usd, true) ?? [];
-
                     if (!is_array($transactionDetails) || isset($transactionDetails['unit_price'])) {
                         $transactionDetails = [$transactionDetails];
                     }
@@ -1126,8 +1154,15 @@ class PembelianBahanController extends Controller
                     if ($data->pengajuan_id) {
                         // Proses data pada tabel PengajuanDetails
                         $existingDetail = PengajuanDetails::where('pengajuan_id', $data->pengajuan_id)
-                            ->where('bahan_id', $detail->bahan_id)
-                            ->first();
+                        ->where(function ($query) use ($detail) {
+                            if (!empty($detail->bahan_id)) {
+                                $query->where('bahan_id', $detail->bahan_id);
+                            } else {
+                                $query->where('nama_bahan', $detail->nama_bahan);
+                            }
+                        })
+                        ->first();
+
 
                         $groupedDetails = [];
                         $groupedDetailsUSD = [];
@@ -1157,9 +1192,13 @@ class PembelianBahanController extends Controller
                         }
 
                         if ($existingDetail) {
-                            // Update data yang sudah ada
-                            $existingDetail->sub_total += $detail->jml_bahan * array_sum(array_column($groupedDetails, 'unit_price'));
-                            $existingDetail->sub_total_usd += $detail->jml_bahan * array_sum(array_column($groupedDetailsUSD, 'unit_price_usd'));
+                             // Ensure the sub total is calculated correctly
+                            $subTotal = $detail->jml_bahan * array_sum(array_column($groupedDetails, 'unit_price'));
+                            $subTotalUSD = $detail->jml_bahan * array_sum(array_column($groupedDetailsUSD, 'unit_price_usd'));
+
+                            // Update existing data
+                            $existingDetail->sub_total += $subTotal;
+                            $existingDetail->sub_total_usd += $subTotalUSD;
                             $existingDetail->jml_bahan = $detail->jml_bahan;
                             $existingDetail->keterangan_pembayaran = $detail->keterangan_pembayaran;
                             // Gabungkan data details
@@ -1173,17 +1212,20 @@ class PembelianBahanController extends Controller
                             $existingDetail->details_usd = json_encode(array_values($mergedDetailsUSD));
                             $existingDetail->save();
                         } else {
-                            // Buat data baru jika belum ada
+                            $subTotal = $detail->jml_bahan * array_sum(array_column($groupedDetails, 'unit_price'));
+                            $subTotalUSD = $detail->jml_bahan * array_sum(array_column($groupedDetailsUSD, 'unit_price_usd'));
+
                             PengajuanDetails::create([
                                 'pengajuan_id' => $data->pengajuan_id,
-                                'bahan_id' => $detail->bahan_id,
+                                'bahan_id' => $detail->bahan_id ?? null,
+                                'nama_bahan' => $detail->nama_bahan ?? null,
                                 'qty' => array_sum(array_column($groupedDetails, 'qty')),
                                 'jml_bahan' => $detail->jml_bahan,
                                 'used_materials' => $detail->jml_bahan,
                                 'details' => json_encode(array_values($groupedDetails)),
                                 'details_usd' => json_encode(array_values($groupedDetailsUSD)),
-                                'sub_total' => $detail->jml_bahan * array_sum(array_column($groupedDetails, 'unit_price')),
-                                'sub_total_usd' => $detail->jml_bahan * array_sum(array_column($groupedDetailsUSD, 'unit_price_usd')),
+                                'sub_total' => $subTotal,
+                                'sub_total_usd' => $subTotalUSD,
                                 'keterangan_pembayaran' => $detail->keterangan_pembayaran,
                                 'spesifikasi' => $detail->spesifikasi,
                                 'penanggungjawabaset' => $detail->penanggungjawabaset,

@@ -457,8 +457,9 @@
                     @foreach ($pembelianBahanDetails as $detail)
                         @php
                             // Tetapkan default nilai harga satuan dan jumlah bahan
-                            $unitPrice = $unit_price[$detail['bahan']->id] ?? 0;
-                            $newUnitPrice = $new_unit_price[$detail['bahan']->id] ?? 0;
+                            $bahanKey = $detail['bahan']->id ?? $detail['nama_bahan'];
+                            $unitPrice = $unit_price[$bahanKey] ?? 0;
+                            $newUnitPrice = $new_unit_price[$bahanKey] ?? 0;
                             $jmlBahan = $detail['jml_bahan'] ?? 0;
 
                             // Tentukan unit price yang akan digunakan (nilai baru jika ada, jika tidak gunakan nilai lama)
@@ -471,11 +472,11 @@
                             $grandTotal += $newSubTotalFinal;
                         @endphp
 
-                        <input type="hidden" name="pembelianBahanDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
+                        <input type="hidden" name="pembelianBahanDetails" value="{{ json_encode($this->getCartItemsForStorageAset()) }}">
                         <input type="hidden" name="biaya" value="{{ json_encode($this->getCartItemsForStorageBiaya()) }}">
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                    {{ $detail['bahan']->nama_bahan }}
+                                    {{ $detail['nama_bahan'] }}
                             </td>
                             <td class="px-6 py-4 text-gray-900 dark:text-white">
                                 <span>{!! nl2br(e($detail['spesifikasi'] ?? '')) !!}</span>
@@ -486,25 +487,25 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 <span>
                                     {{ number_format(
-                                        $unit_price[$detail['bahan']->id] ??
+                                        $unit_price[$bahanKey] ??
                                         ($detail['details']['unit_price'] ?? 0), 0, ',', '.'
                                     ) }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                @if($editingItemId === $detail['bahan']->id)
+                                @if($editingItemId === $bahanKey)
                                     <input
                                         autofocus
-                                        wire:model="new_unit_price_raw.{{ $detail['bahan']->id }}"
+                                        wire:model="new_unit_price_raw.{{ $bahanKey }}"
                                         type="number"
                                         class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-right"
                                         placeholder="0"
-                                        wire:blur="formatToRupiahPrice({{ $detail['bahan']->id }})"
+                                        wire:blur="formatToRupiahPrice('{{ $bahanKey }}')"
                                     />
                                 @else
-                                    <span class="cursor-pointer" wire:click="editItemPrice({{ $detail['bahan']->id }})">
+                                    <span class="cursor-pointer" wire:click="editItemPrice('{{ $bahanKey }}')">
                                         {{ number_format(
-                                            $new_unit_price[$detail['bahan']->id] ??
+                                            $new_unit_price[$bahanKey] ??
                                             ($new_detail['new_details']['new_unit_price'] ?? 0), 0, ',', '.'
                                         ) }}
                                     </span>
@@ -528,8 +529,8 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                 <div class="flex justify-right items-right">
                                     <textarea
-                                        wire:model="keterangan_pembayaran.{{ $detail['bahan']->id }}"
-                                        wire:keyup="changeKeterangan({{ $detail['bahan']->id }})"
+                                        wire:model="keterangan_pembayaran.{{ $bahanKey }}"
+                                        wire:keyup="changeKeterangan('{{ $bahanKey }}')"
                                         class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     >{{ $detail['keterangan_pembayaran'] ?? '' }}</textarea>
                                 </div>

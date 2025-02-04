@@ -83,8 +83,10 @@ class EditBahanPengajuanCart extends Component
         // $this->loadBahanKeluar();
 
         foreach ($this->pengajuanDetails as $detail) {
-            $bahanId = $detail['bahan']->id;
-            $this->jml_bahan[$bahanId] = $detail['jml_bahan'] ?? 0;
+            $bahanId = $detail['bahan']->id ?? $detail['nama_bahan'] ?? null;
+            if ($bahanId) {
+                $this->jml_bahan[$bahanId] = $detail['jml_bahan'] ?? 0;
+            }
         }
         $pengajuan = Pengajuan::findOrFail($pengajuanId);
         $this->jenis_pengajuan = $pengajuan->jenis_pengajuan;
@@ -124,14 +126,17 @@ class EditBahanPengajuanCart extends Component
                 $newUnitPrice = $newdecodedDetails[0]['unit_price'] ?? 0;
                 $newUnitPriceUSD = $newdecodedDetailsUSD[0]['unit_price_usd'] ?? 0;
 
-                $this->unit_price[$detail->bahan_id] = $unitPrice;
+                $bahanKey = $detail->bahan_id ?? $detail->nama_bahan;
+
+                $this->unit_price[$bahanKey] = $unitPrice;
                 $this->unit_price_usd[$detail->bahan_id] = $unitPriceUSD;
-                $this->new_unit_price[$detail->bahan_id] = $newUnitPrice;
+                $this->new_unit_price[$bahanKey] = $newUnitPrice;
                 $this->new_unit_price_usd[$detail->bahan_id] = $newUnitPriceUSD;
 
                 $this->pengajuanDetails[] = [
                     'bahan' => Bahan::find($detail->bahan_id), // Ensure this returns an object
                     // 'qty' => $detail->qty,
+                    'nama_bahan' => $detail->nama_bahan,
                     'jml_bahan' => $detail->jml_bahan,
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,

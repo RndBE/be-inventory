@@ -131,7 +131,7 @@
                         </div>
                     </li>
                     <!-- Transaksi -->
-                    {{-- @role('superadmin|purchasing|purchasing level 3|rnd level 3|teknisi level 3|marketing level 3|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager') --}}
+                    @role('superadmin|purchasing|purchasing level 3|rnd level 3|teknisi level 3|marketing level 3|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager')
                     <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['transaksi'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif" x-data="{ open: {{ in_array(Request::segment(1), ['transaksi']) ? 1 : 0 }} }">
                         <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['transaksi'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                             <div class="flex items-center justify-between">
@@ -195,7 +195,7 @@
                             </ul>
                         </div>
                     </li>
-                    {{-- @endrole --}}
+                    @endrole
                     <!-- Bahan Rusak -->
                     @can('lihat-bahan-rusak')
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['bahan-rusaks'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">

@@ -48,7 +48,7 @@ class PembelianBahanController extends Controller
         $this->middleware('permission:edit-approve-purchasing', ['only' => ['update','edit','updateApprovalPurchasing']]);
         $this->middleware('permission:edit-approve-manager', ['only' => ['updateApprovalManager']]);
         $this->middleware('permission:update-harga-pembelian-bahan', ['only' => ['editHarga','updateHarga']]);
-
+        $this->middleware('permission:upload-link-invoice', ['only' => ['uploadInvoice']]);
         $this->middleware('permission:hapus-pembelian-bahan', ['only' => ['destroy']]);
     }
 
@@ -1105,6 +1105,28 @@ class PembelianBahanController extends Controller
             DB::commit();
             LogHelper::success('Status approval admin manager berhasil diubah.');
             return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval admin manager berhasil diubah.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $errorMessage = $e->getMessage();
+            LogHelper::error($errorMessage);
+            return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
+        }
+    }
+    public function uploadInvoice(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'link' => 'nullable|string',
+        ]);
+        try {
+            DB::beginTransaction();
+            $data = PembelianBahan::findOrFail($id);
+
+            $data->link = $validated['link'];
+            $data->save();
+
+            DB::commit();
+            LogHelper::success('Upload link invoice berhasil.');
+            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Upload link invoice berhasil.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();

@@ -27,6 +27,7 @@ class PembelianBahanTable extends Component
     public $isApproveFinanceModalOpen = false;
     public $isApproveDirekturModalOpen = false;
     public $isShowInvoiceModalOpen = false;
+    public $isUploadInvoiceModalOpen = false;
 
     public function updatedSearch()
     {
@@ -152,6 +153,14 @@ class PembelianBahanTable extends Component
         $this->status_pengambilan = $Data->status_pengambilan;
     }
 
+    public function uploadInvoice(int $id)
+    {
+        $Data = PembelianBahan::findOrFail($id);
+        $this->id_pembelian_bahan = $id;
+        $this->link = $Data->link;
+        $this->isUploadInvoiceModalOpen = true;
+    }
+
     public function deletePembelianBahan(int $id)
     {
         $this->id_pembelian_bahan = $id;
@@ -170,6 +179,7 @@ class PembelianBahanTable extends Component
         $this->isApproveDirekturModalOpen = false;
         $this->isApproveGMModalOpen = false;
         $this->isShowInvoiceModalOpen = false;
+        $this->isUploadInvoiceModalOpen = false;
     }
 
     public function render()

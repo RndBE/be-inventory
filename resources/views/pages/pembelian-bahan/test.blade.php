@@ -379,7 +379,7 @@
                                             @foreach($this->pembelianBahanDetails as $detail)
                                                 <tr class="flex">
                                                     <td class="flex-1 py-1">
-                                                        {{ $detail->nama_bahan }}
+                                                        {{ $detail->nama_bahan ?? $detail->dataBahan->nama_bahan ?? '-'}}
                                                         @if ($detail->jml_bahan > 0)
                                                             ({{ $detail->jml_bahan }})
                                                         @else

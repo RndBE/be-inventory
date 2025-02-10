@@ -497,7 +497,7 @@
                     @endphp
                     <tr>
                         <td style="border: 1px solid black; text-align: center;">{{ $index + 1 }}</td>
-                        <td style="border: 1px solid black">{{ $detail->nama_bahan }}</td>
+                        <td style="border: 1px solid black">{{ $detail->nama_bahan ?? $detail->dataBahan->nama_bahan ?? '-' }}</td>
                         <td style="border: 1px solid black; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">
 							@php
 								$fullText = $detail->spesifikasi; // Teks spesifikasi

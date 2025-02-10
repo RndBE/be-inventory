@@ -115,7 +115,7 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
                     '',
                     '',
                     '',
-                    $detail->dataBahan->nama_bahan ?? '-',
+                    $detail->dataBahan->nama_bahan ?? $detail->nama_bahan ?? '-',
                     $detail->jml_bahan ?? '-',
                     $unitPrice,
                     $detail->sub_total ?? 0,

@@ -215,13 +215,13 @@ class UpdateHargaPembelianBahanCart extends Component
         // Pastikan nilai mentah tidak kosong
         $rawValue = $this->{$item . '_raw'} ?? '0';
 
-        // Hapus titik sebagai pemisah ribuan dan ubah koma menjadi titik untuk parsing angka desimal
+        // Hapus titik ribuan, ubah koma menjadi titik
         $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
 
-        // Konversi ke float agar angka desimal tetap terjaga
-        $this->$item = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+        // Simpan dengan presisi dua desimal menggunakan bcadd
+        $this->$item = is_numeric($cleanValue) ? bcadd($cleanValue, '0', 2) : '0.00';
 
-        // Format kembali ke format Rupiah dengan dua desimal
+        // Format ulang tampilan dengan dua desimal tetap
         $this->{$item . '_raw'} = number_format($this->$item, 2, ',', '.');
 
         // Jika item adalah unit_price, hitung ulang subtotal
@@ -229,8 +229,10 @@ class UpdateHargaPembelianBahanCart extends Component
             $this->calculateSubTotal($this->editingItemId);
         }
 
+        // Tutup mode edit
         $this->editingItemId = null;
     }
+
 
 
     public function formatToRupiahNew($item)

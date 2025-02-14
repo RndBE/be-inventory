@@ -107,13 +107,13 @@
                                                         @if($newUnitPrices->new_unit_price ?? false)
                                                             <span class="line-through text-red-500">{{ number_format($unitPrices->unit_price ?? 0) }}</span>
                                                         @else
-                                                            {{ number_format($unitPrices->unit_price ?? 0) }}
+                                                            {{ number_format($unitPrices->unit_price ?? 0, 2, ',', '.') }}
                                                         @endif
                                                     </td>
 
                                                     <td class="flex-1 pl-3">
                                                         @if($newUnitPrices->new_unit_price ?? false)
-                                                            {{ number_format($newUnitPrices->new_unit_price ?? 0) }}
+                                                            {{ number_format($newUnitPrices->new_unit_price ?? 0, 2, ',', '.') }}
                                                         @else
                                                             <span class="invisible"></span>
                                                         @endif
@@ -124,11 +124,11 @@
                                                         @if($newUnitPrices->new_unit_price ?? false)
                                                             <span class="line-through text-red-500">{{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}</span>
                                                         @else
-                                                            {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}
+                                                            {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0), 2, ',', '.') }}
                                                         @endif
 
                                                         @if($newUnitPrices->new_unit_price ?? false)
-                                                            {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0)) }}
+                                                            {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0), 2, ',', '.') }}
                                                         @else
                                                             <span class="invisible"></span>
                                                         @endif
@@ -138,22 +138,22 @@
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Ongkos Kirim: </strong></td>
-                                                <td class="w-[150px] text-right">{{ number_format($ongkir) }}</td>
+                                                <td class="w-[150px] text-right">{{ number_format($ongkir, 2, ',', '.') }}</td>
                                             </tr>
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Asuransi: </strong></td>
-                                                <td class="w-[150px] text-right">{{ number_format($asuransi) }}</td>
+                                                <td class="w-[150px] text-right">{{ number_format($asuransi, 2, ',', '.') }}</td>
                                             </tr>
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Layanan: </strong></td>
-                                                <td class="w-[150px] text-right">{{ number_format($layanan) }}</td>
+                                                <td class="w-[150px] text-right">{{ number_format($layanan, 2, ',', '.') }}</td>
                                             </tr>
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Jasa Aplikasi: </strong></td>
-                                                <td class="w-[150px] text-right">{{ number_format($jasa_aplikasi) }}</td>
+                                                <td class="w-[150px] text-right">{{ number_format($jasa_aplikasi, 2, ',', '.') }}</td>
                                             </tr>
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
@@ -162,7 +162,7 @@
                                                     @php
                                                         $totalWithExtras += ($ongkir ?? 0) + ($asuransi ?? 0) + ($layanan ?? 0) + ($jasa_aplikasi ?? 0);
                                                     @endphp
-                                                    {{ number_format($totalWithExtras, 0, ',', '.') }}
+                                                    {{ number_format($totalWithExtras, 2, ',', '.') }}
                                                 </td>
                                             </tr>
 
@@ -249,13 +249,13 @@
                                                         @if($newUnitPrices->new_unit_price ?? false)
                                                             <span class="line-through text-red-500">{{ number_format($unitPrices->unit_price ?? 0) }}</span>
                                                         @else
-                                                            {{ number_format($unitPrices->unit_price ?? 0) }}
+                                                            {{ number_format($unitPrices->unit_price ?? 0, 2, ',', '.') }}
                                                         @endif
                                                     </td>
 
                                                     <td class="flex-1 pl-3">
                                                         @if($newUnitPrices->new_unit_price ?? false)
-                                                            {{ number_format($newUnitPrices->new_unit_price ?? 0) }}
+                                                            {{ number_format($newUnitPrices->new_unit_price ?? 0, 2, ',', '.') }}
                                                         @else
                                                             <span class="invisible"></span>
                                                         @endif
@@ -266,11 +266,11 @@
                                                         @if($newUnitPrices->new_unit_price ?? false)
                                                             <span class="line-through text-red-500">{{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}</span>
                                                         @else
-                                                            {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}
+                                                            {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0), 2, ',', '.') }}
                                                         @endif
 
                                                         @if($newUnitPrices->new_unit_price ?? false)
-                                                            {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0)) }}
+                                                            {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0), 2, ',', '.') }}
                                                         @else
                                                             <span class="invisible"></span>
                                                         @endif
@@ -282,10 +282,10 @@
                                                 <td class="w-[150px] text-right"><strong>Shipping Cost: </strong></td>
                                                 <td class="w-[150px] text-right">
                                                     @if($new_shipping_cost > 0)
-                                                        <span class="line-through text-red-500">{{ number_format($shipping_cost, 0, ',', '.') }}</span>
-                                                        {{ number_format($new_shipping_cost, 0, ',', '.') }}
+                                                        <span class="line-through text-red-500">{{ number_format($shipping_cost, 2, ',', '.') }}</span>
+                                                        {{ number_format($new_shipping_cost, 2, ',', '.') }}
                                                     @else
-                                                        {{ number_format($shipping_cost, 0, ',', '.') }}
+                                                        {{ number_format($shipping_cost, 2, ',', '.') }}
                                                     @endif
                                                 </td>
 
@@ -295,10 +295,10 @@
                                                 <td class="w-[150px] text-right"><strong>Full Amount Fee: </strong></td>
                                                 <td class="w-[150px] text-right">
                                                     @if($new_full_amount_fee > 0)
-                                                        <span class="line-through text-red-500">{{ number_format($full_amount_fee, 0, ',', '.') }}</span>
-                                                        {{ number_format($new_full_amount_fee, 0, ',', '.') }}
+                                                        <span class="line-through text-red-500">{{ number_format($full_amount_fee, 2, ',', '.') }}</span>
+                                                        {{ number_format($new_full_amount_fee, 2, ',', '.') }}
                                                     @else
-                                                        {{ number_format($full_amount_fee, 0, ',', '.') }}
+                                                        {{ number_format($full_amount_fee, 2, ',', '.') }}
                                                     @endif
                                                 </td>
 
@@ -308,10 +308,10 @@
                                                 <td class="w-[150px] text-right"><strong>Value Today Fee: </strong></td>
                                                 <td class="w-[150px] text-right">
                                                     @if($new_value_today_fee > 0)
-                                                        <span class="line-through text-red-500">{{ number_format($value_today_fee, 0, ',', '.') }}</span>
-                                                        {{ number_format($new_value_today_fee, 0, ',', '.') }}
+                                                        <span class="line-through text-red-500">{{ number_format($value_today_fee, 2, ',', '.') }}</span>
+                                                        {{ number_format($new_value_today_fee, 2, ',', '.') }}
                                                     @else
-                                                        {{ number_format($value_today_fee, 0, ',', '.') }}
+                                                        {{ number_format($value_today_fee, 2, ',', '.') }}
                                                     @endif
                                                 </td>
 
@@ -325,7 +325,7 @@
                                                                     + ($new_full_amount_fee > 0 ? $new_full_amount_fee : $full_amount_fee)
                                                                     + ($new_value_today_fee > 0 ? $new_value_today_fee : $value_today_fee);
                                                     @endphp
-                                                    {{ number_format($finalTotal, 0, ',', '.') }}
+                                                    {{ number_format($finalTotal, 2, ',', '.') }}
                                                 </td>
                                             </tr>
                                         @else
@@ -410,13 +410,13 @@
                                                         @if($newUnitPrices->new_unit_price ?? false)
                                                             <span class="line-through text-red-500">{{ number_format($unitPrices->unit_price ?? 0) }}</span>
                                                         @else
-                                                            {{ number_format($unitPrices->unit_price ?? 0) }}
+                                                            {{ number_format($unitPrices->unit_price ?? 0, 2, ',', '.') }}
                                                         @endif
                                                     </td>
 
                                                     <td class="flex-1 pl-3">
                                                         @if($newUnitPrices->new_unit_price ?? false)
-                                                            {{ number_format($newUnitPrices->new_unit_price ?? 0) }}
+                                                            {{ number_format($newUnitPrices->new_unit_price ?? 0, 2, ',', '.') }}
                                                         @else
                                                             <span class="invisible"></span>
                                                         @endif
@@ -427,11 +427,11 @@
                                                         @if($newUnitPrices->new_unit_price ?? false)
                                                             <span class="line-through text-red-500">{{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}</span>
                                                         @else
-                                                            {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}
+                                                            {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0), 2, ',', '.') }}
                                                         @endif
 
                                                         @if($newUnitPrices->new_unit_price ?? false)
-                                                            {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0)) }}
+                                                            {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0), 2, ',', '.') }}
                                                         @else
                                                             <span class="invisible"></span>
                                                         @endif
@@ -442,7 +442,7 @@
                                                 <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Total Harga: </strong></td>
                                                 <td class="w-[150px] text-right">Rp.
-                                                    {{ number_format($totalWithExtras, 0, ',', '.') }}
+                                                    {{ number_format($totalWithExtras, 2, ',', '.') }}
                                                 </td>
                                             </tr>
 

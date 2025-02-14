@@ -55,24 +55,24 @@
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @if($newUnitPrice === 0 || $newUnitPrice === null)
-                                    <span>{{ number_format($unitPrice, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($unitPrice, 2, ',', '.') }}</span>
                                 @else
                                     <span style="text-decoration: line-through; color: red;">
-                                        {{ number_format($unitPrice, 0, ',', '.') }}
+                                        {{ number_format($unitPrice, 2, ',', '.') }}
                                     </span>
                                     <br>
-                                    <span>{{ number_format($newUnitPrice, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($newUnitPrice, 2, ',', '.') }}</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @if($detail['new_sub_total'] === 0 || $detail['new_sub_total'] === null)
-                                    <span>{{ number_format($subTotal, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($subTotal, 2, ',', '.') }}</span>
                                 @else
                                     <span style="text-decoration: line-through; color: red;">
-                                        {{ number_format($subTotal, 0, ',', '.') }}
+                                        {{ number_format($subTotal, 2, ',', '.') }}
                                     </span>
                                     <br>
-                                    <span>{{ number_format($detail['new_sub_total'], 0, ',', '.') }}</span>
+                                    <span>{{ number_format($detail['new_sub_total'], 2, ',', '.') }}</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-gray-900 dark:text-white">
@@ -100,7 +100,7 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 text-right text-black"><strong>Ongkos Kirim</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                {{ number_format($ongkir, 0, ',', '.') }}
+                                {{ number_format($ongkir, 2, ',', '.') }}
                             </td>
                         </tr>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -109,7 +109,7 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 text-right text-black"><strong>Asuransi</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                {{ number_format($asuransi, 0, ',', '.') }}
+                                {{ number_format($asuransi, 2, ',', '.') }}
                             </td>
                         </tr>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -118,7 +118,7 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 text-right text-black"><strong>Layanan</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                {{ number_format($layanan, 0, ',', '.') }}
+                                {{ number_format($layanan,2, ',', '.') }}
                             </td>
                         </tr>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -127,7 +127,7 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 text-right text-black"><strong>Jasa Aplikasi</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                {{ number_format($jasaAplikasi, 0, ',', '.') }}
+                                {{ number_format($jasaAplikasi, 2, ',', '.') }}
                             </td>
                         </tr>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -139,7 +139,7 @@
                                 @php
                                     $totalWithExtras = $grandTotal + $ongkir + $asuransi + $layanan + $jasaAplikasi;
                                 @endphp
-                                <span><strong>Rp.</strong> {{ number_format($totalWithExtras, 0, ',', '.') }}</span>
+                                <span><strong>Rp.</strong> {{ number_format($totalWithExtras, 2, ',', '.') }}</span>
                             </td>
                         </tr>
                     </tbody>
@@ -237,24 +237,24 @@
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                     @if($newUnitPrice === 0 || $newUnitPrice === null)
-                                        <span>{{ number_format($unitPrice, 0, ',', '.') }}</span>
+                                        <span>{{ number_format($unitPrice, 2, ',', '.') }}</span>
                                     @else
                                         <span style="text-decoration: line-through; color: red;">
-                                            {{ number_format($unitPrice, 0, ',', '.') }}
+                                            {{ number_format($unitPrice, 2, ',', '.') }}
                                         </span>
                                         <br>
-                                        <span>{{ number_format($newUnitPrice, 0, ',', '.') }}</span>
+                                        <span>{{ number_format($newUnitPrice, 2, ',', '.') }}</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                     @if($detail['new_sub_total'] === 0 || $detail['new_sub_total'] === null)
-                                        <span>{{ number_format($subTotal, 0, ',', '.') }}</span>
+                                        <span>{{ number_format($subTotal, 2, ',', '.') }}</span>
                                     @else
                                         <span style="text-decoration: line-through; color: red;">
-                                            {{ number_format($subTotal, 0, ',', '.') }}
+                                            {{ number_format($subTotal, 2, ',', '.') }}
                                         </span>
                                         <br>
-                                        <span>{{ number_format($detail['new_sub_total'], 0, ',', '.') }}</span>
+                                        <span>{{ number_format($detail['new_sub_total'], 2, ',', '.') }}</span>
                                     @endif
                                 </td>
 
@@ -295,13 +295,13 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @if($new_shipping_cost == 0 || is_null($new_shipping_cost))
-                                    <span>{{ number_format($shipping_cost, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($shipping_cost, 2, ',', '.') }}</span>
                                 @else
                                     <span style="text-decoration: line-through; color: red;">
-                                        {{ number_format($shipping_cost, 0, ',', '.') }}
+                                        {{ number_format($shipping_cost, 2, ',', '.') }}
                                     </span>
                                     <br>
-                                    <span>{{ number_format($new_shipping_cost, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($new_shipping_cost, 2, ',', '.') }}</span>
                                 @endif
                             </td>
                         </tr>
@@ -329,13 +329,13 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @if($new_full_amount_fee == 0 || is_null($new_full_amount_fee))
-                                    <span>{{ number_format($full_amount_fee, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($full_amount_fee, 2, ',', '.') }}</span>
                                 @else
                                     <span style="text-decoration: line-through; color: red;">
-                                        {{ number_format($full_amount_fee, 0, ',', '.') }}
+                                        {{ number_format($full_amount_fee, 2, ',', '.') }}
                                     </span>
                                     <br>
-                                    <span>{{ number_format($new_full_amount_fee, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($new_full_amount_fee, 2, ',', '.') }}</span>
                                 @endif
                             </td>
                         </tr>
@@ -363,13 +363,13 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @if($new_value_today_fee == 0 || is_null($new_value_today_fee))
-                                    <span>{{ number_format($value_today_fee, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($value_today_fee, 2, ',', '.') }}</span>
                                 @else
                                     <span style="text-decoration: line-through; color: red;">
-                                        {{ number_format($value_today_fee, 0, ',', '.') }}
+                                        {{ number_format($value_today_fee, 2, ',', '.') }}
                                     </span>
                                     <br>
-                                    <span>{{ number_format($new_value_today_fee, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($new_value_today_fee, 2, ',', '.') }}</span>
                                 @endif
                             </td>
                         </tr>
@@ -388,7 +388,7 @@
                                 @php
                                     $totalWithExtras = $grandTotal + ($new_shipping_cost ?: $shipping_cost) + ($new_full_amount_fee ?: $full_amount_fee) + ($new_value_today_fee ?: $value_today_fee);
                                 @endphp
-                                <span><strong>Rp.</strong> {{ number_format($totalWithExtras, 0, ',', '.') }}</span>
+                                <span><strong>Rp.</strong> {{ number_format($totalWithExtras, 2, ',', '.') }}</span>
                             </td>
                         </tr>
                     </tbody>
@@ -452,24 +452,24 @@
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @if($newUnitPrice === 0 || $newUnitPrice === null)
-                                    <span>{{ number_format($unitPrice, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($unitPrice, 2, ',', '.') }}</span>
                                 @else
                                     <span style="text-decoration: line-through; color: red;">
-                                        {{ number_format($unitPrice, 0, ',', '.') }}
+                                        {{ number_format($unitPrice, 2, ',', '.') }}
                                     </span>
                                     <br>
-                                    <span>{{ number_format($newUnitPrice, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($newUnitPrice, 2, ',', '.') }}</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @if($detail['new_sub_total'] === 0 || $detail['new_sub_total'] === null)
-                                    <span>{{ number_format($subTotal, 0, ',', '.') }}</span>
+                                    <span>{{ number_format($subTotal, 2, ',', '.') }}</span>
                                 @else
                                     <span style="text-decoration: line-through; color: red;">
-                                        {{ number_format($subTotal, 0, ',', '.') }}
+                                        {{ number_format($subTotal, 2, ',', '.') }}
                                     </span>
                                     <br>
-                                    <span>{{ number_format($detail['new_sub_total'], 0, ',', '.') }}</span>
+                                    <span>{{ number_format($detail['new_sub_total'], 2, ',', '.') }}</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
@@ -507,7 +507,7 @@
                                 @php
                                     $totalWithExtras = $grandTotal;
                                 @endphp
-                                <span><strong>Rp.</strong> {{ number_format($totalWithExtras, 0, ',', '.') }}</span>
+                                <span><strong>Rp.</strong> {{ number_format($totalWithExtras, 2, ',', '.') }}</span>
                             </td>
                         </tr>
                     </tbody>

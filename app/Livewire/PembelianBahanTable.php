@@ -224,7 +224,7 @@ class PembelianBahanTable extends Component
         $user = Auth::user();
 
         $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails')
-            ->orderBy('id', 'desc');
+            ->orderBy('tgl_pengajuan', 'desc');
 
         if ($user->hasRole(['superadmin','purchasing','administrasi','administration manager'])) {
 

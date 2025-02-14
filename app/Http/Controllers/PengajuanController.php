@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\PembelianBahanDetails;
+use App\Jobs\SendWhatsAppNotification;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
 
@@ -216,7 +217,7 @@ class PengajuanController extends Controller
                 'project' => $request->project,
                 'keterangan' => $request->keterangan,
                 'jenis_pengajuan' => $request->jenis_pengajuan,
-                'status' => 'Dalam Proses'
+                'status_pembelian' => 'Pengajuan'
             ]);
 
             $pembelian_bahan = PembelianBahan::create([
@@ -300,26 +301,8 @@ class PengajuanController extends Controller
                 $message .= "Tgl Pengajuan: " . $tgl_pengajuan . "\nPengaju: {$user->name}\nDivisi: {$request->divisi}\nProject: {$request->project}\nKeterangan: {$request->keterangan}\n\n";
                 $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
-                try{
-                    $response = Http::withHeaders([
-                        'x-api-key' => env('WHATSAPP_API_KEY'),
-                        'Content-Type' => 'application/json',
-                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        'chatId' => "{$targetPhone}@c.us",
-                        'contentType' => 'string',
-                        'content' => $message,
-                    ]);
-
-                    if ($response->successful()) {
-                        LogHelper::success("WhatsApp notification sent to: {$targetPhone}");
-                    } else {
-                        LogHelper::error("Failed to send WhatsApp notification to: {$targetPhone}");
-                    }
-                } catch (\Exception $e) {
-					LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-				}
-            } else {
-                LogHelper::error('No valid phone number found for WhatsApp notification.');
+                // Dispatch Job
+                SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }
 
             DB::commit();

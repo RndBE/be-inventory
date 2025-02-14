@@ -335,14 +335,14 @@
                         <td style="border: 1px solid black; text-align: right; padding: 5px;">
                             <div>
                                 @if($newUnitPrices->new_unit_price ?? false)
-                                    <span class="line-through">{{ number_format($unitPrices->unit_price ?? 0) }}</span>
+                                    <span class="line-through">{{ number_format($unitPrices->unit_price ?? 0), 2, ',', '.' }}</span>
                                 @else
-                                    {{ number_format($unitPrices->unit_price ?? 0) }}
+                                    {{ number_format($unitPrices->unit_price ?? 0), 2, ',', '.' }}
                                 @endif
                             </div>
                             <div>
                                 @if($newUnitPrices->new_unit_price ?? false)
-                                    {{ number_format($newUnitPrices->new_unit_price ?? 0) }}
+                                    {{ number_format($newUnitPrices->new_unit_price ?? 0), 2, ',', '.' }}
                                 @else
                                     <span class="invisible"></span>
                                 @endif
@@ -351,14 +351,14 @@
                         <td style="border: 1px solid black;text-align: right;">
                             <div>
                                 @if($newUnitPrices->new_unit_price ?? false)
-                                    <span class="line-through">{{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}</span>
+                                    <span class="line-through">{{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0), 2, ',', '.') }}</span>
                                 @else
-                                    {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0)) }}
+                                    {{ number_format(($detail->jml_bahan) * ($unitPrices->unit_price ?? 0), 2, ',', '.') }}
                                 @endif
                             </div>
                             <div>
                                 @if($newUnitPrices->new_unit_price ?? false)
-                                    {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0)) }}
+                                    {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0), 2, ',', '.') }}
                                 @else
                                     <span class="invisible"></span>
                                 @endif
@@ -384,10 +384,10 @@
                     <td style="border: 1px solid black; text-align: right; "></td>
                     <td style="border: 1px solid black; text-align: right; ">
                         @if($new_shipping_cost > 0)
-                            <span class="line-through text-red-500">{{ number_format($shipping_cost, 0, ',', '.') }}</span>
-                            {{ number_format($new_shipping_cost, 0, ',', '.') }}
+                            <span class="line-through text-red-500">{{ number_format($shipping_cost, 2, ',', '.') }}</span>
+                            {{ number_format($new_shipping_cost, 2, ',', '.') }}
                         @else
-                            {{ number_format($shipping_cost, 0, ',', '.') }}
+                            {{ number_format($shipping_cost, 2, ',', '.') }}
                         @endif
                     </td>
                     <td style="border: 1px solid black; text-align: right; "></td>
@@ -408,10 +408,10 @@
                     <td style="border: 1px solid black; text-align: right; "></td>
                     <td style="border: 1px solid black; text-align: right; ">
                         @if($new_full_amount_fee > 0)
-                            <span class="line-through text-red-500">{{ number_format($full_amount_fee, 0, ',', '.') }}</span>
-                            {{ number_format($new_full_amount_fee, 0, ',', '.') }}
+                            <span class="line-through text-red-500">{{ number_format($full_amount_fee, 2, ',', '.') }}</span>
+                            {{ number_format($new_full_amount_fee, 2, ',', '.') }}
                         @else
-                            {{ number_format($full_amount_fee, 0, ',', '.') }}
+                            {{ number_format($full_amount_fee, 2, ',', '.') }}
                         @endif
                     </td>
                     <td style="border: 1px solid black; text-align: right; "></td>
@@ -432,10 +432,10 @@
                     <td style="border: 1px solid black; text-align: right; "></td>
                     <td style="border: 1px solid black; text-align: right; ">
                         @if($new_value_today_fee > 0)
-                            <span class="line-through text-red-500">{{ number_format($value_today_fee, 0, ',', '.') }}</span>
-                            {{ number_format($new_value_today_fee, 0, ',', '.') }}
+                            <span class="line-through text-red-500">{{ number_format($value_today_fee, 2, ',', '.') }}</span>
+                            {{ number_format($new_value_today_fee, 2, ',', '.') }}
                         @else
-                            {{ number_format($value_today_fee, 0, ',', '.') }}
+                            {{ number_format($value_today_fee, 2, ',', '.') }}
                         @endif
                     </td>
                     <td style="border: 1px solid black; text-align: right; "></td>
@@ -448,7 +448,7 @@
                                         + ($new_full_amount_fee > 0 ? $new_full_amount_fee : $full_amount_fee)
                                         + ($new_value_today_fee > 0 ? $new_value_today_fee : $value_today_fee);
                         @endphp
-                        {{ number_format($finalTotal, 0, ',', '.') }}
+                        {{ number_format($finalTotal, 2, ',', '.') }}
                     </td>
                     <td style="border: 1px solid black; text-align: right; border-left: none;">
 

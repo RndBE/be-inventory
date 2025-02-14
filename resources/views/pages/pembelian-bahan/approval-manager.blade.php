@@ -40,14 +40,24 @@
                 <form class="formeditdata space-y-6" method="post" action="{{ route('pengajuan-pembelian-bahan.updateApprovalManager', (int)$id_pembelian_bahan) }}">
                     @csrf
                     {{ method_field('PUT') }}
-                    <div>
+                    <div x-data="{ statusManager: '{{ $status_manager }}' }">
                         <label for="status_manager" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status Manager</label>
-                        <select wire:model="status_manager" name="status_manager" id="status_manager" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+                        <select x-model="statusManager" name="status_manager" id="status_manager" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
                             <option value="" disabled>Pilih Status manager</option>
                             <option value="Belum disetujui" {{ $status_manager === 'Belum disetujui' ? 'selected' : '' }}>Belum disetujui</option>
                             <option value="Disetujui" {{ $status_manager === 'Disetujui' ? 'selected' : '' }}>Disetujui</option>
                             <option value="Ditolak" {{ $status_manager === 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
                         </select>
+
+                        <!-- Input Catatan jika Ditolak -->
+                        <div x-show="statusManager === 'Ditolak'" class="mt-4">
+                            <label for="catatan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                Catatan Penolakan
+                            </label>
+                            <textarea name="catatan" id="catatan" rows="3"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                placeholder="Masukkan alasan penolakan..."></textarea>
+                        </div>
                     </div>
 
                     <button type="submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800">Simpan</button>

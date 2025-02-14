@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use App\Models\Pengajuan;
 use App\Models\BahanKeluar;
 use Livewire\WithPagination;
 use App\Models\PembelianBahan;
@@ -14,7 +15,7 @@ class PembelianBahanTable extends Component
     public $search = "";
     public $perPage = 25;
     public $id_pembelian_bahan, $status,
-    $kode_transaksi, $tgl_keluar, $divisi,$link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $new_value_today_fee, $status_general_manager;
+    $kode_transaksi, $tgl_keluar, $divisi,$link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $new_value_today_fee, $status_general_manager, $catatan;
     public $filter = 'semua';
     public $totalHarga;
     public $isShowModalOpen = false;
@@ -28,15 +29,44 @@ class PembelianBahanTable extends Component
     public $isApproveDirekturModalOpen = false;
     public $isShowInvoiceModalOpen = false;
     public $isUploadInvoiceModalOpen = false;
+    public $pembelian_bahan;
+    public $selectedStatus = [];
+    public $selectedTab = 'semua';
 
     public function updatedSearch()
     {
         $this->resetPage();
     }
 
+    public function setTab($tab)
+    {
+        $this->selectedTab = $tab;
+    }
+
     public function mount()
     {
         $this->calculateTotalHarga();
+        foreach (PembelianBahan::all() as $bahan) {
+            $this->selectedStatus[$bahan->id] = $bahan->status_pembelian;
+        }
+    }
+
+    public function updateStatus($id)
+    {
+        $bahan = PembelianBahan::find($id);
+        if ($bahan) {
+            $bahan->status_pembelian = $this->selectedStatus[$id];
+            $bahan->save();
+
+            // Update status di tabel pengajuan
+            if ($bahan->pengajuan_id) {
+                $pengajuan = Pengajuan::find($bahan->pengajuan_id);
+                if ($pengajuan) {
+                    $pengajuan->status_pembelian = $bahan->status_pembelian;
+                    $pengajuan->save();
+                }
+            }
+        }
     }
 
     public function setFilter($value)
@@ -86,6 +116,7 @@ class PembelianBahanTable extends Component
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status = $Data->status;
+        $this->catatan = $Data->catatan;
         $this->isApproveDirekturModalOpen = true;
     }
 
@@ -94,6 +125,7 @@ class PembelianBahanTable extends Component
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_leader = $Data->status_leader;
+        $this->catatan = $Data->catatan;
         $this->isApproveLeaderModalOpen = true;
     }
 
@@ -102,6 +134,7 @@ class PembelianBahanTable extends Component
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_general_manager = $Data->status_general_manager;
+        $this->catatan = $Data->catatan;
         $this->isApproveGMModalOpen = true;
     }
 
@@ -110,6 +143,7 @@ class PembelianBahanTable extends Component
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_purchasing = $Data->status_purchasing;
+        $this->catatan = $Data->catatan;
         $this->isApprovePurchasingModalOpen = true;
     }
 
@@ -118,6 +152,7 @@ class PembelianBahanTable extends Component
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_manager = $Data->status_manager;
+        $this->catatan = $Data->catatan;
         $this->isApproveManagerModalOpen = true;
     }
 
@@ -126,6 +161,7 @@ class PembelianBahanTable extends Component
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_finance = $Data->status_finance;
+        $this->catatan = $Data->catatan;
         $this->isApproveFinanceModalOpen = true;
     }
 
@@ -134,6 +170,7 @@ class PembelianBahanTable extends Component
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_admin_manager = $Data->status_admin_manager;
+        $this->catatan = $Data->catatan;
         $this->isApproveAdminManagerModalOpen = true;
     }
 
@@ -250,6 +287,15 @@ class PembelianBahanTable extends Component
                 })
                 ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%');
         })
+            ->when($this->selectedTab  === 'pengajuan', function ($query) {
+                return $query->where('status_pembelian', 'Pengajuan');
+            })
+            ->when($this->selectedTab  === 'diproses', function ($query) {
+                return $query->where('status_pembelian', 'Diproses');
+            })
+            ->when($this->selectedTab  === 'selesai', function ($query) {
+                return $query->where('status_pembelian', 'Selesai');
+            })
             ->when($this->filter === 'Ditolak', function ($query) {
                 return $query->where('status', 'Ditolak');
             })

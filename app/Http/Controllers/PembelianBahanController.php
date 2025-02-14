@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PembelianBahanExport;
 use App\Models\PembelianBahanDetails;
+use App\Jobs\SendWhatsAppNotification;
 use App\Models\PengambilanBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
@@ -516,6 +517,7 @@ class PembelianBahanController extends Controller
     {
         $validated = $request->validate([
             'status_leader' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+            'catatan' => 'nullable|string',
         ]);
         try {
             DB::beginTransaction();
@@ -530,10 +532,44 @@ class PembelianBahanController extends Controller
 
             $data->status_leader = $validated['status_leader'];
             $data->tgl_approve_leader = $tgl_approve_leader;
+
+            $pengajuan = null;
+            if ($data->pengajuan_id) {
+                $pengajuan = Pengajuan::find($data->pengajuan_id);
+            }
+            // Jika status_leader Ditolak, maka semua status lainnya juga Ditolak
+            if ($data->status_leader === 'Ditolak') {
+                $data->catatan = $validated['catatan'];
+                $data->status_purchasing = 'Ditolak';
+                $data->status_manager = 'Ditolak';
+                $data->status_finance = 'Ditolak';
+                $data->status_admin_manager = 'Ditolak';
+                $data->status_general_manager = 'Ditolak';
+                $data->status = 'Ditolak';
+
+                if ($pengajuan) {
+                    $pengajuan->status_leader = $data->status_leader;
+                    $pengajuan->catatan = $validated['catatan'];
+                    $pengajuan->status_purchasing = 'Ditolak';
+                    $pengajuan->status_manager = 'Ditolak';
+                    $pengajuan->status_finance = 'Ditolak';
+                    $pengajuan->status_admin_manager = 'Ditolak';
+                    $pengajuan->status_general_manager = 'Ditolak';
+                    $pengajuan->status = 'Ditolak';
+                    $pengajuan->save();
+                }
+            } else {
+                // Jika status disetujui atau masih menunggu, hanya update status_leader di pengajuan
+                if ($pengajuan) {
+                    $pengajuan->status_leader = $data->status_leader;
+                    $pengajuan->catatan = $data->catatan;
+                    $pengajuan->save();
+                }
+            }
+
             $data->save();
 
             if ($data->status_leader === 'Disetujui') {
-
                 if ($data->jenis_pengajuan === 'Pembelian Aset') {
                     // Kirim notifikasi ke General Affair
                     $targetUser = User::whereHas('dataJobPosition', function ($query) {
@@ -549,64 +585,36 @@ class PembelianBahanController extends Controller
                 }
 
                 $targetPhone = $targetUser->telephone ?? null;
+                $recipientName = $targetUser->name;
                 //dd($targetPhone);
                 if ($targetPhone) {
-                    $message = "Halo {$targetUser->name},\n\n";
+                    $message = "Halo {$recipientName},\n\n";
                     $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai {$targetRole}.\n\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                    try{
-                        $response = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$targetPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-                        if ($response->successful()) {
-                            LogHelper::success("WhatsApp message sent to: {$targetPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp message to: {$targetPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
+
+                    SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
                     LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
-                // Mengirim notifikasi ke pengaju tentang tahap approval
-                $pengajuPhone = $data->dataUser->telephone;
-                if ($pengajuPhone) {
-                    $statusMessage = match ($data->status_leader) {
-                        'Disetujui' => "telah *Disetujui* oleh Leader.",
-                        'Ditolak' => "telah *Ditolak* oleh Leader.",
-                        'Belum disetujui' => "masih *Menunggu Persetujuan* dari Leader.",
-                        default => "dalam status yang tidak dikenal.",
-                    };
-                    $message = "Halo {$data->dataUser->name},\n\n";
-                    $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage}\n\n";
-                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                    try{
-                        $responsePengaju = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$pengajuPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-                        if ($responsePengaju->successful()) {
-                            LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
-                }  else {
-                    LogHelper::error('No valid phone number found for pengaju.');
-                }
+            }
+            // Mengirim notifikasi ke pengaju tentang tahap approval
+            $targetPhone = $data->dataUser->telephone;
+            $recipientName = $data->dataUser->name;
+            if ($targetPhone) {
+                $statusMessage = match ($data->status_leader) {
+                    'Disetujui' => "telah *Disetujui* oleh Leader.",
+                    'Ditolak' => "telah *Ditolak* oleh Leader.",
+                    'Belum disetujui' => "masih *Menunggu Persetujuan* dari Leader.",
+                    default => "dalam status yang tidak dikenal.",
+                };
+                $message = "Halo {$recipientName},\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
+                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+
+                SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
+            }  else {
+                LogHelper::error('No valid phone number found for pengaju.');
             }
             DB::commit();
             LogHelper::success('Status approval leader berhasil diubah.');
@@ -618,12 +626,12 @@ class PembelianBahanController extends Controller
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
     }
-
     //Approve General Affair
     public function updateApprovalGM(Request $request, int $id)
     {
         $validated = $request->validate([
             'status_general_manager' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+            'catatan' => 'nullable|string',
         ]);
         try {
             DB::beginTransaction();
@@ -635,13 +643,42 @@ class PembelianBahanController extends Controller
             ])->findOrFail($id);
             // Periksa status Leader dan Manager
             $tgl_approve_general_manager = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-            if ($data->status_leader === 'Disetujui') {
-                $data->status_general_manager = $validated['status_general_manager'];
-                $data->tgl_approve_general_manager = $tgl_approve_general_manager;
-            } else {
-                LogHelper::error('Status general affair tidak dapat diubah karena leader belum menyetujui.');
-                return redirect()->back()->with('error', 'Status general affair tidak dapat diubah karena leader belum menyetujui.');
+
+            $data->status_general_manager = $validated['status_general_manager'];
+            $data->tgl_approve_general_manager = $tgl_approve_general_manager;
+
+            $pengajuan = null;
+            if ($data->pengajuan_id) {
+                $pengajuan = Pengajuan::find($data->pengajuan_id);
             }
+
+            if ($data->status_general_manager === 'Ditolak') {
+                $data->catatan = $validated['catatan'];
+                $data->status_purchasing = 'Ditolak';
+                $data->status_manager = 'Ditolak';
+                $data->status_finance = 'Ditolak';
+                $data->status_admin_manager = 'Ditolak';
+                $data->status = 'Ditolak';
+
+                if ($pengajuan) {
+                    $pengajuan->status_general_manager = $data->status_general_manager;
+                    $pengajuan->catatan = $validated['catatan'];
+                    $pengajuan->status_purchasing = 'Ditolak';
+                    $pengajuan->status_manager = 'Ditolak';
+                    $pengajuan->status_finance = 'Ditolak';
+                    $pengajuan->status_admin_manager = 'Ditolak';
+                    $pengajuan->status = 'Ditolak';
+                    $pengajuan->save();
+                }
+            } else {
+                // Jika status disetujui atau masih menunggu, hanya update status_leader di pengajuan
+                if ($pengajuan) {
+                    $pengajuan->status_general_manager = $data->status_general_manager;
+                    $pengajuan->catatan = $data->catatan;
+                    $pengajuan->save();
+                }
+            }
+
             $data->save();
 
             if ($data->status_general_manager === 'Disetujui') {
@@ -650,64 +687,35 @@ class PembelianBahanController extends Controller
                 })->where('job_level', 3)->first();
 
                 $targetPhone = $purchasingUsers->telephone;
+                $recipientName = $purchasingUsers->name;
                 //dd($targetPhone);
                 if ($targetPhone) {
                     $message = "Halo {$purchasingUsers->name},\n\n";
                     $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Purchasing.\n\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                    try{
-                        $response = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$targetPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-                        if ($response->successful()) {
-                            LogHelper::success("WhatsApp message sent to: {$targetPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp message to: {$targetPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
+                    SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
                     LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
-                // Mengirim notifikasi ke pengaju tentang tahap approval
-                $pengajuPhone = $data->dataUser->telephone;
-                if ($pengajuPhone) {
-                    $statusMessage = match ($data->status_general_manager) {
-                        'Disetujui' => "telah *Disetujui* oleh General Affair.",
-                        'Ditolak' => "telah *Ditolak* oleh General Affair.",
-                        'Belum disetujui' => "masih *Menunggu Persetujuan* dari General Affair.",
-                        default => "dalam status yang tidak dikenal.",
-                    };
-                    $message = "Halo {$data->dataUser->name},\n\n";
-                    $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage}\n\n";
-                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                    try{
-                        $responsePengaju = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$pengajuPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-                        if ($responsePengaju->successful()) {
-                            LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
-                }  else {
-                    LogHelper::error('No valid phone number found for pengaju.');
-                }
+            }
+            // Mengirim notifikasi ke pengaju tentang tahap approval
+            $targetPhone = $data->dataUser->telephone;
+            $recipientName = $data->dataUser->name;
+            if ($targetPhone) {
+                $statusMessage = match ($data->status_general_manager) {
+                    'Disetujui' => "telah *Disetujui* oleh General Affair.",
+                    'Ditolak' => "telah *Ditolak* oleh General Affair.",
+                    'Belum disetujui' => "masih *Menunggu Persetujuan* dari General Affair.",
+                    default => "dalam status yang tidak dikenal.",
+                };
+                $message = "Halo {$data->dataUser->name},\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
+                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+
+                SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
+            }  else {
+                LogHelper::error('No valid phone number found for pengaju.');
             }
             DB::commit();
             LogHelper::success('Status approval general Affair berhasil diubah.');
@@ -724,6 +732,7 @@ class PembelianBahanController extends Controller
     {
         $validated = $request->validate([
             'status_purchasing' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+            'catatan' => 'nullable|string',
         ]);
         try {
             DB::beginTransaction();
@@ -735,111 +744,97 @@ class PembelianBahanController extends Controller
             ])->findOrFail($id);
             // Periksa status Leader dan Manager
             $tgl_approve_purchasing = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-            if ($data->status_leader === 'Disetujui') {
-                $data->status_purchasing = $validated['status_purchasing'];
-                $data->tgl_approve_purchasing = $tgl_approve_purchasing;
-            } else {
-                LogHelper::error('Status purchasing tidak dapat diubah karena leader belum menyetujui.');
-                return redirect()->back()->with('error', 'Status purchasing tidak dapat diubah karena leader belum menyetujui.');
-            }
-            $data->save();
-            if ($data->dataUser->job_level == 4) {
-                if ($data->dataUser->atasan_level3_id === null && $data->dataUser->atasan_level2_id === null) {
-                    // Job level 4 tanpa atasan level 3 dan 2, kirim notifikasi ke Finance
-                    $financeUser = User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
-                    if ($financeUser && $financeUser->telephone) {
-                        $financePhone = $financeUser->telephone;
-                        $message = "Halo {$financeUser->name},\n\n";
-                        $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Finance.\n\n";
-                        $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
-                        $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                        try{
-                            $response = Http::withHeaders([
-                                'x-api-key' => env('WHATSAPP_API_KEY'),
-                                'Content-Type' => 'application/json',
-                            ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                                'chatId' => "{$financePhone}@c.us",
-                                'contentType' => 'string',
-                                'content' => $message,
-                            ]);
 
-                            if ($response->successful()) {
-                                LogHelper::success("WhatsApp notification sent to Finance: {$financePhone}");
-                            } else {
-                                LogHelper::error("Failed to send WhatsApp notification to Finance: {$financePhone}");
-                            }
-                        } catch (\Exception $e) {
-                            LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+            $data->status_purchasing = $validated['status_purchasing'];
+            $data->tgl_approve_purchasing = $tgl_approve_purchasing;
+
+            $pengajuan = null;
+            if ($data->pengajuan_id) {
+                $pengajuan = Pengajuan::find($data->pengajuan_id);
+            }
+
+            if($data->status_purchasing === 'Ditolak'){
+                $data->catatan = $validated['catatan'];
+                $data->status_manager = 'Ditolak';
+                $data->status_finance = 'Ditolak';
+                $data->status_admin_manager = 'Ditolak';
+                $data->status = 'Ditolak';
+
+                if ($pengajuan) {
+                    $pengajuan->status_purchasing = $data->status_purchasing;
+                    $pengajuan->catatan = $validated['catatan'];
+                    $pengajuan->status_manager = 'Ditolak';
+                    $pengajuan->status_finance = 'Ditolak';
+                    $pengajuan->status_admin_manager = 'Ditolak';
+                    $pengajuan->status = 'Ditolak';
+                    $pengajuan->save();
+                }
+            } else {
+                // Jika status disetujui atau masih menunggu, hanya update status_leader di pengajuan
+                if ($pengajuan) {
+                    $pengajuan->status_purchasing = $data->status_purchasing;
+                    $pengajuan->catatan = $data->catatan;
+                    $pengajuan->save();
+                }
+            }
+
+            $data->save();
+
+            if ($data->status_purchasing === 'Disetujui') {
+                if ($data->dataUser->job_level == 4) {
+                    if ($data->dataUser->atasan_level3_id === null && $data->dataUser->atasan_level2_id === null) {
+                        // Job level 4 tanpa atasan level 3 dan 2, kirim notifikasi ke Finance
+                        $financeUser = User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
+                        $recipientName = $financeUser;
+                        if ($financeUser && $financeUser->telephone) {
+                            $targetPhone = $financeUser->telephone;
+                            $message = "Halo {$financeUser->name},\n\n";
+                            $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Finance.\n\n";
+                            $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
+                            $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+
+                            SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
+                        } else {
+                            LogHelper::error('No valid phone number found for Finance notification.');
                         }
                     } else {
-                        LogHelper::error('No valid phone number found for Finance notification.');
+                        // Kirim notifikasi ke atasan level 2/manager
+                        $managerUser = $data->dataUser->atasanLevel2;
+                        $recipientName = $managerUser->name;
+                        if ($managerUser && $managerUser->telephone) {
+                            $targetPhone = $managerUser->telephone;
+                            $message = "Halo {$managerUser->name},\n\n";
+                            $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Manager.\n\n";
+                            $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
+                            $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+
+                            SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
+                        } else {
+                            LogHelper::error('No valid phone number found for Manager notification.');
+                        }
                     }
-                } else {
+                }else{
                     // Kirim notifikasi ke atasan level 2/manager
                     $managerUser = $data->dataUser->atasanLevel2;
+                    $recipientName = $managerUser->name;
                     if ($managerUser && $managerUser->telephone) {
-                        $managerPhone = $managerUser->telephone;
+                        $targetPhone = $managerUser->telephone;
                         $message = "Halo {$managerUser->name},\n\n";
                         $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Manager.\n\n";
                         $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
                         $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                        try{
-                            $response = Http::withHeaders([
-                                'x-api-key' => env('WHATSAPP_API_KEY'),
-                                'Content-Type' => 'application/json',
-                            ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                                'chatId' => "{$managerPhone}@c.us",
-                                'contentType' => 'string',
-                                'content' => $message,
-                            ]);
 
-                            if ($response->successful()) {
-                                LogHelper::success("WhatsApp notification sent to Manager: {$managerPhone}");
-                            } else {
-                                LogHelper::error("Failed to send WhatsApp notification to Manager: {$managerPhone}");
-                            }
-                        } catch (\Exception $e) {
-                            LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                        }
+                        SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                     } else {
                         LogHelper::error('No valid phone number found for Manager notification.');
                     }
                 }
-            }else{
-                // Kirim notifikasi ke atasan level 2/manager
-                $managerUser = $data->dataUser->atasanLevel2;
-                if ($managerUser && $managerUser->telephone) {
-                    $managerPhone = $managerUser->telephone;
-                    $message = "Halo {$managerUser->name},\n\n";
-                    $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Manager.\n\n";
-                    $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
-                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                    try{
-                        $response = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$managerPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-
-                        if ($response->successful()) {
-                            LogHelper::success("WhatsApp notification sent to Manager: {$managerPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp notification to Manager: {$managerPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
-                } else {
-                    LogHelper::error('No valid phone number found for Manager notification.');
-                }
             }
 
             // Kirim notifikasi ke Pengaju
-            $pengajuPhone = $data->dataUser->telephone;
-            if ($pengajuPhone) {
+            $targetPhone = $data->dataUser->telephone;
+            $recipientName = $data->dataUser->name;
+            if ($targetPhone) {
                 $statusMessage = match ($data->status_purchasing) {
                     'Disetujui' => "telah *Disetujui* oleh Purchasing.",
                     'Ditolak' => "telah *Ditolak* oleh Purchasing.",
@@ -847,26 +842,10 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
                 $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                try{
-                    $responsePengaju = Http::withHeaders([
-                        'x-api-key' => env('WHATSAPP_API_KEY'),
-                        'Content-Type' => 'application/json',
-                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        'chatId' => "{$pengajuPhone}@c.us",
-                        'contentType' => 'string',
-                        'content' => $message,
-                    ]);
 
-                    if ($responsePengaju->successful()) {
-                        LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
-                    } else {
-                        LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
-                    }
-                } catch (\Exception $e) {
-                    LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                }
+                SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
@@ -885,6 +864,7 @@ class PembelianBahanController extends Controller
     {
         $validated = $request->validate([
             'status_manager' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+            'catatan' => 'nullable|string',
         ]);
         try {
             DB::beginTransaction();
@@ -895,50 +875,59 @@ class PembelianBahanController extends Controller
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
             $tgl_approve_manager = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-            if ($data->status_purchasing === 'Disetujui') {
-                $data->status_manager = $validated['status_manager'];
-                $data->tgl_approve_manager = $tgl_approve_manager;
-            } else {
-                LogHelper::error('Status manager tidak dapat diubah karena purchasing belum menyetujui.');
-                return redirect()->back()->with('error', 'Status manager tidak dapat diubah karena purchasing belum menyetujui.');
+
+            $data->status_manager = $validated['status_manager'];
+            $data->tgl_approve_manager = $tgl_approve_manager;
+
+            $pengajuan = null;
+            if ($data->pengajuan_id) {
+                $pengajuan = Pengajuan::find($data->pengajuan_id);
             }
+
+            if($data->status_manager === 'Ditolak'){
+                $data->catatan = $validated['catatan'];
+                $data->status_finance = 'Ditolak';
+                $data->status_admin_manager = 'Ditolak';
+                $data->status = 'Ditolak';
+
+                if ($pengajuan) {
+                    $pengajuan->status_manager = $data->status_manager;
+                    $pengajuan->catatan = $validated['catatan'];
+                    $pengajuan->status_finance = 'Ditolak';
+                    $pengajuan->status_admin_manager = 'Ditolak';
+                    $pengajuan->status = 'Ditolak';
+                    $pengajuan->save();
+                }
+            } else {
+                // Jika status disetujui atau masih menunggu, hanya update status_leader di pengajuan
+                if ($pengajuan) {
+                    $pengajuan->status_manager = $data->status_manager;
+                    $pengajuan->catatan = $data->catatan;
+                    $pengajuan->save();
+                }
+            }
+
             $data->save();
 
             if ($data->status_manager === 'Disetujui') {
                 $financeUser = User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
+                $recipientName = $financeUser->name;
                 if ($financeUser && $financeUser->telephone) {
-                    $financePhone = $financeUser->telephone;
+                    $targetPhone = $financeUser->telephone;
                     $message = "Halo {$financeUser->name},\n\n";
                     $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Finance.\n\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
-                    try {
-                        // Send WhatsApp message to Finance
-                        $response = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$financePhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-
-                        if ($response->successful()) {
-                            LogHelper::success("WhatsApp notification sent to Finance: {$financePhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp notification to Finance: {$financePhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
+                    SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
                     LogHelper::error('No valid phone number found for Finance notification.');
                 }
             }
 
-            $pengajuPhone = $data->dataUser->telephone;
-            if ($pengajuPhone) {
+            $targetPhone = $data->dataUser->telephone;
+            $recipientName = $data->dataUser->name;
+            if ($targetPhone) {
                 $statusMessage = match ($data->status_manager) {
                     'Disetujui' => "telah *Disetujui* oleh Manager.",
                     'Ditolak' => "telah *Ditolak* oleh Manager.",
@@ -946,25 +935,10 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
                 $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                try{
-                    $responsePengaju = Http::withHeaders([
-                        'x-api-key' => env('WHATSAPP_API_KEY'),
-                        'Content-Type' => 'application/json',
-                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        'chatId' => "{$pengajuPhone}@c.us",
-                        'contentType' => 'string',
-                        'content' => $message,
-                    ]);
-                    if ($responsePengaju->successful()) {
-                        LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
-                    } else {
-                        LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
-                    }
-                } catch (\Exception $e) {
-                    LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                }
+
+                SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
@@ -983,6 +957,7 @@ class PembelianBahanController extends Controller
     {
         $validated = $request->validate([
             'status_finance' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+            'catatan' => 'nullable|string',
         ]);
         try {
             DB::beginTransaction();
@@ -993,18 +968,42 @@ class PembelianBahanController extends Controller
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
             $tgl_approve_finance = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-            if ($data->status_manager === 'Disetujui') {
-                $data->status_finance = $validated['status_finance'];
-                $data->tgl_approve_finance = $tgl_approve_finance;
-            } else {
-                LogHelper::error('Status finance tidak dapat diubah karena manager belum menyetujui.');
-                return redirect()->back()->with('error', 'Status finance tidak dapat diubah karena manager belum menyetujui.');
+
+            $data->status_finance = $validated['status_finance'];
+            $data->tgl_approve_finance = $tgl_approve_finance;
+
+            $pengajuan = null;
+            if ($data->pengajuan_id) {
+                $pengajuan = Pengajuan::find($data->pengajuan_id);
             }
+
+            if($data->status_finance === 'Ditolak'){
+                $data->catatan = $validated['catatan'];
+                $data->status_admin_manager = 'Ditolak';
+                $data->status = 'Ditolak';
+
+                if ($pengajuan) {
+                    $pengajuan->status_finance = $data->status_finance;
+                    $pengajuan->catatan = $validated['catatan'];
+                    $pengajuan->status_admin_manager = 'Ditolak';
+                    $pengajuan->status = 'Ditolak';
+                    $pengajuan->save();
+                }
+            } else {
+                // Jika status disetujui atau masih menunggu, hanya update status_leader di pengajuan
+                if ($pengajuan) {
+                    $pengajuan->status_finance = $data->status_finance;
+                    $pengajuan->catatan = $data->catatan;
+                    $pengajuan->save();
+                }
+            }
+
             $data->save();
 
             // Kirim notifikasi ke Pengaju
-            $pengajuPhone = $data->dataUser->telephone;
-            if ($pengajuPhone) {
+            $targetPhone = $data->dataUser->telephone;
+            $recipientName = $data->dataUser->name;
+            if ($targetPhone) {
                 $statusMessage = match ($data->status_finance) {
                     'Disetujui' => "telah *Disetujui* oleh Finance.",
                     'Ditolak' => "telah *Ditolak* oleh Finance.",
@@ -1012,26 +1011,11 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
 
                 $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                try{
-                    $responsePengaju = Http::withHeaders([
-                        'x-api-key' => env('WHATSAPP_API_KEY'),
-                        'Content-Type' => 'application/json',
-                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        'chatId' => "{$pengajuPhone}@c.us",
-                        'contentType' => 'string',
-                        'content' => $message,
-                    ]);
-                    if ($responsePengaju->successful()) {
-                        LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
-                    } else {
-                        LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
-                    }
-                } catch (\Exception $e) {
-                    LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                }
+
+                SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
@@ -1051,6 +1035,7 @@ class PembelianBahanController extends Controller
     {
         $validated = $request->validate([
             'status_admin_manager' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+            'catatan' => 'nullable|string',
         ]);
         try {
             DB::beginTransaction();
@@ -1061,17 +1046,40 @@ class PembelianBahanController extends Controller
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
             $tgl_approve_admin_manager = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-            if ($data->status_finance === 'Disetujui') {
-                $data->status_admin_manager = $validated['status_admin_manager'];
-                $data->tgl_approve_admin_manager = $tgl_approve_admin_manager;
-            } else {
-                LogHelper::error('Status admin manager tidak dapat diubah karena finance belum menyetujui.');
-                return redirect()->back()->with('error', 'Status admin manager tidak dapat diubah karena finance belum menyetujui.');
+
+            $data->status_admin_manager = $validated['status_admin_manager'];
+            $data->tgl_approve_admin_manager = $tgl_approve_admin_manager;
+
+            $pengajuan = null;
+            if ($data->pengajuan_id) {
+                $pengajuan = Pengajuan::find($data->pengajuan_id);
             }
+
+            if($data->status_admin_manager === 'Ditolak'){
+                $data->catatan = $validated['catatan'];
+                $data->status = 'Ditolak';
+
+                if ($pengajuan) {
+                    $pengajuan->status_admin_manager = $data->status_admin_manager;
+                    $pengajuan->catatan = $validated['catatan'];
+                    $pengajuan->status = 'Ditolak';
+                    $pengajuan->save();
+                }
+            } else {
+                // Jika status disetujui atau masih menunggu, hanya update status_leader di pengajuan
+                if ($pengajuan) {
+                    $pengajuan->status_admin_manager = $data->status_admin_manager;
+                    $pengajuan->catatan = $data->catatan;
+                    $pengajuan->save();
+                }
+            }
+
             $data->save();
+
             // Kirim notifikasi ke Pengaju
-            $pengajuPhone = $data->dataUser->telephone;
-            if ($pengajuPhone) {
+            $targetPhone = $data->dataUser->telephone;
+            $recipientName = $data->dataUser->name;
+            if ($targetPhone) {
                 $statusMessage = match ($data->status_admin_manager) {
                     'Disetujui' => "telah *Disetujui* oleh Manager Admin.",
                     'Ditolak' => "telah *Ditolak* oleh Manager Admin.",
@@ -1079,26 +1087,10 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
                 $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                try{
-                    $responsePengaju = Http::withHeaders([
-                        'x-api-key' => env('WHATSAPP_API_KEY'),
-                        'Content-Type' => 'application/json',
-                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        'chatId' => "{$pengajuPhone}@c.us",
-                        'contentType' => 'string',
-                        'content' => $message,
-                    ]);
 
-                    if ($responsePengaju->successful()) {
-                        LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
-                    } else {
-                        LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
-                    }
-                } catch (\Exception $e) {
-                    LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                }
+                SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
@@ -1139,6 +1131,7 @@ class PembelianBahanController extends Controller
     {
         $validated = $request->validate([
             'status' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+            'catatan' => 'nullable|string',
         ]);
 
         try {
@@ -1150,14 +1143,26 @@ class PembelianBahanController extends Controller
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
             $tgl_approve_direktur = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-            if ($data->status_admin_manager !== 'Disetujui') {
-                LogHelper::error('Status direktur tidak dapat diubah karena manager admin belum menyetujui.');
-                return redirect()->back()->with('error', 'Status direktur tidak dapat diubah karena manager admin belum menyetujui.');
-            }
 
             $data->status = $validated['status'];
             $data->tgl_approve_direktur = $tgl_approve_direktur;
-            if ($validated['status'] === 'Disetujui') {
+
+            $pengajuan = null;
+            if ($data->pengajuan_id) {
+                $pengajuan = Pengajuan::find($data->pengajuan_id);
+            }
+
+            if($data->status === 'Ditolak'){
+                $data->catatan = $validated['catatan'];
+
+                if ($pengajuan) {
+                    $pengajuan->status = 'Ditolak';
+                    $pengajuan->catatan = $validated['catatan'];
+                    $pengajuan->save();
+                }
+            }
+
+            if ($data->status === 'Disetujui') {
                 $data->tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
                 $details = PembelianBahanDetails::where('pembelian_bahan_id', $id)->get();
@@ -1254,6 +1259,7 @@ class PembelianBahanController extends Controller
                                 'alasan' => $detail->alasan,
                             ]);
                         }
+
                         $pengajuan = Pengajuan::find($data->pengajuan_id);
                         if ($pengajuan) {
                             $pengajuan->ongkir = $data->ongkir;
@@ -1266,8 +1272,9 @@ class PembelianBahanController extends Controller
                             $pengajuan->shipping_cost_usd = $data->shipping_cost_usd;
                             $pengajuan->full_amount_fee_usd = $data->full_amount_fee_usd;
                             $pengajuan->value_today_fee_usd = $data->value_today_fee_usd;
-                            $pengajuan->selesai_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');;
-                            $pengajuan->status = 'Selesai';
+                            $pengajuan->selesai_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                            $pengajuan->status = $data->status;
+                            $pengajuan->catatan = $data->catatan;
                             $pengajuan->save();
                         }
                     }
@@ -1275,8 +1282,9 @@ class PembelianBahanController extends Controller
             }
             $data->save();
             // Kirim notifikasi ke Pengaju
-            $pengajuPhone = $data->dataUser->telephone;
-            if ($pengajuPhone) {
+            $targetPhone = $data->dataUser->telephone;
+            $recipientName = $data->dataUser->name;
+            if ($targetPhone) {
                 $statusMessage = match ($data->status) {
                     'Disetujui' => "telah *Disetujui* oleh Direktur.",
                     'Ditolak' => "telah *Ditolak* oleh Direktur.",
@@ -1284,26 +1292,10 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
                 $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                try{
-                    $responsePengaju = Http::withHeaders([
-                        'x-api-key' => env('WHATSAPP_API_KEY'),
-                        'Content-Type' => 'application/json',
-                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        'chatId' => "{$pengajuPhone}@c.us",
-                        'contentType' => 'string',
-                        'content' => $message,
-                    ]);
 
-                    if ($responsePengaju->successful()) {
-                        LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
-                    } else {
-                        LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
-                    }
-                } catch (\Exception $e) {
-                    LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                }
+                SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }

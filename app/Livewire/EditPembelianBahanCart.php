@@ -2,14 +2,18 @@
 
 namespace App\Livewire;
 
+use App\Models\User;
 use App\Models\Bahan;
-use App\Models\Pengajuan;
 use Livewire\Component;
 use App\Models\Produksi;
+use App\Models\Pengajuan;
 use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use App\Models\PembelianBahan;
+use App\Models\PengajuanDetails;
+use App\Models\PembelianBahanDetails;
+use App\Jobs\SendWhatsAppNotification;
 
 class EditPembelianBahanCart extends Component
 {
@@ -62,6 +66,10 @@ class EditPembelianBahanCart extends Component
     public $keterangan_pembayaran = [];
     public $pembelianBahans = [];
     public $jenis_pengajuan, $editingCurrency ;
+    public $statusPembelianBahan = [];
+    public $checkedItems = [];
+    public $bukti_pembelian;
+
 
 
     public function mount($pembelianBahanId)
@@ -73,6 +81,73 @@ class EditPembelianBahanCart extends Component
 
         $this->loadProduksi();
     }
+
+
+    public function updateStatusPembelian($pembelianId, $bahanId = null, $namaBahan = null)
+    {
+        // Ambil detail bahan berdasarkan pembelian_id
+        $query = PembelianBahanDetails::where('pembelian_bahan_id', $pembelianId);
+
+        if (!is_null($bahanId)) {
+            $query->where('bahan_id', $bahanId);
+        } elseif (!is_null($namaBahan)) {
+            $query->where('nama_bahan', $namaBahan);
+        }
+
+        $bahan = $query->first();
+
+        if ($bahan) {
+            // Cari transaksi pembelian untuk mendapatkan pengajuan_id
+            $pembelian = PembelianBahan::where('id', $pembelianId)->first();
+
+            if ($pembelian) {
+                // Toggle status_pembelian (1 = dicentang, 0 = tidak dicentang)
+                $bahan->status_pembelian = $bahan->status_pembelian ? 0 : 1;
+                $bahan->save();
+
+                // Update status di PengajuanDetails hanya untuk pengajuan terkait
+                PengajuanDetails::where('pengajuan_id', $pembelian->pengajuan_id)
+                    ->where(function ($query) use ($bahan) {
+                        if ($bahan->bahan_id) {
+                            $query->where('bahan_id', $bahan->bahan_id);
+                        } else {
+                            $query->where('nama_bahan', $bahan->nama_bahan);
+                        }
+                    })
+                    ->update(['status_pembelian' => $bahan->status_pembelian]);
+
+                // Kirim Notifikasi WhatsApp hanya jika status_pembelian === 1
+                if ($bahan->status_pembelian === 1) {
+                    // Ambil kode_pengajuan dari tabel Pengajuan
+                    $pengajuan = Pengajuan::where('id', $pembelian->pengajuan_id)->first();
+                    $kode_pengajuan = $pengajuan ? $pengajuan->kode_pengajuan : '-';
+                    if (is_null($bahan->nama_bahan) && $bahan->bahan_id) {
+                        $namaBahanDariDB = Bahan::where('id', $bahan->bahan_id)->value('nama_bahan');
+                        $bahanInfo = $namaBahanDariDB ?? $bahan->bahan_id;
+                    } else {
+                        $bahanInfo = $bahan->nama_bahan ?? $bahan->bahan_id;
+                    }
+                    $pengaju = User::where('id', $pembelian->pengaju)->first();
+
+                    if ($pengaju && $pengaju->telephone) {
+                        $targetPhone = $pengaju->telephone;
+                        $recipientName = $pengaju->name;
+
+                        $message = "Halo {$recipientName},\n\nPengajuan pembelian *$bahanInfo* dengan kode pengajuan *$kode_pengajuan* sudah dibeli dan berada di gudang.\n\nPesan Otomatis:\nhttps://inventory.beacontelemetry.com/\n\n";
+
+                        // Dispatch Job
+                        SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+
+
 
     public function loadProduksi()
     {
@@ -115,6 +190,7 @@ class EditPembelianBahanCart extends Component
                 $this->pembelianBahanDetails[] = [
                     'bahan' => Bahan::find($detail->bahan_id),
                     'nama_bahan' => $detail->nama_bahan,
+                    'pembelian_bahan_id' => $detail->pembelian_bahan_id,
                     'jml_bahan' => $detail->jml_bahan,
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,
@@ -123,6 +199,7 @@ class EditPembelianBahanCart extends Component
                     'spesifikasi' => $detail->spesifikasi ?? '',
                     'penanggungjawabaset' => $detail->penanggungjawabaset ?? '',
                     'alasan' => $detail->alasan ?? '',
+                    'status_pembelian' => $detail->status_pembelian ?? '',
                 ];
                 $this->unit_price[$detail->bahan_id] = $unitPrice;
                 $this->unit_price_aset[$detail->nama_bahan] = $unitPrice;

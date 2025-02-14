@@ -33,11 +33,40 @@
 
         </div>
     </div>
+
+
+
+
+    <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+        <ul class="flex overflow-x-auto whitespace-nowrap bg-gray-100 rounded-lg scrollbar-hide" role="tablist">
+            <li class="me-2" role="presentation">
+                <button wire:click="setTab('semua')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'semua' ? 'text-purple-600 border-purple-600' : '' }}">
+                    Semua
+                </button>
+            </li>
+            <li class="me-2" role="presentation">
+                <button wire:click="setTab('pengajuan')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'pengajuan' ? 'text-purple-600 border-purple-600' : '' }}">
+                    Pengajuan
+                </button>
+            </li>
+            <li class="me-2" role="presentation">
+                <button wire:click="setTab('diproses')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'diproses' ? 'text-purple-600 border-purple-600' : '' }}">
+                    Diproses
+                </button>
+            </li>
+            <li class="me-2" role="presentation">
+                <button wire:click="setTab('selesai')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'selesai' ? 'text-purple-600 border-purple-600' : '' }}">
+                    Selesai
+                </button>
+            </li>
+        </ul>
+    </div>
+
     <div class="relative overflow-x-auto">
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
                 <div class="mb-4 sm:mb-0">
-                    <ul class="flex flex-wrap -m-1">
+                    {{-- <ul class="flex flex-wrap -m-1">
                         <li class="m-1">
                             <button wire:click="setFilter('semua')" type="button"
                                 class="group dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700 text-black dark:border-gray-500 bg-transparent border border-black font-medium rounded-full px-3 py-1 text-sm text-center transition duration-200 ease-in-out
@@ -71,42 +100,15 @@
                             </button>
                         </li>
 
-                    </ul>
+                    </ul> --}}
                 </div>
                 <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
-                    {{-- @include('livewire.searchdata')
-                    @include('livewire.dataperpage') --}}
-                    <ul class="flex flex-wrap -m-1">
-                        <li class="m-1">
-                            @include('livewire.searchdata')
-                        </li>
-                        <li class="m-1">
-                            @include('livewire.dataperpage')
-                        </li>
-                        {{-- <form action="{{ route('purchases-export.export') }}" method="GET">
-                            @csrf
-                            <label for="start_date">Start Date:</label>
-                            <input type="date" id="start_date" name="start_date" required>
-
-                            <label for="end_date">End Date:</label>
-                            <input type="date" id="end_date" name="end_date" required>
-
-                            <button type="submit">Download Report</button>
-                        </form> --}}
-                        <li class="m-1">
-                            @include('pages.pembelian-bahan.export')
-                        </li>
-                        {{-- <li class="m-1">
-                            @can('tambah-bahan-masuk')
-                                <a href="{{ route('purchases.create') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                    Tambah
-                                </a>
-                            @endcan
-                        </li> --}}
-                    </ul>
+                    @include('livewire.searchdata')
+                    @include('livewire.dataperpage')
+                    @include('pages.pembelian-bahan.export')
                 </div>
             </div>
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400" overflow-hidden>
                 <thead class="text-sm text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="p-4">No</th>
@@ -116,11 +118,9 @@
                         <th scope="col" class="px-6 py-3">Tujuan</th>
                         <th scope="col" class="px-6 py-3">Pengaju</th>
                         <th scope="col" class="px-6 py-3">Total Item</th>
-                        {{-- <th scope="col" class="px-6 py-3">Total Harga</th> --}}
                         <th scope="col" class="px-6 py-3">Jenis Pengajuan</th>
-                        {{-- <th scope="col" class="px-6 py-3">Status Pengambilan</th> --}}
                         <th scope="col" class="px-6 py-3">Status Pengajuan</th>
-                        {{-- <th scope="col" class="px-6 py-3">Link Invoice</th> --}}
+                        <th scope="col" class="px-6 py-3">Status Pembelian</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -148,43 +148,82 @@
                                 <div class="text-xs text-gray-500">{{ $pembelian_bahan->divisi }}</div>
                             </td>
                             <td class="px-6 py-4">{{ $pembelian_bahan->pembelianBahanDetails->sum('jml_bahan') }}</td>
-                            {{-- <td class="px-6 py-4">
+                            <td class="px-6 py-4">{{ $pembelian_bahan->jenis_pengajuan }}</td>
+                            <td class="px-6 py-4 min-w-[300px]">
                                 @php
-                                    $newSubTotal = $pembelian_bahan->pembelianBahanDetails->sum('new_sub_total');
-                                    $subTotal = $pembelian_bahan->pembelianBahanDetails->sum('sub_total');
+                                    $statusList = [
+                                        'Leader' => $pembelian_bahan->status_leader ?? 'Belum disetujui',
+                                        'Purchasing' => $pembelian_bahan->status_purchasing ?? 'Belum disetujui',
+                                        'Manager' => $pembelian_bahan->status_manager ?? 'Belum disetujui',
+                                        'Finance' => $pembelian_bahan->status_finance ?? 'Belum disetujui',
+                                        'Manager Admin' => $pembelian_bahan->status_admin_manager ?? 'Belum disetujui',
+                                        'Direktur' => $pembelian_bahan->status ?? 'Belum disetujui',
+                                    ];
+
+                                    // Hanya tampilkan status General Manager jika jenis_pengajuan adalah 'Pembelian Aset'
+                                    if ($pembelian_bahan->jenis_pengajuan === 'Pembelian Aset') {
+                                        $statusList['General Affair'] = $pembelian_bahan->status_general_manager ?? 'Belum disetujui';
+                                    }
+
+                                    $statusColors = [
+                                        'Belum disetujui' => 'bg-blue-100 text-blue-800 border-blue-400',
+                                        'Disetujui' => 'bg-green-100 text-green-800 border-green-100',
+                                        'Ditolak' => 'bg-red-100 text-red-800 border-red-100',
+                                    ];
                                 @endphp
 
-                                @if ($newSubTotal && $newSubTotal > 0)
-                                    Rp {{ number_format($newSubTotal, 2, ',', '.') }}
-                                @else
-                                    Rp {{ number_format($subTotal, 2, ',', '.') }}
-                                @endif
-                            </td> --}}
-                            <td class="px-6 py-4">{{ $pembelian_bahan->jenis_pengajuan }}</td>
-                            <td class="px-6 py-4">
-                                @if ($pembelian_bahan->status == 'Belum disetujui')
-                                    <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $pembelian_bahan->status }}</span>
-                                @elseif($pembelian_bahan->status == 'Disetujui')
-                                    <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-green-400 border border-green-100">{{ $pembelian_bahan->status }}</span>
-                                @else
-                                    <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $pembelian_bahan->status }}</span>
-                                @endif
+                                <div class="grid grid-cols-1 gap-1">
+                                    @foreach ($statusList as $role => $status)
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-gray-700 text-xs font-medium">{{ $role }}:</span>
+                                        <div class="relative group inline-block">
+                                            <span class="px-3 py-1 rounded-full text-xs font-medium border
+                                                {{ $statusColors[$status] ?? 'bg-gray-100 text-gray-800 border-gray-400' }}">
+                                                {{ $status }}
+                                            </span>
+                                            @if ($status === 'Ditolak' && isset($pembelian_bahan->catatan))
+                                                <div class="absolute left-1/2 bottom-full mb-2 transform -translate-x-1/2 w-56 p-2 text-xs text-white bg-gray-900 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                    {{ $pembelian_bahan->catatan ?? 'Tidak ada catatan' }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
                             </td>
-                            {{-- <td class="px-6 py-4">
 
-                            </td> --}}
+                            <td class="px-6 py-4">
+                                <select wire:model="selectedStatus.{{ $pembelian_bahan->id }}"
+                                        wire:change="updateStatus({{ $pembelian_bahan->id }})"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-25 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" @unless(auth()->user()->hasRole(['purchasing', 'superadmin'])) disabled @endunless>
+                                    <option value="Status Pembelian" disabled>Status Pembelian</option>
+                                    <option value="Pengajuan">Pengajuan</option>
+                                    <option value="Diproses">Diproses</option>
+                                    <option value="Selesai">Selesai</option>
+                                </select>
+                            </td>
+
 
                             <td class="px-6 py-4">
                                 <div class="row flex space-x-2">
-                                    <div class="relative" x-data="{ open: false }">
-                                        <!-- Tombol Opsi -->
-                                        <button @click="open = !open" class="rounded-md border border-slate-300 py-1 px-2 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600">
-                                            Opsi
-                                        </button>
+                                    <div class="relative" x-data="{ open: false, dropUp: false }" x-init="
+                                    $nextTick(() => {
+                                        let button = $refs.button.getBoundingClientRect();
+                                        let windowHeight = window.innerHeight;
+                                        if (button.bottom + 200 > windowHeight) {
+                                            dropUp = true;
+                                        }
+                                    })">
+                                    <button @click="open = !open"
+                                    class="rounded-md border border-slate-300 py-1 px-2 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600"
+                                    type="button" x-ref="button">
+                                    Opsi
+                                </button>
 
-                                        <!-- Dropdown Menu -->
-                                        <div x-show="open" @click.away="open = false" x-transition
-                                            class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-10">
+                                <!-- Dropdown Menu -->
+                                <div x-show="open" @click.away="open = false" x-transition
+                                    x-bind:class="dropUp ? 'bottom-full mb-2' : 'mt-2'"
+                                    class="absolute right-0 w-48 bg-white border rounded-md shadow-lg z-50">
 
                                             {{-- @if($pembelian_bahan->status_finance === 'Disetujui') --}}
                                                 <a href="{{ route('pengajuan-pembelian-bahan.downloadPdf', $pembelian_bahan->id) }}" target="__blank"
@@ -202,12 +241,12 @@
                                             @endif
 
                                             @can('edit-approve-purchasing')
-                                                @if($pembelian_bahan->status_finance !== 'Disetujui' && $pembelian_bahan->status_finance !== 'Ditolak')
+                                                {{-- @if($pembelian_bahan->status_finance !== 'Disetujui' && $pembelian_bahan->status_finance !== 'Ditolak') --}}
                                                     <a href="{{ route('pengajuan-pembelian-bahan.edit', $pembelian_bahan->id) }}"
                                                         class="block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center">
                                                         <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg> Edit Pengajuan
                                                     </a>
-                                                @endif
+                                                {{-- @endif --}}
                                             @endcan
 
                                             {{-- @if($pembelian_bahan->status !== 'Disetujui' && $pembelian_bahan->status !== 'Ditolak') --}}

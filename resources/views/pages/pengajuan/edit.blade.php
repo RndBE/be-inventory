@@ -6,26 +6,26 @@
             <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
                 <div class="w-full md:block md:w-auto">
                     <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                        <li class="flex items-center {{ $pengajuan->status === 'Konfirmasi' ? 'text-blue-600 dark:text-blue-500' : '' }}">
-                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $pengajuan->status === 'Konfirmasi' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
+                        <li class="flex items-center {{ $pengajuan->status_pembelian === 'Pengajuan' ? 'text-blue-600 dark:text-blue-500' : '' }}">
+                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $pengajuan->status_pembelian === 'Pengajuan' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
                                 1
                             </span>
-                            <span class="text-xs">Konfirmasi</span>
+                            <span class="text-xs">Pengajuan</span>
                             <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/>
                             </svg>
                         </li>
-                        <li class="flex items-center {{ $pengajuan->status === 'Dalam Proses' ? 'text-blue-600 dark:text-blue-500' : '' }}">
-                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $pengajuan->status === 'Dalam Proses' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
+                        <li class="flex items-center {{ $pengajuan->status_pembelian === 'Diproses' ? 'text-blue-600 dark:text-blue-500' : '' }}">
+                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $pengajuan->status_pembelian === 'Diproses' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
                                 2
                             </span>
-                            <span class="text-xs">Dalam Proses</span>
+                            <span class="text-xs">Diproses</span>
                             <svg class="w-3 h-3 ms-2 sm:ms-4 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 10">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 9 4-4-4-4M1 9l4-4-4-4"/>
                             </svg>
                         </li>
-                        <li class="flex items-center {{ $pengajuan->status === 'Selesai' ? 'text-blue-600 dark:text-blue-500' : '' }}">
-                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $pengajuan->status === 'Selesai' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
+                        <li class="flex items-center {{ $pengajuan->status_pembelian === 'Selesai' ? 'text-blue-600 dark:text-blue-500' : '' }}">
+                            <span class="flex items-center justify-center w-4 h-4 me-2 text-xs border {{ $pengajuan->status_pembelian === 'Selesai' ? 'border-blue-600 dark:border-blue-500' : 'border-gray-500 dark:border-gray-400' }} rounded-full shrink-0">
                                 3
                             </span>
                             <span class="text-xs">Selesai</span>

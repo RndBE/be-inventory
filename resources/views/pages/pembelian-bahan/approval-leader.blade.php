@@ -40,19 +40,37 @@
                 <form class="formeditdata space-y-6" method="post" action="{{ route('pengajuan-pembelian-bahan.updateApprovalLeader', (int)$id_pembelian_bahan) }}">
                     @csrf
                     {{ method_field('PUT') }}
-                    <div>
-                        <label for="status_leader" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status Leader</label>
-                        <select wire:model="status_leader" name="status_leader" id="status_leader" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+
+                    <div x-data="{ statusLeader: '{{ $status_leader }}' }">
+                        <label for="status_leader" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                            Status Leader
+                        </label>
+                        <select x-model="statusLeader" name="status_leader" id="status_leader"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
                             <option value="" disabled>Pilih Status leader</option>
                             <option value="Belum disetujui" {{ $status_leader === 'Belum disetujui' ? 'selected' : '' }}>Belum disetujui</option>
                             <option value="Disetujui" {{ $status_leader === 'Disetujui' ? 'selected' : '' }}>Disetujui</option>
                             <option value="Ditolak" {{ $status_leader === 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
                         </select>
+
+                        <!-- Input Catatan jika Ditolak -->
+                        <div x-show="statusLeader === 'Ditolak'" class="mt-4">
+                            <label for="catatan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                Catatan Penolakan
+                            </label>
+                            <textarea name="catatan" id="catatan" rows="3"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                placeholder="Masukkan alasan penolakan..."></textarea>
+                        </div>
                     </div>
 
-                    <button type="submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800">Simpan</button>
+                    <button type="submit"
+                        class="w-full text-white bg-indigo-600 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800">
+                        Simpan
+                    </button>
                 </form>
             </div>
+
         </div>
     </div>
 </div>

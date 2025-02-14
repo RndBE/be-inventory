@@ -151,6 +151,7 @@ class EditBahanPengajuanCart extends Component
                     'spesifikasi' => $detail->spesifikasi,
                     'alasan' => $detail->alasan,
                     'penanggungjawabaset' => $detail->penanggungjawabaset,
+                    'status_pembelian' => $detail->status_pembelian,
                 ];
             }
         }

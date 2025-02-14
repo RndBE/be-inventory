@@ -68,7 +68,8 @@
                         <th scope="col" class="px-6 py-3">Pengaju</th>
                         <th scope="col" class="px-6 py-3">Tujuan</th>
                         <th scope="col" class="px-6 py-3">Jenis Pengajuan</th>
-                        <th scope="col" class="px-6 py-3">Status</th>
+                        <th scope="col" class="px-6 py-3">Status Pengajuan</th>
+                        <th scope="col" class="px-6 py-3">Status Pembelian</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -97,8 +98,49 @@
                                 <div class="text-xs text-gray-500">{{ $pengajuan->keterangan }}</div>
                             </td>
                             <td class="px-6 py-3">{{ $pengajuan->jenis_pengajuan }}</td>
-                            {{-- <td class="px-6 py-3">{{ $pengajuan->produksiDetails->sum('qty') }}</td> --}}
-                            <td class="px-6 py-3">{{ $pengajuan->status }}</td>
+                            <td class="px-6 py-4 min-w-[300px]">
+                                @php
+                                    $statusList = [
+                                        'Leader' => $pengajuan->status_leader ?? 'Belum disetujui',
+                                        'Purchasing' => $pengajuan->status_purchasing ?? 'Belum disetujui',
+                                        'Manager' => $pengajuan->status_manager ?? 'Belum disetujui',
+                                        'Finance' => $pengajuan->status_finance ?? 'Belum disetujui',
+                                        'Manager Admin' => $pengajuan->status_admin_manager ?? 'Belum disetujui',
+                                        'Direktur' => $pengajuan->status ?? 'Belum disetujui',
+                                    ];
+
+                                    // Hanya tampilkan status General Manager jika jenis_pengajuan adalah 'Pembelian Aset'
+                                    if ($pengajuan->jenis_pengajuan === 'Pembelian Aset') {
+                                        $statusList['General Affair'] = $pengajuan->status_general_manager ?? 'Belum disetujui';
+                                    }
+
+                                    $statusColors = [
+                                        'Belum disetujui' => 'bg-blue-100 text-blue-800 border-blue-400',
+                                        'Disetujui' => 'bg-green-100 text-green-800 border-green-100',
+                                        'Ditolak' => 'bg-red-100 text-red-800 border-red-100',
+                                    ];
+                                @endphp
+
+                                <div class="grid grid-cols-1 gap-1">
+                                    @foreach ($statusList as $role => $status)
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-gray-700 text-xs font-medium">{{ $role }}:</span>
+                                        <div class="relative group inline-block">
+                                            <span class="px-3 py-1 rounded-full text-xs font-medium border
+                                                {{ $statusColors[$status] ?? 'bg-gray-100 text-gray-800 border-gray-400' }}">
+                                                {{ $status }}
+                                            </span>
+                                            @if ($status === 'Ditolak' && isset($pengajuan->catatan))
+                                                <div class="absolute left-1/2 bottom-full mb-2 transform -translate-x-1/2 w-56 p-2 text-xs text-white bg-gray-900 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                    {{ $pengajuan->catatan ?? 'Tidak ada catatan' }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </td>
+                            <td class="px-6 py-3">{{ $pengajuan->status_pembelian }}</td>
                             {{-- <td class="px-6 py-3">Rp {{ number_format($pengajuan->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
                             <td class="px-6 py-4">
                                 <div class="row flex space-x-2">
@@ -138,7 +180,7 @@
                         </tr>
                     @empty
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td colspan="9" class="px-6 py-4 text-center">
+                            <td colspan="10" class="px-6 py-4 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                                     <path stroke-linecap="round" stroke-linejoin="round"

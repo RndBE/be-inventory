@@ -223,11 +223,11 @@ class PembelianBahanTable extends Component
     {
         $user = Auth::user();
 
-        $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails')
-            ->orderBy('tgl_pengajuan', 'desc');
+        // Default: Urutkan berdasarkan tanggal pengajuan DESC
+        $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails');
 
         if ($user->hasRole(['superadmin','purchasing','administrasi','administration manager'])) {
-
+            // Tidak ada tambahan filter
         }
         elseif ($user->hasRole(['hardware manager'])) {
             $pembelian_bahan->whereIn('divisi', ['RnD', 'Purchasing', 'Helper','Teknisi','OP','Produksi']);
@@ -235,15 +235,8 @@ class PembelianBahanTable extends Component
                 $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset'])
                     ->where('status_purchasing', 'Disetujui');
             });
-        }elseif ($user->hasRole(['rnd','rnd level 3'])) {
-            $pembelian_bahan->whereIn('divisi', ['RnD']);
-        }elseif ($user->hasRole(['purchasing level 3','helper'])) {
-            $pembelian_bahan->whereIn('divisi', ['Purchasing','Helper']);
-        }elseif ($user->hasRole(['teknisi level 3','teknisi','op','produksi'])) {
-            $pembelian_bahan->whereIn('divisi', ['Teknisi','OP','Produksi']);
-        }
-        elseif ($user->hasRole(['marketing','marketing level 3'])) {
-            $pembelian_bahan->whereIn('divisi', ['Marketing']);
+            // Urutkan yang "Belum disetujui" tetap di atas
+            $pembelian_bahan->orderByRaw("CASE WHEN status_manager = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
         elseif ($user->hasRole(['marketing manager'])) {
             $pembelian_bahan->whereIn('divisi', ['Marketing']);
@@ -251,26 +244,25 @@ class PembelianBahanTable extends Component
                 $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset'])
                     ->where('status_purchasing', 'Disetujui');
             });
+            $pembelian_bahan->orderByRaw("CASE WHEN status_manager = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
-        elseif ($user->hasRole(['software manager','software','publikasi'])) {
-            $pembelian_bahan->whereIn('divisi', ['Software','Publikasi']);
-        }
-        elseif ($user->hasRole(['hse'])) {
-            $pembelian_bahan->where('divisi', 'HSE');
+        elseif ($user->hasRole(['software manager', 'software', 'publikasi'])) {
+            $pembelian_bahan->whereIn('divisi', ['Software', 'Publikasi']);
+            $pembelian_bahan->orderByRaw("CASE WHEN status_manager = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
         elseif ($user->hasRole(['sekretaris'])) {
-            // $pembelian_bahan->where('divisi', 'Sekretaris');
             $pembelian_bahan->where(function ($query) {
                 $query->whereIn('jenis_pengajuan', ['Pembelian Aset'])
                     ->where('status_leader', 'Disetujui');
             });
+            $pembelian_bahan->orderByRaw("CASE WHEN status_general_manager = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
-        elseif ($user->hasRole(['administrasi','administration manager'])) {
-            // $pembelian_bahan->where('divisi', ['HSE','Sekretaris','Administrasi']);
+        elseif ($user->hasRole(['administrasi', 'administration manager'])) {
             $pembelian_bahan->where(function ($query) {
                 $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset'])
                     ->where('status_manager', 'Disetujui');
             });
+            $pembelian_bahan->orderByRaw("CASE WHEN status_finance = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
 
         // Pencarian dan filter tambahan
@@ -308,6 +300,7 @@ class PembelianBahanTable extends Component
 
         // Paginate hasil query
         $pembelian_bahans = $pembelian_bahan->paginate($this->perPage);
+
 
         // Return ke view
         return view('livewire.pembelian-bahan-table', [

@@ -235,13 +235,23 @@ class EditPembelianBahanCart extends Component
 
     public function formatToRupiah($item)
     {
-        // Check if the item is in USD or Rupiah and remove unwanted characters
+        // Ambil nilai inputan mentah
+        $rawValue = $this->{$item . '_raw'} ?? '0';
+
         if (strpos($item, 'usd') !== false) {
-            $this->$item = floatval(str_replace(['$', ','], '', $this->{$item . '_raw'})); // For USD
-            $this->{$item . '_raw'} = number_format($this->$item, 2, ',', '.'); // Format with 2 decimals for USD
+            // Jika dalam USD: Ubah koma ke titik, lalu parsing ke float
+            $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+            $this->$item = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+
+            // Format kembali dengan 2 desimal
+            $this->{$item . '_raw'} = number_format($this->$item, 2, ',', '.');
         } else {
-            $this->$item = intval(str_replace(['.', 'Rp'], '', $this->{$item . '_raw'})); // For Rupiah
-            $this->{$item . '_raw'} = number_format($this->$item, 0, ',', '.'); // Format without decimals for Rupiah
+            // Jika dalam Rupiah: Hapus titik ribuan dan ubah koma ke titik (2.066.698,20 -> 2066698.20)
+            $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+            $this->$item = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+
+            // Format kembali ke format Rupiah tanpa desimal
+            $this->{$item . '_raw'} = number_format($this->$item, 0, ',', '.');
         }
 
         // Recalculate totals if necessary
@@ -251,6 +261,7 @@ class EditPembelianBahanCart extends Component
 
         $this->editingItemId = null;
     }
+
 
 
     public function formatToRupiahUSD($item)
@@ -294,14 +305,25 @@ class EditPembelianBahanCart extends Component
 
     public function formatToRupiahPrice($itemId)
     {
-        // Format harga dalam Rupiah
-        $this->unit_price[$itemId] = intval(str_replace(['.', 'Rp'], '', $this->unit_price_raw[$itemId]));
-        $this->unit_price_raw[$itemId] = number_format($this->unit_price[$itemId], 0, ',', '.');
+        // Ambil inputan dari user dan bersihkan dari karakter yang tidak diperlukan
+        $rawValue = $this->unit_price_raw[$itemId] ?? '0';
+
+        // Ubah format ke angka yang bisa diproses (contoh: "2.066.698,20" -> "2066698.20")
+        $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+
+        // Pastikan hanya angka valid yang diproses
+        $this->unit_price[$itemId] = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+
+        // Format ulang ke format Rupiah dengan 2 desimal
+        $this->unit_price_raw[$itemId] = number_format($this->unit_price[$itemId], 2, ',', '.');
+
         // Hitung Sub Total Rupiah
         $this->calculateSubTotal($itemId);
+
         // Tutup mode edit
         $this->editingItemId = null;
     }
+
 
     public function formatToRupiahPriceAset($itemBahan)
     {
@@ -309,8 +331,16 @@ class EditPembelianBahanCart extends Component
             return;
         }
 
-        // Format harga dalam Rupiah
-        $this->unit_price_aset[$itemBahan] = intval(str_replace(['.', 'Rp'], '', $this->unit_price_raw[$itemBahan]));
+        // Ambil nilai inputan mentah
+        $rawValue = $this->unit_price_raw[$itemBahan];
+
+        // Hapus titik sebagai pemisah ribuan dan ubah koma menjadi titik untuk parsing angka
+        $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+
+        // Konversi ke float agar nilai desimal tetap terjaga
+        $this->unit_price_aset[$itemBahan] = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+
+        // Format kembali ke format Rupiah tanpa desimal
         $this->unit_price_raw[$itemBahan] = number_format($this->unit_price_aset[$itemBahan], 0, ',', '.');
 
         // Hitung Sub Total Rupiah
@@ -319,6 +349,7 @@ class EditPembelianBahanCart extends Component
         // Tutup mode edit
         $this->editingItemBahan = null;
     }
+
 
     public function formatToUSDPrice($itemId)
     {

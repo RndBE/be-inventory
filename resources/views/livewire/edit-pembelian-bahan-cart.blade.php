@@ -46,7 +46,7 @@
                                         <input
                                             autofocus
                                             wire:model="unit_price_raw.{{ $detail['bahan']->id }}"
-                                            type="number"
+                                            type="text"
                                             class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-right"
                                             placeholder="0"
                                             wire:blur="formatToRupiahPrice({{ $detail['bahan']->id }})"
@@ -196,7 +196,7 @@
                                         <input
                                             autofocus
                                             wire:model="unit_price_raw.{{ $detail['bahan']->id }}"
-                                            type="number"
+                                            type="text"
                                             class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-right"
                                             placeholder="0"
                                             wire:blur="formatToRupiahPrice({{ $detail['bahan']->id }})"
@@ -272,19 +272,31 @@
                                             <input
                                                 autofocus
                                                 wire:model="{{ $field }}_raw"
-                                                type="number"
+                                                type="text"
                                                 class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-right"
                                                 placeholder="0"
                                                 wire:blur="formatToRupiah('{{ $field }}')"
+                                                @if($status_finance === 'Disetujui') disabled @endif
                                             />
                                         @else
-                                            <span class="cursor-pointer" wire:click="editItem('{{ $field }}')">
-                                                @if(strpos($field, 'usd') !== false)
-                                                    <strong></strong> {{ number_format($this->$field, 2, ',', '.') }}
-                                                @else
-                                                    <strong></strong> {{ number_format($this->$field, 2, ',', '.') }}
-                                                @endif
-                                            </span>
+                                            @if($status_finance !== 'Disetujui')
+                                                <span class="cursor-pointer" wire:click="editItem('{{ $field }}')">
+                                                    @if(strpos($field, 'usd') !== false)
+                                                        <strong></strong> {{ number_format($this->$field, 2, ',', '.') }}
+                                                    @else
+                                                        <strong></strong> {{ number_format($this->$field, 2, ',', '.') }}
+                                                    @endif
+                                                </span>
+                                            @else
+                                                <span>
+                                                    @if(strpos($field, 'usd') !== false)
+                                                        <strong></strong> {{ number_format($this->$field, 2, ',', '.') }}
+                                                    @else
+                                                        <strong></strong> {{ number_format($this->$field, 2, ',', '.') }}
+                                                    @endif
+                                                </span>
+                                            @endif
+
                                         @endif
                                     </td>
                                 @endforeach
@@ -360,7 +372,7 @@
                                         <input
                                             autofocus
                                             wire:model="unit_price_raw.{{ $namaBahan }}"
-                                            type="number"
+                                            type="text"
                                             class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-right"
                                             placeholder="0"
                                             wire:blur="formatToRupiahPriceAset('{{ $namaBahan }}')"

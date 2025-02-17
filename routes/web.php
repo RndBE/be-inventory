@@ -28,6 +28,7 @@ use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\ProjekRndController;
 use App\Http\Controllers\BahanReturController;
 use App\Http\Controllers\BahanRusakController;
+use App\Http\Controllers\BarangAsetController;
 use App\Http\Controllers\JenisBahanController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\BahanKeluarController;
@@ -93,6 +94,8 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::put('/bahan/{id}', [BahanController::class, 'update'])->name('bahan.update');
     Route::delete('/bahan/{id}', [BahanController::class, 'destroy'])->name('bahan.destroy');
     Route::get('bahan-export', [BahanController::class, 'export'])->name('bahan.export');
+
+    Route::resource('barang-aset', BarangAsetController::class);
 
     Route::resource('supplier', SupplierController::class);
     Route::get('supplier-export', [SupplierController::class, 'export'])->name('supplier.export');

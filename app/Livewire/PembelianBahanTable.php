@@ -226,8 +226,13 @@ class PembelianBahanTable extends Component
         // Default: Urutkan berdasarkan tanggal pengajuan DESC
         $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails');
 
-        if ($user->hasRole(['superadmin','purchasing','administration manager'])) {
+        if ($user->hasRole(['superadmin','administration manager'])) {
             // Tidak ada tambahan filter
+        }
+        elseif ($user->hasRole(['purchasing'])) {
+            $pembelian_bahan->where(function ($query) {
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset']);
+            })->orderBy('tgl_pengajuan', 'desc');
         }
         elseif ($user->hasRole(['hardware manager'])) {
             $pembelian_bahan->whereIn('divisi', ['RnD', 'Purchasing', 'Helper','Teknisi','OP','Produksi']);

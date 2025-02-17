@@ -79,6 +79,10 @@
 
     <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
         <tr style="text-align: left;vertical-align: top;">
+            <td style="border: 1px solid black;width: 30%;"><strong>Kode Transaksi</strong></td>
+            <td style="border: 1px solid black">: {{ $pembelianBahan->kode_transaksi }}</td>
+        </tr>
+        <tr style="text-align: left;vertical-align: top;">
             <td style="border: 1px solid black;width: 30%;"><strong>Divisi</strong></td>
             <td style="border: 1px solid black">: {{ $pembelianBahan->divisi }}</td>
         </tr>

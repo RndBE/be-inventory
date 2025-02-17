@@ -26,6 +26,7 @@ use App\Http\Controllers\BahanJadiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\ProjekRndController;
+use App\Http\Controllers\RekapAsetController;
 use App\Http\Controllers\BahanReturController;
 use App\Http\Controllers\BahanRusakController;
 use App\Http\Controllers\BarangAsetController;
@@ -96,6 +97,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('bahan-export', [BahanController::class, 'export'])->name('bahan.export');
 
     Route::resource('barang-aset', BarangAsetController::class);
+    Route::resource('rekap-aset', RekapAsetController::class);
 
     Route::resource('supplier', SupplierController::class);
     Route::get('supplier-export', [SupplierController::class, 'export'])->name('supplier.export');

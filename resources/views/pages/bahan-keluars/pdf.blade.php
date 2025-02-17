@@ -109,7 +109,7 @@
                     <td style="border: 1px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
                     <td style="border: 1px solid black"></td>
                     <td style="border: 1px solid black;text-align: center;">{{ $detail->qty }}</td>
-                    <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama }}</td>
+                    <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama ?? null }}</td>
                     <td style="border: 1px solid black"></td>
                     <td style="border: 1px solid black"></td>
                     <td style="border: 1px solid black"></td>

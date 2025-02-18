@@ -42,7 +42,7 @@
 
                 </li>
                 <li class="m-1">
-
+                    @include('pages.rekap_aset.import')
                 </li>
                 <li class="m-1">
                     @can('tambah-rekap-aset')

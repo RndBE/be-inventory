@@ -98,6 +98,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
     Route::resource('barang-aset', BarangAsetController::class);
     Route::resource('rekap-aset', RekapAsetController::class);
+    Route::post('rekap-aset/import', [RekapAsetController::class, 'import'])->name('rekap-aset.import');
 
     Route::resource('supplier', SupplierController::class);
     Route::get('supplier-export', [SupplierController::class, 'export'])->name('supplier.export');

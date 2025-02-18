@@ -11,6 +11,8 @@ use App\Helpers\LogHelper;
 use App\Models\BarangAset;
 use App\Models\JenisBahan;
 use Illuminate\Http\Request;
+use App\Imports\RekapAsetImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Validation\ValidationException;
 
 class RekapAsetController extends Controller
@@ -39,6 +41,43 @@ class RekapAsetController extends Controller
         $dataUser = User::all();
         return view('pages.rekap_aset.create', compact('units', 'suppliers', 'jenisBahan','barangAset','dataUser'));
     }
+
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv',
+        ], [
+            'file.required' => 'File is required.',
+            'file.mimes' => 'The file must be a valid Excel or CSV file.',
+        ]);
+
+        try {
+            Excel::import(new RekapAsetImport, $request->file('file'));
+
+            LogHelper::success('Berhasil Menambah Rekap Aset!');
+            return redirect()->route('rekap-aset.index')->with('success', 'Data Rekap Aset berhasil diimport!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->errorInfo[1] == 1062) {
+                return redirect()->route('rekap-aset.index')->with('error', 'Gagal mengimport data! Nomor Aset sudah digunakan.');
+            }
+            if ($e->errorInfo[1] == 1048) {
+                return redirect()->route('rekap-aset.index')->with('error', 'Gagal mengimport data! Pastikan semua data barang aset sudah terdaftar.');
+            }
+            return redirect()->route('rekap-aset.index')->with('error', 'Terjadi kesalahan pada database. Silakan coba lagi.');
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            foreach ($failures as $failure) {
+                $errors[] = "Baris {$failure->row()}: " . implode(', ', $failure->errors());
+            }
+            return redirect()->route('rekap-aset.index')->with('error', 'Terdapat kesalahan pada file Excel. Silakan periksa kembali formatnya.');
+        } catch (\Throwable $e) {
+            LogHelper::error($e->getMessage());
+            return redirect()->route('rekap-aset.index')->with('error', 'Terjadi kesalahan yang tidak terduga. Silakan coba lagi.');
+        }
+    }
+
+
 
 
     public function store(Request $request)
@@ -115,7 +154,7 @@ class RekapAsetController extends Controller
             $rekap_aset = RekapAset::findOrFail($id);
             $rekap_aset->delete();
             LogHelper::success('Berhasil Menghapus Bahan!');
-            return redirect()->route('bahan.index')->with('success', 'Berhasil Menghapus Bahan!');
+            return redirect()->route('rekap-aset.index')->with('success', 'Berhasil Menghapus Bahan!');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

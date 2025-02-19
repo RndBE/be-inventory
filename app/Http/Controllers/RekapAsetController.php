@@ -153,8 +153,8 @@ class RekapAsetController extends Controller
         try{
             $rekap_aset = RekapAset::findOrFail($id);
             $rekap_aset->delete();
-            LogHelper::success('Berhasil Menghapus Bahan!');
-            return redirect()->route('rekap-aset.index')->with('success', 'Berhasil Menghapus Bahan!');
+            LogHelper::success('Berhasil Menghapus Rekap Aset');
+            return redirect()->route('rekap-aset.index')->with('success', 'Berhasil Menghapus Rekap Aset');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

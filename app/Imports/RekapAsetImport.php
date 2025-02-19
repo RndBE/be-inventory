@@ -22,6 +22,19 @@ class RekapAsetImport implements ToModel, WithHeadingRow
     {
         $this->rowNumber++; // Increment nomor baris setiap kali model diproses
 
+        // Validasi nomor aset duplikat dalam Excel
+        static $nomorAsetCache = [];
+        if (in_array($row['nomor_aset'], $nomorAsetCache)) {
+            throw new \Exception("Error pada kolom 'nomor_aset' di baris {$this->rowNumber} Excel: Nomor aset duplikat pada file Excel.");
+        }
+        $nomorAsetCache[] = $row['nomor_aset'];
+
+        // Validasi nomor aset duplikat di database
+        $existingAset = RekapAset::where('nomor_aset', $row['nomor_aset'])->first();
+        if ($existingAset) {
+            throw new \Exception("Error pada kolom 'nomor_aset' di baris {$this->rowNumber} Excel: Nomor aset sudah ada di database.");
+        }
+
         // Cari barang_aset_id berdasarkan nama aset
         $barangAset = BarangAset::where('nama_barang', $row['nama_aset'])->first();
         $user = User::whereRaw('LOWER(name) = ?', [strtolower($row['nama_penanggungjawab'])])->first();

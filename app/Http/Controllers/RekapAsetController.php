@@ -13,6 +13,7 @@ use App\Models\JenisBahan;
 use Illuminate\Http\Request;
 use App\Imports\RekapAsetImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 
 class RekapAsetController extends Controller
@@ -44,24 +45,25 @@ class RekapAsetController extends Controller
 
 
     public function import(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv',
-        ], [
-            'file.required' => 'File is required.',
-            'file.mimes' => 'The file must be a valid Excel or CSV file.',
-        ]);
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls,csv',
+    ], [
+        'file.required' => 'File is required.',
+        'file.mimes' => 'The file must be a valid Excel or CSV file.',
+    ]);
 
-        try {
-            Excel::import(new RekapAsetImport, $request->file('file'));
+    try {
+        Excel::import(new RekapAsetImport, $request->file('file'));
 
-            LogHelper::success('Berhasil Menambah Rekap Aset!');
-            return redirect()->route('rekap-aset.index')->with('success', 'Data Rekap Aset berhasil diimport!');
-        }catch (\Throwable $e) {
-            LogHelper::error($e->getMessage());
-            return redirect()->route('rekap-aset.index')->with('error', 'Terjadi kesalahan yang tidak terduga. Silakan coba lagi.');
-        }
+        LogHelper::success('Berhasil Menambah Rekap Aset!');
+        return redirect()->route('rekap-aset.index')->with('success', 'Data Rekap Aset berhasil diimport!');
+    } catch (\Throwable $e) {
+        // Menangkap error lainnya
+        LogHelper::error($e->getMessage());
+        return redirect()->route('rekap-aset.index')->with('error', 'Terjadi kesalahan yang tidak terduga. Silakan coba lagi.');
     }
+}
 
 
 

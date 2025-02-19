@@ -11,18 +11,19 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class RekapAsetImport implements ToModel, WithHeadingRow
 {
+    private $rowNumber = 1; // Untuk melacak nomor baris
+
     /**
     * @param array $row
-    *
     * @return \Illuminate\Database\Eloquent\Model|null
+    * @throws \Exception
     */
     public function model(array $row)
     {
+        $this->rowNumber++; // Increment nomor baris setiap kali model diproses
+
         // Cari barang_aset_id berdasarkan nama aset
         $barangAset = BarangAset::where('nama_barang', $row['nama_aset'])->first();
-
-        // dd($row['nama_aset']);
-        // Cari user_id berdasarkan nama penanggung jawab (tidak case sensitive)
         $user = User::whereRaw('LOWER(name) = ?', [strtolower($row['nama_penanggungjawab'])])->first();
 
         // Konversi tanggal dari Excel ke format yang sesuai
@@ -31,7 +32,7 @@ class RekapAsetImport implements ToModel, WithHeadingRow
             try {
                 $tgl_perolehan = Date::excelToDateTimeObject($row['tanggal_perolehan'])->format('Y-m-d');
             } catch (\Exception $e) {
-                $tgl_perolehan = null;
+                throw new \Exception("Error pada kolom 'tanggal_perolehan' di baris {$this->rowNumber} Excel: Nilai tidak valid.");
             }
         }
 
@@ -41,16 +42,27 @@ class RekapAsetImport implements ToModel, WithHeadingRow
             $harga_perolehan = floatval(str_replace([',', '.'], ['', '.'], $row['harga_perolehan']));
         }
 
+        // Validasi null untuk barang_aset_id
+        if (!$barangAset) {
+            throw new \Exception("Error pada kolom 'nama_aset' di baris {$this->rowNumber} Excel: Nilai tidak ditemukan dalam database.");
+        }
+
+        // Validasi null untuk user_id
+        if (!$user) {
+            throw new \Exception("Error pada kolom 'nama_penanggungjawab' di baris {$this->rowNumber} Excel: Nilai tidak ditemukan dalam database.");
+        }
+
         return new RekapAset([
             'nomor_aset'       => $row['nomor_aset'],
-            'barang_aset_id'   => $barangAset ? $barangAset->id : null,
+            'barang_aset_id'   => $barangAset->id,
             'link_gambar'      => $row['link_gambar'] ?? null,
             'tgl_perolehan'    => $tgl_perolehan,
             'jumlah_aset'      => $row['jumlah_aset'] ?? 0,
             'harga_perolehan'  => $harga_perolehan,
             'kondisi'          => $row['kondisi_aset'],
             'keterangan'       => $row['keterangan'] ?? null,
-            'user_id'          => $user ? $user->id : null,
+            'user_id'          => $user->id,
         ]);
     }
 }
+

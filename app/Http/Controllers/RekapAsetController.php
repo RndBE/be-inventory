@@ -67,10 +67,17 @@ class RekapAsetController extends Controller
             return redirect()->route('rekap-aset.index')->with('error', 'Terjadi kesalahan pada database. Silakan coba lagi.');
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();
+            $errors = [];
+
             foreach ($failures as $failure) {
-                $errors[] = "Baris {$failure->row()}: " . implode(', ', $failure->errors());
+                $row = $failure->row(); // Baris yang bermasalah
+                $attribute = $failure->attribute(); // Nama kolom yang bermasalah
+                $errorMessages = implode(', ', $failure->errors()); // Pesan kesalahan
+
+                $errors[] = "Baris {$row} (Kolom: {$attribute}): {$errorMessages}";
             }
-            return redirect()->route('rekap-aset.index')->with('error', 'Terdapat kesalahan pada file Excel. Silakan periksa kembali formatnya.');
+
+            return redirect()->route('rekap-aset.index')->with('error', 'Terdapat kesalahan pada file Excel: <br>' . implode('<br>', $errors));
         } catch (\Throwable $e) {
             LogHelper::error($e->getMessage());
             return redirect()->route('rekap-aset.index')->with('error', 'Terjadi kesalahan yang tidak terduga. Silakan coba lagi.');

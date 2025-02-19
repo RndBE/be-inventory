@@ -57,28 +57,7 @@ class RekapAsetController extends Controller
 
             LogHelper::success('Berhasil Menambah Rekap Aset!');
             return redirect()->route('rekap-aset.index')->with('success', 'Data Rekap Aset berhasil diimport!');
-        } catch (\Illuminate\Database\QueryException $e) {
-            if ($e->errorInfo[1] == 1062) {
-                return redirect()->route('rekap-aset.index')->with('error', 'Gagal mengimport data! Nomor Aset sudah digunakan.');
-            }
-            if ($e->errorInfo[1] == 1048) {
-                return redirect()->route('rekap-aset.index')->with('error', 'Gagal mengimport data! Pastikan semua data barang aset sudah terdaftar.');
-            }
-            return redirect()->route('rekap-aset.index')->with('error', 'Terjadi kesalahan pada database. Silakan coba lagi.');
-        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-            $failures = $e->failures();
-            $errors = [];
-
-            foreach ($failures as $failure) {
-                $row = $failure->row(); // Baris yang bermasalah
-                $attribute = $failure->attribute(); // Nama kolom yang bermasalah
-                $errorMessages = implode(', ', $failure->errors()); // Pesan kesalahan
-
-                $errors[] = "Baris {$row} (Kolom: {$attribute}): {$errorMessages}";
-            }
-
-            return redirect()->route('rekap-aset.index')->with('error', 'Terdapat kesalahan pada file Excel: <br>' . implode('<br>', $errors));
-        } catch (\Throwable $e) {
+        }catch (\Throwable $e) {
             LogHelper::error($e->getMessage());
             return redirect()->route('rekap-aset.index')->with('error', 'Terjadi kesalahan yang tidak terduga. Silakan coba lagi.');
         }

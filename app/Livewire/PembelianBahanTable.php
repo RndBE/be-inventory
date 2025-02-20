@@ -265,7 +265,7 @@ class PembelianBahanTable extends Component
                 'Pembelian Bahan/Barang/Alat Impor',
                 'Pembelian Aset'
             ])
-            ->orderBy('tgl_pengajuan', 'desc');; // Hanya tampilkan yang sudah disetujui oleh manager
+            ->orderBy('tgl_pengajuan', 'desc'); // Hanya tampilkan yang sudah disetujui oleh manager
 
             // Urutkan agar status_finance yang belum disetujui muncul lebih dulu
             $pembelian_bahan->orderByRaw("CASE WHEN status_finance = 'Belum disetujui' THEN 0 ELSE 1 END");

@@ -7,7 +7,7 @@
             </p>
             <div class="mt-6">
                 <a href="{{ route('dashboard') }}"
-                   class="inline-flex items-center px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900">
+                    class="inline-flex items-center px-6 py-3 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900">
                     Kembali ke Dashboard
                 </a>
             </div>

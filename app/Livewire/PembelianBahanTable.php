@@ -226,7 +226,7 @@ class PembelianBahanTable extends Component
         // Default: Urutkan berdasarkan tanggal pengajuan DESC
         $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails');
 
-        if ($user->hasRole(['superadmin','administration manager'])) {
+        if ($user->hasRole(['superadmin'])) {
             // Tidak ada tambahan filter
         }
         elseif ($user->hasRole(['purchasing'])) {

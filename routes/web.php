@@ -137,7 +137,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     // Route::post('/siap-ambil/{id}', [BahanKeluarController::class, 'sendWhatsApp'])->name('send.siap-ambil');
     Route::get('pembelian-bahan-export', [PembelianBahanController::class, 'export'])->name('pembelian-bahan-export.export');
 
-    Route::resource('pengajuans', PengajuanController::class)->middleware('check.time.access');
+    Route::resource('pengajuans', PengajuanController::class);
     Route::put('pengajuans/{pengajuan}/selesai', [PengajuanController::class, 'updateStatus'])->name('pengajuans.updateStatus');
 
     Route::resource('produksis', ProduksiController::class);

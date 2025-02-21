@@ -227,7 +227,9 @@ class PembelianBahanTable extends Component
         $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails');
 
         if ($user->hasRole(['superadmin'])) {
-            // Tidak ada tambahan filter
+            $pembelian_bahan->where(function ($query) {
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset']);
+            })->orderBy('tgl_pengajuan', 'desc');
         }
         elseif ($user->hasRole(['purchasing'])) {
             $pembelian_bahan->where(function ($query) {

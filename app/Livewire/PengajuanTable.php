@@ -18,6 +18,9 @@ class PengajuanTable extends Component
     public $isDeleteModalOpen = false;
 
 
+    public $showModal = true;
+
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -32,6 +35,7 @@ class PengajuanTable extends Component
     public function closeModal()
     {
         $this->isDeleteModalOpen = false;
+        $this->showModal = false;
     }
 
     public function render()

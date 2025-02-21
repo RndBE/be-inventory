@@ -200,6 +200,7 @@
         {{-- MODAL --}}
         {{-- @include('pages.jenis-bahan.edit') --}}
         @include('pages.pengajuan.remove')
+        @include('pages.pengajuan.shownotif')
     </div>
 </div>
 <script>

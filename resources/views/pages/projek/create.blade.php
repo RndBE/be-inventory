@@ -105,8 +105,8 @@
                                         <input type="text" id="search-kontrak" placeholder="Cari Project..."
                                             class="block w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                         <!-- Dropdown select -->
-                                        <select name="kontrak_id" id="kontrak_id" size="5"
-                                            class="absolute w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg text-gray-900 hidden z-50">
+                                        <select name="kontrak_id" id="kontrak_id" size="15"
+                                            class="absolute w-full sm:text-sm mt-1 bg-white border border-gray-300 rounded-md shadow-lg text-gray-900 hidden z-50">
                                             <option value="">-- Pilih Project --</option>
                                             @foreach($kontraks as $kontrak)
                                                 <option value="{{ $kontrak->id }}"

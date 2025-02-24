@@ -95,21 +95,28 @@
                                     <input type="text" id="nama_projek" name="nama_projek" class=" w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                 </div> --}}
 
-                                <div class="flex items-center">
+                                <div class="flex items-center relative">
                                     <label for="kontrak_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">
                                         Project <sup class="text-red-500 text-base">*</sup>
                                     </label>
-                                    <select name="kontrak_id" id="kontrak_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
-                                        <option value="">-- Pilih Project --</option>
-                                        @foreach($kontraks as $kontrak)
-                                            <option value="{{ $kontrak->id }}"
-                                                @if(in_array($kontrak->id, $usedKontrakIds)) disabled @endif>
-                                                {{ $kontrak->nama_kontrak }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
 
+                                    <div class="relative w-3/4">
+                                        <!-- Input pencarian -->
+                                        <input type="text" id="search-kontrak" placeholder="Cari Project..."
+                                            class="block w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        <!-- Dropdown select -->
+                                        <select name="kontrak_id" id="kontrak_id" size="5"
+                                            class="absolute w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg text-gray-900 hidden z-50">
+                                            <option value="">-- Pilih Project --</option>
+                                            @foreach($kontraks as $kontrak)
+                                                <option value="{{ $kontrak->id }}"
+                                                    @if(in_array($kontrak->id, $usedKontrakIds)) disabled @endif>
+                                                    {{ $kontrak->nama_kontrak }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
 
                                 <div class="flex items-center">
                                     <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Project<sup class="text-red-500 text-base">*</sup></label>
@@ -147,6 +154,46 @@
             </form>
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const searchInput = document.getElementById("search-kontrak");
+            const selectDropdown = document.getElementById("kontrak_id");
+
+            // Tampilkan dropdown saat input difokuskan
+            searchInput.addEventListener("focus", function () {
+                selectDropdown.classList.remove("hidden");
+            });
+
+            // Sembunyikan dropdown saat klik di luar
+            document.addEventListener("click", function (event) {
+                if (!searchInput.contains(event.target) && !selectDropdown.contains(event.target)) {
+                    selectDropdown.classList.add("hidden");
+                }
+            });
+
+            // Filter opsi berdasarkan input
+            searchInput.addEventListener("input", function () {
+                let filter = searchInput.value.toLowerCase();
+                let options = selectDropdown.getElementsByTagName("option");
+
+                for (let i = 0; i < options.length; i++) {
+                    let txtValue = options[i].textContent || options[i].innerText;
+                    if (txtValue.toLowerCase().indexOf(filter) > -1 || options[i].value === "") {
+                        options[i].style.display = "";
+                    } else {
+                        options[i].style.display = "none";
+                    }
+                }
+            });
+
+            // Pilih opsi saat diklik
+            selectDropdown.addEventListener("change", function () {
+                let selectedOption = selectDropdown.options[selectDropdown.selectedIndex];
+                searchInput.value = selectedOption.text; // Masukkan teks opsi ke input
+                selectDropdown.classList.add("hidden");
+            });
+        });
+    </script>
     <script>
         document.getElementById('saveButton').addEventListener('click', function() {
             document.getElementById('produksiProdukForm').submit();

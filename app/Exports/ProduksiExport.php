@@ -60,7 +60,7 @@ class ProduksiExport implements FromArray, WithHeadings, ShouldAutoSize, WithSty
                 $index + 1,
                 $detail->dataBahan->nama_bahan,
                 $detail->qty,
-                $detail->dataBahan->dataUnit->nama,
+                $detail->dataBahan->dataUnit->nama ?? null,
                 $formattedDetailsString, // Use the formatted details string
                 $detail->sub_total,
             ];

@@ -42,11 +42,11 @@
                     @include('livewire.dataperpage')
                 </li>
                 <li class="m-1">
-                    {{-- @can('tambah-bahan-setengahjadi')
+                    @can('tambah-bahan-setengahjadi')
                         <a href="{{ route('bahan-setengahjadis.create') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                             Tambah
                         </a>
-                    @endcan --}}
+                    @endcan
                 </li>
             </ul>
         </div>

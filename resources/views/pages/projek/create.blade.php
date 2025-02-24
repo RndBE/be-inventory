@@ -96,16 +96,20 @@
                                 </div> --}}
 
                                 <div class="flex items-center">
-                                    <label for="kontrak_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">Project
-                                        <sup class="text-red-500 text-base">*</sup>
+                                    <label for="kontrak_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">
+                                        Project <sup class="text-red-500 text-base">*</sup>
                                     </label>
                                     <select name="kontrak_id" id="kontrak_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
                                         <option value="">-- Pilih Project --</option>
                                         @foreach($kontraks as $kontrak)
-                                            <option value="{{ $kontrak->id }}">{{ $kontrak->nama_kontrak }}</option>
+                                            <option value="{{ $kontrak->id }}"
+                                                @if(in_array($kontrak->id, $usedKontrakIds)) disabled @endif>
+                                                {{ $kontrak->nama_kontrak }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
+
 
                                 <div class="flex items-center">
                                     <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Project<sup class="text-red-500 text-base">*</sup></label>
@@ -118,22 +122,6 @@
                                         <input type="text" name="mulai_projek" id="datetimepicker" placeholder="Pilih tanggal dan waktu" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
                                     </div>
                                 </div>
-
-                                {{-- <div class="flex items-center"> --}}
-                                    {{-- <label for="jenis_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jenis Produksi<sup class="text-red-500 text-base">*</sup></label>
-                                    <div class="relative w-3/4 mr-2">
-                                        <div class="flex flex-wrap">
-                                            <div class="flex items-center me-4">
-                                                <input id="red-radio" type="radio" value="Produk Jadi" name="jenis_produksi" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="red-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Produk Jadi</label>
-                                            </div>
-                                            <div class="flex items-center me-4">
-                                                <input id="green-radio" type="radio" value="Produk Setengah Jadi" name="jenis_produksi" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="green-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Produk Setengah Jadi</label>
-                                            </div>
-                                        </div>
-                                    </div> --}}
-                                {{-- </div> --}}
                                 <div class="flex items-center">
                                     <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
                                         Keterangan <sup class="text-red-500 text-base">*</sup>

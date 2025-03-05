@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bahan_setengahjadi_details', function (Blueprint $table) {
-            $table->string('serial_number')->unique();
+            $table->string('serial_number')->nullable();
         });
     }
 

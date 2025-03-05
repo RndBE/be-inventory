@@ -42,7 +42,7 @@
                     <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
                     <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
                     @can('selesai-proses-produksi')
-                        @if($isComplete)
+                        @if($isComplete && $produksi->kode_produksi)
                             <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
                                 Selesai
                             </button>
@@ -99,8 +99,14 @@
                                     @if($canInputKodeProduksi)
                                         <input type="text" id="kode_produksi" name="kode_produksi" value="{{ $produksi->kode_produksi }}" placeholder="PR - " class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }}>
                                     @endif
-
                                 </div>
+
+                                {{-- <div class="flex items-center">
+                                    <label for="serial_number" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Serial Number</label>
+                                    @if($canInputKodeProduksi)
+                                        <input type="text" id="serial_number" name="serial_number" value="{{ $produksi->serial_number }}" placeholder="" class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }}>
+                                    @endif
+                                </div> --}}
 
                                 <div class="flex items-center">
                                     <label for="produk_id" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk
@@ -130,7 +136,19 @@
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
                                 </div>
-
+                                <div class="flex items-center">
+                                    <label for="jml_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
+                                    <div class="relative w-3/4">
+                                        <div class="flex item-center">
+                                            <input type="number" name="jml_produksi" value="{{ $produksi->jml_produksi }}"  id="jml_produksi" placeholder="" class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                                            placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6
+                                            cursor-default pointer-events-none" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required readonly>
+                                        </div>
+                                    </div>
+                                    @error('jml_produksi')
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                    @enderror
+                                </div>
                                 {{-- <div class="flex items-center">
                                     <label for="jenis_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
                                         Jenis Produksi<sup class="text-red-500 text-base">*</sup>
@@ -168,17 +186,10 @@
                                 </div>
 
                                 <div class="flex items-center">
-                                    <label for="jml_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
-                                    <div class="relative w-3/4">
-                                        <div class="flex item-center">
-                                            <input type="number" name="jml_produksi" value="{{ $produksi->jml_produksi }}"  id="jml_produksi" placeholder="" class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
-                                            placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6
-                                            cursor-default pointer-events-none" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required readonly>
-                                        </div>
-                                    </div>
-                                    @error('jml_produksi')
-                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                                    @enderror
+                                    <label for="serial_number" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                        Serial Number
+                                    </label>
+                                    <textarea id="serial_number" name="serial_number" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }}>{{ old('serial_number', $produksi->serial_number) }}</textarea>
                                 </div>
 
                                 <div class="flex items-center">

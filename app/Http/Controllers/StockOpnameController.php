@@ -59,26 +59,24 @@ class StockOpnameController extends Controller
 
             foreach ($stockOpname->stockOpnameDetails as $detail) {
                 $selisih = abs($detail->selisih); // Ambil selisih dalam nilai positif
-                $purchaseDetails = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
-                ->where('sisa', '>', 0)
-                ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
-                ->orderBy('purchases.tgl_masuk', 'asc')
-                ->select('purchase_details.*', 'purchases.tgl_masuk')
-                ->get();
+
+                // Ambil transaksi terakhir sebelum tanggal pengajuan
+                $lastPurchaseDetail = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
+                    ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+                    ->whereDate('purchases.tgl_masuk', '<=', $stockOpname->tgl_pengajuan) // Ambil sebelum tanggal pengajuan
+                    ->orderBy('purchases.tgl_masuk', 'desc') // Urutkan dari yang paling terbaru sebelum pengajuan
+                    ->select('purchase_details.*', 'purchases.tgl_masuk')
+                    ->first(); // Ambil hanya satu transaksi terakhir sebelum tanggal pengajuan
 
                 $alokasiHarga = [];
                 $totalHarga = 0;
 
-                foreach ($purchaseDetails as $purchase) {
-                    if ($selisih <= 0) break; // Jika selisih sudah terpenuhi, hentikan proses
+                if ($lastPurchaseDetail) {
+                    $qtyTerpakai = $selisih; // Ambil jumlah yang bisa digunakan dari transaksi ini
+                    $harga = $qtyTerpakai * $lastPurchaseDetail->unit_price;
 
-                    $qtyTerpakai = min($selisih, $purchase->sisa); // Ambil jumlah yang bisa digunakan dari transaksi ini
-                    $harga = $qtyTerpakai * $purchase->unit_price;
-
-                    $alokasiHarga[] = "{$qtyTerpakai} x " . number_format($purchase->unit_price, 0, ',', '.');
+                    $alokasiHarga[] = "{$qtyTerpakai} x " . number_format($lastPurchaseDetail->unit_price, 0, ',', '.');
                     $totalHarga += $harga;
-
-                    $selisih -= $qtyTerpakai; // Kurangi jumlah selisih dengan jumlah yang sudah diambil
                 }
 
                 // Simpan hasil alokasi ke dalam detail

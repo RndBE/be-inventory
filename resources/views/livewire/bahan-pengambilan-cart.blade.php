@@ -51,7 +51,9 @@
 
         </div>
     </div>
-    <livewire:search-bahan-produksi/>
+    {{-- <livewire:search-bahan-produksi/> --}}
+    <livewire:search-pengambilan-bahan/>
+    {{-- <livewire:search-bahan/> --}}
     <div class=" border-gray-900/10 pt-2">
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg pt-0">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">

@@ -117,28 +117,28 @@ class EditPembelianBahanCart extends Component
                     ->update(['status_pembelian' => $bahan->status_pembelian]);
 
                 // Kirim Notifikasi WhatsApp hanya jika status_pembelian === 1
-                // if ($bahan->status_pembelian === 1) {
-                //     // Ambil kode_pengajuan dari tabel Pengajuan
-                //     $pengajuan = Pengajuan::where('id', $pembelian->pengajuan_id)->first();
-                //     $kode_pengajuan = $pengajuan ? $pengajuan->kode_pengajuan : '-';
-                //     if (is_null($bahan->nama_bahan) && $bahan->bahan_id) {
-                //         $namaBahanDariDB = Bahan::where('id', $bahan->bahan_id)->value('nama_bahan');
-                //         $bahanInfo = $namaBahanDariDB ?? $bahan->bahan_id;
-                //     } else {
-                //         $bahanInfo = $bahan->nama_bahan ?? $bahan->bahan_id;
-                //     }
-                //     $pengaju = User::where('id', $pembelian->pengaju)->first();
+                if ($bahan->status_pembelian === 1) {
+                    // Ambil kode_pengajuan dari tabel Pengajuan
+                    $pengajuan = Pengajuan::where('id', $pembelian->pengajuan_id)->first();
+                    $kode_pengajuan = $pengajuan ? $pengajuan->kode_pengajuan : '-';
+                    if (is_null($bahan->nama_bahan) && $bahan->bahan_id) {
+                        $namaBahanDariDB = Bahan::where('id', $bahan->bahan_id)->value('nama_bahan');
+                        $bahanInfo = $namaBahanDariDB ?? $bahan->bahan_id;
+                    } else {
+                        $bahanInfo = $bahan->nama_bahan ?? $bahan->bahan_id;
+                    }
+                    $pengaju = User::where('id', $pembelian->pengaju)->first();
 
-                //     if ($pengaju && $pengaju->telephone) {
-                //         $targetPhone = $pengaju->telephone;
-                //         $recipientName = $pengaju->name;
+                    if ($pengaju && $pengaju->telephone) {
+                        $targetPhone = $pengaju->telephone;
+                        $recipientName = $pengaju->name;
 
-                //         $message = "Halo {$recipientName},\n\nPengajuan pembelian *$bahanInfo* dengan kode pengajuan *$kode_pengajuan* sudah dibeli dan berada di gudang.\n\nPesan Otomatis:\nhttps://inventory.beacontelemetry.com/\n\n";
+                        $message = "Halo {$recipientName},\n\nPengajuan pembelian *$bahanInfo* dengan kode pengajuan *$kode_pengajuan* sudah dibeli dan berada di gudang.\n\nPesan Otomatis:\nhttps://inventory.beacontelemetry.com/\n\n";
 
-                //         // Dispatch Job
-                //         SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
-                //     }
-                // }
+                        // Dispatch Job
+                        SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
+                    }
+                }
             }
         }
     }

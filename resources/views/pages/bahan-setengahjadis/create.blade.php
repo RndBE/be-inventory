@@ -52,7 +52,7 @@
                         <div class="p-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
 
                             <div class="sm:col-span-2 sm:col-start-1">
-                            <label for="kode_transaksi" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Kode Transaksi</label>
+                            <label for="kode_transaksi" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Kode Transaksi/Produksi</label>
                             <div class="mt-2">
                                 <input value="{{ old('kode_transaksi') }}" type="text" name="kode_transaksi" id="kode_transaksi" autocomplete="address-level2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
                                 @error('kode_transaksi')

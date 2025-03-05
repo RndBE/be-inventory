@@ -47,7 +47,7 @@
                         <table class="min-w-full divide-y divide-slate-500">
                             <thead>
                                 <tr>
-                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-normal text-slate-700 sm:pl-6 md:pl-0">Gambar</th>
+                                    {{-- <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-normal text-slate-700 sm:pl-6 md:pl-0">Gambar</th> --}}
                                     <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-normal text-slate-700 sm:pl-6 md:pl-0">Nama Bahan</th>
                                     <th scope="col" class="hidden py-3.5 px-3 text-right text-sm font-normal text-slate-700 sm:table-cell">Quantity</th>
                                     <th scope="col" class="hidden py-3.5 px-3 text-right text-sm font-normal text-slate-700 sm:table-cell">Unit Price</th>
@@ -57,13 +57,26 @@
                             <tbody>
                                 @foreach($bahanRusakDetails as $detail)
                                 <tr class="border-b border-slate-200">
+                                    {{-- <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
+                                        @if ($detail->dataBahan && $detail->dataBahan->gambar)
+                                            <img src="{{ $detail->dataBahan->gambar ? asset('storage/' . $detail->dataBahan->gambar) : asset('images/image-4@2x.jpg') }}"
+                                                alt="Gambar {{ $detail->dataBahan->nama_bahan }}"
+                                                class="h-auto w-24 rounded-lg">
+                                        @endif
+                                    </td> --}}
                                     <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
-                                        <img src="{{ $detail->dataBahan->gambar ? asset('images/' . $detail->dataBahan->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $detail->dataBahan->nama_bahan }}" class="h-auto w-24 rounded-lg">
+                                        <div class="font-medium text-slate-700">
+                                            @if ($detail->dataBahan)
+                                                {{ $detail->dataBahan->nama_bahan }}
+                                            @elseif ($detail->dataProduk)
+                                                {{ $detail->dataProduk->nama_bahan }}
+                                                ({{ $detail->serial_number ?? 'N/A' }})
+                                            @else
+                                                Data tidak tersedia
+                                            @endif
+                                        </div>
                                     </td>
-                                    <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
-                                        <div class="font-medium text-slate-700">{{ $detail->dataBahan->nama_bahan }}</div>
-                                    </td>
-                                    <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $detail->qty }} {{ $detail->dataBahan->dataUnit->nama ?? 'N/A' }}</span></td>
+                                    <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $detail->qty }} {{ $detail->dataBahan->dataUnit->nama ?? 'Pcs' }}</span></td>
                                     <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">Rp. {{ number_format($detail->unit_price, 2) }}</td>
                                     <td class="py-4 pl-3 pr-4 text-sm text-right text-slate-500 sm:pr-6 md:pr-0">Rp. {{ number_format($detail->sub_total, 2) }}</td>
                                 </tr>
@@ -71,7 +84,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th scope="row" colspan="4" class="hidden pt-6 pl-6 pr-3 text-sm text-right text-slate-900 sm:table-cell md:pl-0">Total Harga</th>
+                                    <th scope="row" colspan="3" class="hidden pt-6 pl-6 pr-3 text-sm text-right text-slate-900 sm:table-cell md:pl-0">Total Harga</th>
                                     <td class="pt-6 pl-3 pr-4 text-sm text-right text-slate-900 sm:pr-6 md:pr-0">Rp. {{ number_format($bahanRusakDetails->sum('sub_total'), 2) }}</td>
                                 </tr>
                                 <!-- Tambahkan baris untuk Discount, Tax, dan Total jika perlu -->

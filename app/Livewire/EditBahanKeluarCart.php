@@ -3,12 +3,14 @@
 namespace App\Livewire;
 
 use App\Models\Bahan;
-use App\Models\Pengajuan;
 use Livewire\Component;
 use App\Models\Produksi;
+use App\Models\Pengajuan;
 use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
+use App\Models\PurchaseDetail;
+use App\Models\BahanSetengahjadiDetails;
 
 class EditBahanKeluarCart extends Component
 {
@@ -46,58 +48,50 @@ class EditBahanKeluarCart extends Component
         $this->loadProduksi();
 
         foreach ($this->bahanKeluarDetails as $detail) {
-            $bahanId = $detail['bahan']->id;
+            $bahanId = $detail['bahan_id'] ?? null;
+            $produkId = $detail['produk_id'] ?? null;
             $requestedQty = $detail['qty'] ?? 0;
 
-            // Ambil data bahan untuk menghitung stok dan subtotal
-            $item = Bahan::find($bahanId);
+            // Tentukan apakah menggunakan bahan_id atau produk_id
+            $finalId = $bahanId ?? $produkId;
+            if (!$finalId) {
+                continue; // Lewati jika tidak ada ID yang valid
+            }
 
-            if ($item) {
-                if ($item->jenisBahan->nama === 'Produksi') {
-                    // Stok bahan setengah jadi
-                    $bahanSetengahjadiDetails = $item->bahanSetengahjadiDetails()
-                        ->where('sisa', '>', 0)
-                        ->with(['bahanSetengahjadi' => function ($query) {
-                            $query->orderBy('tgl_masuk', 'asc');
-                        }])->get();
-
-                    $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
-                    $this->qty[$bahanId] = $totalAvailable > 0
-                    ? min($requestedQty, $totalAvailable)
-                    : $requestedQty;
-
-                    // $this->qty[$bahanId] = min($requestedQty, $totalAvailable);
-                    $this->updateUnitPriceAndSubtotalBahanSetengahJadi($bahanId, $this->qty[$bahanId], $bahanSetengahjadiDetails);
-
-                } else {
-                    // Stok dari purchase details
-                    // $purchaseDetails = $item->purchaseDetails()
-                    //     ->where('sisa', '>', 0)
-                    //     ->with(['purchase' => function ($query) {
-                    //         $query->orderBy('tgl_masuk', 'asc');
-                    //     }])->get();
-                    $purchaseDetails = $item->purchaseDetails()
+            if ($produkId !== null) {
+                $bahanSetengahjadiDetails = BahanSetengahjadiDetails::where('id', $produkId)
                     ->where('sisa', '>', 0)
-                    ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
-                    ->orderBy('purchases.tgl_masuk', 'asc')
-                    ->select('purchase_details.*', 'purchases.tgl_masuk')
-                    ->get();
+                    ->with(['bahanSetengahjadi' => function ($query) {
+                        $query->orderBy('tgl_masuk', 'asc');
+                    }])->get();
 
+                if ($bahanSetengahjadiDetails->isNotEmpty()) {
+                    $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
+                    $this->qty[$produkId] = $totalAvailable > 0 ? min($requestedQty, $totalAvailable) : $requestedQty;
+                    $this->updateUnitPriceAndSubtotalBahanSetengahJadi($produkId, $this->qty[$produkId], $bahanSetengahjadiDetails);
+                }
+            } else {
+                // Cek stok di purchase details jika bahan_id digunakan
+                $item = Bahan::find($bahanId);
+
+                if ($item) {
+                    $purchaseDetails = $item->purchaseDetails()
+                        ->where('sisa', '>', 0)
+                        ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+                        ->orderBy('purchases.tgl_masuk', 'asc')
+                        ->select('purchase_details.*', 'purchases.tgl_masuk')
+                        ->get();
 
                     $totalAvailable = $purchaseDetails->sum('sisa');
-                    // Jika stok tersedia 0, gunakan requestedQty
-                    $this->qty[$bahanId] = $totalAvailable > 0
-                    ? min($requestedQty, $totalAvailable)
-                    : $requestedQty;
-
-                    // $this->qty[$bahanId] = min($requestedQty, $totalAvailable);
-                    $this->updateUnitPriceAndSubtotal($bahanId, $this->qty[$bahanId], $purchaseDetails);
+                    $this->qty[$finalId] = $totalAvailable > 0 ? min($requestedQty, $totalAvailable) : $requestedQty;
+                    $this->updateUnitPriceAndSubtotal($finalId, $this->qty[$finalId], $purchaseDetails);
                 }
             }
         }
 
         $this->calculateTotalHarga();
     }
+
 
 
     public function loadProduksi()
@@ -107,12 +101,26 @@ class EditBahanKeluarCart extends Component
         if ($produksi) {
             $this->produksiStatus = $produksi->status;
             foreach ($produksi->bahanKeluarDetails as $detail) {
+                $bahan = null;
+                $bahanId = $detail->bahan_id;
+                $produkId = $detail->produk_id;
+                if (!empty($detail->bahan_id)) {
+                    // Jika bahan_id tersedia, cari di tabel Bahan
+                    $bahan = Bahan::find($detail->bahan_id);
+                } elseif (!empty($detail->produk_id)) {
+                    // Jika produk_id tersedia, cari di bahanSetengahjadiDetails
+                    $bahan = BahanSetengahjadiDetails::find($detail->produk_id);
+                }
+
                 $this->bahanKeluarDetails[] = [
-                    'bahan' => Bahan::find($detail->bahan_id), // Ensure this returns an object
+                    'bahan' => $bahan,
+                    'bahan_id' => $bahanId,  // Simpan bahan_id agar tidak hilang
+                    'produk_id' => $produkId, // Simpan produk_id agar tidak hilang
                     'qty' => $detail->qty,
                     'jml_bahan' => $detail->jml_bahan,
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,
+                    'serial_number' => $detail->serial_number,
                     'details' => json_decode($detail->details, true),
                 ];
             }
@@ -207,85 +215,96 @@ class EditBahanKeluarCart extends Component
 
 
     public function getCartItemsForStorage()
-    {
-        $grandTotal = 0;
-        $bahanKeluarDetails = [];
+{
+    $grandTotal = 0;
+    $bahanKeluarDetails = [];
 
-        foreach ($this->bahanKeluarDetails as $item) {
-            $bahanId = $item['bahan']->id;
-            $usedMaterials = $this->qty[$bahanId] ?? 0;
+    foreach ($this->bahanKeluarDetails as $item) {
+        $bahanId = $item['bahan_id'] ?? null;
+        $produkId = $item['produk_id'] ?? null;
+        $finalId = $bahanId ?? $produkId;
 
-            if ($usedMaterials <= 0) {
-                continue;
-            }
+        if (!$finalId) {
+            continue; // Lewati jika tidak ada ID yang valid
+        }
 
-            $totalPrice = 0;
-            $details = [];
+        $usedMaterials = $this->qty[$finalId] ?? 0;
+        if ($usedMaterials <= 0) {
+            continue;
+        }
 
-            if ($item['bahan']->jenisBahan->nama === 'Produksi') {
-                $bahanSetengahjadiDetails = $item['bahan']->bahanSetengahjadiDetails()
-                    ->where('sisa', '>', 0)
-                    ->with(['bahanSetengahjadi' => function ($query) {
-                        $query->orderBy('tgl_masuk', 'asc');
-                    }])->get();
-                foreach ($bahanSetengahjadiDetails as $detail) {
-                    if ($usedMaterials <= 0) break;
+        $totalPrice = 0;
+        $details = [];
+        $serialNumber = $item['serial_number'] ?? null; // Ambil serial number
 
-                    $availableQty = $detail->sisa;
-                    if ($availableQty > 0) {
-                        $toTake = min($availableQty, $usedMaterials);
-                        $details[] = [
-                            'kode_transaksi' => $detail->bahanSetengahjadi->kode_transaksi,
-                            'qty' => $toTake,
-                            'unit_price' => $detail->unit_price,
-                        ];
+        if ($produkId !== null) {
+            // Ambil stok dari bahan setengah jadi
+            $bahanSetengahjadiDetails = BahanSetengahjadiDetails::where('id', $produkId)
+                ->where('sisa', '>', 0)
+                ->with(['bahanSetengahjadi' => function ($query) {
+                    $query->orderBy('tgl_masuk', 'asc');
+                }])->get();
 
-                        $totalPrice += $toTake * $detail->unit_price;
-                        $usedMaterials -= $toTake;
-                    }
+            foreach ($bahanSetengahjadiDetails as $detail) {
+                if ($usedMaterials <= 0) break;
+
+                $availableQty = $detail->sisa;
+                if ($availableQty > 0) {
+                    $toTake = min($availableQty, $usedMaterials);
+                    $details[] = [
+                        'kode_transaksi' => $detail->bahanSetengahjadi->kode_transaksi,
+                        'serial_number' => $serialNumber, // Tambahkan serial number
+                        'qty' => $toTake,
+                        'unit_price' => $detail->unit_price,
+                    ];
+
+                    $totalPrice += $toTake * $detail->unit_price;
+                    $usedMaterials -= $toTake;
                 }
-            } else {
-                // $purchaseDetails = $item['bahan']->purchaseDetails()
-                //     ->where('sisa', '>', 0)
-                //     ->with(['purchase' => function ($query) {
-                //         $query->orderBy('tgl_masuk', 'asc');
-                //     }])->get();
-                $purchaseDetails = $item['bahan']->purchaseDetails()
+            }
+        } else {
+            // Ambil stok dari purchase details
+            $purchaseDetails = PurchaseDetail::where('bahan_id', $bahanId)
                 ->where('sisa', '>', 0)
                 ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
                 ->orderBy('purchases.tgl_masuk', 'asc')
                 ->select('purchase_details.*', 'purchases.tgl_masuk')
                 ->get();
 
+            foreach ($purchaseDetails as $detail) {
+                if ($usedMaterials <= 0) break;
 
-                foreach ($purchaseDetails as $detail) {
-                    if ($usedMaterials <= 0) break;
-
-                    $availableQty = $detail->sisa;
-                    if ($availableQty > 0) {
-                        $toTake = min($availableQty, $usedMaterials);
-
-                        // Add this detail
-                        $details[] = [
-                            'kode_transaksi' => $detail->purchase->kode_transaksi,
-                            'qty' => $toTake,
-                            'unit_price' => $detail->unit_price,
-                        ];
-                        $totalPrice += $toTake * $detail->unit_price;
-                        $usedMaterials -= $toTake;
-                    }
+                $availableQty = $detail->sisa;
+                if ($availableQty > 0) {
+                    $toTake = min($availableQty, $usedMaterials);
+                    $details[] = [
+                        'kode_transaksi' => $detail->purchase->kode_transaksi,
+                        'serial_number' => $serialNumber, // Tambahkan serial number
+                        'qty' => $toTake,
+                        'unit_price' => $detail->unit_price,
+                    ];
+                    $totalPrice += $toTake * $detail->unit_price;
+                    $usedMaterials -= $toTake;
                 }
             }
-            $bahanKeluarDetails[] = [
-                'id' => $bahanId,
-                'qty' => $this->qty[$bahanId],
-                'jml_bahan' => $item['jml_bahan'],
-                'details' => $details,
-                'sub_total' => $totalPrice,
-            ];
         }
-        return $bahanKeluarDetails;
+
+        // Tambahkan ke array bahan keluar
+        $bahanKeluarDetails[] = [
+            'bahan_id' => $bahanId,
+            'produk_id' => $produkId,
+            'serial_number' => $serialNumber, // Tambahkan serial number
+            'qty' => $this->qty[$finalId] ?? 0,
+            'jml_bahan' => $item['jml_bahan'],
+            'details' => $details,
+            'sub_total' => $totalPrice,
+        ];
     }
+
+    return $bahanKeluarDetails;
+}
+
+
 
 
     public function render()

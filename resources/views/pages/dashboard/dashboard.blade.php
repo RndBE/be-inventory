@@ -523,7 +523,7 @@
             },
             series: @json($chartData),
             labels: @json($chartLabels),
-            colors: ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d', '#43aa8b', '#577590'], 
+            colors: ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d', '#43aa8b', '#577590'],
             tooltip: {
                 y: {
                     formatter: function (value, { seriesIndex }) {

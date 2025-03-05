@@ -29,16 +29,17 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
         $data = [];
         $totalQty = 0;
         $totalSubTotal = 0;
-        $projek = Projek::with('projekDetails.dataBahan', 'projekDetails.dataBahan.dataUnit')->findOrFail($this->projek_id);
+        $projek = Projek::with('projekDetails.dataBahan', 'projekDetails.dataBahan.dataUnit', 'projekDetails.dataProduk',)->findOrFail($this->projek_id);
 
         $formattedStartDate = Carbon::parse($projek->mulai_projek)->format('d F Y');
         $formattedEndDate = Carbon::parse($projek->selesai_projek)->format('d F Y');
 
         $data[] = ['PT ARTA TEKNOLOGI COMUNINDO', '', '', '', '', '', ''];
-        $data[] = ['HPP PROJECT', '', '', '', '', '', ''];
+        $data[] = ['HPP PROYEK', '', '', '', '', '', ''];
         $data[] = [''];
 
-        $data[] = ['Nama Projek', '', ': '.$projek->dataKontrak->nama_kontrak];
+        $data[] = ['Kode Proyek', '', ': '.$projek->kode_projek];
+        $data[] = ['Nama Proyek', '', ': '.$projek->dataKontrak->nama_kontrak];
         $data[] = ['Masa Pekerjaan', '', ': '.$formattedStartDate . ' - ' . $formattedEndDate];
         $data[] = [''];
 
@@ -56,12 +57,13 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
 
             $data[] = [
                 $index + 1,
-                $detail->dataBahan->nama_bahan,
+                ($detail->dataProduk ? $detail->dataProduk->nama_bahan . ' (' . ($detail->serial_number ?? '-') . ')' : $detail->dataBahan->nama_bahan ?? null),
                 $detail->qty,
-                $detail->dataBahan->dataUnit->nama,
+                $detail->dataBahan->dataUnit->nama ?? 'Pcs',
                 $formattedDetailsString,
                 $detail->sub_total,
             ];
+
 
             $totalQty += $detail->qty;
             $totalSubTotal += $detail->sub_total;
@@ -69,7 +71,7 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
 
 
         $data[] = [
-            'Total HPP Project',
+            'Total HPP Proyek',
             '',
             $totalQty,
             '',
@@ -96,12 +98,14 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
 
         $sheet->mergeCells('A4:B4');
         $sheet->mergeCells('A5:B5');
+        $sheet->mergeCells('A6:B6');
 
         $sheet->mergeCells('C4:F4');
         $sheet->mergeCells('C5:F5');
+        $sheet->mergeCells('C6:F6');
 
-        $sheet->getStyle('A7:F7')->getFont()->setBold(true);
-        $sheet->getStyle('A7:F7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A8:F8')->getFont()->setBold(true);
+        $sheet->getStyle('A8:F8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $lastRow = $sheet->getHighestRow();
 
@@ -121,7 +125,7 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
             ],
         ];
 
-        $sheet->getStyle('A7:F' . $lastRow)->applyFromArray($borderStyle);
+        $sheet->getStyle('A8:F' . $lastRow)->applyFromArray($borderStyle);
 
         $sheet->mergeCells('A' . $lastRow . ':B' . $lastRow);
         $sheet->getStyle('A' . $lastRow . ':F' . $lastRow)->getFont()->setBold(true);

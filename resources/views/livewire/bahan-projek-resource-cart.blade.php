@@ -16,7 +16,7 @@
                         <input type="hidden" name="cartItems" value="{{ json_encode($this->getCartItemsForStorage()) }}">
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }} @if(!empty($item->serial_number)) ({{ $item->serial_number }}) @endif</td>
                             {{-- <td class="px-6 py-4">
                                 <div class="flex justify-center items-center">
                                     <input type="number" name="jml_bahan[{{ $item->id }}]" id="jml_bahan_{{ $item->id }}"
@@ -30,11 +30,11 @@
                             <td class="px-6 py-4">
                                 <div class="flex justify-center items-center">
                                     <input value="{{ old('qty.'.$item->id, $qty[$item->id] ?? 0) }}"
-                                        type="number"
-                                        wire:model="qty.{{ $item->id }}"
-                                        wire:keyup="updateQuantity({{ $item->id }})"
-                                        class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        placeholder="0" min="0" required />
+                                    type="number"
+                                    wire:model="qty.{{ $item->id }}"
+                                    wire:keyup="updateQuantity({{ $item->id }})"
+                                    class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="0" min="0" required />
                                 </div>
                             </td>
                             {{-- <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"><span><strong>Rp.</strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span></td> --}}

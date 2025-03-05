@@ -59,7 +59,7 @@
             </th>
             <td style="border-bottom: 2px solid black;">
                 <h2>PT. ARTA TEKNOLOGI COMUNINDO</h2>
-                <p>Perum Pesona Bandara C-5 Juwangen Purwomartani, Kalasan, Sleman, Daerah Istimewa Yogyakarta
+                <p>Kadirojo I, Purwomartani, Kalasan, Sleman, Daerah Istimewa Yogyakarta <br>
                 Ph./Fax. (0274) 4986899 Website: <a href="https://www.be-jogja.com" target="_blank">https://www.be-jogja.com</a>
                 </p>
             </td>

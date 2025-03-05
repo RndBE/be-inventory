@@ -76,14 +76,21 @@ class BahanSetengahjadiController extends Controller
 
 
     public function show($id)
-    {
-        $bahanSetengahjadi = BahanSetengahjadi::with('bahanSetengahjadiDetails.dataBahan.dataUnit')->findOrFail($id);
-        return view('pages.bahan-setengahjadis.show', [
-            'kode_transaksi' => $bahanSetengahjadi->kode_transaksi,
-            'kode_produksi' => $bahanSetengahjadi->produksiS ? $bahanSetengahjadi->produksiS->kode_produksi : null,
-            'tgl_masuk' => $bahanSetengahjadi->tgl_masuk,
-            'bahanSetengahjadiDetails' => $bahanSetengahjadi->bahanSetengahjadiDetails,
-            'produksiDetails' => $bahanSetengahjadi->produksiDetails,
-        ]);
-    }
+{
+    $bahanSetengahjadi = BahanSetengahjadi::with([
+        'bahanSetengahjadiDetails.dataBahan.dataUnit',
+        'produksiDetails',
+        'projekRndDetails'
+    ])->findOrFail($id);
+
+    return view('pages.bahan-setengahjadis.show', [
+        'kode_transaksi' => $bahanSetengahjadi->kode_transaksi,
+        'kode_produksi' => $bahanSetengahjadi->produksiS ? $bahanSetengahjadi->produksiS->kode_produksi : null,
+        'tgl_masuk' => $bahanSetengahjadi->tgl_masuk,
+        'bahanSetengahjadiDetails' => $bahanSetengahjadi->bahanSetengahjadiDetails,
+        'produksiDetails' => $bahanSetengahjadi->produksiDetails,
+        'projekRndDetails' => $bahanSetengahjadi->projekRndDetails,
+    ]);
+}
+
 }

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\User;
 use Livewire\Component;
 use App\Models\Pengajuan;
 use App\Models\BahanKeluar;
@@ -255,12 +256,27 @@ class PembelianBahanTable extends Component
             $pembelian_bahan->orderByRaw("CASE WHEN status_manager = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
         elseif ($user->hasRole(['sekretaris'])) {
-            $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', ['Pembelian Aset'])
-                    ->where('status_leader', 'Disetujui');
-            });
+            // 1. Cari semua user yang memiliki job position "Secretary"
+            $sekretarisIds = User::whereHas('dataJobPosition', function ($query) {
+                $query->where('nama', 'Secretary');
+            })->pluck('id')->toArray();
+
+            // 2. Cari user yang memiliki atasan_level3_id sama dengan user Secretary (hanya ID)
+            $usersWithSekretarisAtasan = User::whereIn('atasan_level3_id', $sekretarisIds)->pluck('id')->toArray();
+
+            // 3. Ambil data pembelian bahan dengan filter jenis pengajuan dan status leader
+            $pembelian_bahan->where('jenis_pengajuan', 'Pembelian Aset')
+                ->where(function ($query) use ($usersWithSekretarisAtasan) {
+                    $query->where('status_leader', 'Disetujui') // Semua pengajuan aset yang disetujui leader
+                        ->orWhereHas('dataUser', function ($query) use ($usersWithSekretarisAtasan) {
+                            $query->whereIn('id', $usersWithSekretarisAtasan) // Perbaikan
+                                ->where('status_leader', 'Belum disetujui'); // Jika atasan sekretaris, hanya yg belum disetujui leader
+                        });
+                });
+
             $pembelian_bahan->orderByRaw("CASE WHEN status_general_manager = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
+
         elseif ($user->hasRole(['administrasi'])) {
             $pembelian_bahan->whereIn('jenis_pengajuan', [
                 'Pembelian Bahan/Barang/Alat Lokal',

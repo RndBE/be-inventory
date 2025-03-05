@@ -22,4 +22,9 @@ class ProjekRndDetails extends Model
     {
         return $this->belongsTo(Bahan::class, 'bahan_id');
     }
+
+    public function dataProduk()
+    {
+        return $this->belongsTo(BahanSetengahjadiDetails::class, 'produk_id');
+    }
 }

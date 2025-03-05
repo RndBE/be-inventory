@@ -57,7 +57,7 @@
             </th>
             <td style="border-bottom: 2px solid black;vertical-align: top;padding: 5px;text-align: left;">
                 <h2 style="font-size: 18px;">PT. ARTA TEKNOLOGI COMUNINDO</h2>
-                <p style="margin: 5px 0;line-height: 1.5;font-size: 12px;">Perum Pesona Bandara C-5 Juwangen Purwomartani, Kalasan, Sleman, Daerah Istimewa <br> Yogyakarta Ph./Fax. (0274) 4986899 Website: <a href="https://www.be-jogja.com" target="_blank">https://www.be-jogja.com</a>
+                <p style="margin: 5px 0;line-height: 1.5;font-size: 12px;">Kadirojo I, Purwomartani, Kalasan, Sleman, Daerah Istimewa Yogyakarta <br> Ph./Fax. (0274) 4986899 Website: <a href="https://www.be-jogja.com" target="_blank">https://www.be-jogja.com</a>
                 </p>
             </td>
         </tr>
@@ -67,6 +67,10 @@
     <h3 class="pt-6">FORM PENGAJUAN PENGAMBILAN BARANG PT. ARTA TEKNOLOGI COMUNINDO</h3>
 
     <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
+        <tr style="text-align: left;vertical-align: top;">
+            <td style="border: 1px solid black;width: 30%;"><strong>Kode Transaksi</strong></td>
+            <td style="border: 1px solid black">: {{ $bahanKeluar->kode_transaksi }}</td>
+        </tr>
         <tr style="text-align: left;vertical-align: top;">
             <td style="border: 1px solid black;width: 30%;"><strong>Divisi</strong></td>
             <td style="border: 1px solid black">: {{ $bahanKeluar->divisi }}</td>
@@ -105,11 +109,20 @@
                 @endphp
                 <tr>
                     <td style="border: 1px solid black; text-align: center;">{{ $index + 1 }}</td>
-                    <td style="border: 1px solid black">{{ $detail->dataBahan->kode_bahan }}</td>
-                    <td style="border: 1px solid black">{{ $detail->dataBahan->nama_bahan }}</td>
+                    <td style="border: 1px solid black">{{ $detail->dataBahan->kode_bahan ?? null }}</td>
+                    <td style="border: 1px solid black">
+                        @if ($detail->dataBahan)
+                            {{ $detail->dataBahan->nama_bahan }}
+                        @elseif ($detail->dataProduk)
+                            {{ $detail->dataProduk->nama_bahan }}
+                            ({{ $detail->serial_number ?? 'N/A' }})
+                        @else
+                            Data tidak tersedia
+                        @endif
+                    </td>
                     <td style="border: 1px solid black"></td>
                     <td style="border: 1px solid black;text-align: center;">{{ $detail->qty }}</td>
-                    <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama ?? null }}</td>
+                    <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama ?? 'Pcs' }}</td>
                     <td style="border: 1px solid black"></td>
                     <td style="border: 1px solid black"></td>
                     <td style="border: 1px solid black"></td>
@@ -134,7 +147,11 @@
     <table style="width: 100%;border-collapse: collapse;padding-top:10;">
         <tr style="text-align: left; vertical-align: top;">
             <td style=" text-align: center;"><strong>Pengambil</strong></td>
-            <td colspan="2" style=" text-align: center;"><strong></strong></td>
+            <td colspan="2" style="text-align: center;">
+                @if($hasProduk)
+                    <strong>Produksi</strong>
+                @endif
+            </td>
             <td style=" text-align: center;"><strong>Purchasing</strong></td>
         </tr>
         <tr>
@@ -151,9 +168,12 @@
 
         <tr style="text-align: left; vertical-align: top;">
             <td style="text-align: center;">
-                <p>(_________________________)</p>
+                (_________________________)
             </td>
             <td colspan="2" style="text-align: center;">
+                @if($hasProduk)
+                    RHOMADONI
+                @endif
             </td>
             <td style="text-align: center;">
                 {{ $purchasingUser->name }}

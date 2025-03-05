@@ -59,8 +59,8 @@
             </th>
             <td style="border-bottom: 2px solid black;">
                 <h2>PT. ARTA TEKNOLOGI COMUNINDO</h2>
-                <p>Perum Pesona Bandara C-5 Juwangen Purwomartani, Kalasan, Sleman, <br> Daerah Istimewa Yogyakarta
-                Ph./Fax. (0274) 4986899 Website: <br> <a href="https://www.be-jogja.com" target="_blank">https://www.be-jogja.com</a>
+                <p>Kadirojo I, Purwomartani, Kalasan, Sleman, Daerah Istimewa Yogyakarta <br>
+                Ph./Fax. (0274) 4986899 Website: <a href="https://www.be-jogja.com" target="_blank">https://www.be-jogja.com</a>
                 </p>
             </td>
         </tr>
@@ -619,13 +619,13 @@
 
             <tr style="text-align: left; vertical-align: top;">
                 <td style="text-align: center;">
-                    {{ $pembelianBahan->dataUser->name }}
+                    {{ $pembelianBahan->dataUser->name ?? null }}
                 </td>
                 <td style="text-align: center;">
                     {{ $leaderName ?? '' }}
                 </td>
                 <td style="text-align: center;">
-                    {{ $purchasingUser->name }}
+                    {{ $purchasingUser->name ?? null }}
                 </td>
                 <td style="text-align: center;">
                     {{ $managerName ?? '' }}
@@ -680,13 +680,13 @@
                 </td>
             </tr>
             <tr style="text-align: left; vertical-align: top;">
-                <td style="text-align: center;">{{ $financeUser->name }}</td>
-                <td colspan="2" style="text-align: center;">{{$adminManagerceUser->name}}</td>
+                <td style="text-align: center;">{{ $financeUser->name ?? null }}</td>
+                <td colspan="2" style="text-align: center;">{{$adminManagerceUser->name ?? null}}</td>
                 <td style="text-align: center;">
                     @if($pembelianBahan->dataUser->atasanLevel1)
-                        {{ $pembelianBahan->dataUser->atasanLevel1->name }}
+                        {{ $pembelianBahan->dataUser->atasanLevel1->name ?? null }}
                     @else
-                        {{ $pembelianBahan->dataUser->name }}
+                        {{ $pembelianBahan->dataUser->name ?? null }}
                     @endif
                 </td>
             </tr>
@@ -752,16 +752,16 @@
 
             <tr style="text-align: left; vertical-align: top;">
                 <td style="text-align: center;">
-                    {{ $pembelianBahan->dataUser->name }}
+                    {{ $pembelianBahan->dataUser->name ?? null }}
                 </td>
                 <td style="text-align: center;">
                     {{ $leaderName ?? '' }}
                 </td>
                 <td style="text-align: center;">
-                    {{ $generalUser->name }}
+                    {{ $generalUser->name ?? null }}
                 </td>
                 <td style="text-align: center;">
-                    {{ $purchasingUser->name }}
+                    {{ $purchasingUser->name ?? null }}
                 </td>
             </tr>
 
@@ -827,16 +827,16 @@
                     {{ $managerName ?? '' }}
                 </td>
                 <td style="text-align: center;">
-                    {{ $financeUser->name }}
+                    {{ $financeUser->name ?? null}}
                 </td>
                 <td style="text-align: center;">
-                    {{$adminManagerceUser->name}}
+                    {{$adminManagerceUser->name ?? null}}
                 </td>
                 <td style="text-align: center;">
                     @if($pembelianBahan->dataUser->atasanLevel1)
-                        {{ $pembelianBahan->dataUser->atasanLevel1->name }}
+                        {{ $pembelianBahan->dataUser->atasanLevel1->name ?? null}}
                     @else
-                        {{ $pembelianBahan->dataUser->name }}
+                        {{ $pembelianBahan->dataUser->name ?? null}}
                     @endif
                 </td>
             </tr>

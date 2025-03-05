@@ -61,18 +61,21 @@ class BahanRusakController extends Controller
                 $groupedDetails = [];
 
                 // Langkah 1: Kelompokkan BahanRusakDetails berdasarkan bahan_id dan unit_price
-                foreach ($bahanRusakDetails as $returDetail) {
-                    $bahanId = $returDetail->bahan_id;
-                    $unitPrice = $returDetail->unit_price;
+                foreach ($bahanRusakDetails as $rusakDetail) {
+                    $key = $rusakDetail->bahan_id ?? $rusakDetail->produk_id;
+                    $unitPrice = $rusakDetail->unit_price;
+                    $serialNumber = $rusakDetail->serial_number ?? null;
 
-                    if (isset($groupedDetails[$bahanId][$unitPrice])) {
-                        $groupedDetails[$bahanId][$unitPrice]['qty'] += $returDetail->qty;
-                    } else {
-                        $groupedDetails[$bahanId][$unitPrice] = [
-                            'qty' => $returDetail->qty,
+                    if (!isset($groupedDetails[$key][$unitPrice])) {
+                        $groupedDetails[$key][$unitPrice] = [
+                            'bahan_id' => $rusakDetail->bahan_id,
+                            'produk_id' => $rusakDetail->produk_id,
+                            'qty' => 0,
                             'unit_price' => $unitPrice,
+                            'serial_number' => $serialNumber,
                         ];
                     }
+                    $groupedDetails[$key][$unitPrice]['qty'] += $rusakDetail->qty;
                 }
 
                 // Langkah 2: Kurangi qty di ProduksiDetails dan ProjekDetails sesuai groupedDetails
@@ -115,7 +118,10 @@ class BahanRusakController extends Controller
 
                     // Update untuk ProjekDetails
                     $projekDetail = ProjekDetails::where('projek_id', $bahanRusak->projek_id)
-                        ->where('bahan_id', $bahanId)
+                        ->where(function ($query) use ($bahanId) {
+                            $query->where('bahan_id', $bahanId)
+                                    ->orWhere('produk_id', $bahanId);
+                        })
                         ->first();
 
                     if ($projekDetail) {
@@ -125,7 +131,9 @@ class BahanRusakController extends Controller
                             foreach ($currentDetails as $key => &$entry) {
                                 if ($entry['unit_price'] == $unitPrice) {
                                     $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    if ($entry['qty'] <= 0) {
+                                        unset($currentDetails[$key]);
+                                    }
                                     break;
                                 }
                             }
@@ -139,19 +147,29 @@ class BahanRusakController extends Controller
                         $projekDetail->qty = max(0, $projekDetail->qty);
                         $projekDetail->used_materials = max(0, $projekDetail->used_materials);
 
-                        $projekDetail->sub_total = 0;
-                        foreach ($currentDetails as $detail) {
-                            $projekDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                        }
+                        // Hitung ulang sub_total hanya jika masih ada entri di details
+                        if (!empty($currentDetails)) {
+                            $projekDetail->sub_total = 0;
+                            foreach ($currentDetails as $detail) {
+                                $projekDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                            }
 
-                        $projekDetail->details = json_encode(array_values($currentDetails));
-                        $projekDetail->save();
+                            // Simpan details yang sudah diperbarui
+                            $projekDetail->details = json_encode(array_values($currentDetails));
+                            $projekDetail->save();
+                        } else {
+                            // Jika tidak ada entry tersisa, hapus ProjekDetails
+                            $projekDetail->delete();
+                        }
                     }
 
                     // Update untuk ProjekRndDetails
                     $projekRndDetail = ProjekRndDetails::where('projek_rnd_id', $bahanRusak->projek_rnd_id)
-                        ->where('bahan_id', $bahanId)
-                        ->first();
+                    ->where(function ($query) use ($bahanId) {
+                        $query->where('bahan_id', $bahanId)
+                                ->orWhere('produk_id', $bahanId);
+                    })
+                    ->first();
 
                     if ($projekRndDetail) {
                         $currentDetails = json_decode($projekRndDetail->details, true) ?? [];
@@ -160,7 +178,9 @@ class BahanRusakController extends Controller
                             foreach ($currentDetails as $key => &$entry) {
                                 if ($entry['unit_price'] == $unitPrice) {
                                     $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    if ($entry['qty'] <= 0) {
+                                        unset($currentDetails[$key]);
+                                    }
                                     break;
                                 }
                             }
@@ -174,13 +194,20 @@ class BahanRusakController extends Controller
                         $projekRndDetail->qty = max(0, $projekRndDetail->qty);
                         $projekRndDetail->used_materials = max(0, $projekRndDetail->used_materials);
 
-                        $projekRndDetail->sub_total = 0;
-                        foreach ($currentDetails as $detail) {
-                            $projekRndDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                        }
+                        // Hitung ulang sub_total hanya jika masih ada entri di details
+                        if (!empty($currentDetails)) {
+                            $projekRndDetail->sub_total = 0;
+                            foreach ($currentDetails as $detail) {
+                                $projekRndDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                            }
 
-                        $projekRndDetail->details = json_encode(array_values($currentDetails));
-                        $projekRndDetail->save();
+                            // Simpan details yang sudah diperbarui
+                            $projekRndDetail->details = json_encode(array_values($currentDetails));
+                            $projekRndDetail->save();
+                        } else {
+                            // Jika tidak ada entry tersisa, hapus projekRndDetails
+                            $projekRndDetail->delete();
+                        }
                     }
 
                     // Update untuk PengajuanDetails
@@ -195,7 +222,9 @@ class BahanRusakController extends Controller
                             foreach ($currentDetails as $key => &$entry) {
                                 if ($entry['unit_price'] == $unitPrice) {
                                     $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    if ($entry['qty'] <= 0) {
+                                        unset($currentDetails[$key]);
+                                    }
                                     break;
                                 }
                             }
@@ -209,16 +238,19 @@ class BahanRusakController extends Controller
                         $pengajuanDetail->qty = max(0, $pengajuanDetail->qty);
                         $pengajuanDetail->used_materials = max(0, $pengajuanDetail->used_materials);
 
-                        $pengajuanDetail->sub_total = 0;
-                        foreach ($currentDetails as $detail) {
-                            $pengajuanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                        }
+                        // Hitung ulang sub_total hanya jika masih ada entri di details
+                        if (!empty($currentDetails)) {
+                            $pengajuanDetail->sub_total = 0;
+                            foreach ($currentDetails as $detail) {
+                                $pengajuanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                            }
 
-                        $pengajuanDetail->details = json_encode(array_values($currentDetails));
-                        if ($pengajuanDetail->qty == 0 && $pengajuanDetail->used_materials == 0) {
-                            $pengajuanDetail->delete();
-                        } else {
+                            // Simpan details yang sudah diperbarui
+                            $pengajuanDetail->details = json_encode(array_values($currentDetails));
                             $pengajuanDetail->save();
+                        } else {
+                            // Jika tidak ada entry tersisa, hapus pengajuanDetails
+                            $pengajuanDetail->delete();
                         }
                     }
 
@@ -234,7 +266,9 @@ class BahanRusakController extends Controller
                             foreach ($currentDetails as $key => &$entry) {
                                 if ($entry['unit_price'] == $unitPrice) {
                                     $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
+                                    if ($entry['qty'] <= 0) {
+                                        unset($currentDetails[$key]);
+                                    }
                                     break;
                                 }
                             }
@@ -248,22 +282,25 @@ class BahanRusakController extends Controller
                         $pengambilanBahanDetail->qty = max(0, $pengambilanBahanDetail->qty);
                         $pengambilanBahanDetail->used_materials = max(0, $pengambilanBahanDetail->used_materials);
 
-                        $pengambilanBahanDetail->sub_total = 0;
-                        foreach ($currentDetails as $detail) {
-                            $pengambilanBahanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                        }
+                        // Hitung ulang sub_total hanya jika masih ada entri di details
+                        if (!empty($currentDetails)) {
+                            $pengambilanBahanDetail->sub_total = 0;
+                            foreach ($currentDetails as $detail) {
+                                $pengambilanBahanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                            }
 
-                        $pengambilanBahanDetail->details = json_encode(array_values($currentDetails));
-                        if ($pengambilanBahanDetail->qty == 0 && $pengambilanBahanDetail->used_materials == 0) {
-                            $pengambilanBahanDetail->delete();
-                        } else {
+                            // Simpan details yang sudah diperbarui
+                            $pengambilanBahanDetail->details = json_encode(array_values($currentDetails));
                             $pengambilanBahanDetail->save();
+                        } else {
+                            // Jika tidak ada entry tersisa, hapus pengambilanBahanDetails
+                            $pengambilanBahanDetail->delete();
                         }
                     }
                 }
-                foreach ($bahanRusakDetails as $returDetail) {
-                    $returDetail->sisa = $returDetail->qty;
-                    $returDetail->save();
+                foreach ($bahanRusakDetails as $rusakDetail) {
+                    $rusakDetail->sisa = $rusakDetail->qty;
+                    $rusakDetail->save();
                 }
             }
             // Update status bahan rusak

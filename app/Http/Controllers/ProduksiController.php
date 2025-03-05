@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Jobs\SendWhatsAppNotification;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
 
@@ -196,52 +197,14 @@ class ProduksiController extends Controller
                     'sub_total' => $details['sub_total'],
                 ]);
             }
-            // $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
-            // $message .= "Kode Transaksi: $kode_transaksi\n";
-            // $message .= "Pengajuan bahan produksi telah ditambahkan dan memerlukan persetujuan.\n\n";
-            // $message .= "\nPesan Otomatis:\n";
-            // $message .= "https://inventory.beacontelemetry.com/";
-            // try{
-            //     $response = Http::withHeaders([
-            //         'x-api-key' => env('WHATSAPP_API_KEY'),
-            //         'Content-Type' => 'application/json',
-            //     ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-            //         'chatId' => '6281127006443@c.us',
-            //         'contentType' => 'string',
-            //         'content' => $message,
-            //     ]);
-            //     if ($response->successful()) {
-            //         LogHelper::success('WhatsApp message sent for approval!');
-            //     } else {
-            //         LogHelper::error('Failed to send WhatsApp message.');
-            //     }
-            // } catch (\Exception $e) {
-            //     LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-            // }
+
             if ($targetPhone) {
                 $message = "Halo {$recipientName},\n\n";
                 $message .= "Pengajuan bahan keluar dengan kode transaksi $kode_transaksi memerlukan persetujuan Anda.\n\n";
                 $message .= "Tgl Pengajuan: " . $tgl_pengajuan . "\nPengaju: {$user->name}\nDivisi: Produksi\nProject: Produksi $tujuan\nKeterangan: {$request->keterangan}\n\n";
                 $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
-                try{
-                    $response = Http::withHeaders([
-                        'x-api-key' => env('WHATSAPP_API_KEY'),
-                        'Content-Type' => 'application/json',
-                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        'chatId' => "{$targetPhone}@c.us",
-                        'contentType' => 'string',
-                        'content' => $message,
-                    ]);
-
-                    if ($response->successful()) {
-                        LogHelper::success("WhatsApp notification sent to: {$targetPhone}");
-                    } else {
-                        LogHelper::error("Failed to send WhatsApp notification to: {$targetPhone}");
-                    }
-                } catch (\Exception $e) {
-                    LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                }
+                SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             } else {
                 LogHelper::error('No valid phone number found for WhatsApp notification.');
             }
@@ -295,8 +258,6 @@ class ProduksiController extends Controller
         ]);
     }
 
-
-
     public function update(Request $request, $id)
     {
         try {
@@ -307,17 +268,18 @@ class ProduksiController extends Controller
             $produksi = Produksi::findOrFail($id);
             $validator = Validator::make($request->all(), [
                 'kode_produksi' => 'nullable',
-                'keterangan' => 'required|string|max:255',
+                'keterangan' => 'nullable|string|max:255',
+                'serial_number' => 'nullable|string|max:255', // Setiap item dalam array harus string
             ]);
 
             if ($validator->fails()) {
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
-            // Update production data
             $produksi->update([
                 'kode_produksi' => $request->kode_produksi,
                 'keterangan' => $request->keterangan,
+                'serial_number' => $request->serial_number,
             ]);
 
             $produk = $request->produk_id;
@@ -423,58 +385,17 @@ class ProduksiController extends Controller
                     ]);
                 }
 
-                // $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
-                // $message .= "Kode Transaksi: $kode_transaksi\n";
-                // $message .= "Pengajuan bahan produksi telah ditambahkan dan memerlukan persetujuan.\n\n";
-                // $message .= "\nPesan Otomatis:\n";
-                // $message .= "https://inventory.beacontelemetry.com/";
-
-                // try{
-                //     $response = Http::withHeaders([
-                //         'x-api-key' => env('WHATSAPP_API_KEY'),
-                //         'Content-Type' => 'application/json',
-                //     ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                //         'chatId' => '6281127006443@c.us',
-                //         'contentType' => 'string',
-                //         'content' => $message,
-                //     ]);
-                //     if ($response->successful()) {
-                //         LogHelper::success('WhatsApp message sent for approval!');
-                //     } else {
-                //         LogHelper::error('Failed to send WhatsApp message.');
-                //     }
-                // } catch (\Exception $e) {
-                //     LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                // }
                 if ($targetPhone) {
                     $message = "Halo {$recipientName},\n\n";
                     $message .= "Pengajuan bahan keluar dengan kode transaksi $kode_transaksi memerlukan persetujuan Anda.\n\n";
                     $message .= "Tgl Pengajuan: " . $tgl_pengajuan . "\nPengaju: {$user->name}\nDivisi: Produksi\nProject: Produksi $tujuan\nKeterangan: {$produksi->keterangan}\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
-                    try{
-                        $response = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$targetPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-
-                        if ($response->successful()) {
-                            LogHelper::success("WhatsApp notification sent to: {$targetPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp notification to: {$targetPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
+                    SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
                     LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
             }
-
 
             if (!empty($bahanRusak)) {
                 $lastTransaction = BahanRusak::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
@@ -509,30 +430,16 @@ class ProduksiController extends Controller
                     ]);
                 }
                 $targetPhone = $purchasingUser->telephone;
+                $recipientName = $purchasingUser->name;
                 $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                 if ($targetPhone) {
                     $message = "Halo {$purchasingUser->name},\n\n";
-                    $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                    $message .= "Tanggal *" . $tgl_pengajuan . "* \n\n";
                     $message .= "Kode Transaksi: $kode_transaksi\n";
                     $message .= "Pengajuan bahan rusak telah ditambahkan dan memerlukan persetujuan.\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                    try{
-                        $response = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$targetPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-                        if ($response->successful()) {
-                            LogHelper::success("WhatsApp message sent to: {$targetPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp message to: {$targetPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
+
+                    SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
                     LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
@@ -576,31 +483,16 @@ class ProduksiController extends Controller
                 }
 
                 $targetPhone = $purchasingUser->telephone;
+                $recipientName = $purchasingUser->name;
                 $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                 if ($targetPhone) {
                     $message = "Halo {$purchasingUser->name},\n\n";
-                    $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
-                    $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                    $message .= "Tanggal *" . $tgl_pengajuan . "* \n\n";
                     $message .= "Kode Transaksi: $kode_transaksi\n";
                     $message .= "Pengajuan bahan retur telah ditambahkan dan memerlukan persetujuan.\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                    try{
-                        $response = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$targetPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-                        if ($response->successful()) {
-                            LogHelper::success("WhatsApp message sent to: {$targetPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp message to: {$targetPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
+
+                    SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
                     LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
@@ -616,73 +508,72 @@ class ProduksiController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        try{
-            //dd($request->all());
+        try {
             $produksi = Produksi::findOrFail($id);
-            // $validator = Validator::make($request->all(), [
-            //     'kode_produksi' => 'required',
-            // ]);
-
-            // if ($validator->fails()) {
-            //     return redirect()->back()->withErrors($validator)->withInput();
-            // }
-
-            // // Update production data
-            // $produksi->update([
-            //     'kode_produksi' => $request->kode_produksi,
-            // ]);
 
             if ($produksi->status !== 'Selesai') {
-                // Proses update berdasarkan jenis produksi
                 if ($produksi->jenis_produksi === 'Produk Setengah Jadi') {
                     try {
-                        // Mulai transaksi database
                         DB::beginTransaction();
 
-                        // Masukkan data ke dalam tabel bahan_setengahjadi
+                        // Insert data ke tabel bahan_setengahjadi
                         $bahanSetengahJadi = new BahanSetengahjadi();
                         $bahanSetengahJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                         $bahanSetengahJadi->kode_transaksi = $produksi->kode_produksi;
                         $bahanSetengahJadi->produksi_id = $produksi->id;
                         $bahanSetengahJadi->save();
 
+                        // Hitung total produksi
                         $produksiTotal = $produksi->produksiDetails->sum('sub_total');
+                        $unitPrice = $produksiTotal / $produksi->jml_produksi;
 
-                        $bahanSetengahJadiDetail = new BahanSetengahjadiDetails();
-                        $bahanSetengahJadiDetail->bahan_setengahjadi_id = $bahanSetengahJadi->id;
-                        $bahanSetengahJadiDetail->bahan_id = $produksi->bahan_id;
-                        $bahanSetengahJadiDetail->qty = $produksi->jml_produksi;
-                        $bahanSetengahJadiDetail->sisa = $produksi->jml_produksi;
-                        $bahanSetengahJadiDetail->unit_price = $produksiTotal / $produksi->jml_produksi;
-                        $bahanSetengahJadiDetail->sub_total = $produksiTotal;
-                        $bahanSetengahJadiDetail->save();
+                        // Ambil serial number dari kolom `serial_number` di tabel `produksi`
+                        $serialNumbers = explode(',', $produksi->serial_number);
+                        $serialNumbers = array_map('trim', $serialNumbers); // Hilangkan spasi ekstra
+                        // dd($serialNumbers);
+                        if (count($serialNumbers) < $produksi->jml_produksi) {
+                            DB::rollBack();
+                            return redirect()->back()->with('error', "Jumlah serial number kurang. Harap lengkapi serial number sebelum menyelesaikan produksi.");
+                        }
 
-                        // Jika semua penyimpanan berhasil, update status produksi menjadi "Selesai"
+                        // Loop sebanyak jumlah produksi untuk membuat serial number unik
+                        for ($i = 0; $i < $produksi->jml_produksi; $i++) {
+                            $bahanSetengahJadiDetail = new BahanSetengahjadiDetails();
+                            $bahanSetengahJadiDetail->bahan_setengahjadi_id = $bahanSetengahJadi->id;
+                            // $bahanSetengahJadiDetail->bahan_id = $produksi->bahan_id;
+                            $bahanSetengahJadiDetail->nama_bahan = $produksi->dataBahan->nama_bahan;
+                            $bahanSetengahJadiDetail->qty = 1;
+                            $bahanSetengahJadiDetail->sisa = 1;
+                            $bahanSetengahJadiDetail->unit_price = $unitPrice;
+                            $bahanSetengahJadiDetail->sub_total = $unitPrice;
+                            $bahanSetengahJadiDetail->serial_number = $serialNumbers[$i] ?? null;
+
+                            $bahanSetengahJadiDetail->save();
+                        }
+
+                        // Update status produksi menjadi "Selesai"
                         $produksi->status = 'Selesai';
                         $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                         $produksi->save();
 
-                        // Commit transaksi
                         DB::commit();
 
                         LogHelper::success('Berhasil Menyelesaikan Produksi Produk Setengah Jadi!');
                         return redirect()->back()->with('success', 'Produksi telah selesai.');
                     } catch (\Exception $e) {
-                        // Rollback jika ada kesalahan
                         DB::rollBack();
-                        $errorMessage = $e->getMessage();
                         LogHelper::error($e->getMessage());
                         return redirect()->back()->with('error', "Gagal update status produksi. Simpan Kode Produksi dahulu!");
                     }
                 }
             }
-            LogHelper::success('Berhasil Menyelesaikan Produksi!');
             return redirect()->back()->with('error', 'Produksi tidak bisa diupdate ke selesai.');
-        }catch(Throwable $e){
+        } catch (Throwable $e) {
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }
     }
+
 
 
 
@@ -693,9 +584,6 @@ class ProduksiController extends Controller
             if (!$produksi) {
                 return redirect()->back()->with('gagal', 'Produksi tidak ditemukan.');
             }
-            // if ($produksi->status !== 'Konfirmasi') {
-            //     return redirect()->back()->with('gagal', 'Produksi hanya dapat dihapus jika statusnya "Konfirmasi".');
-            // }
 
             // Menghapus semua bahan keluar yang terkait dengan produksi_id
             BahanKeluar::where('produksi_id', $produksi->id)->delete();

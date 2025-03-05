@@ -797,6 +797,21 @@ class PembelianBahanController extends Controller
                         } else {
                             LogHelper::error('No valid phone number found for Finance notification.');
                         }
+                    }elseif ($data->dataUser->atasan_level3_id && $data->dataUser->atasan_level2_id === null) {
+                        // Job level 4 tanpa atasan level 3 dan 2, kirim notifikasi ke Finance
+                        $financeUser = User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
+                        $recipientName = $financeUser;
+                        if ($financeUser && $financeUser->telephone) {
+                            $targetPhone = $financeUser->telephone;
+                            $message = "Halo {$financeUser->name},\n\n";
+                            $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Finance.\n\n";
+                            $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
+                            $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+
+                            SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
+                        } else {
+                            LogHelper::error('No valid phone number found for Finance notification.');
+                        }
                     } else {
                         // Kirim notifikasi ke atasan level 2/manager
                         $managerUser = $data->dataUser->atasanLevel2;

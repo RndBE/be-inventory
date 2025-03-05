@@ -43,7 +43,7 @@
                         <img src="{{ asset('images/logo_be2.png') }}" alt="chippz" class="mx-auto mt-10 w-32 py-4" />
                         <div class="flex flex-col justify-center items-center gap-2">
                             <h4 class="font-semibold">PT. Arta Teknologi Comunindo</h4>
-                            <p class="text-xs text-center">Perum Pesona Bandara No. C-54, Cupuwatu I Purwomartani, Kec. Kalasan, Kabupaten Sleman, Daerah Istimewa Yogyakarta</p>
+                            <p class="text-xs text-center">Kadirojo I, Purwomartani, Kec. Kalasan, Kabupaten Sleman, Daerah Istimewa Yogyakarta</p>
                         </div>
                         <div class="flex flex-col gap-3 border-b py-6 text-xs">
                             <p class="flex justify-between">
@@ -74,11 +74,20 @@
                                         @foreach($this->bahanKeluarDetails as $detail)
                                             <tr class="flex">
                                                 <td class="flex-1 py-1">
-                                                    {{ $detail->dataBahan->nama_bahan }}
-                                                    @if ($detail->qty > 0)
+                                                    {{-- {{ $detail->dataBahan->nama_bahan }} --}}
+                                                    {{-- @if ($detail->qty > 0)
                                                         ({{ $detail->qty }}/{{ $detail->jml_bahan }})
                                                     @else
                                                         <span class="text-red-500">Belum tersedia</span>
+                                                    @endif --}}
+
+                                                    @if ($detail->dataBahan)
+                                                        {{ $detail->dataBahan->nama_bahan }} ({{ $detail->qty }})
+                                                    @elseif ($detail->dataProduk)
+                                                        {{ $detail->dataProduk->nama_bahan }}
+                                                        ({{ $detail->serial_number ?? 'N/A' }}) ({{ $detail->qty }})
+                                                    @else
+                                                        Data tidak tersedia
                                                     @endif
                                                 </td>
                                             </tr>

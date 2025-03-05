@@ -173,7 +173,8 @@
                             </div>
                         </div>
                         @if ($pengambilanBahan->status !== 'Selesai')
-                            <livewire:search-bahan-produksi/>
+                            {{-- <livewire:search-bahan-produksi/> --}}
+                            <livewire:search-pengambilan-bahan/>
                         @endif
                         {{-- <livewire:bahan-pengajuan-cart :pengajuanId="$pengajuanId" /> --}}
                         <livewire:edit-bahan-pengambilan-bahan-cart :pengambilanBahanId="$pengambilanBahanId" />

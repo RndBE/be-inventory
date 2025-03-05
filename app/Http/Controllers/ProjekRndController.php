@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Jobs\SendWhatsAppNotification;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
 
@@ -39,7 +40,7 @@ class ProjekRndController extends Controller
     public function export($projek_rnd_id)
     {
         $projek_rnd = ProjekRnd::findOrFail($projek_rnd_id);
-        $fileName = 'HPP_Projek_Rnd_' . $projek_rnd->dataBahan->nama_bahan . '_be-inventory.xlsx';
+        $fileName = 'HPP_Projek_Rnd_' . 'Riset'.$projek_rnd->nama_projek_rnd . '_be-inventory.xlsx';
         return Excel::download(new ProjekRndExport($projek_rnd_id), $fileName);
     }
 
@@ -60,17 +61,17 @@ class ProjekRndController extends Controller
     public function store(Request $request)
     {
         try {
-            //dd($request->all());
+            // dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
-                // 'nama_projek_rnd' => $request->nama_projek_rnd,
-                'bahan_id' => $request->bahan_id,
+                'nama_projek_rnd' => $request->nama_projek_rnd,
+                // 'bahan_id' => $request->bahan_id,
                 'mulai_projek_rnd' => $request->mulai_projek_rnd,
                 'keterangan' => $request->keterangan,
                 'cartItems' => $cartItems
             ], [
-                // 'nama_projek_rnd' => 'required',
-                'bahan_id' => 'required',
+                'nama_projek_rnd' => 'required',
+                // 'bahan_id' => 'required',
                 'mulai_projek_rnd' => 'required',
                 'keterangan' => 'required',
                 'cartItems' => 'required|array',
@@ -78,13 +79,8 @@ class ProjekRndController extends Controller
             if ($validator->fails()) {
                 return redirect()->back()->withErrors($validator)->withInput();
             }
-            $bahan = Bahan::find($request->bahan_id);
 
-            if (!$bahan) {
-                return redirect()->back()->withErrors(['bahan_id' => 'Bahan tidak ditemukan.'])->withInput();
-            }
-
-            $tujuan = $bahan->nama_bahan;
+            $tujuan = 'Proyek/Riset '. $request->nama_projek_rnd;
             $user = Auth::user();
 
             $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
@@ -134,7 +130,8 @@ class ProjekRndController extends Controller
 
             $projek_rnd = ProjekRnd::create([
                 'kode_projek_rnd' => $kode_projek_rnd,
-                'bahan_id' => $request->bahan_id,
+                // 'bahan_id' => $request->bahan_id,
+                'nama_projek_rnd' => $request->nama_projek_rnd,
                 'pengaju' => $user->name,
                 'keterangan' => $request->keterangan,
                 'mulai_projek_rnd' => $request->mulai_projek_rnd,
@@ -157,30 +154,44 @@ class ProjekRndController extends Controller
             // Group items by bahan_id
             $groupedItems = [];
             foreach ($cartItems as $item) {
-                $itemId = $item['id'];
-                $groupedItems[$itemId] = [
-                    'qty' => 0,
-                    'jml_bahan' => 0,
-                    'details' => $item['details'] ?? [],
-                    'sub_total' => 0,
-                ];
-                $groupedItems[$item['id']]['qty'] += $item['qty'];
-                $groupedItems[$item['id']]['jml_bahan'] += $item['jml_bahan'];
-                $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
+                $bahan_id = $item['bahan_id'] ?? null;
+                $produk_id = $item['produk_id'] ?? null;
+                $serial_number = $item['serial_number'] ?? null;
+
+                $final_bahan_id = $bahan_id ?? $produk_id;
+                // Gunakan kunci unik berdasarkan bahan_id dan serial_number
+                $key = $final_bahan_id . ($serial_number ?? '');
+
+                if (!isset($groupedItems[$key])) {
+                    $groupedItems[$key] = [
+                        'bahan_id' => $bahan_id,
+                        'produk_id' => $produk_id,
+                        'serial_number' => $serial_number,
+                        'qty' => 0,
+                        'jml_bahan' => 0,
+                        'details' => $item['details'] ?? [],
+                        'sub_total' => 0,
+                    ];
+                }
+
+                $groupedItems[$key]['qty'] += $item['qty'] ?? 0;
+                $groupedItems[$key]['jml_bahan'] += $item['jml_bahan'] ?? 0;
+                $groupedItems[$key]['sub_total'] += $item['sub_total'] ?? 0;
             }
 
             // Save items to BahanKeluarDetails and ProjekDetails
-            foreach ($groupedItems as $bahan_id => $details) {
+            foreach ($groupedItems as $details) {
                 BahanKeluarDetails::create([
                     'bahan_keluar_id' => $bahan_keluar->id,
-                    'bahan_id' => $bahan_id,
+                    'bahan_id' => $details['bahan_id'],
+                    'produk_id' => $details['produk_id'],
+                    'serial_number' => $details['serial_number'],
                     'qty' => $details['qty'],
                     'jml_bahan' => $details['jml_bahan'],
                     'used_materials' => 0,
                     'details' => json_encode($details['details']),
                     'sub_total' => $details['sub_total'],
                 ]);
-
             }
 
             // Kirim notifikasi jika nomor telepon valid
@@ -190,30 +201,13 @@ class ProjekRndController extends Controller
                 $message .= "Tgl Pengajuan: " . $tgl_pengajuan . "\nPengaju: {$user->name}\nDivisi: RnD\nProject: {$tujuan}\nKeterangan: {$request->keterangan}\n\n";
                 $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
-                try{
-                    $response = Http::withHeaders([
-                        'x-api-key' => env('WHATSAPP_API_KEY'),
-                        'Content-Type' => 'application/json',
-                    ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        'chatId' => "{$targetPhone}@c.us",
-                        'contentType' => 'string',
-                        'content' => $message,
-                    ]);
-
-                    if ($response->successful()) {
-                        LogHelper::success("WhatsApp notification sent to: {$targetPhone}");
-                    } else {
-                        LogHelper::error("Failed to send WhatsApp notification to: {$targetPhone}");
-                    }
-                } catch (\Exception $e) {
-                    LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                }
+                SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             } else {
                 LogHelper::error('No valid phone number found for WhatsApp notification.');
             }
             $request->session()->forget('cartItems');
-            LogHelper::success('Berhasil Menambahkan Pengajuan Projek RnD!');
-            return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Projek RnD!');
+            LogHelper::success('Berhasil Menambahkan Pengajuan Proyek RnD!');
+            return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Proyek RnD!');
         } catch (\Exception $e) {
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan data: ' . $e->getMessage());
@@ -227,7 +221,11 @@ class ProjekRndController extends Controller
         $bahanProjek = Bahan::whereHas('jenisBahan', function ($query) {
             $query->where('nama', 'like', '%Produksi%');
         })->get();
-        $projek_rnd = ProjekRnd::with(['projekRndDetails.dataBahan', 'bahanKeluar'])->findOrFail($id);
+        $projek_rnd = ProjekRnd::with([
+            'projekRndDetails.dataBahan',
+            'projekRndDetails.dataProduk',
+            'bahanKeluar'
+            ])->findOrFail($id);
 
         $isComplete = true;
         if ($projek_rnd->projekRndDetails && count($projek_rnd->projekRndDetails) > 0) {
@@ -256,6 +254,7 @@ class ProjekRndController extends Controller
     {
         $validatedData = $request->validate([
             'keterangan' => 'required|string|max:255', // Validasi keterangan
+            'serial_number' => 'nullable|string|max:255',
         ]);
         try {
             //dd($request->all());
@@ -266,9 +265,10 @@ class ProjekRndController extends Controller
 
             $projek_rnd->update([
                 'keterangan' => $validatedData['keterangan'],
+                'serial_number' => $validatedData['serial_number'],
             ]);
 
-            $tujuan = $projek_rnd->dataBahan->nama_bahan;
+            $tujuan = 'Proyek/Riset '. $projek_rnd->nama_projek_rnd;
             $user = Auth::user();
 
             $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
@@ -322,18 +322,28 @@ class ProjekRndController extends Controller
             $totalQty = 0;  // Variabel untuk menghitung total qty
 
             foreach ($projekRndDetails as $item) {
-                if (!isset($groupedItems[$item['id']])) {
-                    $groupedItems[$item['id']] = [
+                $bahan_id = $item['bahan_id'] ?? null;
+                $produk_id = $item['produk_id'] ?? null;
+                $serial_number = $item['serial_number'] ?? null;
+
+                $final_bahan_id = $bahan_id ?? $produk_id;
+                // Gunakan kunci unik berdasarkan bahan_id dan serial_number
+                $key = $final_bahan_id . ($serial_number ?? '');
+                if (!isset($groupedItems[$key])) {
+                    $groupedItems[$key] = [
+                        'bahan_id' => $bahan_id,
+                        'produk_id' => $produk_id,
+                        'serial_number' => $serial_number,
                         'qty' => 0,
                         'jml_bahan' => 0,
                         'details' => $item['details'],
                         'sub_total' => 0,
                     ];
                 }
-                $groupedItems[$item['id']]['qty'] += $item['qty'];
-                $groupedItems[$item['id']]['jml_bahan'] += $item['jml_bahan'];
-                $groupedItems[$item['id']]['sub_total'] += $item['sub_total'];
-                $totalQty += $item['qty'];  // Tambahkan qty item ke total qty
+                $groupedItems[$key]['qty'] += (int) $item['qty'];
+                $groupedItems[$key]['jml_bahan'] += (int) $item['jml_bahan'];
+                $groupedItems[$key]['sub_total'] += (float) $item['sub_total'];
+                $totalQty += (int) $item['qty']; // Tambahkan qty item ke total qty
             }
 
             if ($totalQty !== 0) {
@@ -354,7 +364,9 @@ class ProjekRndController extends Controller
                 foreach ($groupedItems as $bahan_id => $details) {
                     BahanKeluarDetails::create([
                         'bahan_keluar_id' => $bahan_keluar->id,
-                        'bahan_id' => $bahan_id,
+                        'bahan_id' => $details['bahan_id'],
+                        'produk_id' => $details['produk_id'],
+                        'serial_number' => $details['serial_number'],
                         'qty' => $details['qty'],
                         'jml_bahan' => $details['jml_bahan'],
                         'used_materials' => 0,
@@ -370,24 +382,7 @@ class ProjekRndController extends Controller
                     $message .= "Tgl Pengajuan: " . $tgl_pengajuan . "\nPengaju: {$user->name}\nDivisi: RnD\nProject: {$tujuan}\nKeterangan: {$projek_rnd->keterangan}\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
-                    try{
-                        $response = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$targetPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-
-                        if ($response->successful()) {
-                            LogHelper::success("WhatsApp notification sent to: {$targetPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp notification to: {$targetPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
+                    SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
                     LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
@@ -413,44 +408,34 @@ class ProjekRndController extends Controller
                 ]);
 
                 foreach ($bahanRusak as $item) {
-                    $bahan_id = $item['id'];
+                    $bahan_id = $item['bahan_id'] ?? null; // Ambil bahan_id jika ada
+                    $produk_id = $item['produk_id'] ?? null; // Ambil produk_id jika ada
+                    $serial_number = $item['serial_number'] ?? null; // Ambil serial number jika ada
                     $qtyRusak = $item['qty'] ?? 0;
                     $unit_price = $item['unit_price'] ?? 0;
                     $sub_total = $qtyRusak * $unit_price;
 
                     BahanRusakDetails::create([
                         'bahan_rusak_id' => $bahanRusakRecord->id,
-                        'bahan_id' => $bahan_id,
+                        'bahan_id' => $bahan_id, // Bisa null jika produk
+                        'produk_id' => $produk_id, // Bisa null jika bahan
+                        'serial_number' => $serial_number, // Tambahkan serial number untuk produk
                         'qty' => $qtyRusak,
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
                     ]);
                 }
                 $targetPhone = $purchasingUser->telephone;
+                $recipientName = $purchasingUser->name;
                 $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                 if ($targetPhone) {
                     $message = "Halo {$purchasingUser->name},\n\n";
-                    $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                    $message .= "Tanggal *" . $tgl_pengajuan . "* \n\n";
                     $message .= "Kode Transaksi: $kode_transaksi\n";
                     $message .= "Pengajuan bahan rusak telah ditambahkan dan memerlukan persetujuan.\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                    try{
-                        $response = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$targetPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-                        if ($response->successful()) {
-                            LogHelper::success("WhatsApp message sent to: {$targetPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp message to: {$targetPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
+
+                    SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
                     LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
@@ -477,45 +462,34 @@ class ProjekRndController extends Controller
                 ]);
 
                 foreach ($bahanRetur as $item) {
-                    $bahan_id = $item['id'];
+                    $bahan_id = $item['bahan_id'] ?? null; // Ambil bahan_id jika ada
+                    $produk_id = $item['produk_id'] ?? null; // Ambil produk_id jika ada
+                    $serial_number = $item['serial_number'] ?? null; // Ambil serial number jika ada
                     $qtyRetur = $item['qty'] ?? 0;
                     $unit_price = $item['unit_price'] ?? 0;
                     $sub_total = $qtyRetur * $unit_price;
 
                     BahanReturDetails::create([
                         'bahan_retur_id' => $bahanReturRecord->id,
-                        'bahan_id' => $bahan_id,
+                        'bahan_id' => $bahan_id, // Bisa null jika produk
+                        'produk_id' => $produk_id, // Bisa null jika bahan
+                        'serial_number' => $serial_number, // Tambahkan serial number untuk produk
                         'qty' => $qtyRetur,
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
                     ]);
                 }
                 $targetPhone = $purchasingUser->telephone;
+                $recipientName = $purchasingUser->name;
                 $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                 if ($targetPhone) {
                     $message = "Halo {$purchasingUser->name},\n\n";
-                    $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
-                    $message = "Tanggal *" . $tgl_pengajuan . "* \n\n";
+                    $message .= "Tanggal *" . $tgl_pengajuan . "* \n\n";
                     $message .= "Kode Transaksi: $kode_transaksi\n";
                     $message .= "Pengajuan bahan retur telah ditambahkan dan memerlukan persetujuan.\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
-                    try{
-                        $response = Http::withHeaders([
-                            'x-api-key' => env('WHATSAPP_API_KEY'),
-                            'Content-Type' => 'application/json',
-                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                            'chatId' => "{$targetPhone}@c.us",
-                            'contentType' => 'string',
-                            'content' => $message,
-                        ]);
-                        if ($response->successful()) {
-                            LogHelper::success("WhatsApp message sent to: {$targetPhone}");
-                        } else {
-                            LogHelper::error("Failed to send WhatsApp message to: {$targetPhone}");
-                        }
-                    } catch (\Exception $e) {
-                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-                    }
+
+                    SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
                     LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
@@ -531,15 +505,27 @@ class ProjekRndController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        try{
+        try {
             $projek_rnd = ProjekRnd::findOrFail($id);
 
-            if ($projek_rnd->status !== 'Selesai') {
+            // Jika user memilih "Tidak", biarkan proyek tetap berjalan
+            if ($request->status === 'batal') {
+                $projek_rnd->status = 'Tidak dilanjutkan';
+                $projek_rnd->selesai_projek_rnd = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                $projek_rnd->save();
+                LogHelper::success('Berhasil membatalkan proyek RnD.');
+                return redirect()->back()->with('success', 'Projek RnD tidak dilanjutkan.');
+            }
+
+            //Jika proyek belum selesai, lanjutkan proses penyimpanan
+            if ($request->status === 'selesai') {
+                if (empty($projek_rnd->serial_number)) {
+                    return redirect()->back()->with('error', 'Silakan isi dan Simpan Serial Number sebelum menyelesaikan proyek RnD.');
+                }
                 try {
-                    // Mulai transaksi database
                     DB::beginTransaction();
 
-                    // Masukkan data ke dalam tabel bahan_setengahjadi
+                    // Simpan ke bahan_setengahjadi
                     $bahanSetengahJadi = new BahanSetengahjadi();
                     $bahanSetengahJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                     $bahanSetengahJadi->kode_transaksi = $projek_rnd->kode_projek_rnd;
@@ -548,40 +534,40 @@ class ProjekRndController extends Controller
 
                     $projekRndTotal = $projek_rnd->projekRndDetails->sum('sub_total');
 
+                    // Simpan ke bahan_setengahjadi_details
                     $bahanSetengahJadiDetail = new BahanSetengahjadiDetails();
                     $bahanSetengahJadiDetail->bahan_setengahjadi_id = $bahanSetengahJadi->id;
-                    $bahanSetengahJadiDetail->bahan_id = $projek_rnd->bahan_id;
+                    $bahanSetengahJadiDetail->nama_bahan = $projek_rnd->nama_projek_rnd;
                     $bahanSetengahJadiDetail->qty = 1;
                     $bahanSetengahJadiDetail->sisa = 1;
                     $bahanSetengahJadiDetail->unit_price = $projekRndTotal;
                     $bahanSetengahJadiDetail->sub_total = $projekRndTotal;
+                    $bahanSetengahJadiDetail->serial_number = $projek_rnd->serial_number;
                     $bahanSetengahJadiDetail->save();
 
-                    // Jika semua penyimpanan berhasil, update status produksi menjadi "Selesai"
+                    // Update status proyek menjadi selesai
                     $projek_rnd->status = 'Selesai';
                     $projek_rnd->selesai_projek_rnd = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                     $projek_rnd->save();
 
-                    // Commit transaksi
                     DB::commit();
 
-                    LogHelper::success('Berhasil Menyelesaikan Projek RnD Produk Setengah Jadi!');
+                    LogHelper::success('Berhasil menyelesaikan Projek RnD!');
                     return redirect()->back()->with('success', 'Projek RnD telah selesai.');
                 } catch (\Exception $e) {
-                    // Rollback jika ada kesalahan
                     DB::rollBack();
-                    $errorMessage = $e->getMessage();
                     LogHelper::error($e->getMessage());
-                    return redirect()->back()->with('error', "Gagal update status projek RnD.");
+                    return redirect()->back()->with('error', 'Gagal menyelesaikan Projek RnD.');
                 }
             }
-            LogHelper::success('Berhasil menyelesaikan projek RnD!');
-            return redirect()->back()->with('error', 'Projek RnD tidak bisa diupdate ke selesai.');
-        }catch(Throwable $e){
+
+            return redirect()->back()->with('error', 'Projek RnD sudah selesai sebelumnya.');
+        } catch (\Throwable $e) {
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }
     }
+
 
     public function destroy(string $id)
     {

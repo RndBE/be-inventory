@@ -62,7 +62,7 @@
                         <th scope="col" class="p-4">
                             No
                         </th>
-                        <th scope="col" class="px-6 py-3">Kode Transaksi</th>
+                        <th scope="col" class="px-6 py-3">Kode Transaksi/Produksi</th>
                         <th scope="col" class="px-6 py-3">Tanggal Masuk</th>
                         <th scope="col" class="px-6 py-3">Keterangan | Sisa</th>
                         {{-- <th scope="col" class="px-6 py-3">Total Item</th> --}}
@@ -80,7 +80,7 @@
                             @if($bahanSetengahjadi->bahanSetengahjadiDetails->isNotEmpty())
                                 @foreach($bahanSetengahjadi->bahanSetengahjadiDetails as $detail)
                                     <div>
-                                        {{ $detail->dataBahan->nama_bahan }} | <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $detail->sisa }}</span>
+                                        {{ $detail->nama_bahan }} ({{ $detail->serial_number }}) | <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $detail->sisa }}</span>
                                     </div>
                                 @endforeach
                             @else

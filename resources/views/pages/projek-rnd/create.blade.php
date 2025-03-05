@@ -84,31 +84,31 @@
                         <div class="border-b border-gray-900/10 pb-2 mb-2">
                             <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                                 <div class="flex items-center">
-                                    <label for="kode_projek_rnd" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Transaksi</label>
+                                    <label for="kode_projek_rnd" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Proyek</label>
                                     <input type="text" id="kode_projek_rnd" disabled placeholder="PR - " class="block rounded-md w-3/4 border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                 </div>
 
-                                {{-- <div class="flex items-center">
-                                    <label for="nama_projek_rnd" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Project
+                                <div class="flex items-center">
+                                    <label for="nama_projek_rnd" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk/Riset
                                         <sup class="text-red-500 text-base">*</sup>
                                     </label>
                                     <input type="text" id="nama_projek_rnd" name="nama_projek_rnd" class=" w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                </div> --}}
+                                </div>
 
-                                <div class="flex items-center">
+                                {{-- <div class="flex items-center">
                                     <label for="bahan_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">Nama Produk
                                         <sup class="text-red-500 text-base">*</sup>
                                     </label>
                                     <select name="bahan_id" id="bahan_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
-                                        <option value="">-- Nama Project --</option>
+                                        <option value="">-- Nama Proyek --</option>
                                         @foreach($bahans as $bahan)
                                             <option value="{{ $bahan->id }}">{{ $bahan->nama_bahan }}</option>
                                         @endforeach
                                     </select>
-                                </div>
+                                </div> --}}
 
                                 <div class="flex items-center">
-                                    <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Project<sup class="text-red-500 text-base">*</sup></label>
+                                    <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Proyek<sup class="text-red-500 text-base">*</sup></label>
                                     <div class="relative w-3/4">
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                             <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">

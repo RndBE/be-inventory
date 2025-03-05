@@ -54,11 +54,11 @@
                                     <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-400">
                                         {{ $item->stok }} {{ $item->unit }}
                                     </span>
-                                @elseif ($item->type === 'setengahjadi')
+                                {{-- @elseif ($item->type === 'setengahjadi')
                                     {{ $item->nama }} | SN: {{ $item->serial_number }} |
                                     <span class="bg-orange-100 text-orange-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-orange-400">
                                         {{ $item->stok }} {{ $item->unit }}
-                                    </span>
+                                    </span> --}}
                                 @endif
                             </li>
                         @endforeach

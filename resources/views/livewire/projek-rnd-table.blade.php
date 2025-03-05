@@ -28,7 +28,7 @@
 
         <div class="mb-4 sm:mb-0">
             {{-- <p>Total transaksi yang <strong>disetujui</strong></p> --}}
-            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Project RnD</h6>
+            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Proyek RnD</h6>
         </div>
 
 
@@ -62,9 +62,9 @@
                         <th scope="col" class="p-4">
                             No
                         </th>
-                        <th scope="col" class="px-6 py-3">Kode Transaksi</th>
-                        <th scope="col" class="px-6 py-3">Mulai Project</th>
-                        <th scope="col" class="px-6 py-3">Selesai Project</th>
+                        <th scope="col" class="px-6 py-3">Kode Proyek</th>
+                        <th scope="col" class="px-6 py-3">Mulai Proyek</th>
+                        <th scope="col" class="px-6 py-3">Selesai Proyek</th>
                         <th scope="col" class="px-6 py-3">Pengaju</th>
                         <th scope="col" class="px-6 py-3">Tujuan</th>
                         <th scope="col" class="px-6 py-3">Status</th>

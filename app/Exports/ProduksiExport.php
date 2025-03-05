@@ -37,7 +37,9 @@ class ProduksiExport implements FromArray, WithHeadings, ShouldAutoSize, WithSty
         $data[] = ['HPP PRODUKSI', '', '', '', '', '', ''];
         $data[] = [''];
 
+        $data[] = ['Kode Produksi', '', ': '.$produksi->kode_produksi];
         $data[] = ['Nama Produk', '', ': '.$produksi->dataBahan->nama_bahan];
+        $data[] = ['Serial Number', '', ': '.$produksi->serial_number];
         $data[] = ['Masa Pekerjaan', '', ': '.$formattedStartDate . ' - ' . $formattedEndDate];
         $data[] = [''];
 
@@ -99,13 +101,17 @@ class ProduksiExport implements FromArray, WithHeadings, ShouldAutoSize, WithSty
 
         $sheet->mergeCells('A4:B4');
         $sheet->mergeCells('A5:B5');
+        $sheet->mergeCells('A6:B6');
+        $sheet->mergeCells('A7:B7');
 
         $sheet->mergeCells('C4:F4');
         $sheet->mergeCells('C5:F5');
+        $sheet->mergeCells('C6:F6');
+        $sheet->mergeCells('C7:F7');
 
         // Gaya untuk header tabel
-        $sheet->getStyle('A7:F7')->getFont()->setBold(true);
-        $sheet->getStyle('A7:F7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A9:F9')->getFont()->setBold(true);
+        $sheet->getStyle('A9:F9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $lastRow = $sheet->getHighestRow();
 
@@ -127,7 +133,7 @@ class ProduksiExport implements FromArray, WithHeadings, ShouldAutoSize, WithSty
 
         // $sheet->getStyle('A7:F' . $lastRow)->applyFromArray($borderStyle);
         // Apply the border style to the entire data range including the merged total row
-        $sheet->getStyle('A7:F' . $lastRow)->applyFromArray($borderStyle);
+        $sheet->getStyle('A9:F' . $lastRow)->applyFromArray($borderStyle);
 
         // Merge the last row for the "Total HPP Project"
         $sheet->mergeCells('A' . $lastRow . ':B' . $lastRow); // Merge from column A to b in the last row

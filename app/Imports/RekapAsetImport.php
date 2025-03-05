@@ -22,6 +22,9 @@ class RekapAsetImport implements ToModel, WithHeadingRow
     {
         $this->rowNumber++; // Increment nomor baris setiap kali model diproses
 
+        if (empty(array_filter($row))) {
+            return null; // Melewati proses jika seluruh kolom dalam baris kosong
+        }
         // Validasi nomor aset duplikat dalam Excel
         static $nomorAsetCache = [];
         if (in_array($row['nomor_aset'], $nomorAsetCache)) {
@@ -78,4 +81,9 @@ class RekapAsetImport implements ToModel, WithHeadingRow
         ]);
     }
 }
+
+
+
+
+
 

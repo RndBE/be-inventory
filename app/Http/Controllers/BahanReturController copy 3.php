@@ -241,9 +241,7 @@ class BahanReturController extends Controller
                             foreach ($currentDetails as $key => &$entry) {
                                 if ($entry['unit_price'] == $unitPrice) {
                                     $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) {
-                                        unset($currentDetails[$key]);
-                                    }
+                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
                                     break;
                                 }
                             }
@@ -256,19 +254,16 @@ class BahanReturController extends Controller
                         $pengajuanDetail->qty = max(0, $pengajuanDetail->qty);
                         $pengajuanDetail->used_materials = max(0, $pengajuanDetail->used_materials);
 
-                        // Hitung ulang sub_total hanya jika masih ada entri di details
-                        if (!empty($currentDetails)) {
-                            $pengajuanDetail->sub_total = 0;
-                            foreach ($currentDetails as $detail) {
-                                $pengajuanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                            }
+                        $pengajuanDetail->sub_total = 0;
+                        foreach ($currentDetails as $detail) {
+                            $pengajuanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                        }
 
-                            // Simpan details yang sudah diperbarui
-                            $pengajuanDetail->details = json_encode(array_values($currentDetails));
-                            $pengajuanDetail->save();
-                        } else {
-                            // Jika tidak ada entry tersisa, hapus pengajuanDetails
+                        $pengajuanDetail->details = json_encode(array_values($currentDetails));
+                        if ($pengajuanDetail->qty == 0 && $pengajuanDetail->used_materials == 0) {
                             $pengajuanDetail->delete();
+                        } else {
+                            $pengajuanDetail->save();
                         }
                     }
 
@@ -282,9 +277,7 @@ class BahanReturController extends Controller
                             foreach ($currentDetails as $key => &$entry) {
                                 if ($entry['unit_price'] == $unitPrice) {
                                     $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) {
-                                        unset($currentDetails[$key]);
-                                    }
+                                    if ($entry['qty'] <= 0) unset($currentDetails[$key]);
                                     break;
                                 }
                             }
@@ -294,20 +287,15 @@ class BahanReturController extends Controller
                         $pengambilanBahanDetail->used_materials -= $totalQtyReduction;
                         $pengambilanBahanDetail->qty = max(0, $pengambilanBahanDetail->qty);
                         $pengambilanBahanDetail->used_materials = max(0, $pengambilanBahanDetail->used_materials);
-
-                        // Hitung ulang sub_total hanya jika masih ada entri di details
-                        if (!empty($currentDetails)) {
-                            $pengambilanBahanDetail->sub_total = 0;
-                            foreach ($currentDetails as $detail) {
-                                $pengambilanBahanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                            }
-
-                            // Simpan details yang sudah diperbarui
-                            $pengambilanBahanDetail->details = json_encode(array_values($currentDetails));
-                            $pengambilanBahanDetail->save();
-                        } else {
-                            // Jika tidak ada entry tersisa, hapus pengambilanBahanDetails
+                        $pengambilanBahanDetail->sub_total = 0;
+                        foreach ($currentDetails as $detail) {
+                            $pengambilanBahanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                        }
+                        $pengambilanBahanDetail->details = json_encode(array_values($currentDetails));
+                        if ($pengambilanBahanDetail->qty == 0 && $pengambilanBahanDetail->used_materials == 0) {
                             $pengambilanBahanDetail->delete();
+                        } else {
+                            $pengambilanBahanDetail->save();
                         }
                     }
                 }

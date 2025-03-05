@@ -33,4 +33,17 @@ class BahanSetengahjadi extends Model
             'id'                      // Local key di Produksi
         );
     }
+
+    public function projekRndDetails()
+    {
+        return $this->hasManyThrough(
+            ProjekRndDetails::class,  // Model tujuan
+            ProjekRnd::class,         // Model perantara
+            'id',                     // Foreign key di ProjekRnd (id projek di bahan_setengahjadis)
+            'projek_rnd_id',          // Foreign key di ProjekRndDetails
+            'projek_rnd_id',          // Local key di BahanSetengahjadi
+            'id'                      // Local key di ProjekRnd
+        );
+    }
+
 }

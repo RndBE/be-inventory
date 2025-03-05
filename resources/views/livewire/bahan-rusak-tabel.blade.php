@@ -65,7 +65,7 @@
                         <th scope="col" class="px-6 py-3">Kode Transaksi</th>
                         <th scope="col" class="px-6 py-3">Tanggal Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Tanggal Diterima</th>
-                        <th scope="col" class="px-6 py-3">Keterangan | Sisa</th>
+                        <th scope="col" class="px-6 py-3">Keterangan | Qty</th>
                         {{-- <th scope="col" class="px-6 py-3">Total Item</th> --}}
                         <th scope="col" class="px-6 py-3">Total Harga</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
@@ -82,7 +82,19 @@
                             @if($bahanRusak->bahanRusakDetails->isNotEmpty())
                                 @foreach($bahanRusak->bahanRusakDetails as $detail)
                                     <div>
-                                        {{ $detail->dataBahan->nama_bahan }} | <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $detail->sisa }} {{ $detail->dataBahan->dataUnit->nama ?? 'Null'}}</span>
+                                        @if ($detail->dataBahan)
+                                            {{ $detail->dataBahan->nama_bahan }} |
+                                            <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">
+                                                {{ $detail->sisa }} {{ $detail->dataBahan->dataUnit->nama ?? 'Null' }}
+                                            </span>
+                                        @elseif ($detail->dataProduk)
+                                            {{ $detail->dataProduk->nama_bahan }} ({{ $detail->serial_number ?? 'N/A' }}) |
+                                            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-yellow-400 border border-yellow-400">
+                                                {{ $detail->sisa }} {{ 'Pcs' }}
+                                            </span>
+                                        @else
+                                            N/A
+                                        @endif
                                     </div>
                                 @endforeach
                             @else

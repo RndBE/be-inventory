@@ -4,11 +4,8 @@ namespace App\Livewire;
 
 use App\Models\Bahan;
 use Livewire\Component;
-use App\Models\ProdukProduksi;
-use App\Models\ProdukProduksiDetail;
-use App\Models\BahanSetengahjadiDetails;
 
-class BahanPengambilanCart extends Component
+class BahanProjekResourceCart extends Component
 {
     public $cart = [];
     public $qty = [];
@@ -26,14 +23,45 @@ class BahanPengambilanCart extends Component
         // Load cart items from session if they exist
         // $this->loadCartFromSession();
     }
+
+    // public function addToCart($bahan)
+    // {
+    //     if (is_array($bahan)) {
+    //         $bahan = (object) $bahan;
+    //     }
+    //     // Periksa apakah properti 'type' ada sebelum mengaksesnya
+    //     $isSetengahJadi = isset($bahan->type) && $bahan->type === 'setengahjadi';
+
+    //     $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
+
+    //     if ($existingItemKey !== false) {
+    //         $this->updateQuantity($bahan->id);
+    //     } else {
+    //         // Buat objek item
+    //         $item = (object)[
+    //             'id' => $bahan->id,
+    //             'nama_bahan' => $isSetengahJadi ? $bahan->nama : Bahan::find($bahan->id)->nama_bahan,
+    //             'stok' => $bahan->stok,
+    //             'unit' => $bahan->unit,
+    //         ];
+
+    //         // Tambahkan item ke keranjang
+    //         $this->cart[] = $item;
+    //         $this->qty[$bahan->id] = null;
+    //         $this->jml_bahan[$bahan->id] = null;
+    //     }
+
+    //     // Simpan ke sesi
+    //     $this->saveCartToSession();
+    //     $this->calculateSubTotal($bahan->id);
+    // }
     public function addToCart($bahan)
     {
         if (is_array($bahan)) {
             $bahan = (object) $bahan;
         }
-        // dd($bahan);
         // Periksa apakah properti 'type' ada sebelum mengaksesnya
-        // $isSetengahJadi = isset($bahan->type) || $bahan->type === 'setengahjadi';
+        $isSetengahJadi = isset($bahan->type) && $bahan->type === 'setengahjadi';
 
         $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
 
@@ -75,7 +103,7 @@ class BahanPengambilanCart extends Component
             // Buat objek item
             $item = (object)[
                 'id' => $bahan->id,
-                'nama_bahan' => Bahan::find($bahan->id)->nama_bahan,
+                'nama_bahan' => $isSetengahJadi ? $bahan->nama : Bahan::find($bahan->id)->nama_bahan,
                 'stok' => $bahan->stok,
                 'unit' => $bahan->unit,
             ];
@@ -90,7 +118,6 @@ class BahanPengambilanCart extends Component
         $this->saveCartToSession();
         $this->calculateSubTotal($bahan->id);
     }
-
 
 
 
@@ -121,6 +148,7 @@ class BahanPengambilanCart extends Component
 
         $this->subtotals[$itemId] = $unitPrice * $qty;
 
+        // Hitung total harga setelah memperbarui subtotal
         $this->calculateTotalHarga();
     }
 
@@ -129,6 +157,37 @@ class BahanPengambilanCart extends Component
     {
         $this->totalharga = array_sum($this->subtotals);
     }
+
+
+    // public function increaseQuantity($itemId)
+    // {
+    //     $item = Bahan::find($itemId); // Temukan item berdasarkan ID
+    //     if ($item) {
+    //         // Ambil total stok dari purchaseDetails berdasarkan sisa
+    //         $totalStok = $item->purchaseDetails()->where('sisa', '>', 0)->sum('sisa');
+
+    //         // Cek apakah ada stok yang tersedia dan apakah kuantitas yang diminta lebih kecil dari total stok
+    //         if ($totalStok > 0 && (!isset($this->qty[$itemId]) || $this->qty[$itemId] < $totalStok)) {
+    //             // Tambah kuantitas jika belum melebihi stok yang tersedia
+    //             $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
+    //             $this->updateQuantity($itemId); // Panggil updateQuantity untuk menghitung ulang subtotal dan total harga
+    //         }
+    //     }
+    // }
+
+
+    // public function decreaseQuantity($itemId)
+    // {
+    //     // Cek apakah kuantitas untuk item tersebut sudah diatur dan lebih besar dari 1
+    //     if (isset($this->qty[$itemId]) && $this->qty[$itemId] > 1) {
+    //         $this->qty[$itemId]--; // Kurangi kuantitas sebesar 1
+    //         $this->updateQuantity($itemId); // Panggil updateQuantity untuk memperbarui subtotal dan total harga
+    //     } elseif (isset($this->qty[$itemId]) && $this->qty[$itemId] == 1) {
+    //         // Jika kuantitas adalah 1, setel ke nol
+    //         $this->qty[$itemId] = 0;
+    //         $this->updateQuantity($itemId); // Tetap panggil updateQuantity untuk mengupdate subtotal
+    //     }
+    // }
 
 
     public function formatToRupiah($itemId)
@@ -285,8 +344,6 @@ class BahanPengambilanCart extends Component
 
     public function render()
     {
-        return view('livewire.bahan-pengambilan-cart', [
-            'cartItems' => $this->cart,
-        ]);
+        return view('livewire.bahan-projek-resource-cart');
     }
 }

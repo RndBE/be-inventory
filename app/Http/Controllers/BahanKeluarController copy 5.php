@@ -24,7 +24,6 @@ use App\Jobs\SendWhatsAppMessage;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use App\Jobs\SendWhatsAppNotification;
 use App\Jobs\SendWhatsAppApproveLeader;
 use App\Models\PengambilanBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
@@ -53,12 +52,7 @@ class BahanKeluarController extends Controller
                 'dataUser.atasanLevel2',
                 'dataUser.atasanLevel3',
                 'bahanKeluarDetails.dataBahan.dataUnit',
-                'bahanKeluarDetails.dataProduk',
             ])->findOrFail($id);
-
-            $hasProduk = $bahanKeluar->bahanKeluarDetails->filter(function ($detail) {
-                return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
-            })->isNotEmpty();
 
             $tandaTanganPengaju = $bahanKeluar->dataUser->tanda_tangan ?? null;
 
@@ -85,7 +79,6 @@ class BahanKeluarController extends Controller
                         $query->where('nama', 'Purchasing');
                     })->first();
             });
-
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
@@ -105,8 +98,7 @@ class BahanKeluarController extends Controller
                 'bahanKeluar',
                 'purchasingUser',
                 'leaderName',
-                'managerName',
-                'hasProduk'
+                'managerName'
             ))->setPaper('letter', 'portrait');
             return $pdf->stream("bahan_keluar_{$id}.pdf");
 
@@ -145,7 +137,7 @@ class BahanKeluarController extends Controller
 
     public function update(Request $request, string $id)
     {
-        // dd($request->all());
+        dd($request->all());
         $validatedData = $request->validate([
             'bahanKeluarDetails' => 'required|string',
         ]);
@@ -154,34 +146,23 @@ class BahanKeluarController extends Controller
             return redirect()->back()->with('error', 'Data bahan keluar tidak valid.');
         }
         try {
-            $invalidBahan = []; // Array untuk menyimpan bahan atau produk dengan stok kosong
-
+            $invalidBahan = []; // Array untuk menyimpan bahan dengan stok kosong
             // Validasi semua bahan sebelum memulai transaksi
             foreach ($bahanKeluarDetails as $item) {
                 if (empty($item['details']) || $item['sub_total'] == 0) {
-                    $bahanId = $item['bahan_id'] ?? null;
-                    $produkId = $item['produk_id'] ?? null;
-
-                    if ($bahanId) {
-                        $bahan = Bahan::find($bahanId); // Ambil nama bahan berdasarkan ID
-                        $bahanNama = $bahan ? $bahan->nama_bahan : 'Tidak diketahui';
-                        $invalidBahan[] = "Bahan: $bahanNama";
-                    } elseif ($produkId) {
-                        $produk = BahanSetengahjadiDetails::find($produkId); // Ambil nama produk berdasarkan ID
-                        $produkNama = $produk ? $produk->nama_bahan : 'Tidak diketahui';
-                        $invalidBahan[] = "Produk: $produkNama";
-                    }
+                    $bahanId = $item['id'] ?? null;
+                    $bahan = Bahan::find($bahanId); // Ambil nama bahan berdasarkan ID
+                    $bahanNama = $bahan ? $bahan->nama_bahan : 'Tidak diketahui';
+                    $invalidBahan[] = $bahanNama; // Tambahkan nama bahan ke daftar bahan tidak valid
                 }
             }
-
             // Jika ada bahan dengan stok kosong, batalkan transaksi
             if (!empty($invalidBahan)) {
                 $bahanList = implode(', ', $invalidBahan);
                 LogHelper::error("Transaksi dibatalkan: Stok kosong atau tidak valid untuk bahan berikut: $bahanList.");
                 $bahanKeluar  = BahanKeluar::find($id);
-                $targetPhone = $bahanKeluar->dataUser->telephone;
-                $recipientName = $bahanKeluar->dataUser->name;
-                if ($targetPhone) {
+                $pengajuPhone = $bahanKeluar->dataUser->telephone;
+                if ($pengajuPhone) {
                     // Kirim pesan WhatsApp ke pengaju tentang bahan yang stoknya kosong
                     try {
                         $message = "Halo {$bahanKeluar->dataUser->name},\n\n";
@@ -189,21 +170,20 @@ class BahanKeluarController extends Controller
                         $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
                         // Kirim pesan WhatsApp ke pengaju
-                        // $responsePengaju = Http::withHeaders([
-                        //     'x-api-key' => env('WHATSAPP_API_KEY'),
-                        //     'Content-Type' => 'application/json',
-                        // ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        //     'chatId' => "{$pengajuPhone}@c.us",
-                        //     'contentType' => 'string',
-                        //     'content' => $message,
-                        // ]);
+                        $responsePengaju = Http::withHeaders([
+                            'x-api-key' => env('WHATSAPP_API_KEY'),
+                            'Content-Type' => 'application/json',
+                        ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+                            'chatId' => "{$pengajuPhone}@c.us",
+                            'contentType' => 'string',
+                            'content' => $message,
+                        ]);
 
-                        // if ($responsePengaju->successful()) {
-                        //     LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
-                        // } else {
-                        //     LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
-                        // }
-                        SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
+                        if ($responsePengaju->successful()) {
+                            LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
+                        } else {
+                            LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
+                        }
                     } catch (\Exception $e) {
                         LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
                     }
@@ -216,13 +196,12 @@ class BahanKeluarController extends Controller
             }
 
             DB::beginTransaction(); // Mulai transaksi
-            // Menyimpan/Update bahan atau produk yang tersedia di gudang ke tabel bahan_keluar_details
+            // Menyimpan/Update bahan yang tersedia di gudang ke tabel bahan_keluar_details
             foreach ($bahanKeluarDetails as $item) {
                 BahanKeluarDetails::updateOrCreate(
                     [
                         'bahan_keluar_id' => $id,
-                        'bahan_id' => $item['bahan_id'] ?? null, // Gunakan bahan_id jika ada
-                        'produk_id' => $item['produk_id'] ?? null, // Gunakan produk_id jika bahan_id tidak ada
+                        'bahan_id' => $item['id'],
                         'serial_number' => $item['serial_number'] ?? null // Tambahkan serial number ke kondisi pencarian
                     ],
                     [
@@ -234,7 +213,6 @@ class BahanKeluarController extends Controller
                     ]
                 );
             }
-
 
             // Cari apakah ada data bahan keluar dengan id tersebut
             $bahanKeluar  = BahanKeluar::find($id);
@@ -271,20 +249,17 @@ class BahanKeluarController extends Controller
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->projek_id) {
+                    }
+                    elseif ($bahanKeluar->projek_id) {
                         // Melakukan pencarian pada tabel projek_details
                         $existingDetail = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
-                        ->where(function ($query) use ($detail) {
-                            $query->where('bahan_id', $detail->bahan_id)
-                                ->orWhere('produk_id', $detail->produk_id);
-                        })
-                        ->first();
+                            ->where('bahan_id', $detail->bahan_id)
+                            ->first();
                         // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel projek_details dengan data default
                         if (!$existingDetail) {
                             ProjekDetails::create([
                                 'projek_id' => $bahanKeluar->projek_id,
-                                'bahan_id' => $detail->bahan_id ?? null,
-                                'produk_id' => $detail->produk_id ?? null,
+                                'bahan_id' => $detail->bahan_id,
                                 'qty' => 0,
                                 'jml_bahan' => $detail->jml_bahan,
                                 'used_materials' => 0,
@@ -292,20 +267,17 @@ class BahanKeluarController extends Controller
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->projek_rnd_id) {
+                    }
+                    elseif ($bahanKeluar->projek_rnd_id) {
                         // Melakukan pencarian pada tabel projek_rnd_details
                         $existingDetail = ProjekRndDetails::where('projek_rnd_id', $bahanKeluar->projek_rnd_id)
-                        ->where(function ($query) use ($detail) {
-                            $query->where('bahan_id', $detail->bahan_id)
-                                ->orWhere('produk_id', $detail->produk_id);
-                        })
-                        ->first();
+                            ->where('bahan_id', $detail->bahan_id)
+                            ->first();
                         // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel projek_rnd_details dengan data default
                         if (!$existingDetail) {
                             ProjekRndDetails::create([
                                 'projek_rnd_id' => $bahanKeluar->projek_rnd_id,
-                                'bahan_id' => $detail->bahan_id ?? null,
-                                'produk_id' => $detail->produk_id ?? null,
+                                'bahan_id' => $detail->bahan_id,
                                 'qty' => 0,
                                 'jml_bahan' => $detail->jml_bahan,
                                 'used_materials' => 0,
@@ -313,7 +285,8 @@ class BahanKeluarController extends Controller
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->pengajuan_id) {
+                    }
+                    elseif ($bahanKeluar->pengajuan_id) {
                         // Melakukan pencarian pada tabel pengajuan_details
                         $existingDetail = PengajuanDetails::where('pengajuan_id', $bahanKeluar->pengajuan_id)
                             ->where('bahan_id', $detail->bahan_id)
@@ -330,7 +303,8 @@ class BahanKeluarController extends Controller
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->pengambilan_bahan_id) {
+                    }
+                    elseif ($bahanKeluar->pengambilan_bahan_id) {
                         // Melakukan pencarian pada tabel pengambilan_bahan_details
                         $existingDetail = PengambilanBahanDetails::where('pengambilan_bahan_id', $bahanKeluar->pengambilan_bahan_id)
                             ->where('bahan_id', $detail->bahan_id)
@@ -375,77 +349,70 @@ class BahanKeluarController extends Controller
                 if (is_array($transactionDetails)) {
                     $groupedDetails = []; // Mendeklarasikan array kosong $groupedDetails, yang akan digunakan untuk menyimpan transaksi yang telah dikelompokkan berdasarkan harga satuan (unit_price).
                     foreach ($transactionDetails as $transaksiDetail) {
-                        if ($detail->produk_id) {
-                            // Jika bahan setengah jadi (menggunakan produk_id)
-                            $setengahJadiDetail = BahanSetengahjadiDetails::where('id', $detail->produk_id)
-                                ->whereHas('bahanSetengahjadi', function ($query) use ($transaksiDetail) {
-                                    $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
-                                })
-                                ->where('unit_price', $transaksiDetail['unit_price'])
-                                ->where('serial_number', $transaksiDetail['serial_number'] ?? null)
-                                ->first();
-
-                            if ($setengahJadiDetail) {
-                                if ($transaksiDetail['qty'] > $setengahJadiDetail->sisa) {
-                                    throw new \Exception('Tolak pengajuan, Stok bahan setengah jadi tidak cukup!');
-                                }
-
-                                // Pengelompokan berdasarkan harga satuan
-                                $unitPrice = $transaksiDetail['unit_price'];
-                                if (isset($groupedDetails[$unitPrice])) {
-                                    $groupedDetails[$unitPrice]['qty'] += $transaksiDetail['qty'];
-                                    if (!isset($groupedDetails[$unitPrice]['serial_number'])) {
-                                        $groupedDetails[$unitPrice]['serial_number'] = $transaksiDetail['serial_number'] ?? null;
-                                    }
-                                } else {
-                                    $groupedDetails[$unitPrice] = [
-                                        'qty' => $transaksiDetail['qty'],
-                                        'unit_price' => $unitPrice,
-                                        'serial_number' => $transaksiDetail['serial_number'] ?? null,
-                                    ];
-                                }
-
-                                // Kurangi stok bahan setengah jadi
-                                $setengahJadiDetail->sisa -= $transaksiDetail['qty'];
-                                $setengahJadiDetail->sisa = max(0, $setengahJadiDetail->sisa);
-                                $setengahJadiDetail->save();
-                            } else {
-                                throw new \Exception('Bahan setengah jadi tidak ditemukan!');
+                        // Mencari apakah ada entri di tabel bahan_setengahjadi_details yang sesuai dengan bahan_id, kode_transaksi, dan unit_price yang ada pada transaksi.
+                        $setengahJadiDetail = BahanSetengahjadiDetails::where('bahan_id', $detail->bahan_id)
+                            ->whereHas('bahanSetengahjadi', function ($query) use ($transaksiDetail) {
+                                $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
+                            })
+                            ->where('unit_price', $transaksiDetail['unit_price'])
+                            ->where('serial_number', $transaksiDetail['serial_number']) // Tambahkan filter serial number
+                            ->first();
+                        // Jika ditemukan entri BahanSetengahjadiDetails yang sesuai
+                        // Maka dilakukan pengecekan apakah jumlah (qty) yang diminta melebihi sisa stok yang ada
+                        if ($setengahJadiDetail) {
+                            if ($transaksiDetail['qty'] > $setengahJadiDetail->sisa) {
+                                throw new \Exception('Tolak pengajuan, Stok bahan setengah jadi tidak cukup!');
                             }
-                        } elseif ($detail->bahan_id) {
-                            // Jika bahan dari pembelian (menggunakan bahan_id)
+                            // Pengelompokan Transaksi Berdasarkan Harga Satuan
+                            $unitPrice = $transaksiDetail['unit_price'];
+                            if (isset($groupedDetails[$unitPrice])) {
+                                // Jika harga satuan sudah ada, tingkatkan qty
+                                $groupedDetails[$unitPrice]['qty'] += $transaksiDetail['qty'];
+                                if (!isset($groupedDetails[$unitPrice]['serial_number'])) {
+                                    $groupedDetails[$unitPrice]['serial_number'] = $transaksiDetail['serial_number'];
+                                }
+                            } else {
+                                // Buat entri baru jika harga satuan belum ada
+                                $groupedDetails[$unitPrice] = [
+                                    'qty' => $transaksiDetail['qty'],
+                                    'unit_price' => $unitPrice,
+                                    'serial_number' => $transaksiDetail['serial_number'] ?? null,
+                                ];
+                            }
+                            // Mengurangi stok yang tersisa (sisa) dari bahan setengah jadi sesuai dengan jumlah yang diminta pada transaksi.
+                            $setengahJadiDetail->sisa -= $transaksiDetail['qty'];
+                            $setengahJadiDetail->sisa = max(0, $setengahJadiDetail->sisa);
+                            $setengahJadiDetail->save();
+                        } else {
                             $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)
                                 ->whereHas('purchase', function ($query) use ($transaksiDetail) {
                                     $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
                                 })
                                 ->where('unit_price', $transaksiDetail['unit_price'])
                                 ->first();
-
+                            // Jika ditemukan entri purchaseDetail yang sesuai
+                            // Maka dilakukan pengecekan apakah jumlah (qty) yang diminta melebihi sisa stok yang ada
                             if ($purchaseDetail) {
                                 if ($transaksiDetail['qty'] > $purchaseDetail->sisa) {
                                     throw new \Exception('Tolak pengajuan, Lakukan pengajuan bahan kembali!');
                                 }
-
-                                // Pengelompokan berdasarkan harga satuan
+                                // Pengelompokan Transaksi Berdasarkan Harga Satuan
                                 $unitPrice = $transaksiDetail['unit_price'];
                                 if (isset($groupedDetails[$unitPrice])) {
+                                    // Jika harga satuan sudah ada, tingkatkan qty
                                     $groupedDetails[$unitPrice]['qty'] += $transaksiDetail['qty'];
                                 } else {
+                                    // Buat entri baru jika harga satuan belum ada
                                     $groupedDetails[$unitPrice] = [
                                         'qty' => $transaksiDetail['qty'],
                                         'unit_price' => $unitPrice,
                                     ];
                                 }
-
-                                // Kurangi stok bahan dari purchase_details
+                                // Mengurangi stok yang tersisa (sisa) dari bahan purchase_details sesuai dengan jumlah yang diminta pada transaksi.
                                 $purchaseDetail->sisa -= $transaksiDetail['qty'];
                                 $purchaseDetail->sisa = max(0, $purchaseDetail->sisa);
                                 $purchaseDetail->save();
-                            } else {
-                                throw new \Exception('Bahan dari pembelian tidak ditemukan!');
                             }
-                        } else {
-                            throw new \Exception('Bahan atau produk tidak valid!');
                         }
                     }
                     if ($bahanKeluar->produksi_id) {
@@ -497,17 +464,9 @@ class BahanKeluarController extends Controller
                     }if ($bahanKeluar->projek_id) {
                         // Iterasi array groupedDetails untuk mengelola bahan keluar
                         foreach ($groupedDetails as $unitPrice => $group) {
-                            if ($detail->produk_id) {
-                                // Jika bahan setengah jadi (menggunakan produk_id)
-                                $projekDetailQuery = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
-                                    ->where('produk_id', $detail->produk_id);
-                            } elseif ($detail->bahan_id) {
-                                // Jika bahan dari pembelian (menggunakan bahan_id)
-                                $projekDetailQuery = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
-                                    ->where('bahan_id', $detail->bahan_id);
-                            } else {
-                                continue; // Jika tidak ada produk_id atau bahan_id, skip iterasi
-                            }
+                            // Membangun query ProjekDetails secara dinamis
+                            $projekDetailQuery = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
+                                ->where('bahan_id', $detail->bahan_id);
 
                             // Tambahkan kondisi serial_number jika ada
                             if (!empty($group['serial_number'])) {
@@ -518,7 +477,7 @@ class BahanKeluarController extends Controller
                             $projekDetail = $projekDetailQuery->first();
 
                             if ($projekDetail) {
-                                // Update existing entry jika bahan_id / produk_id & serial_number sama
+                                // Update existing entry jika bahan_id & serial_number sama
                                 $projekDetail->qty += $group['qty'];
                                 $projekDetail->used_materials += $group['qty'];
                                 $projekDetail->sub_total += $group['qty'] * $unitPrice;
@@ -530,7 +489,6 @@ class BahanKeluarController extends Controller
                                 // Update details field
                                 $currentDetails = json_decode($projekDetail->details, true) ?? [];
                                 $mergedDetails = [];
-
                                 foreach ($currentDetails as $existingDetail) {
                                     $price = $existingDetail['unit_price'];
                                     $mergedDetails[$price] = $existingDetail;
@@ -546,11 +504,10 @@ class BahanKeluarController extends Controller
                                 $projekDetail->details = json_encode(array_values($mergedDetails));
                                 $projekDetail->save();
                             } else {
-                                // Buat entri baru jika produk_id / bahan_id sama tapi serial_number berbeda atau tidak ada
+                                // Buat entri baru jika bahan_id sama tapi serial_number berbeda atau tidak ada
                                 ProjekDetails::create([
                                     'projek_id' => $bahanKeluar->projek_id,
-                                    'produk_id' => $detail->produk_id ?? null,
-                                    'bahan_id' => $detail->bahan_id ?? null,
+                                    'bahan_id' => $detail->bahan_id,
                                     'serial_number' => $group['serial_number'] ?? null, // Tambahkan serial number jika ada
                                     'qty' => $group['qty'],
                                     'jml_bahan' => $detail->jml_bahan,
@@ -560,62 +517,36 @@ class BahanKeluarController extends Controller
                                 ]);
                             }
                         }
-                    }if ($bahanKeluar->projek_rnd_id) {
+                    }
+                    if ($bahanKeluar->projek_rnd_id) {
                         foreach ($groupedDetails as $unitPrice => $group) {
-                            if ($detail->produk_id) {
-                                // Jika bahan setengah jadi (menggunakan produk_id)
-                                $projekDetailQuery = ProjekRndDetails::where('projek_rnd_id', $bahanKeluar->projek_rnd_id)
-                                    ->where('produk_id', $detail->produk_id);
-                            } elseif ($detail->bahan_id) {
-                                // Jika bahan dari pembelian (menggunakan bahan_id)
-                                $projekDetailQuery = ProjekRndDetails::where('projek_rnd_id', $bahanKeluar->projek_rnd_id)
-                                    ->where('bahan_id', $detail->bahan_id);
-                            } else {
-                                continue; // Jika tidak ada produk_id atau bahan_id, skip iterasi
-                            }
-
-                            // Tambahkan kondisi serial_number jika ada
-                            if (!empty($group['serial_number'])) {
-                                $projekDetailQuery->where('serial_number', $group['serial_number']);
-                            }
-
-                            // Eksekusi query
-                            $projekRndDetail = $projekDetailQuery->first();
-
+                            $projekRndDetail = ProjekRndDetails::where('projek_rnd_id', $bahanKeluar->projek_rnd_id)
+                                ->where('bahan_id', $detail->bahan_id)
+                                ->first();
                             if ($projekRndDetail) {
-                                // Update existing entry jika bahan_id / produk_id & serial_number sama
                                 $projekRndDetail->qty += $group['qty'];
                                 $projekRndDetail->used_materials += $group['qty'];
                                 $projekRndDetail->sub_total += $group['qty'] * $unitPrice;
-
                                 if ($projekRndDetail->jml_bahan !== $detail->jml_bahan) {
                                     $projekRndDetail->jml_bahan = $detail->jml_bahan;
                                 }
-
-                                // Update details field
                                 $currentDetails = json_decode($projekRndDetail->details, true) ?? [];
                                 $mergedDetails = [];
-
                                 foreach ($currentDetails as $existingDetail) {
                                     $price = $existingDetail['unit_price'];
                                     $mergedDetails[$price] = $existingDetail;
                                 }
-
-                                // Memperbarui atau menambah detail transaksi baru ke dalam array yang sudah ada.
                                 if (isset($mergedDetails[$unitPrice])) {
                                     $mergedDetails[$unitPrice]['qty'] += $group['qty'];
                                 } else {
                                     $mergedDetails[$unitPrice] = $group;
                                 }
-
                                 $projekRndDetail->details = json_encode(array_values($mergedDetails));
                                 $projekRndDetail->save();
                             } else {
                                 ProjekRndDetails::create([
                                     'projek_rnd_id' => $bahanKeluar->projek_rnd_id,
-                                    'produk_id' => $detail->produk_id ?? null,
-                                    'bahan_id' => $detail->bahan_id ?? null,
-                                    'serial_number' => $group['serial_number'] ?? null,
+                                    'bahan_id' => $detail->bahan_id,
                                     'qty' => $group['qty'],
                                     'jml_bahan' => $detail->jml_bahan,
                                     'used_materials' => $group['qty'],
@@ -699,7 +630,6 @@ class BahanKeluarController extends Controller
                             }
                         }
                     }
-
                 }
             }
             // Kode ini digunakan untuk mengurangi stok bahan sesuai dengan transaksi yang dilakukan
@@ -790,6 +720,452 @@ class BahanKeluarController extends Controller
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
     }
+
+    // public function update1(Request $request, string $id)
+    // {
+    //     $validated = $request->validate([
+    //         'status' => 'required',
+    //     ]);
+
+    //     try {
+    //         DB::beginTransaction(); // Mulai transaksi
+
+    //         $data = BahanKeluar::find($id);
+    //         $details = BahanKeluarDetails::where('bahan_keluar_id', $id)->get();
+
+    //         $pendingStockReductions = [];
+    //         $groupedDetails = []; // Pastikan ini diinisialisasi
+
+    //         if ($validated['status'] === 'Disetujui') {
+    //             $tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+    //             $data->tgl_keluar = $tgl_keluar;
+
+    //             foreach ($details as $detail) {
+    //                 $transactionDetails = json_decode($detail->details, true) ?? [];
+    //                 if (empty($transactionDetails)) {
+    //                     if ($data->produksi_id) {
+    //                         // Check if the bahan_id already exists in ProduksiDetails
+    //                         $existingDetail = ProduksiDetails::where('produksi_id', $data->produksi_id)
+    //                         ->where('bahan_id', $detail->bahan_id)
+    //                         ->first();
+
+    //                         if (!$existingDetail) {
+    //                             ProduksiDetails::create([
+    //                                 'produksi_id' => $data->produksi_id,
+    //                                 'bahan_id' => $detail->bahan_id,
+    //                                 'qty' => 0, // Set qty to 0 if there are no transaction details
+    //                                 'jml_bahan' => $detail->jml_bahan,
+    //                                 'used_materials' => 0,
+    //                                 'details' => json_encode([]), // Set details as an empty array
+    //                                 'sub_total' => 0, // Set sub_total to 0 if details are null or empty
+    //                             ]);
+    //                         }
+    //                          // Continue to the next detail
+    //                     }
+    //                     elseif ($data->projek_id) {
+    //                         $existingDetail = ProjekDetails::where('projek_id', $data->projek_id)
+    //                             ->where('bahan_id', $detail->bahan_id)
+    //                             ->first();
+
+    //                         if (!$existingDetail) {
+    //                             ProjekDetails::create([
+    //                                 'projek_id' => $data->projek_id,
+    //                                 'bahan_id' => $detail->bahan_id,
+    //                                 'qty' => 0,
+    //                                 'jml_bahan' => $detail->jml_bahan,
+    //                                 'used_materials' => 0,
+    //                                 'details' => json_encode([]),
+    //                                 'sub_total' => 0,
+    //                             ]);
+    //                         }
+    //                     }
+    //                     elseif ($data->projek_rnd_id) {
+    //                         $existingDetail = ProjekRndDetails::where('projek_rnd_id', $data->projek_rnd_id)
+    //                             ->where('bahan_id', $detail->bahan_id)
+    //                             ->first();
+
+    //                         if (!$existingDetail) {
+    //                             ProjekRndDetails::create([
+    //                                 'projek_rnd_id' => $data->projek_rnd_id,
+    //                                 'bahan_id' => $detail->bahan_id,
+    //                                 'qty' => 0,
+    //                                 'jml_bahan' => $detail->jml_bahan,
+    //                                 'used_materials' => 0,
+    //                                 'details' => json_encode([]),
+    //                                 'sub_total' => 0,
+    //                             ]);
+    //                         }
+    //                     }
+    //                     elseif ($data->pengajuan_id) {
+    //                         $existingDetail = PengajuanDetails::where('pengajuan_id', $data->pengajuan_id)
+    //                             ->where('bahan_id', $detail->bahan_id)
+    //                             ->first();
+
+    //                         if (!$existingDetail) {
+    //                             PengajuanDetails::create([
+    //                                 'pengajuan_id' => $data->pengajuan_id,
+    //                                 'bahan_id' => $detail->bahan_id,
+    //                                 'qty' => 0,
+    //                                 'jml_bahan' => $detail->jml_bahan,
+    //                                 'used_materials' => 0,
+    //                                 'details' => json_encode([]),
+    //                                 'sub_total' => 0,
+    //                             ]);
+    //                         }
+    //                     }
+    //                     continue;
+    //                 }
+
+    //                 // Aggregate quantities by unit_price
+    //                 foreach ($transactionDetails as $transaksiDetail) {
+    //                     $unitPrice = $transaksiDetail['unit_price'];
+    //                     $qty = $transaksiDetail['qty'];
+
+    //                     // Add or merge quantities by `unit_price`
+    //                     if (isset($groupedDetails[$unitPrice])) {
+    //                         $groupedDetails[$unitPrice]['qty'] += $qty;
+    //                     } else {
+    //                         $groupedDetails[$unitPrice] = [
+    //                             'qty' => $qty,
+    //                             'unit_price' => $unitPrice,
+    //                         ];
+    //                     }
+    //                 }
+
+    //                 if (is_array($transactionDetails)) {
+    //                     $groupedDetails = [];
+    //                     foreach ($transactionDetails as $transaksiDetail) {
+    //                         $setengahJadiDetail = BahanSetengahjadiDetails::where('bahan_id', $detail->bahan_id)
+    //                             ->whereHas('bahanSetengahjadi', function ($query) use ($transaksiDetail) {
+    //                                 $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
+    //                             })
+    //                             ->where('unit_price', $transaksiDetail['unit_price'])
+    //                             ->first();
+
+    //                         if ($setengahJadiDetail) {
+    //                             if ($transaksiDetail['qty'] > $setengahJadiDetail->sisa) {
+    //                                 throw new \Exception('Tolak pengajuan, Stok bahan setengah jadi tidak cukup!');
+    //                             }
+
+    //                             $unitPrice = $transaksiDetail['unit_price'];
+    //                             if (isset($groupedDetails[$unitPrice])) {
+    //                                 // Jika harga satuan sudah ada, tingkatkan qty
+    //                                 $groupedDetails[$unitPrice]['qty'] += $transaksiDetail['qty'];
+    //                             } else {
+    //                                 // Buat entri baru jika harga satuan belum ada
+    //                                 $groupedDetails[$unitPrice] = [
+    //                                     'qty' => $transaksiDetail['qty'],
+    //                                     'unit_price' => $unitPrice,
+    //                                 ];
+    //                             }
+
+    //                             $setengahJadiDetail->sisa -= $transaksiDetail['qty'];
+    //                             $setengahJadiDetail->sisa = max(0, $setengahJadiDetail->sisa);
+    //                             $setengahJadiDetail->save();
+    //                         } else {
+    //                             $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)
+    //                                 ->whereHas('purchase', function ($query) use ($transaksiDetail) {
+    //                                     $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
+    //                                 })
+    //                                 ->where('unit_price', $transaksiDetail['unit_price'])
+    //                                 ->first();
+
+    //                             if ($purchaseDetail) {
+    //                                 if ($transaksiDetail['qty'] > $purchaseDetail->sisa) {
+    //                                     throw new \Exception('Tolak pengajuan, Lakukan pengajuan bahan kembali!');
+    //                                 }
+
+    //                                 $unitPrice = $transaksiDetail['unit_price'];
+    //                                 if (isset($groupedDetails[$unitPrice])) {
+    //                                     // Jika harga satuan sudah ada, tingkatkan qty
+    //                                     $groupedDetails[$unitPrice]['qty'] += $transaksiDetail['qty'];
+    //                                 } else {
+    //                                     // Buat entri baru jika harga satuan belum ada
+    //                                     $groupedDetails[$unitPrice] = [
+    //                                         'qty' => $transaksiDetail['qty'],
+    //                                         'unit_price' => $unitPrice,
+    //                                     ];
+    //                                 }
+
+    //                                 $purchaseDetail->sisa -= $transaksiDetail['qty'];
+    //                                 $purchaseDetail->sisa = max(0, $purchaseDetail->sisa);
+    //                                 $purchaseDetail->save();
+    //                             }
+    //                         }
+    //                     }
+
+    //                     if ($data->produksi_id) {
+    //                         foreach ($groupedDetails as $unitPrice => $group) {
+    //                             $produksiDetail = ProduksiDetails::where('produksi_id', $data->produksi_id)
+    //                                 ->where('bahan_id', $detail->bahan_id)
+    //                                 ->first();
+
+    //                             if ($produksiDetail) {
+    //                                 // Update existing entry
+    //                                 $produksiDetail->qty += $group['qty'];  // Use the aggregated qty from groupedDetails
+    //                                 $produksiDetail->used_materials += $group['qty'];
+    //                                 $produksiDetail->sub_total += $group['qty'] * $unitPrice;
+
+    //                                 // Merge existing details with new grouped details
+    //                                 $currentDetails = json_decode($produksiDetail->details, true) ?? [];
+    //                                 $mergedDetails = [];
+
+    //                                 foreach ($currentDetails as $existingDetail) {
+    //                                     $price = $existingDetail['unit_price'];
+    //                                     $mergedDetails[$price] = $existingDetail;
+    //                                 }
+
+    //                                 // Update or add new quantities in mergedDetails
+    //                                 if (isset($mergedDetails[$unitPrice])) {
+    //                                     $mergedDetails[$unitPrice]['qty'] += $group['qty'];
+    //                                 } else {
+    //                                     $mergedDetails[$unitPrice] = $group; // add new entry
+    //                                 }
+
+    //                                 // Update the details field
+    //                                 $produksiDetail->details = json_encode(array_values($mergedDetails));
+    //                                 $produksiDetail->save();
+    //                             } else {
+    //                                 // Create new entry
+    //                                 ProduksiDetails::create([
+    //                                     'produksi_id' => $data->produksi_id,
+    //                                     'bahan_id' => $detail->bahan_id,
+    //                                     'qty' => $group['qty'],
+    //                                     'jml_bahan' => $detail->jml_bahan,
+    //                                     'used_materials' => $group['qty'],
+    //                                     'details' => json_encode([$group]), // use an array of groups
+    //                                     'sub_total' => $group['qty'] * $unitPrice,
+    //                                 ]);
+    //                             }
+    //                         }
+    //                     } if ($data->projek_id) {
+    //                         foreach ($groupedDetails as $unitPrice => $group) {
+    //                             $projekDetail = ProjekDetails::where('projek_id', $data->projek_id)
+    //                                 ->where('bahan_id', $detail->bahan_id)
+    //                                 ->first();
+
+    //                             if ($projekDetail) {
+    //                                 // Update existing entry
+    //                                 $projekDetail->qty += $group['qty'];
+    //                                 $projekDetail->used_materials += $group['qty'];
+    //                                 $projekDetail->sub_total += $group['qty'] * $unitPrice;
+
+    //                                 if ($projekDetail->jml_bahan !== $detail->jml_bahan) {
+    //                                     $projekDetail->jml_bahan = $detail->jml_bahan; // Update jml_bahan
+    //                                 }
+
+    //                                 // Merge existing details with new grouped details
+    //                                 $currentDetails = json_decode($projekDetail->details, true) ?? [];
+    //                                 $mergedDetails = [];
+
+    //                                 foreach ($currentDetails as $existingDetail) {
+    //                                     $price = $existingDetail['unit_price'];
+    //                                     $mergedDetails[$price] = $existingDetail;
+    //                                 }
+
+    //                                 // Update or add new quantities in mergedDetails
+    //                                 if (isset($mergedDetails[$unitPrice])) {
+    //                                     $mergedDetails[$unitPrice]['qty'] += $group['qty'];
+    //                                 } else {
+    //                                     $mergedDetails[$unitPrice] = $group; // add new entry
+    //                                 }
+
+    //                                 // Update the details field
+    //                                 $projekDetail->details = json_encode(array_values($mergedDetails));
+    //                                 $projekDetail->save();
+    //                             } else {
+    //                                 // Create new entry
+    //                                 ProjekDetails::create([
+    //                                     'projek_id' => $data->projek_id,
+    //                                     'bahan_id' => $detail->bahan_id,
+    //                                     'qty' => $group['qty'],
+    //                                     'jml_bahan' => $detail->jml_bahan,
+    //                                     'used_materials' => $group['qty'],
+    //                                     'details' => json_encode([$group]), // use an array of groups
+    //                                     'sub_total' => $group['qty'] * $unitPrice,
+    //                                 ]);
+    //                             }
+    //                         }
+    //                     }if ($data->projek_rnd_id) {
+    //                         foreach ($groupedDetails as $unitPrice => $group) {
+    //                             $projekRndDetail = ProjekRndDetails::where('projek_rnd_id', $data->projek_rnd_id)
+    //                                 ->where('bahan_id', $detail->bahan_id)
+    //                                 ->first();
+
+    //                             if ($projekRndDetail) {
+    //                                 // Update existing entry
+    //                                 $projekRndDetail->qty += $group['qty'];
+    //                                 $projekRndDetail->used_materials += $group['qty'];
+    //                                 $projekRndDetail->sub_total += $group['qty'] * $unitPrice;
+
+    //                                 if ($projekRndDetail->jml_bahan !== $detail->jml_bahan) {
+    //                                     $projekRndDetail->jml_bahan = $detail->jml_bahan; // Update jml_bahan
+    //                                 }
+
+    //                                 // Merge existing details with new grouped details
+    //                                 $currentDetails = json_decode($projekRndDetail->details, true) ?? [];
+    //                                 $mergedDetails = [];
+
+    //                                 foreach ($currentDetails as $existingDetail) {
+    //                                     $price = $existingDetail['unit_price'];
+    //                                     $mergedDetails[$price] = $existingDetail;
+    //                                 }
+
+    //                                 // Update or add new quantities in mergedDetails
+    //                                 if (isset($mergedDetails[$unitPrice])) {
+    //                                     $mergedDetails[$unitPrice]['qty'] += $group['qty'];
+    //                                 } else {
+    //                                     $mergedDetails[$unitPrice] = $group; // add new entry
+    //                                 }
+
+    //                                 // Update the details field
+    //                                 $projekRndDetail->details = json_encode(array_values($mergedDetails));
+    //                                 $projekRndDetail->save();
+    //                             } else {
+    //                                 // Create new entry
+    //                                 ProjekRndDetails::create([
+    //                                     'projek_rnd_id' => $data->projek_rnd_id,
+    //                                     'bahan_id' => $detail->bahan_id,
+    //                                     'qty' => $group['qty'],
+    //                                     'jml_bahan' => $detail->jml_bahan,
+    //                                     'used_materials' => $group['qty'],
+    //                                     'details' => json_encode([$group]), // use an array of groups
+    //                                     'sub_total' => $group['qty'] * $unitPrice,
+    //                                 ]);
+    //                             }
+    //                         }
+    //                     }if ($data->pengajuan_id) {
+    //                         foreach ($groupedDetails as $unitPrice => $group) {
+    //                             $pengajuanDetail = PengajuanDetails::where('pengajuan_id', $data->pengajuan_id)
+    //                                 ->where('bahan_id', $detail->bahan_id)
+    //                                 ->first();
+
+    //                             if ($pengajuanDetail) {
+    //                                 // Update existing entry
+    //                                 $pengajuanDetail->qty += $group['qty'];
+    //                                 $pengajuanDetail->used_materials += $group['qty'];
+    //                                 $pengajuanDetail->sub_total += $group['qty'] * $unitPrice;
+
+    //                                 if ($pengajuanDetail->jml_bahan !== $detail->jml_bahan) {
+    //                                     $pengajuanDetail->jml_bahan = $detail->jml_bahan; // Update jml_bahan
+    //                                 }
+
+    //                                 // Merge existing details with new grouped details
+    //                                 $currentDetails = json_decode($pengajuanDetail->details, true) ?? [];
+    //                                 $mergedDetails = [];
+
+    //                                 foreach ($currentDetails as $existingDetail) {
+    //                                     $price = $existingDetail['unit_price'];
+    //                                     $mergedDetails[$price] = $existingDetail;
+    //                                 }
+
+    //                                 // Update or add new quantities in mergedDetails
+    //                                 if (isset($mergedDetails[$unitPrice])) {
+    //                                     $mergedDetails[$unitPrice]['qty'] += $group['qty'];
+    //                                 } else {
+    //                                     $mergedDetails[$unitPrice] = $group; // add new entry
+    //                                 }
+
+    //                                 // Update the details field
+    //                                 $pengajuanDetail->details = json_encode(array_values($mergedDetails));
+    //                                 $pengajuanDetail->save();
+    //                             } else {
+    //                                 // Create new entry
+    //                                 PengajuanDetails::create([
+    //                                     'pengajuan_id' => $data->pengajuan_id,
+    //                                     'bahan_id' => $detail->bahan_id,
+    //                                     'qty' => $group['qty'],
+    //                                     'jml_bahan' => $detail->jml_bahan,
+    //                                     'used_materials' => $group['qty'],
+    //                                     'details' => json_encode([$group]), // use an array of groups
+    //                                     'sub_total' => $group['qty'] * $unitPrice,
+    //                                 ]);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+
+    //             // Kurangi stok
+    //             foreach ($pendingStockReductions as $reduction) {
+    //                 $reduction['detail']->sisa -= $reduction['qty'];
+    //                 $reduction['detail']->sisa = max(0, $reduction['detail']->sisa);
+    //                 $reduction['detail']->save();
+    //             }
+    //         }
+
+    //         $data->status = $validated['status'];
+    //         $data->save();
+
+    //         // Kirim notifikasi ke Pengaju
+    //         $pengajuPhone = $data->dataUser->telephone;
+    //         if ($pengajuPhone) {
+    //             $approvalLeader = $data->status_leader === 'Disetujui' ? '✅ Disetujui' : ($data->status_leader === 'Ditolak' ? '❌ Ditolak' : '⏳ Menunggu');
+    //             $approvalPurchasing = $data->status_purchasing === 'Disetujui' ? '✅ Disetujui' : ($data->status_purchasing === 'Ditolak' ? '❌ Ditolak' : '⏳ Menunggu');
+    //             $approvalManager = $data->status_manager === 'Disetujui' ? '✅ Disetujui' : ($data->status_manager === 'Ditolak' ? '❌ Ditolak' : '⏳ Menunggu');
+    //             $approvalFinance = $data->status_finance === 'Disetujui' ? '✅ Disetujui' : ($data->status_finance === 'Ditolak' ? '❌ Ditolak' : '⏳ Menunggu');
+    //             $approvalAdminManager = $data->status_admin_manager === 'Disetujui' ? '✅ Disetujui' : ($data->status_admin_manager === 'Ditolak' ? '❌ Ditolak' : '⏳ Menunggu');
+    //             $approvalDirector = $data->status === 'Disetujui' ? '✅ Disetujui' : ($data->status_direktur === 'Ditolak' ? '❌ Ditolak' : '⏳ Menunggu');
+
+
+    //             // Susun pesan untuk pengaju
+    //             $message = "Halo {$data->dataUser->name},\n\n";
+    //             if ($data->status_admin_manager === 'Disetujui') {
+    //                 $message .= "Status pengajuan bahan Anda dengan Kode Transaksi {$data->kode_transaksi} telah disetujui oleh Direktur.\n";
+    //                 $message .= "Tahap berikutnya adalah Cetak/Simpan Dokumen Pengajuan, Kemudian ambil bahan ke bagian Purchasing.\n\n";
+    //             } elseif ($data->status_admin_manager === 'Ditolak') {
+    //                 $message .= "Maaf, pengajuan bahan Anda dengan Kode Transaksi {$data->kode_transaksi} telah ditolak oleh Direktur.\n";
+    //                 $message .= "Mohon periksa kembali untuk mengetahui alasan penolakan.\n\n";
+    //             }
+
+    //             $message .= "Tahapan Pengajuan:\n";
+    //             $message .= "1. Approval Leader: {$approvalLeader}\n";
+    //             $message .= "2. Approval Purchasing: {$approvalPurchasing}\n";
+    //             $message .= "3. Approval Manager: {$approvalManager}\n";
+    //             $message .= "4. Approval Finance: {$approvalFinance}\n";
+    //             $message .= "5. Approval Manager Admin: {$approvalAdminManager}\n";
+    //             $message .= "6. Approval Direktur: {$approvalDirector}\n\n";
+    //             $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+    //             try{
+    //                 // Kirim pesan WhatsApp ke pengaju
+    //                 $responsePengaju = Http::withHeaders([
+    //                     'x-api-key' => env('WHATSAPP_API_KEY'),
+    //                     'Content-Type' => 'application/json',
+    //                 ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+    //                     'chatId' => "{$pengajuPhone}@c.us",
+    //                     'contentType' => 'string',
+    //                     'content' => $message,
+    //                 ]);
+
+    //                 if ($responsePengaju->successful()) {
+    //                     LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
+    //                 } else {
+    //                     LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
+    //                 }
+    //             } catch (\Exception $e) {
+    //                 LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+    //             }
+    //         } else {
+    //             LogHelper::error('No valid phone number found for pengaju.');
+    //         }
+    //         DB::commit();
+    //         LogHelper::success('Berhasil Mengubah Status Bahan Keluar!');
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         $errorMessage = $e->getMessage();
+    //         $errorColumn = '';
+    //         if (strpos($errorMessage, 'tgl_keluar') !== false) {
+    //             $errorColumn = 'tgl_keluar';
+    //         } elseif (strpos($errorMessage, 'status') !== false) {
+    //             $errorColumn = 'status';
+    //         }
+    //         LogHelper::error($e->getMessage());
+    //         return redirect()->back()->with('error', "Terjadi kesalahan pada kolom: $errorColumn. Pesan error: $errorMessage");
+    //     }
+
+    //     return redirect()->route('bahan-keluars.index')->with('success', 'Status berhasil diubah.');
+    // }
 
     public function sendWhatsApp($id)
     {

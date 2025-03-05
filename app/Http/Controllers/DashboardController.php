@@ -155,26 +155,26 @@ class DashboardController extends Controller
             })->toArray();
         }
 
-        $materialsData = BahanSetengahjadiDetails::select('bahan_id', DB::raw('SUM(sisa) as total_qty'))
-        ->groupBy('bahan_id')
-        ->get();
+        $materialsData = BahanSetengahjadiDetails::select('nama_bahan', DB::raw('SUM(sisa) as total_qty'))
+    ->groupBy('nama_bahan')
+    ->havingRaw('SUM(sisa) > 0') // Hanya ambil bahan dengan sisa lebih dari 0
+    ->get();
 
-        $chartLabels = [];
-        $chartData = [];
-        $chartTotalQty = [];
-        $totalQuantity = 0;
+$chartLabels = [];
+$chartData = [];
+$chartTotalQty = [];
+$totalQuantity = $materialsData->sum('total_qty'); // Hitung total qty hanya jika ada data
 
-        foreach ($materialsData as $data) {
-            $totalQuantity += $data->total_qty;
-        }
+if ($totalQuantity > 0) {
+    foreach ($materialsData as $data) {
+        $chartLabels[] = $data->nama_bahan;
+        $percentage = ($data->total_qty / $totalQuantity) * 100;
+        $chartData[] = $percentage;
+        $chartTotalQty[] = $data->total_qty;
+    }
+}
 
-        foreach ($materialsData as $data) {
-            $material = Bahan::find($data->bahan_id);
-            $chartLabels[] = $material->nama_bahan;
-            $percentage = ($data->total_qty / $totalQuantity) * 100;
-            $chartData[] = $percentage;
-            $chartTotalQty[] = $data->total_qty;
-        }
+
 
         return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalSatuanUnit', 'dates', 'chartDataMasuk', 'chartDataKeluar','availableYears', 'year', 'period', 'totalPengajuanBahanKeluar','totalPengajuanBahanRetur','totalPengajuanBahanRusak', 'chartLabels', 'chartData','prosesProduksi','projeks','projeks_rnd', 'bahanSisaTerbanyak','bahanSisaPalingSedikit', 'chartTotalQty'));
     }

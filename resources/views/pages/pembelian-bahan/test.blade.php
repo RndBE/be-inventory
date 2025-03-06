@@ -46,7 +46,7 @@
                             <img src="{{ asset('images/logo_be2.png') }}" alt="chippz" class="mx-auto w-32 py-4" />
                             <div class="flex flex-col justify-center items-center gap-2">
                                 <h4 class="font-semibold">PT. Arta Teknologi Comunindo</h4>
-                                <p class="text-xs text-center">Perum Pesona Bandara No. C-54, Cupuwatu I Purwomartani, Kec. Kalasan, Kabupaten Sleman, Daerah Istimewa Yogyakarta</p>
+                                <p class="text-xs text-center">Kadirojo I, Purwomartani, Kec. Kalasan, Kabupaten Sleman, Daerah Istimewa Yogyakarta</p>
                             </div>
                             <div class="flex flex-col gap-3 border-b py-6 text-xs">
                                 <p class="flex justify-between">
@@ -137,6 +137,11 @@
                                             @endforeach
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
+                                                <td class="w-[150px] text-right"><strong>PPN: </strong></td>
+                                                <td class="w-[150px] text-right">{{ number_format($ppn, 2, ',', '.') }}</td>
+                                            </tr>
+                                            <tr class="flex">
+                                                <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Ongkos Kirim: </strong></td>
                                                 <td class="w-[150px] text-right">{{ number_format($ongkir, 2, ',', '.') }}</td>
                                             </tr>
@@ -160,7 +165,7 @@
                                                 <td class="w-[150px] text-right"><strong>Total Harga: </strong></td>
                                                 <td class="w-[150px] text-right">Rp.
                                                     @php
-                                                        $totalWithExtras += ($ongkir ?? 0) + ($asuransi ?? 0) + ($layanan ?? 0) + ($jasa_aplikasi ?? 0);
+                                                        $totalWithExtras += ($ppn ?? 0) + ($ongkir ?? 0) + ($asuransi ?? 0) + ($layanan ?? 0) + ($jasa_aplikasi ?? 0);
                                                     @endphp
                                                     {{ number_format($totalWithExtras, 2, ',', '.') }}
                                                 </td>
@@ -187,7 +192,7 @@
                             <img src="{{ asset('images/logo_be2.png') }}" alt="chippz" class="mx-auto w-32 py-4" />
                             <div class="flex flex-col justify-center items-center gap-2">
                                 <h4 class="font-semibold">PT. Arta Teknologi Comunindo</h4>
-                                <p class="text-xs text-center">Perum Pesona Bandara No. C-54, Cupuwatu I Purwomartani, Kec. Kalasan, Kabupaten Sleman, Daerah Istimewa Yogyakarta</p>
+                                <p class="text-xs text-center">Kadirojo I, Purwomartani, Kec. Kalasan, Kabupaten Sleman, Daerah Istimewa Yogyakarta</p>
                             </div>
                             <div class="flex flex-col gap-3 border-b py-6 text-xs">
                                 <p class="flex justify-between">
@@ -349,7 +354,7 @@
                             <img src="{{ asset('images/logo_be2.png') }}" alt="chippz" class="mx-auto w-32 py-4" />
                             <div class="flex flex-col justify-center items-center gap-2">
                                 <h4 class="font-semibold">PT. Arta Teknologi Comunindo</h4>
-                                <p class="text-xs text-center">Perum Pesona Bandara No. C-54, Cupuwatu I Purwomartani, Kec. Kalasan, Kabupaten Sleman, Daerah Istimewa Yogyakarta</p>
+                                <p class="text-xs text-center">Kadirojo I, Purwomartani, Kec. Kalasan, Kabupaten Sleman, Daerah Istimewa Yogyakarta</p>
                             </div>
                             <div class="flex flex-col gap-3 border-b py-6 text-xs">
                                 <p class="flex justify-between">
@@ -440,8 +445,16 @@
                                             @endforeach
                                             <tr class="flex">
                                                 <td class="flex-1 py-1"></td>
+                                                <td class="w-[150px] text-right"><strong>PPN: </strong></td>
+                                                <td class="w-[150px] text-right">{{ number_format($ppn, 2, ',', '.') }}</td>
+                                            </tr>
+                                            <tr class="flex">
+                                                <td class="flex-1 py-1"></td>
                                                 <td class="w-[150px] text-right"><strong>Total Harga: </strong></td>
                                                 <td class="w-[150px] text-right">Rp.
+                                                    @php
+                                                        $totalWithExtras += ($ppn ?? 0);
+                                                    @endphp
                                                     {{ number_format($totalWithExtras, 2, ',', '.') }}
                                                 </td>
                                             </tr>

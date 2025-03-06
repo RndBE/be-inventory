@@ -34,6 +34,8 @@ class UpdateHargaPembelianBahanCart extends Component
     public $layanan_raw = [];
     public $jasa_aplikasi = [];
     public $jasa_aplikasi_raw = [];
+    public $ppn = [];
+    public $ppn_raw = [];
     public $shipping_cost = [];
     public $new_shipping_cost = [];
     public $shipping_cost_raw = [];
@@ -101,6 +103,7 @@ class UpdateHargaPembelianBahanCart extends Component
             $asuransi = $pembelianBahan->asuransi ?? 0;
             $layanan = $pembelianBahan->layanan ?? 0;
             $jasa_aplikasi = $pembelianBahan->jasa_aplikasi ?? 0;
+            $ppn = $pembelianBahan->ppn ?? 0;
             $shipping_cost = $pembelianBahan->shipping_cost ?? 0;
             $full_amount_fee = $pembelianBahan->full_amount_fee ?? 0;
             $value_today_fee = $pembelianBahan->value_today_fee ?? 0;
@@ -121,6 +124,7 @@ class UpdateHargaPembelianBahanCart extends Component
             $this->asuransi = $asuransi;
             $this->layanan = $layanan;
             $this->jasa_aplikasi = $jasa_aplikasi;
+            $this->ppn = $ppn;
             $this->shipping_cost = $shipping_cost;
             $this->full_amount_fee = $full_amount_fee;
             $this->value_today_fee = $value_today_fee;
@@ -448,6 +452,7 @@ class UpdateHargaPembelianBahanCart extends Component
     {
         return [
             'ongkir' => $this->ongkir,
+            'ppn' => $this->ppn,
             'asuransi' => $this->asuransi,
             'layanan' => $this->layanan,
             'jasa_aplikasi' => $this->jasa_aplikasi,

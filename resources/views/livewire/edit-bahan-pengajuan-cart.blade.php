@@ -22,6 +22,7 @@
                             $asuransi = $asuransi ?? 0;
                             $layanan = $layanan ?? 0;
                             $jasaAplikasi = $jasa_aplikasi ?? 0;
+                            $ppn = $ppn ?? 0;
                         @endphp
                         @foreach ($pengajuanDetails as $detail)
                         @php
@@ -98,6 +99,15 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>PPN</strong></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                {{ number_format($ppn, 2, ',', '.') }}
+                            </td>
+                        </tr>
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 text-right text-black"><strong>Ongkos Kirim</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 {{ number_format($ongkir, 2, ',', '.') }}
@@ -137,7 +147,7 @@
                             <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @php
-                                    $totalWithExtras = $grandTotal + $ongkir + $asuransi + $layanan + $jasaAplikasi;
+                                    $totalWithExtras = $grandTotal + $ppn + $ongkir + $asuransi + $layanan + $jasaAplikasi;
                                 @endphp
                                 <span><strong>Rp.</strong> {{ number_format($totalWithExtras, 2, ',', '.') }}</span>
                             </td>
@@ -419,6 +429,7 @@
                             $asuransi = $asuransi ?? 0;
                             $layanan = $layanan ?? 0;
                             $jasaAplikasi = $jasa_aplikasi ?? 0;
+                            $ppn = $ppn ?? 0;
                         @endphp
                         @foreach ($pengajuanDetails as $detail)
                         @php
@@ -497,7 +508,15 @@
                             </td>
                         </tr>
                         @endforeach
-
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>PPN</strong></td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
+                                {{ number_format($ppn, 2, ',', '.') }}
+                            </td>
+                        </tr>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
@@ -505,7 +524,7 @@
                             <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @php
-                                    $totalWithExtras = $grandTotal;
+                                    $totalWithExtras = $grandTotal + $ppn;
                                 @endphp
                                 <span><strong>Rp.</strong> {{ number_format($totalWithExtras, 2, ',', '.') }}</span>
                             </td>

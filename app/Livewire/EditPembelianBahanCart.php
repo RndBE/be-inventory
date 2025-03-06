@@ -32,6 +32,8 @@ class EditPembelianBahanCart extends Component
     public $asuransi = [];
     public $asuransi_raw = [];
     public $layanan = [];
+    public $ppn = [];
+    public $ppn_raw = [];
     public $layanan_raw = [];
     public $jasa_aplikasi = [];
     public $jasa_aplikasi_raw = [];
@@ -158,6 +160,7 @@ class EditPembelianBahanCart extends Component
             $asuransi = $pembelianBahan->asuransi ?? 0;
             $layanan = $pembelianBahan->layanan ?? 0;
             $jasa_aplikasi = $pembelianBahan->jasa_aplikasi ?? 0;
+            $ppn = $pembelianBahan->ppn ?? 0;
             $shipping_cost = $pembelianBahan->shipping_cost ?? 0;
             $full_amount_fee = $pembelianBahan->full_amount_fee ?? 0;
             $value_today_fee = $pembelianBahan->value_today_fee ?? 0;
@@ -169,6 +172,7 @@ class EditPembelianBahanCart extends Component
             $this->asuransi = $asuransi;
             $this->layanan = $layanan;
             $this->jasa_aplikasi = $jasa_aplikasi;
+            $this->ppn = $ppn;
             $this->shipping_cost = $shipping_cost;
             $this->full_amount_fee = $full_amount_fee;
             $this->value_today_fee = $value_today_fee;
@@ -259,6 +263,29 @@ class EditPembelianBahanCart extends Component
             $this->calculateSubTotal($this->editingItemId);
         }
 
+        $this->editingItemId = null;
+    }
+
+    public function formatToRupiahPPN($item)
+    {
+        // Pastikan nilai mentah tidak kosong
+        $rawValue = $this->{$item . '_raw'} ?? '0';
+
+        // Hapus titik ribuan, ubah koma menjadi titik
+        $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+
+        // Simpan dengan presisi dua desimal menggunakan bcadd
+        $this->$item = is_numeric($cleanValue) ? bcadd($cleanValue, '0', 2) : '0.00';
+
+        // Format ulang tampilan dengan dua desimal tetap
+        $this->{$item . '_raw'} = number_format($this->$item, 2, ',', '.');
+
+        // Jika item adalah unit_price, hitung ulang subtotal
+        if ($item === 'unit_price') {
+            $this->calculateSubTotal($this->editingItemId);
+        }
+
+        // Tutup mode edit
         $this->editingItemId = null;
     }
 
@@ -466,6 +493,7 @@ class EditPembelianBahanCart extends Component
     {
         return [
             'ongkir' => $this->ongkir,
+            'ppn' => $this->ppn,
             'asuransi' => $this->asuransi,
             'layanan' => $this->layanan,
             'jasa_aplikasi' => $this->jasa_aplikasi,

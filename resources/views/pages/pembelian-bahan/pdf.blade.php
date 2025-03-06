@@ -194,6 +194,14 @@
                 @endforeach
                 @if($status === 'Disetujui')
                     <tr>
+                        <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">PPN</td>
+                        <td style="border: 1px solid black; text-align: right; border-right: none;">
+                            {{ number_format($ppn, 2, ',', '.') }}
+                        </td>
+                        <td style="border: 1px solid black; text-align: right; border-left: none;">
+                        </td>
+                    </tr>
+                    <tr>
                         <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">Ongkos Kirim</td>
                         <td style="border: 1px solid black; text-align: right; border-right: none;">
                             {{ number_format($ongkir, 2, ',', '.') }}
@@ -226,6 +234,14 @@
                         </td>
                     </tr>
                 @else
+                    <tr>
+                        <td colspan="6" style="border: 1px solid black; text-align: right; font-weight: bold;">PPN</td>
+                        <td style="border: 1px solid black; text-align: right; border-right: none;">
+                            {{ number_format($ppn, 2, ',', '.') }}
+                        </td>
+                        <td style="border: 1px solid black; text-align: right; border-left: none;">
+                        </td>
+                    </tr>
                     @php
                         $totalWithExtras += 0;
                     @endphp
@@ -235,7 +251,9 @@
                     <td style="border: 1px solid black; text-align: right; border-right: none;">Rp.
                         @php
                             if ($status === 'Disetujui') {
-                                $totalWithExtras += ($ongkir ?? 0) + ($asuransi ?? 0) + ($layanan ?? 0) + ($jasa_aplikasi ?? 0);
+                                $totalWithExtras += ($ppn ?? 0) + ($ongkir ?? 0) + ($asuransi ?? 0) + ($layanan ?? 0) + ($jasa_aplikasi ?? 0);
+                            }else {
+                                $totalWithExtras += ($ppn ?? 0);
                             }
                         @endphp
                         {{ number_format($totalWithExtras, 2, ',', '.') }}

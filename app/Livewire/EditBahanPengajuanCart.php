@@ -24,6 +24,8 @@ class EditBahanPengajuanCart extends Component
     public $details_raw = [];
     public $ongkir = [];
     public $ongkir_raw = [];
+    public $ppn = [];
+    public $ppn_raw = [];
     public $asuransi = [];
     public $asuransi_raw = [];
     public $layanan = [];
@@ -93,6 +95,7 @@ class EditBahanPengajuanCart extends Component
         $this->ongkir = $pengajuan->ongkir;
         $this->asuransi = $pengajuan->asuransi ?? 0;
         $this->layanan = $pengajuan->layanan ?? 0;
+        $this->ppn = $pengajuan->ppn ?? 0;
         $this->jasa_aplikasi = $pengajuan->jasa_aplikasi ?? 0;
         $this->shipping_cost = $pengajuan->shipping_cost ?? 0;
         $this->full_amount_fee = $pengajuan->full_amount_fee ?? 0;

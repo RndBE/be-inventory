@@ -74,12 +74,12 @@ class DashboardController extends Controller
             });
         $projeks = Projek::where('status', 'Dalam proses')
             ->with(['projekDetails' => function ($query) {
-                $query->select('projek_id', 'sub_total', 'jml_bahan', 'used_materials');
+                $query->select('projek_id', 'sub_total', 'qty', 'used_materials');
             }])
             ->get()
             ->map(function ($projek) {
                 $totalSubTotalProjek = $projek->projekDetails->sum('sub_total');
-                $totalBahanProjek = $projek->projekDetails->sum('jml_bahan');
+                $totalBahanProjek = $projek->projekDetails->sum('qty');
                 $totalUsedProjek = $projek->projekDetails->sum('used_materials');
 
                 $completionPercentageProjek = $totalBahanProjek > 0 ? round(($totalUsedProjek / $totalBahanProjek) * 100) : 0;
@@ -156,23 +156,23 @@ class DashboardController extends Controller
         }
 
         $materialsData = BahanSetengahjadiDetails::select('nama_bahan', DB::raw('SUM(sisa) as total_qty'))
-    ->groupBy('nama_bahan')
-    ->havingRaw('SUM(sisa) > 0') // Hanya ambil bahan dengan sisa lebih dari 0
-    ->get();
+            ->groupBy('nama_bahan')
+            ->havingRaw('SUM(sisa) > 0') // Hanya ambil bahan dengan sisa lebih dari 0
+            ->get();
 
-$chartLabels = [];
-$chartData = [];
-$chartTotalQty = [];
-$totalQuantity = $materialsData->sum('total_qty'); // Hitung total qty hanya jika ada data
+        $chartLabels = [];
+        $chartData = [];
+        $chartTotalQty = [];
+        $totalQuantity = $materialsData->sum('total_qty'); // Hitung total qty hanya jika ada data
 
-if ($totalQuantity > 0) {
-    foreach ($materialsData as $data) {
-        $chartLabels[] = $data->nama_bahan;
-        $percentage = ($data->total_qty / $totalQuantity) * 100;
-        $chartData[] = $percentage;
-        $chartTotalQty[] = $data->total_qty;
-    }
-}
+        if ($totalQuantity > 0) {
+            foreach ($materialsData as $data) {
+                $chartLabels[] = $data->nama_bahan;
+                $percentage = ($data->total_qty / $totalQuantity) * 100;
+                $chartData[] = $percentage;
+                $chartTotalQty[] = $data->total_qty;
+            }
+        }
 
 
 

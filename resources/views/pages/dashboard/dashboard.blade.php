@@ -244,7 +244,7 @@
             {{-- Projek --}}
             <div class="col-span-full xl:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
-                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Projek</h2>
+                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Proyek</h2>
                 </header>
                 <div class="p-3">
 
@@ -255,10 +255,10 @@
                             <thead class="text-xs uppercase text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700 dark:bg-opacity-50 rounded-sm">
                                 <tr>
                                     <th class="p-2">
-                                        <div class="font-semibold text-left">Nama Projek</div>
+                                        <div class="font-semibold text-left">Nama Proyek</div>
                                     </th>
                                     <th class="p-2">
-                                        <div class="font-semibold text-center">Mulai Projek</div>
+                                        <div class="font-semibold text-center">Mulai Proyek</div>
                                     </th>
                                     <th class="p-2">
                                         <div class="font-semibold text-center">Penyelesaian</div>
@@ -270,7 +270,7 @@
                                 @forelse($projeks as $projek)
                                 <tr>
                                     <td class="p-2">
-                                        <div class="text-gray-800 dark:text-gray-100">{{ $projek->nama_projek }}</div>
+                                        <div class="text-gray-800 dark:text-gray-100">{{ $projek->dataKontrak->nama_kontrak }}</div>
                                     </td>
                                     <td class="p-2">
                                         <div class="text-center">{{ $projek->mulai_projek }}</div>
@@ -307,7 +307,7 @@
             {{-- Projek RnD --}}
             <div class="col-span-full xl:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
-                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Projek RnD</h2>
+                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Proyek RnD</h2>
                 </header>
                 <div class="p-3">
 
@@ -318,10 +318,10 @@
                             <thead class="text-xs uppercase text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700 dark:bg-opacity-50 rounded-sm">
                                 <tr>
                                     <th class="p-2">
-                                        <div class="font-semibold text-left">Nama Projek RnD</div>
+                                        <div class="font-semibold text-left">Nama Proyek RnD</div>
                                     </th>
                                     <th class="p-2">
-                                        <div class="font-semibold text-center">Mulai Projek</div>
+                                        <div class="font-semibold text-center">Mulai Proyek</div>
                                     </th>
                                     <th class="p-2">
                                         <div class="font-semibold text-center">Penyelesaian</div>

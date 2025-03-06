@@ -70,8 +70,10 @@ class PengajuanTable extends Component
                 ->orWhere('selesai_pengajuan', 'like', '%' . $this->search . '%')
                 ->orWhere('divisi', 'like', '%' . $this->search . '%')
                 ->orWhere('keterangan', 'like', '%' . $this->search . '%')
+                ->orWhere('project', 'like', '%' . $this->search . '%')
                 ->orWhere('status_pembelian', 'like', '%' . $this->search . '%')
                 ->orWhere('jenis_pengajuan', 'like', '%' . $this->search . '%')
+                ->orWhere('pengaju', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_pengajuan', 'like', '%' . $this->search . '%');
         });
 

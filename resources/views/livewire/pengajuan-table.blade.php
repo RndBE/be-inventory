@@ -68,8 +68,8 @@
                         <th scope="col" class="px-6 py-3">Pengaju</th>
                         <th scope="col" class="px-6 py-3">Tujuan</th>
                         <th scope="col" class="px-6 py-3">Jenis Pengajuan</th>
-                        {{-- <th scope="col" class="px-6 py-3">Status Pengajuan</th> --}}
-                        {{-- <th scope="col" class="px-6 py-3">Status Pembelian</th> --}}
+                        <th scope="col" class="px-6 py-3">Status Pengajuan</th>
+                        <th scope="col" class="px-6 py-3">Status Pembelian</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -98,7 +98,7 @@
                                 <div class="text-xs text-gray-500">{{ $pengajuan->keterangan }}</div>
                             </td>
                             <td class="px-6 py-3">{{ $pengajuan->jenis_pengajuan }}</td>
-                            {{-- <td class="px-6 py-4 min-w-[300px]">
+                            <td class="px-6 py-4 min-w-[300px]">
                                 @php
                                     $statusList = [
                                         'Leader' => $pengajuan->status_leader ?? 'Belum disetujui',
@@ -139,8 +139,8 @@
                                     </div>
                                     @endforeach
                                 </div>
-                            </td> --}}
-                            {{-- <td class="px-6 py-3">{{ $pengajuan->status_pembelian }}</td> --}}
+                            </td>
+                            <td class="px-6 py-3">{{ $pengajuan->status_pembelian }}</td>
                             {{-- <td class="px-6 py-3">Rp {{ number_format($pengajuan->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
                             <td class="px-6 py-4">
                                 <div class="row flex space-x-2">

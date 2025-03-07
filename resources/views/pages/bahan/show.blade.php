@@ -11,8 +11,9 @@
     x-transition:leave="transition ease-in duration-900"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0">
-    <div class="relative p-4 w-full max-w-md max-h-full"
+    <div class="relative p-2 pt-2 w-full max-w-md bg-white rounded-lg shadow dark:bg-gray-700 overflow-y-auto"
         x-show="isOpen"
+        style="max-height: 80vh;"
         @click.outside="isOpen = false; $wire.closeModal();"
         x-transition:enter="transition ease-out duration-900 transform"
         x-transition:enter-start="opacity-0 scale-95"

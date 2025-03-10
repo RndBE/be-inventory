@@ -46,4 +46,15 @@ class Projek extends Model
     {
         return $this->belongsTo(Unit::class, 'unit_id');
     }
+
+    public function dataBahanRusak()
+    {
+        return $this->hasMany(BahanRusak::class, 'projek_id', 'id');
+    }
+
+    public function laporanProyek()
+    {
+        return $this->hasMany(LaporanProyek::class, 'projek_id');
+    }
+
 }

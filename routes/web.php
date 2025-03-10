@@ -43,6 +43,7 @@ use App\Http\Controllers\PembelianBahanController;
 use App\Http\Controllers\ProdukProduksiController;
 use App\Http\Controllers\PengambilanBahanController;
 use App\Http\Controllers\BahanSetengahjadiController;
+use App\Http\Controllers\LaporanProyekController;
 
 /*
 |--------------------------------------------------------------------------
@@ -167,6 +168,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
     Route::resource('pengambilan-bahan', PengambilanBahanController::class);
     Route::put('pengambilan-bahan/{pengajuan}/selesai', [PengambilanBahanController::class, 'updateStatus'])->name('pengambilan-bahan.updateStatus');
+
+
+    Route::resource('laporan-proyek', LaporanProyekController::class);
 
 
 

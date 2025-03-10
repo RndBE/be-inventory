@@ -97,8 +97,6 @@
         <div class="px-6 py-4">
             {{ $proyeks->links() }}
         </div>
-        {{-- MODAL --}}
-        @include('pages.laporan-proyek.remove')
     </div>
 </div>
 <script>

@@ -11,7 +11,7 @@
         <!-- Header: Right side -->
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
-                <a href="{{ route('laporan-proyek.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
+                <a href="{{ route('laporan-garansi-proyek.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
                 <!-- Tombol Simpan -->
                 @can('simpan-laporan')
                     <button type="button" wire:click="saveToLaporanProyek" class="rounded-md px-3 py-2 text-sm font-semibold bg-indigo-600 text-white">
@@ -36,7 +36,7 @@
                         {{-- Kiri --}}
                         <div class="flex items-center">
                             <label for="kode_projek" class="block text-4xl font-medium leading-6 text-gray-900 mr-2">
-                                {{ $proyek->kode_projek ?? 'Tidak Ada Data' }}
+                                {{ $proyek->kode_garansi ?? 'Tidak Ada Data' }}
                             </label>
                         </div>
 
@@ -47,7 +47,7 @@
                             <table class="w-full border-collapse">
                                 <tbody>
                                     <tr>
-                                        <td class="px-4 py-2 font-medium text-gray-900 w-1/3 self-start">Nama Proyek</td>
+                                        <td class="px-4 py-2 font-medium text-gray-900 w-1/3 self-start">Nama Garansi Proyek</td>
                                         <td class="px-4 py-2 w-2/3 self-start">
                                             {{ $proyek->dataKontrak->nama_kontrak ?? 'Tidak Ada Data' }}
                                         </td>
@@ -132,7 +132,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach ($projekDetails as $detail)
+                                                @foreach ($garansiProjekDetails as $detail)
                                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                                         @if (!empty($detail['produk_id']))
@@ -248,13 +248,13 @@
                                                                 <button class="text-green-600" wire:click="updateRow({{ $index }})"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-checks"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 12l5 5l10 -10" /><path d="M2 12l5 5m5 -5l5 -5" /></svg></button>
                                                                 <button class="text-red-600" wire:click="cancelEdit"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-xbox-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 21a9 9 0 0 0 9 -9a9 9 0 0 0 -9 -9a9 9 0 0 0 -9 9a9 9 0 0 0 9 9z" /><path d="M9 8l6 8" /><path d="M15 8l-6 8" /></svg></button>
                                                             @else
-                                                                @can('edit-biaya-tambahan')
+                                                                @can('edit-biaya-tambahan-garansi')
                                                                     <button class="text-blue-600" wire:click="editRow({{ $index }})">
                                                                         <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-pencil"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg>
                                                                     </button>
                                                                 @endcan
 
-                                                                @can('hapus-biaya-tambahan')
+                                                                @can('hapus-biaya-tambahan-garansi')
                                                                     <button class="text-red-600" wire:click="deleteSavedRow({{ $item['id'] }})"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                                                                         <path d="M4 7l16 0" />
@@ -311,7 +311,7 @@
                                                 @endforeach
                                                 <tr>
                                                     <td colspan="8" class="px-6 py-4 text-left">
-                                                        @can('tambah-baris')
+                                                        @can('tambah-baris-garansi')
                                                             <button type="button" wire:click="addRow" class="text-indigo-600">Tambah Baris</button>
                                                         @endcan
                                                     </td>
@@ -440,23 +440,56 @@
                         {{-- Kanan: Tabel Kontrak --}}
                         <div class="flex flex-col mt-6 w-full">
                             <table class="w-full border-b border-collapse">
+                                <tr class="border-b font-bold">
+                                    <td class="px-4 py-2 font-medium text-gray-900 self-start text-right">Anggaran:</td>
+                                    <td class="px-4 py-2 text-right">
+                                        @if($canEditAnggaran)
+                                            @if($editingAnggaran)
+                                                <div class="flex items-center justify-end space-x-2">
+                                                    <input type="text" class="text-right w-full px-2 py-1 bg-transparent focus:ring-0 border-b border-t-0 border-r-0 border-l-0" wire:model.defer="anggaran">
+
+                                                    <button class="text-green-500 hover:underline" wire:click="saveAnggaran">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-checks">
+                                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                            <path d="M7 12l5 5l10 -10" />
+                                                            <path d="M2 12l5 5m5 -5l5 -5" />
+                                                        </svg>
+                                                    </button>
+
+                                                    <button class="text-red-500 hover:underline" wire:click="cancelEditAnggaran">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-xbox-x">
+                                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                            <path d="M12 21a9 9 0 0 0 9 -9a9 9 0 0 0 -9 -9a9 9 0 0 0 -9 9a9 9 0 0 0 9 9z" />
+                                                            <path d="M9 8l6 8" />
+                                                            <path d="M15 8l-6 8" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            @else
+                                                <span wire:click="editAnggaran" class="cursor-pointer"><strong>Rp.</strong> {{ number_format($anggaran, 2, ',', '.') ?? 'Klik untuk edit' }}</span>
+                                            @endif
+                                        @else
+                                            <span><strong>Rp.</strong> {{ number_format($anggaran, 2, ',', '.') }}</span>
+                                        @endif
+                                    </td>
+                                </tr>
                                 <tbody>
                                     <tr>
                                         <td class="px-4 py-2 font-medium text-gray-900 self-start text-right">Biaya Bahan/Produk:</td>
                                         <td class="px-4 py-2 self-start text-right">
-                                            <span><strong>Rp.</strong> {{ number_format($produksiTotal, 2, ',', '.') }}</span>
+                                            <span>{{ number_format($produksiTotal, 2, ',', '.') }}</span>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="px-4 py-2 font-medium text-gray-900 self-start text-right">Biaya Tambahan:</td>
                                         <td class="px-4 py-2 self-start text-right">
-                                            <strong>Rp.</strong> {{ number_format($totalHargaBiayaTambahan, 2, ',', '.') }}
+                                            {{ number_format($totalHargaBiayaTambahan, 2, ',', '.') }}
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="px-4 py-2 font-medium text-gray-900 self-start text-right">Bahan Rusak:</td>
                                         <td class="px-4 py-2 text-right">
-                                            <strong>Rp.</strong> {{ number_format($totalHargaBahanRusak, 2, ',', '.') }}
+                                            {{ number_format($totalHargaBahanRusak, 2, ',', '.') }}
                                         </td>
                                     </tr>
                                 </tbody>
@@ -464,6 +497,12 @@
                                     <td class="px-4 py-2 font-medium text-gray-900 self-start text-right">Total Pengeluaran:</td>
                                     <td class="px-4 py-2 text-right">
                                         Rp. {{ number_format($totalKeseluruhan, 2, ',', '.') }}
+                                    </td>
+                                </tr>
+                                <tr class="bg-gray-100 font-bold">
+                                    <td class="px-4 py-2 font-medium text-gray-900 self-start text-right">Sisa Anggaran:</td>
+                                    <td class="px-4 py-2 text-right {{ $sisaAnggaran < 0 ? 'text-red-500' : 'text-green-500' }}">
+                                        <strong>Rp.</strong> {{ number_format($sisaAnggaran, 2, ',', '.') }}
                                     </td>
                                 </tr>
                             </table>

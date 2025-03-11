@@ -49,12 +49,12 @@ class GaransiProjek extends Model
 
     public function dataBahanRusak()
     {
-        return $this->hasMany(BahanRusak::class, 'projek_id', 'id');
+        return $this->hasMany(BahanRusak::class, 'garansi_projek_id', 'id');
     }
 
-    public function laporanProyek()
+    public function laporanGaransiProyek()
     {
-        return $this->hasMany(LaporanProyek::class, 'projek_id');
+        return $this->hasMany(LaporanGaransiProyek::class, 'garansi_projek_id');
     }
 
 }

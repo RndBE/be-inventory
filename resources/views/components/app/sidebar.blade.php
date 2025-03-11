@@ -425,6 +425,16 @@
                             </a>
                         </li>
                     @endcan
+                    @can('lihat-laporan-garansi-proyek')
+                        <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['laporan-garansi-proyek'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">
+                            <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['laporan-garansi-proyek.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('laporan-garansi-proyek.index') }}">
+                                <div class="flex items-center">
+                                    <svg  xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="shrink-0 icon icon-tabler icons-tabler-outline icon-tabler-book-2 @if(in_array(Request::segment(1), ['laporan-garansi-proyek'])){{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19 4v16h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12z" /><path d="M19 16h-12a2 2 0 0 0 -2 2" /><path d="M9 8h6" /></svg>
+                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Laporan Garansi Proyek</span>
+                                </div>
+                            </a>
+                        </li>
+                    @endcan
                 </ul>
             </div>
             <!-- Informasi Akun -->

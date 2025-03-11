@@ -188,6 +188,7 @@
                                                     <th scope="col" class="px-6 py-3">Keterangan</th>
                                                     <th scope="col" class="px-6 py-3 text-center">Qty</th>
                                                     <th scope="col" class="px-6 py-3">Satuan</th>
+                                                    <th scope="col" class="px-6 py-3 text-right">Unit Price</th>
                                                     <th scope="col" class="px-6 py-3 text-right">Total Biaya</th>
                                                     <th scope="col" class="px-6 py-3 text-center"></th>
                                                 </tr>
@@ -234,10 +235,13 @@
                                                         </td>
                                                         <td class="px-4 py-2 align-top text-right">
                                                             @if(isset($editingIndex) && $editingIndex === $index)
-                                                                <input type="text" class="w-full px-2 py-1 bg-transparent border focus:ring-0" wire:model.defer="savedItemsAset.{{ $index }}.total_biaya">
+                                                                <input type="text" class="w-full px-2 py-1 bg-transparent border focus:ring-0" wire:model.defer="savedItemsAset.{{ $index }}.unit_price">
                                                             @else
-                                                                Rp {{ number_format($item['total_biaya'], 2, ',', '.') }}
+                                                                Rp {{ number_format($item['unit_price'], 2, ',', '.') }}
                                                             @endif
+                                                        </td>
+                                                        <td class="px-4 py-2 align-top text-right">
+                                                            Rp {{ number_format($item['total_biaya'], 2, ',', '.') }}
                                                         </td>
                                                         <td class="px-4 py-2 text-center">
                                                             @if(isset($editingIndex) && $editingIndex === $index)
@@ -286,7 +290,10 @@
                                                             <input type="text" class="w-full px-2 py-1 bg-transparent border-0 focus:ring-0 @if(empty($item['satuan'])) border-b @endif" wire:model="itemsAset.{{ $index }}.satuan">
                                                         </td>
                                                         <td class="px-4 py-2">
-                                                            <input type="text" class="w-full px-2 py-1 bg-transparent border-0 focus:ring-0 @if(empty($item['total_biaya'])) border-b @endif" wire:model="itemsAset.{{ $index }}.total_biaya">
+                                                            <input type="text" class="w-full px-2 py-1 bg-transparent border-0 focus:ring-0 @if(empty($item['unit_price'])) border-b @endif" wire:model="itemsAset.{{ $index }}.unit_price">
+                                                        </td>
+                                                        <td class="px-4 py-2">
+                                                            {{-- <input type="text" class="w-full px-2 py-1 bg-transparent border-0 focus:ring-0 @if(empty($item['total_biaya'])) border-b @endif" wire:model="itemsAset.{{ $index }}.total_biaya"> --}}
                                                         </td>
                                                         <td class="px-4 py-2 text-center">
                                                             <button class="text-red-600" wire:click="removeRow({{ $index }})">
@@ -303,7 +310,7 @@
                                                     </tr>
                                                 @endforeach
                                                 <tr>
-                                                    <td colspan="7" class="px-6 py-4 text-left">
+                                                    <td colspan="8" class="px-6 py-4 text-left">
                                                         @can('tambah-baris')
                                                             <button type="button" wire:click="addRow" class="text-indigo-600">Tambah Baris</button>
                                                         @endcan

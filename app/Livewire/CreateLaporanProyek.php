@@ -74,6 +74,7 @@ class CreateLaporanProyek extends Component
             'nama_biaya_tambahan' => '',
             'qty' => '',
             'satuan' => '',
+            'unit_price' => '',
             'total_biaya' => '',
             'keterangan' => '',
         ];
@@ -118,7 +119,8 @@ class CreateLaporanProyek extends Component
             'nama_biaya_tambahan' => 'required|string|max:255',
             'qty' => 'required|numeric',
             'satuan' => 'nullable|string|max:50',
-            'total_biaya' => 'required|numeric|min:0',
+            'unit_price' => 'required|numeric|min:0',
+            'total_biaya' => 'nullable',
             'keterangan' => 'nullable|string|max:500',
         ],[
             'tanggal.required' => 'Tanggal wajib diisi.',
@@ -130,9 +132,9 @@ class CreateLaporanProyek extends Component
             'qty.numeric' => 'Jumlah (Qty) harus berupa angka.',
             'satuan.string' => 'Satuan harus berupa teks.',
             'satuan.max' => 'Satuan maksimal 50 karakter.',
-            'total_biaya.required' => 'Total biaya wajib diisi.',
-            'total_biaya.numeric' => 'Total biaya harus berupa angka.',
-            'total_biaya.min' => 'Total biaya tidak boleh negatif.',
+            'unit_price.required' => 'Unit price wajib diisi.',
+            'unit_price.numeric' => 'Unit price harus berupa angka.',
+            'unit_price.min' => 'Unit price tidak boleh negatif.',
             'keterangan.string' => 'Keterangan harus berupa teks.',
             'keterangan.max' => 'Keterangan maksimal 500 karakter.',
         ]);
@@ -144,15 +146,20 @@ class CreateLaporanProyek extends Component
             ]);
             return;
         }
+        $tanggalFormatted = Carbon::parse($data['tanggal'])->format('Y-m-d H:i:s');
+        $total_biaya = $data['qty'] * $data['unit_price'];
 
         LaporanProyek::where('id', $data['id'])->update([
-            'tanggal' => $data['tanggal'],
+            'tanggal' => $tanggalFormatted,
             'nama_biaya_tambahan' => $data['nama_biaya_tambahan'],
             'qty' => $data['qty'],
             'satuan' => $data['satuan'],
-            'total_biaya' => $data['total_biaya'],
+            'unit_price' => $data['unit_price'],
+            'total_biaya' => $total_biaya,
             'keterangan' => $data['keterangan'],
         ]);
+
+        $this->savedItemsAset[$index]['total_biaya'] = $total_biaya;
 
         $this->editingIndex = null;
         LogHelper::success('Laporan proyek berhasil diperbarui.');
@@ -182,7 +189,8 @@ class CreateLaporanProyek extends Component
                 'nama_biaya_tambahan' => 'required|string|max:255',
                 'qty' => 'required|numeric',
                 'satuan' => 'nullable|string|max:50',
-                'total_biaya' => 'required|numeric|min:0',
+                'unit_price' => 'required|numeric|min:0',
+                'total_biaya' => 'nullable',
                 'keterangan' => 'nullable|string|max:500',
             ],[
                 'tanggal.required' => 'Tanggal wajib diisi.',
@@ -194,9 +202,9 @@ class CreateLaporanProyek extends Component
                 'qty.numeric' => 'Jumlah (Qty) harus berupa angka.',
                 'satuan.string' => 'Satuan harus berupa teks.',
                 'satuan.max' => 'Satuan maksimal 50 karakter.',
-                'total_biaya.required' => 'Total biaya wajib diisi.',
-                'total_biaya.numeric' => 'Total biaya harus berupa angka.',
-                'total_biaya.min' => 'Total biaya tidak boleh negatif.',
+                'unit_price.required' => 'Unit price wajib diisi.',
+                'unit_price.numeric' => 'Unit price harus berupa angka.',
+                'unit_price.min' => 'Unit price tidak boleh negatif.',
                 'keterangan.string' => 'Keterangan harus berupa teks.',
                 'keterangan.max' => 'Keterangan maksimal 500 karakter.',
             ]);
@@ -218,6 +226,8 @@ class CreateLaporanProyek extends Component
         $user = Auth::user();
         // Simpan data baru
         foreach ($this->itemsAset as $item) {
+            $total_biaya = $item['qty'] * $item['unit_price'];
+
             $laporan = LaporanProyek::create([
                 'projek_id' => $this->proyek->id,
                 'pembuat_laporan' => $user->name,
@@ -225,7 +235,8 @@ class CreateLaporanProyek extends Component
                 'nama_biaya_tambahan' => $item['nama_biaya_tambahan'],
                 'qty' => $item['qty'],
                 'satuan' => $item['satuan'],
-                'total_biaya' => $item['total_biaya'],
+                'unit_price' => $item['unit_price'],
+                'total_biaya' => $total_biaya,
                 'keterangan' => $item['keterangan'],
             ]);
 

@@ -43,9 +43,9 @@
                 </li>
                 <li class="m-1">
                     {{-- @can('tambah-projek') --}}
-                        <a href="{{ route('laporan-proyek.create') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                        {{-- <a href="{{ route('laporan-proyek.create') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                             Tambah
-                        </a>
+                        </a> --}}
                     {{-- @endcan --}}
                 </li>
             </ul>

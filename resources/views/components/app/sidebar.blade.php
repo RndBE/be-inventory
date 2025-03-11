@@ -318,7 +318,7 @@
                                     </svg>
                                     <span
                                         class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200 break-words whitespace-normal">
-                                        Pengambilan Bahan Non Proyek/Produksi
+                                        Pengambilan Bahan <br> Non Proyek/Produksi
                                     </span>
                                 </div>
                             </a>

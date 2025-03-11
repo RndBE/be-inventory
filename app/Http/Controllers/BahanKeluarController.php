@@ -23,6 +23,7 @@ use App\Models\ProjekRndDetails;
 use App\Jobs\SendWhatsAppMessage;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
+use App\Models\GaransiProjekDetails;
 use Illuminate\Support\Facades\Http;
 use App\Jobs\SendWhatsAppNotification;
 use App\Jobs\SendWhatsAppApproveLeader;
@@ -188,21 +189,6 @@ class BahanKeluarController extends Controller
                         $message .= "Kode Transaksi {$bahanKeluar->kode_transaksi} dibatalkan karena stok kosong atau tidak valid untuk bahan berikut: $bahanList.\n\n";
                         $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
-                        // Kirim pesan WhatsApp ke pengaju
-                        // $responsePengaju = Http::withHeaders([
-                        //     'x-api-key' => env('WHATSAPP_API_KEY'),
-                        //     'Content-Type' => 'application/json',
-                        // ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        //     'chatId' => "{$pengajuPhone}@c.us",
-                        //     'contentType' => 'string',
-                        //     'content' => $message,
-                        // ]);
-
-                        // if ($responsePengaju->successful()) {
-                        //     LogHelper::success("WhatsApp message sent to pengaju: {$pengajuPhone}");
-                        // } else {
-                        //     LogHelper::error("Failed to send WhatsApp message to pengaju: {$pengajuPhone}");
-                        // }
                         SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                     } catch (\Exception $e) {
                         LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
@@ -283,6 +269,27 @@ class BahanKeluarController extends Controller
                         if (!$existingDetail) {
                             ProjekDetails::create([
                                 'projek_id' => $bahanKeluar->projek_id,
+                                'bahan_id' => $detail->bahan_id ?? null,
+                                'produk_id' => $detail->produk_id ?? null,
+                                'qty' => 0,
+                                'jml_bahan' => $detail->jml_bahan,
+                                'used_materials' => 0,
+                                'details' => json_encode([]),
+                                'sub_total' => 0,
+                            ]);
+                        }
+                    }elseif ($bahanKeluar->garansi_projek_id) {
+                        // Melakukan pencarian pada tabel garansi_projek_details
+                        $existingDetail = GaransiProjekDetails::where('garansi_projek_id', $bahanKeluar->garansi_projek_id)
+                        ->where(function ($query) use ($detail) {
+                            $query->where('bahan_id', $detail->bahan_id)
+                                ->orWhere('produk_id', $detail->produk_id);
+                        })
+                        ->first();
+                        // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel projek_details dengan data default
+                        if (!$existingDetail) {
+                            GaransiProjekDetails::create([
+                                'garansi_projek_id' => $bahanKeluar->garansi_projek_id,
                                 'bahan_id' => $detail->bahan_id ?? null,
                                 'produk_id' => $detail->produk_id ?? null,
                                 'qty' => 0,
@@ -549,6 +556,72 @@ class BahanKeluarController extends Controller
                                 // Buat entri baru jika produk_id / bahan_id sama tapi serial_number berbeda atau tidak ada
                                 ProjekDetails::create([
                                     'projek_id' => $bahanKeluar->projek_id,
+                                    'produk_id' => $detail->produk_id ?? null,
+                                    'bahan_id' => $detail->bahan_id ?? null,
+                                    'serial_number' => $group['serial_number'] ?? null, // Tambahkan serial number jika ada
+                                    'qty' => $group['qty'],
+                                    'jml_bahan' => $detail->jml_bahan,
+                                    'used_materials' => $group['qty'],
+                                    'details' => json_encode([$group]),
+                                    'sub_total' => $group['qty'] * $unitPrice,
+                                ]);
+                            }
+                        }
+                    }if ($bahanKeluar->garansi_projek_id) {
+                        // Iterasi array groupedDetails untuk mengelola bahan keluar
+                        foreach ($groupedDetails as $unitPrice => $group) {
+                            if ($detail->produk_id) {
+                                // Jika bahan setengah jadi (menggunakan produk_id)
+                                $projekDetailQuery = GaransiProjekDetails::where('garansi_projek_id', $bahanKeluar->garansi_projek_id)
+                                    ->where('produk_id', $detail->produk_id);
+                            } elseif ($detail->bahan_id) {
+                                // Jika bahan dari pembelian (menggunakan bahan_id)
+                                $projekDetailQuery = GaransiProjekDetails::where('garansi_projek_id', $bahanKeluar->garansi_projek_id)
+                                    ->where('bahan_id', $detail->bahan_id);
+                            } else {
+                                continue; // Jika tidak ada produk_id atau bahan_id, skip iterasi
+                            }
+
+                            // Tambahkan kondisi serial_number jika ada
+                            if (!empty($group['serial_number'])) {
+                                $projekDetailQuery->where('serial_number', $group['serial_number']);
+                            }
+
+                            // Eksekusi query
+                            $projekDetail = $projekDetailQuery->first();
+
+                            if ($projekDetail) {
+                                // Update existing entry jika bahan_id / produk_id & serial_number sama
+                                $projekDetail->qty += $group['qty'];
+                                $projekDetail->used_materials += $group['qty'];
+                                $projekDetail->sub_total += $group['qty'] * $unitPrice;
+
+                                if ($projekDetail->jml_bahan !== $detail->jml_bahan) {
+                                    $projekDetail->jml_bahan = $detail->jml_bahan;
+                                }
+
+                                // Update details field
+                                $currentDetails = json_decode($projekDetail->details, true) ?? [];
+                                $mergedDetails = [];
+
+                                foreach ($currentDetails as $existingDetail) {
+                                    $price = $existingDetail['unit_price'];
+                                    $mergedDetails[$price] = $existingDetail;
+                                }
+
+                                // Memperbarui atau menambah detail transaksi baru ke dalam array yang sudah ada.
+                                if (isset($mergedDetails[$unitPrice])) {
+                                    $mergedDetails[$unitPrice]['qty'] += $group['qty'];
+                                } else {
+                                    $mergedDetails[$unitPrice] = $group;
+                                }
+
+                                $projekDetail->details = json_encode(array_values($mergedDetails));
+                                $projekDetail->save();
+                            } else {
+                                // Buat entri baru jika produk_id / bahan_id sama tapi serial_number berbeda atau tidak ada
+                                GaransiProjekDetails::create([
+                                    'garansi_projek_id' => $bahanKeluar->garansi_projek_id,
                                     'produk_id' => $detail->produk_id ?? null,
                                     'bahan_id' => $detail->bahan_id ?? null,
                                     'serial_number' => $group['serial_number'] ?? null, // Tambahkan serial number jika ada

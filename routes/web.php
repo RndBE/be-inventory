@@ -39,11 +39,12 @@ use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\StokProduksiController;
+use App\Http\Controllers\GaransiProjekController;
+use App\Http\Controllers\LaporanProyekController;
 use App\Http\Controllers\PembelianBahanController;
 use App\Http\Controllers\ProdukProduksiController;
 use App\Http\Controllers\PengambilanBahanController;
 use App\Http\Controllers\BahanSetengahjadiController;
-use App\Http\Controllers\LaporanProyekController;
 
 /*
 |--------------------------------------------------------------------------
@@ -148,6 +149,10 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('projeks', ProjekController::class);
     Route::put('projeks/{projek}/selesai', [ProjekController::class, 'updateStatus'])->name('projeks.updateStatus');
     Route::get('projeks-export/{projek_id}', [ProjekController::class, 'export'])->name('projeks.export');
+
+    Route::resource('garansi-projeks', GaransiProjekController::class);
+    Route::put('garansi-projeks/{projek}/selesai', [GaransiProjekController::class, 'updateStatus'])->name('garansi-projeks.updateStatus');
+    Route::get('garansi-projeks-export/{projek_id}', [GaransiProjekController::class, 'export'])->name('garansi-projeks.export');
 
     Route::resource('bahan-rusaks', BahanRusakController::class);
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);

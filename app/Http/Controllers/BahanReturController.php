@@ -15,6 +15,7 @@ use App\Models\ProjekRndDetails;
 use App\Models\BahanReturDetails;
 use App\Models\BahanSetengahjadi;
 use Illuminate\Support\Facades\DB;
+use App\Models\GaransiProjekDetails;
 use App\Models\PengambilanBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
 
@@ -183,7 +184,51 @@ class BahanReturController extends Controller
                         }
                     }
 
-                    // Update untuk ProjekDetails
+                    // Update untuk GaransiProjekDetails
+                    $garansiProjekDetail = GaransiProjekDetails::where('garansi_projek_id', $bahanRetur->garansi_projek_id)
+                    ->where(function ($query) use ($bahanId) {
+                        $query->where('bahan_id', $bahanId)
+                                ->orWhere('produk_id', $bahanId);
+                    })
+                    ->first();
+
+                    if ($garansiProjekDetail) {
+                        $currentDetails = json_decode($garansiProjekDetail->details, true) ?? [];
+
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    // Jika qty menjadi 0 atau negatif, hapus entry dari details
+                                    if ($entry['qty'] <= 0) {
+                                        unset($currentDetails[$key]);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $garansiProjekDetail->qty = max(0, $garansiProjekDetail->qty - $totalQtyReduction);
+                        $garansiProjekDetail->used_materials = max(0, $garansiProjekDetail->used_materials - $totalQtyReduction);
+
+                        // Hitung ulang sub_total hanya jika masih ada entri di details
+                        if (!empty($currentDetails)) {
+                            $garansiProjekDetail->sub_total = 0;
+                            foreach ($currentDetails as $detail) {
+                                $garansiProjekDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                            }
+
+                            // Simpan details yang sudah diperbarui
+                            $garansiProjekDetail->details = json_encode(array_values($currentDetails));
+                            $garansiProjekDetail->save();
+                        } else {
+                            // Jika tidak ada entry tersisa, hapus GaransiProjekDetails
+                            $garansiProjekDetail->delete();
+                        }
+                    }
+
+                    // Update untuk GaransiProjekDetails
                     $projekRndDetail = ProjekRndDetails::where('projek_rnd_id', $bahanRetur->projek_rnd_id)
                     ->where(function ($query) use ($bahanId) {
                         $query->where('bahan_id', $bahanId)

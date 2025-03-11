@@ -12,6 +12,7 @@ use App\Models\PengajuanDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanRusakDetails;
 use Illuminate\Support\Facades\DB;
+use App\Models\GaransiProjekDetails;
 use App\Models\PengambilanBahanDetails;
 
 class BahanRusakController extends Controller
@@ -160,6 +161,53 @@ class BahanRusakController extends Controller
                         } else {
                             // Jika tidak ada entry tersisa, hapus ProjekDetails
                             $projekDetail->delete();
+                        }
+                    }
+
+                    // Update untuk GaransiProjekDetails
+                    $garansiProjekDetail = GaransiProjekDetails::where('garansi_projek_id', $bahanRusak->garansi_projek_id)
+                        ->where(function ($query) use ($bahanId) {
+                            $query->where('bahan_id', $bahanId)
+                                    ->orWhere('produk_id', $bahanId);
+                        })
+                        ->first();
+
+                    if ($garansiProjekDetail) {
+                        $currentDetails = json_decode($garansiProjekDetail->details, true) ?? [];
+
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    if ($entry['qty'] <= 0) {
+                                        unset($currentDetails[$key]);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $garansiProjekDetail->qty -= $totalQtyReduction;
+                        $garansiProjekDetail->used_materials -= $totalQtyReduction;
+
+                        // Pastikan qty dan used_materials tidak negatif
+                        $garansiProjekDetail->qty = max(0, $garansiProjekDetail->qty);
+                        $garansiProjekDetail->used_materials = max(0, $garansiProjekDetail->used_materials);
+
+                        // Hitung ulang sub_total hanya jika masih ada entri di details
+                        if (!empty($currentDetails)) {
+                            $garansiProjekDetail->sub_total = 0;
+                            foreach ($currentDetails as $detail) {
+                                $garansiProjekDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                            }
+
+                            // Simpan details yang sudah diperbarui
+                            $garansiProjekDetail->details = json_encode(array_values($currentDetails));
+                            $garansiProjekDetail->save();
+                        } else {
+                            // Jika tidak ada entry tersisa, hapus GaransiProjekDetails
+                            $garansiProjekDetail->delete();
                         }
                     }
 

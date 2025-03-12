@@ -42,11 +42,7 @@
                     @include('livewire.dataperpage')
                 </li>
                 <li class="m-1">
-                    {{-- @can('tambah-projek') --}}
-                        {{-- <a href="{{ route('laporan-proyek.create') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                            Tambah
-                        </a> --}}
-                    {{-- @endcan --}}
+
                 </li>
             </ul>
         </div>
@@ -63,6 +59,7 @@
                             No
                         </th>
                         <th scope="col" class="px-6 py-3">Proyek</th>
+                        <th scope="col" class="px-6 py-3">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -75,6 +72,12 @@
                             <a href="{{ route('laporan-proyek.create', ['proyek_id' => $proyek->id]) }}"
                                 class="text-blue-600 hover:underline">
                                 <strong>{{ $proyek->dataKontrak->nama_kontrak ?? '-' }}</strong>
+                            </a>
+                        </td>
+                        <td class="px-6 py-3">
+                            <a href="{{ route('laporan-proyek.export', ['projekId' => $proyek->id]) }}"
+                                class="border border-gray-500 text-gray-500 px-4 py-2 rounded hover:bg-gray-100">
+                                Unduh
                             </a>
                         </td>
                     </tr>

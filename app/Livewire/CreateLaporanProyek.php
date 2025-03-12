@@ -255,15 +255,16 @@ class CreateLaporanProyek extends Component
     {
         // Hitung total produksi dari projek details
         $produksiTotal = array_sum(array_column($this->projekDetails, 'sub_total'));
-
         // Hitung total biaya tambahan dari laporan proyek
         $totalHargaBiayaTambahan = array_sum(array_column($this->savedItemsAset, 'total_biaya'));
-
         // Hitung total bahan rusak
-        $totalHargaBahanRusak = array_sum(array_column($this->dataBahanRusak, 'total_biaya'));
+        $totalHargaBahanRusak = array_sum(array_map(function ($bahanRusak) {
+            return array_sum(array_column($bahanRusak['bahan_rusak_details'], 'sub_total'));
+        }, $this->dataBahanRusak));
 
         // Hitung total keseluruhan
         $totalKeseluruhan = $produksiTotal + $totalHargaBiayaTambahan + $totalHargaBahanRusak;
+        // dd($totalHargaBahanRusak);
         return view('livewire.create-laporan-proyek', [
             'proyek' => $this->proyek,
             'projekDetails' => $this->projekDetails,

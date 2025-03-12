@@ -1,7 +1,9 @@
 <?php
 
 use App\Helpers\LogHelper;
+use App\Exports\LaporanProyekExport;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobController;
 use Illuminate\Support\Facades\Request;
@@ -177,6 +179,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
 
     Route::resource('laporan-proyek', LaporanProyekController::class);
+    Route::get('/laporan-proyek/export/{projekId}', function ($projekId) {
+        return Excel::download(new LaporanProyekExport($projekId), 'LaporanProyek.xlsx');
+    })->name('laporan-proyek.export');
 
     Route::resource('laporan-garansi-proyek', LaporanGaransiProyekController::class);
 

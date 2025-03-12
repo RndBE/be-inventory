@@ -63,6 +63,7 @@
                             No
                         </th>
                         <th scope="col" class="px-6 py-3">Garansi Proyek</th>
+                        <th scope="col" class="px-6 py-3">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -75,6 +76,12 @@
                             <a href="{{ route('laporan-garansi-proyek.create', ['garansi_proyek_id' => $proyek->id]) }}"
                                 class="text-blue-600 hover:underline">
                                 <strong>{{ $proyek->dataKontrak->nama_kontrak ?? '-' }}</strong>
+                            </a>
+                        </td>
+                        <td class="px-6 py-3">
+                            <a href="{{ route('laporan-garansi-proyek.export', ['garansi_proyek_id' => $proyek->id]) }}"
+                                class="border border-gray-500 text-gray-500 px-4 py-2 rounded hover:bg-gray-100">
+                                Unduh
                             </a>
                         </td>
                     </tr>

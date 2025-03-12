@@ -15,6 +15,7 @@ use App\Http\Controllers\BahanController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProjekController;
+use App\Exports\LaporanGaransiProyekExport;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\StokRndController;
@@ -184,6 +185,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     })->name('laporan-proyek.export');
 
     Route::resource('laporan-garansi-proyek', LaporanGaransiProyekController::class);
+    Route::get('/laporan-garansi-proyek/export/{garansi_proyek_id}', function ($garansi_proyek_id) {
+        return Excel::download(new LaporanGaransiProyekExport($garansi_proyek_id), 'LaporanGaransiProyek.xlsx');
+    })->name('laporan-garansi-proyek.export');
 
 
 

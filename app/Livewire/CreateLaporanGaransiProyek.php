@@ -315,7 +315,10 @@ class CreateLaporanGaransiProyek extends Component
         $totalHargaBiayaTambahan = array_sum(array_column($this->savedItemsAset, 'total_biaya'));
 
         // Hitung total bahan rusak
-        $totalHargaBahanRusak = array_sum(array_column($this->dataBahanRusak, 'total_biaya'));
+        // $totalHargaBahanRusak = array_sum(array_column($this->dataBahanRusak, 'total_biaya'));
+        $totalHargaBahanRusak = array_sum(array_map(function ($bahanRusak) {
+            return array_sum(array_column($bahanRusak['bahan_rusak_details'], 'sub_total'));
+        }, $this->dataBahanRusak));
 
         // Hitung total keseluruhan
         $totalKeseluruhan = $produksiTotal + $totalHargaBiayaTambahan + $totalHargaBahanRusak;

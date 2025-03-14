@@ -87,6 +87,13 @@ class BahanKeluarController extends Controller
                     })->first();
             });
 
+            $hardwareManager = cache()->remember('hardware_manager', 60, function () {
+                return User::where('job_level', 2)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Engineer Manager');
+                    })->first();
+            });
+
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
@@ -107,6 +114,7 @@ class BahanKeluarController extends Controller
                 'purchasingUser',
                 'leaderName',
                 'managerName',
+                'hardwareManager',
                 'hasProduk'
             ))->setPaper('letter', 'portrait');
             return $pdf->stream("bahan_keluar_{$id}.pdf");

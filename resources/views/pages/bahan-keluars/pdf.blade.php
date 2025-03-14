@@ -204,7 +204,7 @@
         </tr>
         <tr style="text-align: left; vertical-align: top;">
             <td style="text-align: center;"></td>
-            <td colspan="2" style="text-align: center;">{{ $hardwareManager ?? '' }}</td>
+            <td colspan="2" style="text-align: center;">{{ $namaManager ?? '' }}</td>
             <td style="text-align: center;"></td>
         </tr>
         <tr>

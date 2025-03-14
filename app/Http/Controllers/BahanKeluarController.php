@@ -95,6 +95,7 @@ class BahanKeluarController extends Controller
             });
 
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+            $namaManager = $hardwareManager->name ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
                 return User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
@@ -114,7 +115,7 @@ class BahanKeluarController extends Controller
                 'purchasingUser',
                 'leaderName',
                 'managerName',
-                'hardwareManager',
+                'namaManager',
                 'hasProduk'
             ))->setPaper('letter', 'portrait');
             return $pdf->stream("bahan_keluar_{$id}.pdf");

@@ -14,12 +14,13 @@ class BahanSetengahjadiTabel extends Component
     public $id_bahanSetengahjadis;
     public function render()
     {
-        $bahanSetengahjadis = BahanSetengahjadi::with('bahanSetengahjadiDetails.dataBahan')->orderBy('id', 'desc')
+        $bahanSetengahjadis = BahanSetengahjadi::with('bahanSetengahjadiDetails')->orderBy('id', 'desc')
         ->where(function ($query) {
             $query->where('tgl_masuk', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')
-                ->orWhereHas('bahanSetengahjadiDetails.dataBahan', function ($query) {
-                    $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                ->orWhereHas('bahanSetengahjadiDetails', function ($query) {
+                    $query->where('nama_bahan', 'like', '%' . $this->search . '%')
+                    ->orWhere('serial_number', 'like', '%' . $this->search . '%');
                 });
         })
             ->paginate($this->perPage);

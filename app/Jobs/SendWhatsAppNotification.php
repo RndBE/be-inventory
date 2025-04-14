@@ -42,7 +42,7 @@ class SendWhatsAppNotification implements ShouldQueue
             $response = Http::withHeaders([
                 'x-api-key' => env('WHATSAPP_API_KEY'),
                 'Content-Type' => 'application/json',
-            ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
+            ])->post('http://31.58.158.182:3000/client/sendMessage/beacon', [
                 'chatId' => "{$this->targetPhone}@c.us",
                 'contentType' => 'string',
                 'content' => $this->message,

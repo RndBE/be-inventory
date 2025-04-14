@@ -122,7 +122,7 @@
             <tr>
                 <td style="border: 1px solid black; text-align: left;"></td>
                 <td style="border: 1px solid black; text-align: left;"></td>
-                <td style="border: 1px solid black; text-align: right; font-weight: bold;"> Total Pengeluaran Barang </td>
+                <td style="border: 1px solid black; text-align: right; font-weight: bold;"> Total Bahan Retur </td>
                 <td style="border: 1px solid black; text-align: center; border-right: none;">
                     {{ $totalSubTotal }}
                 </td>

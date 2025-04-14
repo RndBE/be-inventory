@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Throwable;
+use App\Models\User;
 use App\Models\Purchase;
 use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\PengajuanDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanReturDetails;
@@ -35,6 +37,95 @@ class BahanReturController extends Controller
         return view('pages.bahan-returs.index', compact('bahan_returs'));
     }
 
+
+    public function downloadPdf(int $id)
+    {
+        try {
+            $bahanRetur = BahanRetur::with([
+                'produksiS','projek','garansiProjek','projekRnd','pengajuan','pengambilanBahan',
+                'bahanReturDetails.dataBahan.dataUnit',
+                'bahanReturDetails.dataProduk',
+            ])->findOrFail($id);
+
+            $hasProduk = $bahanRetur->bahanReturDetails->filter(function ($detail) {
+                return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
+            })->isNotEmpty();
+
+            $tandaTanganPengaju = $bahanRetur->dataUser->tanda_tangan ?? null;
+
+            $tandaTanganLeader = null;
+            $tandaTanganManager = $bahanRetur->dataUser->atasanLevel2->tanda_tangan ?? null;
+            $tandaTanganDirektur = $bahanRetur->dataUser->atasanLevel1->tanda_tangan ?? null;
+
+            if ($bahanRetur->produksiS) {
+                $pengaju = $bahanRetur->produksiS->pengaju ?? null;
+            } elseif ($bahanRetur->projek) {
+                $pengaju = $bahanRetur->projek->pengaju ?? null;
+            }elseif ($bahanRetur->garansiProjek) {
+                $pengaju = $bahanRetur->garansiProjek->pengaju ?? null;
+            }elseif ($bahanRetur->projekRnd) {
+                $pengaju = $bahanRetur->projekRnd->pengaju ?? null;
+            }elseif ($bahanRetur->pengajuan) {
+                $pengaju = $bahanRetur->pengajuan->pengaju ?? null;
+            }elseif ($bahanRetur->pengambilanBahan) {
+                $pengaju = $bahanRetur->pengambilanBahan->pengaju ?? null;
+            }
+
+            // $leaderName = $bahanRetur->dataUser->atasanLevel3 ? $bahanRetur->dataUser->atasanLevel3->name : null;
+            // $managerName = $bahanRetur->dataUser->atasanLevel2 ? $bahanRetur->dataUser->atasanLevel2->name : null;
+
+            // if (!$leaderName && $managerName) {
+            //     $leaderName = $managerName;
+            // }
+
+            $purchasingUser = cache()->remember('purchasing_user', 60, function () {
+                return User::where('job_level', 3)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Purchasing');
+                    })->first();
+            });
+
+            $hardwareManager = cache()->remember('hardware_manager', 60, function () {
+                return User::where('job_level', 2)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Engineer Manager');
+                    })->first();
+            });
+
+            $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+            $namaManager = $hardwareManager->name ?? null;
+
+            $financeUser = cache()->remember('finance_user', 60, function () {
+                return User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
+            });
+            $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
+
+            $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
+                return User::where('job_level', 2)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Admin Manager');
+                    })->first();
+            });
+            $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
+
+            $pdf = Pdf::loadView('pages.bahan-returs.pdf', compact(
+                'bahanRetur',
+                'purchasingUser',
+                'pengaju',
+                // 'managerName',
+                'namaManager',
+                'hasProduk'
+            ))->setPaper('letter', 'portrait');
+            return $pdf->stream("bahan_keluar_{$id}.pdf");
+
+            LogHelper::success('Berhasil generating PDF for BahanRetur ID {$id}!');
+            return $pdf->download("bahan_keluar_{$id}.pdf");
+
+        } catch (\Exception $e) {
+            LogHelper::error("Error generating PDF for BahanRetur ID {$id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
+        }
+    }
     /**
      * Show the form for creating a new resource.
      */

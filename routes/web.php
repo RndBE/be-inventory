@@ -163,6 +163,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('bahan-jadis', BahanJadiController::class);
     Route::resource('produk-produksis', ProdukProduksiController::class);
     Route::resource('bahan-returs', BahanReturController::class);
+    Route::get('/bahan-returs/pdf/{id}', [BahanReturController::class, 'downloadPdf'])->name('bahan-returs.downloadPdf');
 
     Route::resource('stock-opname', StockOpnameController::class);
     Route::put('/stock-opname/updateApprovalFinance/{id}', [StockOpnameController::class, 'updateApprovalFinance'])->name('stock-opname.updateApprovalFinance');

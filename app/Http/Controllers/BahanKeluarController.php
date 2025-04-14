@@ -50,6 +50,7 @@ class BahanKeluarController extends Controller
     {
         try {
             $bahanKeluar = BahanKeluar::with([
+                'dataUser',
                 'dataUser.atasanLevel1',
                 'dataUser.atasanLevel2',
                 'dataUser.atasanLevel3',
@@ -113,6 +114,7 @@ class BahanKeluarController extends Controller
             $pdf = Pdf::loadView('pages.bahan-keluars.pdf', compact(
                 'bahanKeluar',
                 'purchasingUser',
+                'adminManagerceUser',
                 'leaderName',
                 'managerName',
                 'namaManager',

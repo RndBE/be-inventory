@@ -135,18 +135,14 @@
     <table style="width: 100%;border-collapse: collapse;padding-top:10;">
         <tr style="text-align: left; vertical-align: top;">
             <td style=" text-align: center;"><strong>Pengaju</strong></td>
-            <td colspan="2" style="text-align: center;">
-                @if($hasProduk)
-                    <strong>Produksi</strong>
-                @endif
-            </td>
-            <td style=" text-align: center;"><strong>Purchasing</strong></td>
+            <td colspan="2" style=" text-align: center;"><strong>Purchasing</strong></td>
+            <td style=" text-align: center;"><strong>Manager</strong></td>
         </tr>
         <tr>
             <td style="text-align: center; width: 25%;">
                 <div style="height: 80px; width: 150px;"></div>
             </td>
-            <td style="text-align: center; width: 25%;">
+            <td colspan="2" style="text-align: center; width: 25%;">
                 <div style="height: 80px; width: 150px;"></div>
             </td>
             <td style="text-align: center; width: 25%;">
@@ -159,12 +155,13 @@
                 {{ $pengaju }}
             </td>
             <td colspan="2" style="text-align: center;">
+                {{ $purchasingUser->name }}
                 @if($hasProduk)
                     RHOMADONI
                 @endif
             </td>
             <td style="text-align: center;">
-                {{ $purchasingUser->name }}
+                {{ $atasanLevel2 }}
             </td>
         </tr>
 
@@ -173,26 +170,32 @@
             <td colspan="4"  style="text-align: center;padding:7;"><strong> Mengetahui, </strong></td>
         </tr>
         <tr style="text-align: left; vertical-align: top;">
-            <td style=" text-align: center;"><strong></strong></td>
-            <td colspan="2" style=" text-align: center;"><strong>Manager</strong></td>
+            <td style="text-align: center;">
+                @if($hasProduk)
+                    <strong>Produksi</strong>
+                @endif
+            </td>
+            <td colspan="2" style=" text-align: center;"><strong>Manager Admin</strong></td>
             <td style=" text-align: center;"><strong></strong></td>
         </tr>
         <tr>
             <td style="text-align: center; width: 33%;">
                 <div style="height: 80px; width: 150px;"></div>
             </td>
-            <td colspan="2" style="text-align: center;">
-                <div style="height: 80px; width: 150px;">
-                    <div style="height: 80px; width: 150px;"></div>
-                </div>
+            <td colspan="2" style="text-align: center; width: 33%;">
+                <div style="height: 80px; width: 150px;"></div>
             </td>
             <td style="text-align: center; width: 33%;">
                 <div style="height: 80px; width: 150px;"></div>
             </td>
         </tr>
         <tr style="text-align: left; vertical-align: top;">
-            <td style="text-align: center;"></td>
-            <td colspan="2" style="text-align: center;">{{ $namaManager ?? '' }}</td>
+            <td style="text-align: center;">
+                @if($hasProduk)
+                    RHOMADONI
+                @endif
+            </td>
+            <td colspan="2" style="text-align: center;">{{ $adminManagerceUser->name ?? '' }}</td>
             <td style="text-align: center;"></td>
         </tr>
         <tr>

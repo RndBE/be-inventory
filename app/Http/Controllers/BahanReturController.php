@@ -71,6 +71,15 @@ class BahanReturController extends Controller
                 $pengaju = $bahanRetur->pengambilanBahan->pengaju ?? null;
             }
 
+            if ($pengaju) {
+                // Cari user berdasarkan nama
+                $user = User::where('name', $pengaju)->first();
+
+                if ($user && $user->atasanLevel2) {
+                    $atasanLevel2 = $user->atasanLevel2->name;
+                }
+            }
+
             // $leaderName = $bahanRetur->dataUser->atasanLevel3 ? $bahanRetur->dataUser->atasanLevel3->name : null;
             // $managerName = $bahanRetur->dataUser->atasanLevel2 ? $bahanRetur->dataUser->atasanLevel2->name : null;
 
@@ -112,7 +121,8 @@ class BahanReturController extends Controller
                 'bahanRetur',
                 'purchasingUser',
                 'pengaju',
-                // 'managerName',
+                'adminManagerceUser',
+                'atasanLevel2',
                 'namaManager',
                 'hasProduk'
             ))->setPaper('letter', 'portrait');

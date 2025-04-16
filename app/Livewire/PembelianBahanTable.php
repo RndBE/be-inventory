@@ -256,13 +256,13 @@ class PembelianBahanTable extends Component
             $pembelian_bahan->whereIn('divisi', ['Software', 'Publikasi']);
             $pembelian_bahan->orderByRaw("CASE WHEN status_manager = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
-        elseif ($user->hasRole(['sekretaris'])) {
-            // 1. Cari semua user yang memiliki job position "Secretary"
+        elseif ($user->hasRole(['general_affair'])) {
+            // 1. Cari semua user yang memiliki job position "General Affair"
             $sekretarisIds = User::whereHas('dataJobPosition', function ($query) {
-                $query->where('nama', 'Secretary');
+                $query->where('nama', 'General Affair');
             })->pluck('id')->toArray();
 
-            // 2. Cari user yang memiliki atasan_level3_id sama dengan user Secretary (hanya ID)
+            // 2. Cari user yang memiliki atasan_level3_id sama dengan user General Affair (hanya ID)
             $usersWithSekretarisAtasan = User::whereIn('atasan_level3_id', $sekretarisIds)->pluck('id')->toArray();
 
             // 3. Ambil data pembelian bahan dengan filter jenis pengajuan dan status leader

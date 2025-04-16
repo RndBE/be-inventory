@@ -275,7 +275,7 @@ class PembelianBahanTable extends Component
                         });
                 });
 
-            $pembelian_bahan->orderByRaw("CASE WHEN status_general_manager = 'Belum disetujui' THEN 0 ELSE 1 END");
+            $pembelian_bahan->orderByRaw("CASE WHEN status_general_manager = 'Belum disetujui' THEN 0 ELSE 1 END")->orderBy('tgl_pengajuan', 'desc');
         }
 
         elseif ($user->hasRole(['administrasi'])) {

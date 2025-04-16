@@ -31,6 +31,8 @@
                     <option value="OP" {{ old('divisi') == 'OP' ? 'selected' : '' }}>OP</option>
                     <option value="Administrasi" {{ old('divisi') == 'Administrasi' ? 'selected' : '' }}>Administrasi</option>
                     <option value="Sekretaris" {{ old('divisi') == 'Sekretaris' ? 'selected' : '' }}>Sekretaris</option>
+                    <option value="HRD" {{ old('divisi') == 'HRD' ? 'selected' : '' }}>HRD</option>
+                    <option value="General Affair" {{ old('divisi') == 'General Affair' ? 'selected' : '' }}>General Affair</option>
                 </select>
             </div>
             {{-- <div class="flex items-center">

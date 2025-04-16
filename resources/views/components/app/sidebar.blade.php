@@ -138,7 +138,7 @@
                         </div>
                     </li>
                     <!-- Transaksi -->
-                    @role('superadmin|purchasing|purchasing level 3|rnd level 3|teknisi level 3|marketing level 3|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager|sekretaris')
+                    @role('superadmin|purchasing|purchasing level 3|rnd level 3|teknisi level 3|marketing level 3|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager|sekretaris|general_affair')
                     <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['transaksi'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif" x-data="{ open: {{ in_array(Request::segment(1), ['transaksi']) ? 1 : 0 }} }">
                         <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['transaksi'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                             <div class="flex items-center justify-between">
@@ -281,7 +281,7 @@
                 </ul>
             </div>
             <!-- Aset -->
-            @role('superadmin|sekretaris|general affair')
+            @role('superadmin|sekretaris|general_affair')
             <div>
                 <h3 class="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
                     <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>

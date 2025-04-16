@@ -44,7 +44,7 @@ class PengajuanTable extends Component
 
         $query = Pengajuan::with(['pengajuanDetails', 'bahanKeluar'])->orderBy('id', 'desc');
 
-        if ($user->hasRole('superadmin') || $user->hasRole('purchasing')) {
+        if ($user->hasRole('superadmin') || $user->hasRole('purchasing') || $user->hasRole('general_affair')) {
 
         }elseif ($user->hasRole(['produksi', 'op', 'teknisi'])) {
             $query->whereIn('divisi', ['Produksi', 'OP', 'Teknisi']);
@@ -59,7 +59,7 @@ class PengajuanTable extends Component
         }elseif ($user->hasRole('hse')) {
             $query->where('divisi', 'HSE');
         }elseif ($user->hasRole('administrasi')) {
-            $query->where('divisi', 'Administrasi');
+            $query->whereIn('divisi', ['HRD', 'Administrasi']);
         }elseif ($user->hasRole('sekretaris')) {
             $query->where('divisi', 'Sekretaris');
         }

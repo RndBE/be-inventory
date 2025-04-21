@@ -577,7 +577,7 @@ class PembelianBahanController extends Controller
                 if ($data->jenis_pengajuan === 'Pembelian Aset') {
                     // Kirim notifikasi ke General Affair
                     $targetUser = User::whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'Secretary'); // Posisi General Affair
+                        $query->where('nama', 'General Affair'); // Posisi General Affair
                     })->where('job_level', 4)->first();
                     $targetRole = "General Affair";
                 } else {

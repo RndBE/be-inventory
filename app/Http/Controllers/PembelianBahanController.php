@@ -595,7 +595,8 @@ class PembelianBahanController extends Controller
                     $message = "Halo {$recipientName},\n\n";
                     $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai {$targetRole}.\n\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
-                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                    $message .= "\nPesan Otomatis:\n";
+                    $message .= "https://inventory.beacontelemetry.com/";
 
                     SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
@@ -614,7 +615,8 @@ class PembelianBahanController extends Controller
                 };
                 $message = "Halo {$recipientName},\n\n";
                 $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
-                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
@@ -697,7 +699,8 @@ class PembelianBahanController extends Controller
                     $message = "Halo {$purchasingUsers->name},\n\n";
                     $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Purchasing.\n\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
-                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                    $message .= "\nPesan Otomatis:\n";
+                    $message .= "https://inventory.beacontelemetry.com/";
                     SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
                     LogHelper::error('No valid phone number found for WhatsApp notification.');
@@ -715,7 +718,8 @@ class PembelianBahanController extends Controller
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
                 $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
-                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
@@ -795,7 +799,8 @@ class PembelianBahanController extends Controller
                             $message = "Halo {$financeUser->name},\n\n";
                             $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Finance.\n\n";
                             $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
-                            $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                            $message .= "\nPesan Otomatis:\n";
+                            $message .= "https://inventory.beacontelemetry.com/";
 
                             SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                         } else {
@@ -810,7 +815,8 @@ class PembelianBahanController extends Controller
                             $message = "Halo {$financeUser->name},\n\n";
                             $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Finance.\n\n";
                             $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
-                            $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                            $message .= "\nPesan Otomatis:\n";
+                            $message .= "https://inventory.beacontelemetry.com/";
 
                             SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                         } else {
@@ -825,7 +831,8 @@ class PembelianBahanController extends Controller
                             $message = "Halo {$managerUser->name},\n\n";
                             $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Manager.\n\n";
                             $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
-                            $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                            $message .= "\nPesan Otomatis:\n";
+                            $message .= "https://inventory.beacontelemetry.com/";
 
                             SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                         } else {
@@ -841,7 +848,8 @@ class PembelianBahanController extends Controller
                         $message = "Halo {$managerUser->name},\n\n";
                         $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Manager.\n\n";
                         $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
-                        $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                        $message .= "\nPesan Otomatis:\n";
+                        $message .= "https://inventory.beacontelemetry.com/";
 
                         SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                     } else {
@@ -862,7 +870,8 @@ class PembelianBahanController extends Controller
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
                 $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
-                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
@@ -936,7 +945,8 @@ class PembelianBahanController extends Controller
                     $message = "Halo {$financeUser->name},\n\n";
                     $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Finance.\n\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
-                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                    $message .= "\nPesan Otomatis:\n";
+                    $message .= "https://inventory.beacontelemetry.com/";
 
                     SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
                 } else {
@@ -955,7 +965,8 @@ class PembelianBahanController extends Controller
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
                 $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
-                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
@@ -1032,7 +1043,8 @@ class PembelianBahanController extends Controller
                 $message = "Halo {$data->dataUser->name},\n\n";
                 $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
 
-                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
@@ -1107,7 +1119,8 @@ class PembelianBahanController extends Controller
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
                 $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
-                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {
@@ -1312,7 +1325,8 @@ class PembelianBahanController extends Controller
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
                 $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
-                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+                $message .= "\nPesan Otomatis:\n";
+                $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
             }  else {

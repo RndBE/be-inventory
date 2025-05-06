@@ -58,7 +58,7 @@ class StockOpnameController extends Controller
             ])->findOrFail($id);
 
             foreach ($stockOpname->stockOpnameDetails as $detail) {
-                $selisih = abs($detail->selisih); // Ambil selisih dalam nilai positif
+                $selisih = $detail->selisih; // Ambil selisih dalam nilai positif
 
                 // Ambil transaksi terakhir sebelum tanggal pengajuan
                 $lastPurchaseDetail = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
@@ -398,7 +398,14 @@ class StockOpnameController extends Controller
             ]);
 
             foreach ($stockOpname->stockOpnameDetails as $detail) {
-                $selisih = abs($detail->selisih);
+                $selisih = $detail->selisih;
+
+                // Abaikan jika selisih positif (tidak mengurangi stok)
+                if ($selisih > 0) {
+                    continue;
+                }
+
+                $selisih = abs($selisih);
                 $purchaseDetails = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
                     ->where('sisa', '>', 0)
                     ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')

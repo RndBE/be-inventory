@@ -67,8 +67,8 @@
     <h3 class="pt-6">FORM BAHAN PRODUK PRODUKSI PT. ARTA TEKNOLOGI COMUNINDO</h3>
 
     <table style="width: 100%;border-collapse: collapse;padding-top:10;">
-        <tr>
-            <td><strong>Nama Produk</strong></td>
+        <tr style="text-align: left;vertical-align: top;">
+            <td style="width: 30%;"><strong>Nama Produk</strong></td>
             <td>: {{ $produkProduksis->dataBahan->nama_bahan }}</td>
         </tr>
         {{-- <tr style="text-align: left;vertical-align: top;">
@@ -115,7 +115,7 @@
                             Data tidak tersedia
                         @endif
                     </td>
-                    <td style="border: 1px solid black; text-align: center;">{{ $detail->jml_bahan ?? null }}</td>
+                    <td style="border: 1px solid black">{{ $detail->jml_bahan ?? null }}</td>
                 </tr>
             @endforeach
         </tbody>

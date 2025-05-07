@@ -162,6 +162,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
     Route::resource('bahan-jadis', BahanJadiController::class);
     Route::resource('produk-produksis', ProdukProduksiController::class);
+    Route::get('/produk-produksis/pdf/{id}', [ProdukProduksiController::class, 'downloadPdf'])->name('produk-produksis.downloadPdf');
     Route::resource('bahan-returs', BahanReturController::class);
     Route::get('/bahan-returs/pdf/{id}', [BahanReturController::class, 'downloadPdf'])->name('bahan-returs.downloadPdf');
 

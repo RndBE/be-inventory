@@ -7,6 +7,7 @@ use App\Helpers\LogHelper;
 use App\Livewire\BahanCart;
 use Illuminate\Http\Request;
 use App\Models\ProdukProduksi;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\ProdukProduksiDetail;
 use Illuminate\Support\Facades\Storage;
 
@@ -126,7 +127,26 @@ class ProdukProduksiController extends Controller
         }
     }
 
+    public function downloadPdf(int $id)
+    {
+        try {
+            $produkProduksis = ProdukProduksi::with([
+                'produkProduksiDetails','dataBahan'
+            ])->findOrFail($id);
 
+            $pdf = Pdf::loadView('pages.produk-produksis.pdf', compact(
+                'produkProduksis',
+            ))->setPaper('letter', 'portrait');
+            return $pdf->stream("BahanProdukProduksi_{$id}.pdf");
+
+            LogHelper::success('Berhasil generating PDF for BahanProdukProduksi ID {$id}!');
+            return $pdf->download("BahanProdukProduksi_{$id}.pdf");
+
+        } catch (\Exception $e) {
+            LogHelper::error("Error generating PDF for BahanProdukProduksi ID {$id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
+        }
+    }
 
     public function destroy($id)
     {

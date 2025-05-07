@@ -115,7 +115,7 @@
                             Data tidak tersedia
                         @endif
                     </td>
-                    <td style="border: 1px solid black">{{ $detail->jml_bahan ?? null }}</td>
+                    <td style="border: 1px solid black;text-align: center;">{{ $detail->jml_bahan ?? null }}</td>
                 </tr>
             @endforeach
         </tbody>

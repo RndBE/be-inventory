@@ -163,21 +163,26 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
 
     private function getPreviousDayStokAkhir($bahanId, $startDate)
     {
-        // Ambil total pembelian s.d. sebelum startDate
+        // Total masuk sebelum startDate
         $totalMasuk = PurchaseDetail::whereHas('purchase', function ($query) use ($startDate) {
             $query->whereDate('tgl_masuk', '<', $startDate);
         })
         ->where('bahan_id', $bahanId)
-        ->orderBy('purchase_id')
-        ->get(['qty', 'sisa']);
+        ->sum('qty');
 
-        $totalMasukQty = $totalMasuk->sum('qty');
+        // Total keluar sebelum startDate
+        $totalKeluar = BahanKeluarDetails::whereHas('bahanKeluar', function ($query) use ($startDate) {
+            $query->whereDate('tgl_keluar', '<', $startDate)
+                ->where('status', 'Disetujui');
+        })
+        ->where('bahan_id', $bahanId)
+        ->sum('qty');
 
-        // Simulasi FIFO: stok awal adalah stok masuk sebelum startDate, dikurangi pemakaian setelah startDate
-        $stokAwal = $totalMasukQty;
+        $stokAwal = $totalMasuk - $totalKeluar;
 
         return $stokAwal > 0 ? $stokAwal : 0;
     }
+
 
 
 

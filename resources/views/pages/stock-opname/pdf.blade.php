@@ -49,6 +49,13 @@
             color: red; /* Atau sesuaikan dengan warna yang diinginkan */
         }
 
+        @media print {
+            @page {
+                size: auto;
+                margin: 20mm;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -124,7 +131,7 @@
         </tfoot>
     </table>
 
-    <table style="border: 0px solid black;width: 100%;border-collapse: collapse;padding-top:30;">
+    <table style="border: 0px solid black;width: 100%;border-collapse: collapse;padding-top:5;">
         <tr style="border: 0px solid black;text-align: left; vertical-align: top;">
             <td colspan="4" style="border: 0px solid black; text-align: center;"><strong>Pengaju</strong></td>
             {{-- <td colspan="2" style="border: 0px solid black; text-align: center;"><strong>Manager</strong></td> --}}
@@ -133,17 +140,12 @@
             <td colspan="4" style="border: 0px solid black;text-align: center; width: 25%;">
                 <div style="height: 80px; width: 150px;"></div>
             </td>
-            {{-- <td colspan="2" style="border: 0px solid black;text-align: center; width: 25%;">
-            </td> --}}
         </tr>
 
         <tr style="border: 0px solid black;text-align: left; vertical-align: top;">
             <td colspan="4" style="border: 0px solid black;text-align: center;">
                 {{ $stockOpname->pengajuUser->name }}
             </td>
-            {{-- <td colspan="2" style="border: 0px solid black;text-align: center;">
-                {{ $managerName ?? '' }}
-            </td> --}}
         </tr>
 
 

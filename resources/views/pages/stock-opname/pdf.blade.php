@@ -126,24 +126,24 @@
 
     <table style="border: 0px solid black;width: 100%;border-collapse: collapse;padding-top:30;">
         <tr style="border: 0px solid black;text-align: left; vertical-align: top;">
-            <td colspan="2" style="border: 0px solid black; text-align: center;"><strong>Pengaju</strong></td>
-            <td colspan="2" style="border: 0px solid black; text-align: center;"><strong>Manager</strong></td>
+            <td colspan="4" style="border: 0px solid black; text-align: center;"><strong>Pengaju</strong></td>
+            {{-- <td colspan="2" style="border: 0px solid black; text-align: center;"><strong>Manager</strong></td> --}}
         </tr>
         <tr style="border: 0px solid black;">
-            <td colspan="2" style="border: 0px solid black;text-align: center; width: 25%;">
+            <td colspan="4" style="border: 0px solid black;text-align: center; width: 25%;">
                 <div style="height: 80px; width: 150px;"></div>
             </td>
-            <td colspan="2" style="border: 0px solid black;text-align: center; width: 25%;">
-            </td>
+            {{-- <td colspan="2" style="border: 0px solid black;text-align: center; width: 25%;">
+            </td> --}}
         </tr>
 
         <tr style="border: 0px solid black;text-align: left; vertical-align: top;">
-            <td colspan="2" style="border: 0px solid black;text-align: center;">
+            <td colspan="4" style="border: 0px solid black;text-align: center;">
                 {{ $stockOpname->pengajuUser->name }}
             </td>
-            <td colspan="2" style="border: 0px solid black;text-align: center;">
+            {{-- <td colspan="2" style="border: 0px solid black;text-align: center;">
                 {{ $managerName ?? '' }}
-            </td>
+            </td> --}}
         </tr>
 
 

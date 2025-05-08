@@ -55,6 +55,7 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
         }
 
         $tglBlnHeaders[] = 'Stok Akhir';
+        $tglBlnHeaders[] = 'Harga Terakhir';
 
         $data[] = $tglBlnHeaders;
 
@@ -107,20 +108,46 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
                 ->where('bahan_id', $item->id)
                 ->sum('qty');
 
-                $stokAkhir += $stokMasuk - $stokKeluar;
+                // $stokAkhir += $stokMasuk - $stokKeluar;
 
                 $row[] = $stokMasuk;
                 $row[] = $hargaBeli;
                 $row[] = $stokKeluar;
             }
 
-            $row[] = $stokAkhir;
+            // $row[] = $stokAkhir;
+            $row[] = $this->getSisaStokAkhir($item->id, $this->endDate);
+
+            // Tambah harga terakhir
+            $hargaTerakhir = PurchaseDetail::join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+                ->where('purchase_details.bahan_id', $item->id)
+                ->whereDate('purchases.tgl_masuk', '<=', Carbon::parse($this->endDate)->toDateString()) // Menggunakan $this->endDate
+                ->orderBy('purchases.tgl_masuk', 'desc')
+                ->value('purchase_details.unit_price');
+
+            // Format harga terakhir jika ditemukan
+            $hargaFormatted = $hargaTerakhir ? number_format($hargaTerakhir, 2, ',', '.') : '';
+            $row[] = $hargaFormatted;
+
 
             $data[] = $row;
         }
 
         return $data;
     }
+
+    private function getSisaStokAkhir($bahanId, $endDate)
+    {
+        $totalSisa = PurchaseDetail::whereHas('purchase', function ($query) use ($endDate) {
+            $query->whereDate('tgl_masuk', '<=', $endDate);
+        })
+        ->where('bahan_id', $bahanId)
+        ->sum('sisa');
+
+        $sisa = $totalSisa;
+        return $sisa > 0 ? $sisa : 0;
+    }
+
 
     private function getPreviousDayStokAkhir($bahanId, $startDate)
     {
@@ -130,16 +157,9 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
             $query->whereDate('tgl_masuk', '<=', $previousDate);
         })
         ->where('bahan_id', $bahanId)
-        ->sum('qty');
+        ->sum('sisa');
 
-        $stokKeluar = BahanKeluarDetails::whereHas('bahanKeluar', function ($query) use ($previousDate) {
-            $query->whereDate('tgl_keluar', '<=', $previousDate)
-                ->where('status', 'Disetujui');
-        })
-        ->where('bahan_id', $bahanId)
-        ->sum('qty');
-
-        $stokAwal = $stokMasuk - $stokKeluar;
+        $stokAwal = $stokMasuk;
         return $stokAwal > 0 ? $stokAwal : 0;
     }
 
@@ -211,6 +231,17 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
         $sheet->getStyle("{$columnLetter}3:{$columnLetter}4")->getFont()->setBold(true);
         $sheet->getStyle("{$columnLetter}3:{$columnLetter}4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $colIndex++;
+
+        $hargaColumnLetter = $this->getColumnLetter($colIndex);
+        $sheet->mergeCells("{$hargaColumnLetter}3:{$hargaColumnLetter}4");
+        $sheet->setCellValue("{$hargaColumnLetter}3", 'Harga Terakhir');
+        $sheet->getStyle("{$hargaColumnLetter}3:{$hargaColumnLetter}4")->getFont()->setBold(true);
+        $sheet->getStyle("{$hargaColumnLetter}3:{$hargaColumnLetter}4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("{$hargaColumnLetter}5:{$hargaColumnLetter}{$sheet->getHighestRow()}")
+        ->getAlignment()
+        ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $colIndex++;
+
 
         $headerFillStyle = [
             'fill' => [

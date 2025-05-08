@@ -115,11 +115,17 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
                 $row[] = $stokKeluar;
             }
 
-            // $row[] = $stokAkhir;
-            // $row[] = $this->getSisaStokAkhir($item->id, $this->endDate);
+            // Calculate stokAkhir based on FIFO logic
             $stokMasukPeriode = $this->getTotalStokMasuk($item->id, $this->startDate, $this->endDate);
             $stokKeluarPeriode = $this->getTotalStokKeluar($item->id, $this->startDate, $this->endDate);
-            $stokAkhir = $stokAwal + $stokMasukPeriode - $stokKeluarPeriode;
+
+            // If both stokMasukPeriode and stokKeluarPeriode are zero, use the initial stock minus total keluar before start date
+            if ($stokMasukPeriode == 0 && $stokKeluarPeriode == 0) {
+                $stokAkhir = $stokAwal - $this->getTotalStokKeluarBeforeStart($item->id, $this->startDate);
+            } else {
+                $stokAkhir = $stokAwal + $stokMasukPeriode - $stokKeluarPeriode;
+            }
+
             $row[] = $stokAkhir;
 
             // Tambah harga terakhir
@@ -138,6 +144,16 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
         }
 
         return $data;
+    }
+
+    private function getTotalStokKeluarBeforeStart($bahanId, $startDate)
+    {
+        return BahanKeluarDetails::whereHas('bahanKeluar', function ($query) use ($startDate) {
+            $query->whereDate('tgl_keluar', '<', $startDate)
+                ->where('status', 'Disetujui');
+        })
+        ->where('bahan_id', $bahanId)
+        ->sum('qty');
     }
 
     private function getTotalStokMasuk($bahanId, $startDate, $endDate)
@@ -163,26 +179,21 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
 
     private function getPreviousDayStokAkhir($bahanId, $startDate)
     {
-        // Total masuk sebelum startDate
+        // Ambil total pembelian s.d. sebelum startDate
         $totalMasuk = PurchaseDetail::whereHas('purchase', function ($query) use ($startDate) {
             $query->whereDate('tgl_masuk', '<', $startDate);
         })
         ->where('bahan_id', $bahanId)
-        ->sum('qty');
+        ->orderBy('purchase_id')
+        ->get(['qty', 'sisa']);
 
-        // Total keluar sebelum startDate
-        $totalKeluar = BahanKeluarDetails::whereHas('bahanKeluar', function ($query) use ($startDate) {
-            $query->whereDate('tgl_keluar', '<', $startDate)
-                ->where('status', 'Disetujui');
-        })
-        ->where('bahan_id', $bahanId)
-        ->sum('qty');
+        $totalMasukQty = $totalMasuk->sum('qty');
 
-        $stokAwal = $totalMasuk - $totalKeluar;
+        // Simulasi FIFO: stok awal adalah stok masuk sebelum startDate, dikurangi pemakaian setelah startDate
+        $stokAwal = $totalMasukQty;
 
         return $stokAwal > 0 ? $stokAwal : 0;
     }
-
 
 
 

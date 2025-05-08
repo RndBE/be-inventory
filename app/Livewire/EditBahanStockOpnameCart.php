@@ -14,7 +14,6 @@ class EditBahanStockOpnameCart extends Component
     public $subtotals = [];
     public $stockOpnameId;
     public $editingItemId;
-    public $editingItemIdket;
 
     public $tersedia_sistem = [];
     public $tersedia_fisik = [];
@@ -23,6 +22,7 @@ class EditBahanStockOpnameCart extends Component
     public $keterangan_raw = [];
     public $keterangan = [];
     public $status_selesai;
+    public $editingItemIdket = null;
 
     protected $listeners = ['bahanSelected' => 'addToCart'];
 
@@ -56,13 +56,13 @@ class EditBahanStockOpnameCart extends Component
                 'tersedia_sistem' => $detail->tersedia_sistem ?? 0,
                 'tersedia_fisik' => $detail->tersedia_fisik ?? 0,
                 'selisih' => $detail->selisih ?? 0,
-                'keterangan' => $detail->keterangan ?? 0,
+                'keterangan' => $detail->keterangan ?? null,
             ];
             $this->tersedia_sistem[$detail->dataBahan->id] = $detail->tersedia_sistem ?? 0;
             $this->tersedia_fisik[$detail->dataBahan->id] = $detail->tersedia_fisik ?? 0;
             $this->tersedia_fisik_raw[$detail->dataBahan->id] = $detail->tersedia_fisik ?? 0;
-            $this->keterangan[$detail->dataBahan->id] = $detail->keterangan ?? 0;
-            $this->keterangan_raw[$detail->dataBahan->id] = $detail->keterangan ?? 0;
+            $this->keterangan[$detail->dataBahan->id] = $detail->keterangan ?? null;
+            $this->keterangan_raw[$detail->dataBahan->id] = $detail->keterangan ?? null;
         }
     }
 
@@ -84,14 +84,14 @@ class EditBahanStockOpnameCart extends Component
                 'tersedia_sistem' => $bahan->purchaseDetails->sum('sisa'),
                 'tersedia_fisik' => 0,
                 'selisih' => 0,
-                'keterangan' => 0,
+                'keterangan' => null,
             ];
 
             $this->tersedia_sistem[$bahan->id] = $bahan->purchaseDetails->sum('sisa');
             $this->tersedia_fisik[$bahan->id] = 0;
             $this->tersedia_fisik_raw[$bahan->id] = 0;
             $this->selisih[$bahan->id] = 0;
-            $this->keterangan[$bahan->id] = 0;
+            $this->keterangan[$bahan->id] = null;
         }
     }
 

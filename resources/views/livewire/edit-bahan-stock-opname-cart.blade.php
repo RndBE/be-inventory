@@ -68,17 +68,14 @@
                                         autofocus
                                         wire:model="keterangan_raw.{{ $item['id'] }}"
                                         class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-900 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        placeholder="0"
+                                        placeholder=""
                                         required @if($status_selesai === 'Selesai') disabled @endif
                                         wire:blur="formatKet({{ $item['id'] }})"
                                     >{{ old('keterangan_raw.' . $item['id'], $keterangan_raw[$item['id']] ?? $item['keterangan']) }}</textarea>
                                 @else
-                                    {{-- <span class="cursor-pointer text-gray-900" wire:click="editItemKet({{ $item['id'] }})">
-                                        {{ $keterangan[$item['id']] ?? $item['keterangan'] }}
-                                    </span> --}}
                                     <span class="cursor-pointer text-gray-900 @if($status_selesai === 'Selesai') cursor-not-allowed @endif"
-                                    @if($status_selesai !== 'Selesai') wire:click="editItemKet({{ $item['id'] }})" @endif>
-                                        {{ $keterangan[$item['id']] ?? $item['keterangan'] }}
+                                        @if($status_selesai !== 'Selesai') wire:click="editItemKet({{ $item['id'] }})" @endif>
+                                        {{ trim($keterangan[$item['id']] ?? $item['keterangan']) !== '' ? $keterangan[$item['id']] ?? $item['keterangan'] : 'Klik untuk mengisi keterangan' }}
                                     </span>
                                 @endif
                             </td>

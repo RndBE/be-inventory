@@ -24,20 +24,45 @@ class BahanCart extends Component
         }
     }
 
+    // public function loadCartItems()
+    // {
+    //     $details = ProdukProduksiDetail::where('produk_produksis_id', $this->produkProduksisId)
+    //         ->with('dataBahan')
+    //         ->get();
+
+    //     foreach ($details as $detail) {
+    //         $this->cart[] = [
+    //             'id' => $detail->dataBahan->id,
+    //             'nama_bahan' => $detail->dataBahan->nama_bahan,
+    //             'jml_bahan' => $detail->jml_bahan ?? 0,
+    //         ];
+    //     }
+    // }
+
     public function loadCartItems()
     {
         $details = ProdukProduksiDetail::where('produk_produksis_id', $this->produkProduksisId)
             ->with('dataBahan')
             ->get();
 
+        $cart = [];
+
         foreach ($details as $detail) {
-            $this->cart[] = [
+            $cart[] = [
                 'id' => $detail->dataBahan->id,
                 'nama_bahan' => $detail->dataBahan->nama_bahan,
                 'jml_bahan' => $detail->jml_bahan ?? 0,
             ];
         }
+
+        // Urutkan berdasarkan nama_bahan
+        usort($cart, function ($a, $b) {
+            return strcmp($a['nama_bahan'], $b['nama_bahan']);
+        });
+
+        $this->cart = $cart;
     }
+
 
     public function addToCart($bahan)
     {

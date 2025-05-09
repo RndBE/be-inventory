@@ -131,22 +131,29 @@ class ProdukProduksiController extends Controller
     {
         try {
             $produkProduksis = ProdukProduksi::with([
-                'produkProduksiDetails','dataBahan'
+                'produkProduksiDetails.dataBahan',
             ])->findOrFail($id);
 
-            $pdf = Pdf::loadView('pages.produk-produksis.pdf', compact(
-                'produkProduksis',
-            ))->setPaper('letter', 'portrait');
-            return $pdf->stream("BahanProdukProduksi_{$id}.pdf");
+            // Urutkan detail berdasarkan nama_bahan
+            $sortedDetails = $produkProduksis->produkProduksiDetails->sortBy(function ($detail) {
+                return strtolower($detail->dataBahan->nama_bahan ?? '');
+            });
 
-            LogHelper::success('Berhasil generating PDF for BahanProdukProduksi ID {$id}!');
-            return $pdf->download("BahanProdukProduksi_{$id}.pdf");
+            // Masukkan ke dalam produkProduksis agar bisa digunakan di view
+            $produkProduksis->setRelation('produkProduksiDetails', $sortedDetails->values());
+
+            $pdf = Pdf::loadView('pages.produk-produksis.pdf', compact('produkProduksis'))
+                ->setPaper('letter', 'portrait');
+
+            LogHelper::success("Berhasil generating PDF for BahanProdukProduksi ID {$id}!");
+            return $pdf->stream("BahanProdukProduksi_{$id}.pdf");
 
         } catch (\Exception $e) {
             LogHelper::error("Error generating PDF for BahanProdukProduksi ID {$id}: " . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
         }
     }
+
 
     public function destroy($id)
     {

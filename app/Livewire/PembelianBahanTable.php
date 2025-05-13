@@ -9,7 +9,7 @@ use App\Models\BahanKeluar;
 use Livewire\WithPagination;
 use App\Models\PembelianBahan;
 use Illuminate\Support\Facades\Auth;
-
+use Carbon\Carbon;
 class PembelianBahanTable extends Component
 {
     use WithPagination;

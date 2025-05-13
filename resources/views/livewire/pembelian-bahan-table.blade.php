@@ -149,20 +149,58 @@
                             </td>
                             <td class="px-6 py-4">{{ $pembelian_bahan->pembelianBahanDetails->sum('jml_bahan') }}</td>
                             <td class="px-6 py-4">{{ $pembelian_bahan->jenis_pengajuan }}</td>
-                            <td class="px-6 py-4 min-w-[300px]">
+                            <td class="px-6 py-4 min-w-[500px]">
                                 @php
-                                    $statusList = [
-                                        'Leader' => $pembelian_bahan->status_leader ?? 'Belum disetujui',
-                                        'Purchasing' => $pembelian_bahan->status_purchasing ?? 'Belum disetujui',
-                                        'Manager' => $pembelian_bahan->status_manager ?? 'Belum disetujui',
-                                        'Finance' => $pembelian_bahan->status_finance ?? 'Belum disetujui',
-                                        'Manager Admin' => $pembelian_bahan->status_admin_manager ?? 'Belum disetujui',
-                                        'Direktur' => $pembelian_bahan->status ?? 'Belum disetujui',
-                                    ];
+                                    // use Carbon\Carbon;
 
-                                    // Hanya tampilkan status General Manager jika jenis_pengajuan adalah 'Pembelian Aset'
-                                    if ($pembelian_bahan->jenis_pengajuan === 'Pembelian Aset') {
-                                        $statusList['General Affair'] = $pembelian_bahan->status_general_manager ?? 'Belum disetujui';
+                                    // Daftar status dan tanggal approval
+                                    $statusList = [];
+                                    $dateList = [];
+
+                                    // Tambahkan tanggal pengajuan sebagai awal
+                                    $dateList['Pengajuan'] = $pembelian_bahan->tgl_pengajuan;
+
+                                    $jenis = $pembelian_bahan->jenis_pengajuan;
+
+                                    // Urutan berdasarkan jenis pengajuan
+                                    if ($jenis === 'Pembelian Aset') {
+                                        $statusList = [
+                                            'Leader' => $pembelian_bahan->status_leader ?? 'Belum disetujui',
+                                            'General Affair' => $pembelian_bahan->status_general_manager ?? 'Belum disetujui',
+                                            'Purchasing' => $pembelian_bahan->status_purchasing ?? 'Belum disetujui',
+                                            'Manager' => $pembelian_bahan->status_manager ?? 'Belum disetujui',
+                                            'Finance' => $pembelian_bahan->status_finance ?? 'Belum disetujui',
+                                            'Manager Admin' => $pembelian_bahan->status_admin_manager ?? 'Belum disetujui',
+                                            'Direktur' => $pembelian_bahan->status ?? 'Belum disetujui',
+                                        ];
+
+                                        $dateList += [
+                                            'Leader' => $pembelian_bahan->tgl_approve_leader,
+                                            'General Affair' => $pembelian_bahan->tgl_approve_general_manager,
+                                            'Purchasing' => $pembelian_bahan->tgl_approve_purchasing,
+                                            'Manager' => $pembelian_bahan->tgl_approve_manager,
+                                            'Finance' => $pembelian_bahan->tgl_approve_finance,
+                                            'Manager Admin' => $pembelian_bahan->tgl_approve_admin_manager,
+                                            'Direktur' => $pembelian_bahan->tgl_approve_direktur,
+                                        ];
+                                    } else {
+                                        $statusList = [
+                                            'Leader' => $pembelian_bahan->status_leader ?? 'Belum disetujui',
+                                            'Purchasing' => $pembelian_bahan->status_purchasing ?? 'Belum disetujui',
+                                            'Manager' => $pembelian_bahan->status_manager ?? 'Belum disetujui',
+                                            'Finance' => $pembelian_bahan->status_finance ?? 'Belum disetujui',
+                                            'Manager Admin' => $pembelian_bahan->status_admin_manager ?? 'Belum disetujui',
+                                            'Direktur' => $pembelian_bahan->status ?? 'Belum disetujui',
+                                        ];
+
+                                        $dateList += [
+                                            'Leader' => $pembelian_bahan->tgl_approve_leader,
+                                            'Purchasing' => $pembelian_bahan->tgl_approve_purchasing,
+                                            'Manager' => $pembelian_bahan->tgl_approve_manager,
+                                            'Finance' => $pembelian_bahan->tgl_approve_finance,
+                                            'Manager Admin' => $pembelian_bahan->tgl_approve_admin_manager,
+                                            'Direktur' => $pembelian_bahan->tgl_approve_direktur,
+                                        ];
                                     }
 
                                     $statusColors = [
@@ -170,26 +208,76 @@
                                         'Disetujui' => 'bg-green-100 text-green-800 border-green-100',
                                         'Ditolak' => 'bg-red-100 text-red-800 border-red-100',
                                     ];
+
+                                    // Hitung selisih waktu antar approval
+                                    $previousDate = null;
+                                    $timeDiffs = [];
+
+                                    foreach ($dateList as $key => $date) {
+                                        if ($previousDate && $date) {
+                                            $timeDiffs[$key] = \Carbon\Carbon::parse($date)->diffForHumans(\Carbon\Carbon::parse($previousDate), ['parts' => 2, 'short' => true]);
+                                        } else {
+                                            $timeDiffs[$key] = null;
+                                        }
+                                        $previousDate = $date;
+                                    }
                                 @endphp
 
-                                <div class="grid grid-cols-1 gap-1">
+
+                                {{-- <div class="grid grid-cols-1 gap-1">
                                     @foreach ($statusList as $role => $status)
-                                    <div class="flex items-center space-x-2">
-                                        <span class="text-gray-700 text-xs font-medium">{{ $role }}:</span>
-                                        <div class="relative group inline-block">
-                                            <span class="px-3 py-1 rounded-full text-xs font-medium border
-                                                {{ $statusColors[$status] ?? 'bg-gray-100 text-gray-800 border-gray-400' }}">
-                                                {{ $status }}
-                                            </span>
-                                            @if ($status === 'Ditolak' && isset($pembelian_bahan->catatan))
-                                                <div class="absolute left-1/2 bottom-full mb-2 transform -translate-x-1/2 w-56 p-2 text-xs text-white bg-gray-900 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                    {{ $pembelian_bahan->catatan ?? 'Tidak ada catatan' }}
-                                                </div>
-                                            @endif
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-gray-700 text-xs font-medium">{{ $role }}:</span>
+                                            <div class="relative group inline-block">
+                                                <span class="px-3 py-1 rounded-full text-xs font-medium border
+                                                    {{ $statusColors[$status] ?? 'bg-gray-100 text-gray-800 border-gray-400' }}">
+                                                    {{ $status }}
+                                                </span>
+                                                @if (!empty($timeDiffs[$role]))
+                                                    <span class="ml-2 text-xs text-gray-500">
+                                                        (+{{ $timeDiffs[$role] }})
+                                                    </span>
+                                                @endif
+                                                @if ($status === 'Ditolak' && isset($pembelian_bahan->catatan))
+                                                    <div class="absolute left-1/2 bottom-full mb-2 transform -translate-x-1/2 w-56 p-2 text-xs text-white bg-gray-900 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                        {{ $pembelian_bahan->catatan ?? 'Tidak ada catatan' }}
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </div>
-                                    </div>
                                     @endforeach
-                                </div>
+                                </div> --}}
+                                <table class="w-full text-sm text-left border-collapse">
+                                    <tbody>
+                                        @foreach ($statusList as $role => $status)
+                                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                                <td class="py-2 px-3 text-gray-700 font-medium">{{ $role }}</td>
+
+                                                <td class="py-2 px-3">
+                                                    <span class="px-3 py-1 rounded-full text-xs font-medium border
+                                                        {{ $statusColors[$status] ?? 'bg-gray-100 text-gray-800 border-gray-400' }}">
+                                                        {{ $status }}
+                                                    </span>
+
+                                                    @if ($status === 'Ditolak' && isset($pembelian_bahan->catatan))
+                                                        <div class="mt-1 text-xs text-red-600">
+                                                            Catatan: {{ $pembelian_bahan->catatan }}
+                                                        </div>
+                                                    @endif
+                                                </td>
+
+                                                <td class="py-2 px-3 text-gray-500 text-xs">
+                                                    @if (!empty($timeDiffs[$role]))
+                                                        +{{ $timeDiffs[$role] }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+
                             </td>
 
                             <td class="px-6 py-4">

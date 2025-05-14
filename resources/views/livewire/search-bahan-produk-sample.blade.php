@@ -26,7 +26,7 @@
             @foreach($bahanList as $bahan)
                 <div class="bg-white border rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
                     @if($bahan['gambar'])
-                        <div class="w-full h-40 rounded mb-4 overflow-hidden">
+                        <div class="h-40 rounded mb-4 overflow-hidden">
                             <img
                                 src="{{ asset('storage/' . $bahan['gambar']) }}"
                                 alt="{{ $bahan['nama'] }}"
@@ -34,7 +34,7 @@
                             >
                         </div>
                     @else
-                        <div class="w-full h-40 bg-gray-200 flex items-center justify-center rounded mb-4">
+                        <div class="h-40 bg-gray-200 flex items-center justify-center rounded mb-4">
                             <span class="text-gray-500 text-sm">Tidak ada gambar</span>
                         </div>
                     @endif

@@ -41,6 +41,7 @@ use App\Http\Controllers\LogActivityController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\ProdukSampleController;
 use App\Http\Controllers\StokProduksiController;
 use App\Http\Controllers\GaransiProjekController;
 use App\Http\Controllers\LaporanProyekController;
@@ -153,6 +154,10 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('projeks', ProjekController::class);
     Route::put('projeks/{projek}/selesai', [ProjekController::class, 'updateStatus'])->name('projeks.updateStatus');
     Route::get('projeks-export/{projek_id}', [ProjekController::class, 'export'])->name('projeks.export');
+
+    Route::resource('produk-sample', ProdukSampleController::class);
+    Route::put('produk-sample/{produk}/selesai', [ProdukSampleController::class, 'updateStatus'])->name('produk-sample.updateStatus');
+    Route::get('produk-sample-export/{projek_id}', [ProdukSampleController::class, 'export'])->name('produk-sample.export');
 
     Route::resource('garansi-projeks', GaransiProjekController::class);
     Route::put('garansi-projeks/{projek}/selesai', [GaransiProjekController::class, 'updateStatus'])->name('garansi-projeks.updateStatus');

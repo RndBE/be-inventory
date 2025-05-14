@@ -11,6 +11,7 @@ use App\Models\StokRnd;
 use App\Models\Produksi;
 use App\Helpers\LogHelper;
 use App\Models\BahanKeluar;
+use App\Models\ProdukSample;
 use App\Models\StokProduksi;
 use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
@@ -23,6 +24,7 @@ use App\Models\ProjekRndDetails;
 use App\Jobs\SendWhatsAppMessage;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
+use App\Models\ProdukSampleDetails;
 use App\Models\GaransiProjekDetails;
 use Illuminate\Support\Facades\Http;
 use App\Jobs\SendWhatsAppNotification;
@@ -358,6 +360,27 @@ class BahanKeluarController extends Controller
                             PengambilanBahanDetails::create([
                                 'pengambilan_bahan_id' => $bahanKeluar->pengambilan_bahan_id,
                                 'bahan_id' => $detail->bahan_id,
+                                'qty' => 0,
+                                'jml_bahan' => $detail->jml_bahan,
+                                'used_materials' => 0,
+                                'details' => json_encode([]),
+                                'sub_total' => 0,
+                            ]);
+                        }
+                    }elseif ($bahanKeluar->produk_sample_id) {
+                        // Melakukan pencarian pada tabel produk_sample_details
+                        $existingDetail = ProdukSampleDetails::where('produk_sample_id', $bahanKeluar->produk_sample_id)
+                        ->where(function ($query) use ($detail) {
+                            $query->where('bahan_id', $detail->bahan_id)
+                                ->orWhere('produk_id', $detail->produk_id);
+                        })
+                        ->first();
+                        // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel produk_sample_details dengan data default
+                        if (!$existingDetail) {
+                            ProdukSampleDetails::create([
+                                'produk_sample_id' => $bahanKeluar->produk_sample_id,
+                                'bahan_id' => $detail->bahan_id ?? null,
+                                'produk_id' => $detail->produk_id ?? null,
                                 'qty' => 0,
                                 'jml_bahan' => $detail->jml_bahan,
                                 'used_materials' => 0,
@@ -774,6 +797,72 @@ class BahanKeluarController extends Controller
                                 PengambilanBahanDetails::create([
                                     'pengambilan_bahan_id' => $bahanKeluar->pengambilan_bahan_id,
                                     'bahan_id' => $detail->bahan_id,
+                                    'qty' => $group['qty'],
+                                    'jml_bahan' => $detail->jml_bahan,
+                                    'used_materials' => $group['qty'],
+                                    'details' => json_encode([$group]),
+                                    'sub_total' => $group['qty'] * $unitPrice,
+                                ]);
+                            }
+                        }
+                    }if ($bahanKeluar->produk_sample_id) {
+                        // Iterasi array groupedDetails untuk mengelola bahan keluar
+                        foreach ($groupedDetails as $unitPrice => $group) {
+                            if ($detail->produk_id) {
+                                // Jika bahan setengah jadi (menggunakan produk_id)
+                                $produkSampleDetailQuery = ProdukSampleDetails::where('produk_sample_id', $bahanKeluar->produk_sample_id)
+                                    ->where('produk_id', $detail->produk_id);
+                            } elseif ($detail->bahan_id) {
+                                // Jika bahan dari pembelian (menggunakan bahan_id)
+                                $produkSampleDetailQuery = ProdukSampleDetails::where('produk_sample_id', $bahanKeluar->produk_sample_id)
+                                    ->where('bahan_id', $detail->bahan_id);
+                            } else {
+                                continue; // Jika tidak ada produk_id atau bahan_id, skip iterasi
+                            }
+
+                            // Tambahkan kondisi serial_number jika ada
+                            if (!empty($group['serial_number'])) {
+                                $produkSampleDetailQuery->where('serial_number', $group['serial_number']);
+                            }
+
+                            // Eksekusi query
+                            $produkSampleDetail = $produkSampleDetailQuery->first();
+
+                            if ($produkSampleDetail) {
+                                // Update existing entry jika bahan_id / produk_id & serial_number sama
+                                $produkSampleDetail->qty += $group['qty'];
+                                $produkSampleDetail->used_materials += $group['qty'];
+                                $produkSampleDetail->sub_total += $group['qty'] * $unitPrice;
+
+                                if ($produkSampleDetail->jml_bahan !== $detail->jml_bahan) {
+                                    $produkSampleDetail->jml_bahan = $detail->jml_bahan;
+                                }
+
+                                // Update details field
+                                $currentDetails = json_decode($produkSampleDetail->details, true) ?? [];
+                                $mergedDetails = [];
+
+                                foreach ($currentDetails as $existingDetail) {
+                                    $price = $existingDetail['unit_price'];
+                                    $mergedDetails[$price] = $existingDetail;
+                                }
+
+                                // Memperbarui atau menambah detail transaksi baru ke dalam array yang sudah ada.
+                                if (isset($mergedDetails[$unitPrice])) {
+                                    $mergedDetails[$unitPrice]['qty'] += $group['qty'];
+                                } else {
+                                    $mergedDetails[$unitPrice] = $group;
+                                }
+
+                                $produkSampleDetail->details = json_encode(array_values($mergedDetails));
+                                $produkSampleDetail->save();
+                            } else {
+                                // Buat entri baru jika produk_id / bahan_id sama tapi serial_number berbeda atau tidak ada
+                                ProdukSampleDetails::create([
+                                    'produk_sample_id' => $bahanKeluar->produk_sample_id,
+                                    'produk_id' => $detail->produk_id ?? null,
+                                    'bahan_id' => $detail->bahan_id ?? null,
+                                    'serial_number' => $group['serial_number'] ?? null, // Tambahkan serial number jika ada
                                     'qty' => $group['qty'],
                                     'jml_bahan' => $detail->jml_bahan,
                                     'used_materials' => $group['qty'],

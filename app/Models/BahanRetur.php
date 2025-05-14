@@ -26,6 +26,10 @@ class BahanRetur extends Model
     {
         return $this->hasOne(Projek::class, 'id', 'projek_id');
     }
+    public function produkSample()
+    {
+        return $this->hasOne(ProdukSample::class, 'id', 'produk_sample_id');
+    }
 
     public function garansiProjek()
     {

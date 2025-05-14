@@ -17,6 +17,7 @@ use App\Models\ProjekRndDetails;
 use App\Models\BahanReturDetails;
 use App\Models\BahanSetengahjadi;
 use Illuminate\Support\Facades\DB;
+use App\Models\ProdukSampleDetails;
 use App\Models\GaransiProjekDetails;
 use App\Models\PengambilanBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
@@ -42,7 +43,7 @@ class BahanReturController extends Controller
     {
         try {
             $bahanRetur = BahanRetur::with([
-                'produksiS','projek','garansiProjek','projekRnd','pengajuan','pengambilanBahan',
+                'produksiS','projek','garansiProjek','projekRnd','pengajuan','pengambilanBahan','produkSample',
                 'bahanReturDetails.dataBahan.dataUnit',
                 'bahanReturDetails.dataProduk',
             ])->findOrFail($id);
@@ -69,6 +70,8 @@ class BahanReturController extends Controller
                 $pengaju = $bahanRetur->pengajuan->pengaju ?? null;
             }elseif ($bahanRetur->pengambilanBahan) {
                 $pengaju = $bahanRetur->pengambilanBahan->pengaju ?? null;
+            }elseif ($bahanRetur->produkSample) {
+                $pengaju = $bahanRetur->produkSample->pengaju ?? null;
             }
 
             if ($pengaju) {
@@ -422,6 +425,7 @@ class BahanReturController extends Controller
                     $pengambilanBahanDetail = PengambilanBahanDetails::where('pengambilan_bahan_id', $bahanRetur->pengambilan_bahan_id)
                         ->where('bahan_id', $bahanId)
                         ->first();
+
                     if ($pengambilanBahanDetail) {
                         $currentDetails = json_decode($pengambilanBahanDetail->details, true) ?? [];
                         foreach ($detailsByPrice as $unitPrice => $qtyData) {
@@ -454,6 +458,50 @@ class BahanReturController extends Controller
                         } else {
                             // Jika tidak ada entry tersisa, hapus pengambilanBahanDetails
                             $pengambilanBahanDetail->delete();
+                        }
+                    }
+
+                    // Update untuk ProdukSampleDetails
+                    $produkSampleDetail = ProdukSampleDetails::where('produk_sample_id', $bahanRetur->produk_sample_id)
+                    ->where(function ($query) use ($bahanId) {
+                        $query->where('bahan_id', $bahanId)
+                                ->orWhere('produk_id', $bahanId);
+                    })
+                    ->first();
+
+                    if ($produkSampleDetail) {
+                        $currentDetails = json_decode($produkSampleDetail->details, true) ?? [];
+
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    // Jika qty menjadi 0 atau negatif, hapus entry dari details
+                                    if ($entry['qty'] <= 0) {
+                                        unset($currentDetails[$key]);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $produkSampleDetail->qty = max(0, $produkSampleDetail->qty - $totalQtyReduction);
+                        $produkSampleDetail->used_materials = max(0, $produkSampleDetail->used_materials - $totalQtyReduction);
+
+                        // Hitung ulang sub_total hanya jika masih ada entri di details
+                        if (!empty($currentDetails)) {
+                            $produkSampleDetail->sub_total = 0;
+                            foreach ($currentDetails as $detail) {
+                                $produkSampleDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                            }
+
+                            // Simpan details yang sudah diperbarui
+                            $produkSampleDetail->details = json_encode(array_values($currentDetails));
+                            $produkSampleDetail->save();
+                        } else {
+                            // Jika tidak ada entry tersisa, hapus ProdukSampleDetails
+                            $produkSampleDetail->delete();
                         }
                     }
                 }

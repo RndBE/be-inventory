@@ -12,6 +12,7 @@ use App\Models\PengajuanDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanRusakDetails;
 use Illuminate\Support\Facades\DB;
+use App\Models\ProdukSampleDetails;
 use App\Models\GaransiProjekDetails;
 use App\Models\PengambilanBahanDetails;
 
@@ -42,6 +43,7 @@ class BahanRusakController extends Controller
             'kode_produksi' => $bahanRusak->produksiS ? $bahanRusak->produksiS->kode_produksi : null,
             'kode_projek' => $bahanRusak->projek ? $bahanRusak->projek->kode_projek : null,
             'kode_projek_rnd' => $bahanRusak->projekRnd ? $bahanRusak->projekRnd->kode_projek_rnd : null,
+            'kode_produk_sample' => $bahanRusak->produkSample ? $bahanRusak->produkSample->kode_produk_sample : null,
             'bahanRusakDetails' => $bahanRusak->bahanRusakDetails,
         ]);
     }
@@ -343,6 +345,52 @@ class BahanRusakController extends Controller
                         } else {
                             // Jika tidak ada entry tersisa, hapus pengambilanBahanDetails
                             $pengambilanBahanDetail->delete();
+                        }
+                    }
+
+                    $produkSampleDetail = ProdukSampleDetails::where('produk_sample_id', $bahanRusak->produk_sample_id)
+                        ->where(function ($query) use ($bahanId) {
+                            $query->where('bahan_id', $bahanId)
+                                    ->orWhere('produk_id', $bahanId);
+                        })
+                        ->first();
+
+                    if ($produkSampleDetail) {
+                        $currentDetails = json_decode($produkSampleDetail->details, true) ?? [];
+
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    if ($entry['qty'] <= 0) {
+                                        unset($currentDetails[$key]);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $produkSampleDetail->qty -= $totalQtyReduction;
+                        $produkSampleDetail->used_materials -= $totalQtyReduction;
+
+                        // Pastikan qty dan used_materials tidak negatif
+                        $produkSampleDetail->qty = max(0, $produkSampleDetail->qty);
+                        $produkSampleDetail->used_materials = max(0, $produkSampleDetail->used_materials);
+
+                        // Hitung ulang sub_total hanya jika masih ada entri di details
+                        if (!empty($currentDetails)) {
+                            $produkSampleDetail->sub_total = 0;
+                            foreach ($currentDetails as $detail) {
+                                $produkSampleDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                            }
+
+                            // Simpan details yang sudah diperbarui
+                            $produkSampleDetail->details = json_encode(array_values($currentDetails));
+                            $produkSampleDetail->save();
+                        } else {
+                            // Jika tidak ada entry tersisa, hapus ProjekDetails
+                            $produkSampleDetail->delete();
                         }
                     }
                 }

@@ -80,13 +80,13 @@
         {{-- Layout --}}
         <div class="flex flex-col lg:flex-row items-start gap-6">
             {{-- Left: Product List + Search --}}
-            <div class="w-full lg:w-3/4 bg-white border rounded-lg p-6 shadow">
+            <div style="width: 100%; @media (min-width: 1024px) { width: 75%; }" class="bg-white border rounded-lg p-6 shadow">
                 <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
                 <livewire:search-bahan-produk-sample/>
             </div>
 
             {{-- Right: Cart --}}
-            <div class="w-full lg:w-2/4 bg-white border rounded-lg p-6 shadow">
+            <div style="width: 100%; @media (min-width: 1024px) { width: 50%; }" class="bg-white border rounded-lg p-6 shadow">
                 <form action="{{ route('produk-sample.store') }}" method="POST" enctype="multipart/form-data" id="produksiProdukForm">
                     @csrf
                     <div class="space-y-6">

@@ -26,16 +26,12 @@
             @foreach($bahanList as $bahan)
                 <div class="bg-white border rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
                     @if($bahan['gambar'])
-                        <img src="{{ asset('storage/' . $bahan['gambar']) }}"
-                            alt="{{ $bahan['nama'] }}"
-                            class="w-[200px] h-[200px] object-cover rounded mb-4 mx-auto">
+                        <img src="{{ asset('storage/' . $bahan['gambar']) }}" alt="{{ $bahan['nama'] }}" class="w-full h-40 object-cover rounded mb-4">
                     @else
-                        <div class="w-[200px] h-[200px] bg-gray-200 flex items-center justify-center rounded mb-4 mx-auto">
+                        <div class="w-full h-40 bg-gray-200 flex items-center justify-center rounded mb-4">
                             <span class="text-gray-500 text-sm">Tidak ada gambar</span>
                         </div>
                     @endif
-
-
 
                     <h4 class="font-bold text-lg">{{ $bahan['nama'] }}</h4>
                     {{-- Jika tipe setengahjadi, tampilkan serial number --}}

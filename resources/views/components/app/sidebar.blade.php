@@ -374,7 +374,7 @@
                             </a>
                         </li>
                     @endcan
-                    {{-- @can('lihat-projek') --}}
+                    @can('lihat-produk-sample')
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['produk-sample'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['produk-sample.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('produk-sample.index') }}">
                                 <div class="flex items-center">
@@ -383,7 +383,7 @@
                                 </div>
                             </a>
                         </li>
-                    {{-- @endcan --}}
+                    @endcan
                     @can('lihat-garansi-projek')
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['garansi-projeks'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['garansi-projeks.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('garansi-projeks.index') }}">

@@ -23,7 +23,7 @@ class StockOpnameDetails extends Model
 
     public function dataProduk()
     {
-        return $this->belongsTo(BahanSetengahJadiDetails::class, 'produk_id');
+        return $this->belongsTo(BahanSetengahjadiDetails::class, 'produk_id');
     }
 
 }

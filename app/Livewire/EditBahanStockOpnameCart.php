@@ -177,9 +177,9 @@ class EditBahanStockOpnameCart extends Component
         $this->unit_price_raw[$itemId] = null;
         $this->unit_price[$itemId] = null;
         $this->tersedia_sistem[$itemId] = $totalAvailable;
-        $this->tersedia_fisik[$itemId] = 0;
+        $this->tersedia_fisik[$itemId] = '';
         $this->keterangan[$itemId] = '';
-        $this->tersedia_fisik_audit[$itemId] = 0;
+        $this->tersedia_fisik_audit[$itemId] = '';
         $this->tersedia_fisik_raw[$itemId] = 0;
         $this->tersedia_fisik_audit_raw[$itemId] = 0;
         $this->selisih[$itemId] = 0;
@@ -350,7 +350,7 @@ class EditBahanStockOpnameCart extends Component
         // Format ulang ke format Rupiah dengan 2 desimal (ribuan pake titik, desimal pake koma)
         $this->tersedia_fisik_audit_raw[$itemId] = number_format($this->tersedia_fisik_audit[$itemId], 2, ',', '.');
 
-        $this->selisih[$itemId] = $this->getSelisihAudit($itemId);
+        $this->selisih_audit[$itemId] = $this->getSelisihAudit($itemId);
 
         $existingItemKey = array_search($itemId, array_column($this->cart, 'id'));
         if ($existingItemKey !== false) {

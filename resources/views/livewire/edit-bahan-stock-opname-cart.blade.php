@@ -62,7 +62,8 @@
                                         <span
                                             class="cursor-pointer text-gray-900 @if($status_selesai === 'Selesai') cursor-not-allowed @endif"
                                             @if($status_selesai !== 'Selesai') wire:click="editItem({{ $item['id'] }})" @endif>
-                                            {{ $tersedia_fisik[$item['id']] ?? $item['tersedia_fisik'] }}
+                                            {{-- {{ $tersedia_fisik[$item['id']] ?? $item['tersedia_fisik'] }} --}}
+                                            {{ trim($tersedia_fisik[$item['id']] ?? $item['tersedia_fisik']) !== '' ? $tersedia_fisik[$item['id']] ?? $item['tersedia_fisik'] : '0' }}
                                         </span>
                                     @endif
                                 </div>
@@ -89,7 +90,8 @@
                                         <span
                                             class="cursor-pointer text-gray-900 @if($status_selesai === 'Selesai') cursor-not-allowed @endif"
                                             @if($status_selesai !== 'Selesai') wire:click="editItemAudit({{ $item['id'] }})" @endif>
-                                            {{ $tersedia_fisik_audit[$item['id']] ?? $item['tersedia_fisik_audit'] }}
+                                            {{-- {{ $tersedia_fisik_audit[$item['id']] ?? $item['tersedia_fisik_audit'] }} --}}
+                                            {{ trim($tersedia_fisik_audit[$item['id']] ?? $item['tersedia_fisik_audit']) !== '' ? $tersedia_fisik_audit[$item['id']] ?? $item['tersedia_fisik_audit'] : '0' }}
                                         </span>
                                     @endif
                                 </div>

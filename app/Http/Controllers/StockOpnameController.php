@@ -55,41 +55,81 @@ class StockOpnameController extends Controller
             $stockOpname = StockOpname::with([
                 'pengajuUser',
                 'stockOpnameDetails.dataBahan.dataUnit',
+                'stockOpnameDetails.dataProduk',
             ])->findOrFail($id);
 
-            foreach ($stockOpname->stockOpnameDetails as $detail) {
-                $selisih = $detail->selisih; // Ambil selisih dalam nilai positif
+            // Urutkan berdasarkan nama bahan (atau nama produk jika bahan tidak ada)
+            $stockOpname->stockOpnameDetails = $stockOpname->stockOpnameDetails->sortBy(function ($detail) {
+                return $detail->dataBahan->nama_bahan ?? $detail->dataProduk->nama_bahan ?? '';
+            })->values();
 
-                // Ambil transaksi terakhir sebelum tanggal pengajuan
-                $lastPurchaseDetail = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
-                    ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
-                    ->whereDate('purchases.tgl_masuk', '<=', $stockOpname->tgl_pengajuan) // Ambil sebelum tanggal pengajuan
-                    ->orderBy('purchases.tgl_masuk', 'desc') // Urutkan dari yang paling terbaru sebelum pengajuan
-                    ->select('purchase_details.*', 'purchases.tgl_masuk')
-                    ->first(); // Ambil hanya satu transaksi terakhir sebelum tanggal pengajuan
+            foreach ($stockOpname->stockOpnameDetails as $detail) {
+                $selisih = $detail->selisih;
+                $selisih_audit = $detail->selisih_audit;
 
                 $alokasiHarga = [];
+                $alokasiHargaAudit = [];
                 $totalHarga = 0;
+                $totalHargaAudit = 0;
 
-                if ($lastPurchaseDetail) {
-                    $qtyTerpakai = $selisih; // Ambil jumlah yang bisa digunakan dari transaksi ini
-                    $harga = $qtyTerpakai * $lastPurchaseDetail->unit_price;
+                // === Cek apakah ini bahan biasa ===
+                if ($detail->dataBahan) {
+                    $lastPurchaseDetail = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
+                        ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+                        ->whereDate('purchases.tgl_masuk', '<=', $stockOpname->tgl_pengajuan)
+                        ->orderBy('purchases.tgl_masuk', 'desc')
+                        ->select('purchase_details.*', 'purchases.tgl_masuk')
+                        ->first();
 
-                    $alokasiHarga[] = "{$qtyTerpakai} x " . number_format($lastPurchaseDetail->unit_price, 0, ',', '.');
-                    $totalHarga += $harga;
+                    if ($lastPurchaseDetail) {
+                        $harga = $selisih * $lastPurchaseDetail->unit_price;
+                        $hargaAudit = $selisih_audit * $lastPurchaseDetail->unit_price;
+
+                        $alokasiHarga[] = "{$selisih} x " . number_format($lastPurchaseDetail->unit_price, 0, ',', '.');
+                        $alokasiHargaAudit[] = "{$selisih_audit} x " . number_format($lastPurchaseDetail->unit_price, 0, ',', '.');
+
+                        $totalHarga += $harga;
+                        $totalHargaAudit += $hargaAudit;
+                    }
+
+                // === Cek jika produk setengah jadi ===
+                } elseif ($detail->dataProduk) {
+
+                    $produkSetengahJadi = BahanSetengahjadiDetails::with('bahanSetengahjadi') // relasi ke parent
+                        ->where('id', $detail->produk_id)
+                        ->first();
+
+                    if ($produkSetengahJadi && $produkSetengahJadi->bahanSetengahjadi && $produkSetengahJadi->bahanSetengahjadi->tgl_masuk <= $stockOpname->tgl_pengajuan) {
+                        $unitPrice = $produkSetengahJadi->unit_price;
+                        $harga = $selisih * $unitPrice;
+                        $hargaAudit = $selisih_audit * $unitPrice;
+
+                        $alokasiHarga[] = "{$selisih} x " . number_format($unitPrice, 0, ',', '.');
+                        $alokasiHargaAudit[] = "{$selisih_audit} x " . number_format($unitPrice, 0, ',', '.');
+
+                        $totalHarga += $harga;
+                        $totalHargaAudit += $hargaAudit;
+                    }
+
                 }
 
-                // Simpan hasil alokasi ke dalam detail
                 $detail->alokasi_harga = implode(', ', $alokasiHarga);
+                $detail->alokasi_harga_audit = implode(', ', $alokasiHargaAudit);
                 $detail->total_harga = $totalHarga;
+                $detail->total_harga_audit = $totalHargaAudit;
             }
+
 
             // Hitung total keseluruhan untuk laporan
             $totalSelisih = $stockOpname->stockOpnameDetails->sum('selisih');
+            $totalSelisihAudit = $stockOpname->stockOpnameDetails->sum('selisih_audit');
             $totalHargaAll = $stockOpname->stockOpnameDetails->sum('total_harga');
+            $totalHargaAllAudit = $stockOpname->stockOpnameDetails->sum('total_harga_audit');
 
             Carbon::setLocale('id');
-            $formattedDate = Carbon::parse($stockOpname->tgl_pengajuan)->translatedFormat('d F Y');
+            $formattedDate = $stockOpname->tgl_pengajuan ? Carbon::parse($stockOpname->tgl_pengajuan)->translatedFormat('d F Y') : null;
+            $formattedDateAudit = $stockOpname->tgl_audit ? Carbon::parse($stockOpname->tgl_audit)->translatedFormat('d F Y') : null;
+
             $tandaTanganPengaju = $stockOpname->pengajuUser->tanda_tangan ?? null;
 
             $tandaTanganLeader = null;
@@ -105,10 +145,15 @@ class StockOpnameController extends Controller
                     })->first();
             });
             $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
-
+            // $role = Auth::user();
+            $user = Auth::user();
+            $canSeeAuditDate = $user->hasAnyRole(['superadmin', 'administrasi']);
+            $canSeeAuditDatePengaju = $user->hasAnyRole(['purchasing']);
+            // dd($canSeeAuditDate);
             $pdf = Pdf::loadView('pages.stock-opname.pdf', compact(
                 'stockOpname',
                 'formattedDate',
+                'formattedDateAudit',
                 'tandaTanganPengaju',
                 'tandaTanganManager',
                 'tandaTanganDirektur',
@@ -117,8 +162,12 @@ class StockOpnameController extends Controller
                 'managerName',
                 'direkturName',
                 'totalSelisih',
-                'totalHargaAll'
-            ))->setPaper('a4', 'potrait');
+                'totalSelisihAudit',
+                'totalHargaAll',
+                'totalHargaAllAudit',
+                'canSeeAuditDate',
+                'canSeeAuditDatePengaju'
+            ))->setPaper('a4', 'landscape');
             return $pdf->stream("stock_opname_{$id}.pdf");
 
             LogHelper::success('Berhasil generating PDF for stock opname ID {$id}!');
@@ -143,27 +192,32 @@ class StockOpnameController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all());
-        $cartItems = json_decode($request->cartItems, true);
+        // Validasi awal input mentah
+        $rawCartItems = json_decode($request->cartItems, true);
+
         $validator = Validator::make([
             'tgl_pengajuan' => $request->tgl_pengajuan,
-            'cartItems' => $cartItems
+            'cartItems' => $rawCartItems,
         ], [
             'tgl_pengajuan' => 'required|date_format:Y-m-d',
             'cartItems' => 'required|array',
-            'cartItems.*.id' => 'required|integer',
-            'cartItems.*.tersedia_sistem' => 'required|integer',
-            'cartItems.*.tersedia_fisik' => 'required|integer',
-            'cartItems.*.selisih' => 'required|integer',
-            'cartItems.*.keterangan' => 'nullable',
+            'cartItems.*.bahan_id' => 'nullable|integer',
+            'cartItems.*.produk_id' => 'nullable|integer',
+            'cartItems.*.serial_number' => 'nullable|string',
+            'cartItems.*.tersedia_sistem' => 'nullable|numeric',
+            'cartItems.*.tersedia_fisik' => 'nullable|numeric',
+            'cartItems.*.selisih' => 'nullable|numeric',
+            'cartItems.*.keterangan' => 'nullable|string',
         ]);
+
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
+
         DB::beginTransaction();
         try {
-
             $user = Auth::user();
+
             // Simpan data utama stock opname
             $stockOpname = StockOpname::create([
                 'tgl_pengajuan' => $request->tgl_pengajuan,
@@ -175,16 +229,20 @@ class StockOpnameController extends Controller
                 'pengaju' => $user->id,
             ]);
 
-            foreach ($cartItems as $item) {
+            // Simpan detail per item
+            foreach ($rawCartItems as $item) {
                 StockOpnameDetails::create([
                     'stock_opname_id' => $stockOpname->id,
-                    'bahan_id' => $item['id'],
-                    'tersedia_sistem' => $item['tersedia_sistem'],
-                    'tersedia_fisik' => $item['tersedia_fisik'],
-                    'selisih' => $item['selisih'],
-                    'keterangan' => $item['keterangan'],
+                    'bahan_id' => $item['bahan_id'] ?? null,
+                    'produk_id' => $item['produk_id'] ?? null,
+                    'serial_number' => $item['serial_number'] ?? null,
+                    'tersedia_sistem' => $item['tersedia_sistem'] ?? null,
+                    'tersedia_fisik' => $item['tersedia_fisik'] ?? null,
+                    'selisih' => $item['selisih'] ?? null,
+                    'keterangan' => $item['keterangan'] ?? null,
                 ]);
             }
+
             DB::commit();
             LogHelper::success('Stock opname berhasil disimpan.');
             return redirect()->route('stock-opname.index')->with('success', 'Stock opname berhasil disimpan.');
@@ -194,6 +252,7 @@ class StockOpnameController extends Controller
             return view('pages.utility.404');
         }
     }
+
 
     private function generateNomorReferensi()
     {
@@ -231,11 +290,64 @@ class StockOpnameController extends Controller
     }
 
 
+    // public function update(Request $request, $id)
+    // {
+    //     dd($request->all());
+    //     $validator = Validator::make($request->all(), [
+    //         'tgl_pengajuan' => 'required|date_format:Y-m-d',
+    //         'keterangan' => 'required|string|max:255',
+    //         'cartItems' => 'required|array',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return redirect()->back()->withErrors($validator)->withInput();
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $stockOpname = StockOpname::findOrFail($id);
+    //         $stockOpname->update([
+    //             'tgl_pengajuan' => $request->tgl_pengajuan,
+    //             'keterangan' => $request->keterangan,
+    //         ]);
+
+    //         if ($request->has('cartItems')) {
+    //             $stockOpname->stockOpnameDetails()->delete();
+
+    //             foreach ($request->cartItems as $item) {
+    //                 $item = json_decode($item, true);
+    //                 $detail = StockOpnameDetails::updateOrCreate(
+    //                     ['stock_opname_id' => $stockOpname->id,
+    //                     'bahan_id' => $item['id']],
+    //                     [
+    //                         'tersedia_sistem' => $item['tersedia_sistem'],
+    //                         'tersedia_fisik' => $item['tersedia_fisik'],
+    //                         'tersedia_fisik_audit' => $item['tersedia_fisik_audit'],
+    //                         'selisih' => $item['selisih'],
+    //                         'selisih_audit' => $item['selisih_audit'],
+    //                         'keterangan' => $item['keterangan'],
+    //                     ]
+    //                 );
+    //             }
+    //         }
+
+    //         DB::commit();
+    //         LogHelper::success('Stock opname berhasil diperbarui.');
+    //         return redirect()->route('stock-opname.index')->with('success', 'Stock opname berhasil diperbarui.');
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         LogHelper::error($e->getMessage());
+    //         return view('pages.utility.404');
+    //     }
+    // }
+
     public function update(Request $request, $id)
     {
         // dd($request->all());
         $validator = Validator::make($request->all(), [
             'tgl_pengajuan' => 'required|date_format:Y-m-d',
+            'tgl_audit' => 'nullable|date_format:Y-m-d',
+            'auditor' => 'nullable|string|max:255',
             'keterangan' => 'required|string|max:255',
             'cartItems' => 'required|array',
         ]);
@@ -249,24 +361,80 @@ class StockOpnameController extends Controller
             $stockOpname = StockOpname::findOrFail($id);
             $stockOpname->update([
                 'tgl_pengajuan' => $request->tgl_pengajuan,
+                'tgl_audit' => $request->tgl_audit,
+                'auditor' => $request->auditor,
                 'keterangan' => $request->keterangan,
             ]);
 
             if ($request->has('cartItems')) {
-                $stockOpname->stockOpnameDetails()->delete();
+                // Ambil semua bahan_id dan produk_id dari cartItems yg dikirim
+                $idsFromRequest = collect($request->cartItems)->map(function($jsonItem) {
+                    $item = json_decode($jsonItem, true);
+                    return [
+                        'bahan_id' => $item['bahan_id'] ?? null,
+                        'produk_id' => $item['produk_id'] ?? null,
+                    ];
+                });
+                // Ambil semua detail yang ada di DB untuk stock opname ini
+                $existingDetails = StockOpnameDetails::where('stock_opname_id', $stockOpname->id)->get();
 
-                foreach ($request->cartItems as $item) {
-                    $item = json_decode($item, true);
-                    $detail = StockOpnameDetails::updateOrCreate(
-                        ['stock_opname_id' => $stockOpname->id,
-                        'bahan_id' => $item['id']],
-                        [
+                // Hapus detail yang tidak ada di $idsFromRequest
+                foreach ($existingDetails as $detail) {
+                    $found = $idsFromRequest->first(function ($item) use ($detail) {
+                        return $item['bahan_id'] == $detail->bahan_id && $item['produk_id'] == $detail->produk_id;
+                    });
+
+                    if (!$found) {
+                        $detail->delete();
+                    }
+                }
+                foreach ($request->cartItems as $jsonItem) {
+                    $item = json_decode($jsonItem, true);
+
+                    // Cari detail yang sudah ada di DB berdasarkan bahan_id dan produk_id
+                    $detail = StockOpnameDetails::where('stock_opname_id', $stockOpname->id)
+                        ->where('bahan_id', $item['bahan_id'] ?? null)
+                        ->where('produk_id', $item['produk_id'] ?? null)
+                        ->first();
+
+                    if ($detail) {
+                        // Bandingkan setiap field yang ingin diupdate, update hanya jika ada perubahan
+                        $needUpdate = false;
+                        $fields = ['tersedia_sistem', 'tersedia_fisik', 'tersedia_fisik_audit', 'selisih', 'selisih_audit', 'keterangan'];
+
+                        foreach ($fields as $field) {
+                            // Karena tipe bisa beda, gunakan loose compare untuk numeric dan string
+                            if ((string)$detail->$field !== (string)$item[$field]) {
+                                $needUpdate = true;
+                                break;
+                            }
+                        }
+
+                        if ($needUpdate) {
+                            $detail->update([
+                                'tersedia_sistem' => $item['tersedia_sistem'],
+                                'tersedia_fisik' => $item['tersedia_fisik'],
+                                'tersedia_fisik_audit' => $item['tersedia_fisik_audit'],
+                                'selisih' => $item['selisih'],
+                                'selisih_audit' => $item['selisih_audit'],
+                                'keterangan' => $item['keterangan'],
+                            ]);
+                        }
+                    } else {
+                        // Jika belum ada, buat baru
+                        StockOpnameDetails::create([
+                            'stock_opname_id' => $stockOpname->id,
+                            'bahan_id' => $item['bahan_id'] ?? null,
+                            'produk_id' => $item['produk_id'] ?? null,
                             'tersedia_sistem' => $item['tersedia_sistem'],
+                            'serial_number' => $item['serial_number'],
                             'tersedia_fisik' => $item['tersedia_fisik'],
+                            'tersedia_fisik_audit' => $item['tersedia_fisik_audit'],
                             'selisih' => $item['selisih'],
+                            'selisih_audit' => $item['selisih_audit'],
                             'keterangan' => $item['keterangan'],
-                        ]
-                    );
+                        ]);
+                    }
                 }
             }
 
@@ -293,6 +461,12 @@ class StockOpnameController extends Controller
             ])->findOrFail($id);
 
             $data->status_finance = $validated['status_finance'];
+            if ($validated['status_finance'] === 'Disetujui') {
+                $data->tgl_approve_finance = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');  // isi dengan waktu saat ini
+            } else {
+                // Opsional: Jika status selain Disetujui, bisa set null atau tidak diubah
+                $data->tgl_approve_finance = null;
+            }
             $data->save();
 
             if ($data->status_finance === 'Disetujui') {
@@ -336,7 +510,14 @@ class StockOpnameController extends Controller
             ])->findOrFail($id);
 
             $data->status_direktur = $validated['status_direktur'];
-            $data->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            if ($validated['status_direktur'] === 'Disetujui') {
+                $data->tgl_approve_direktur = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');  // isi dengan waktu saat ini
+                $data->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            } else {
+                // Opsional: Jika status selain Disetujui, bisa set null atau tidak diubah
+                $data->tgl_approve_direktur = null;
+            }
+
             $data->save();
 
             if ($data->status_direktur === 'Disetujui') {
@@ -367,6 +548,109 @@ class StockOpnameController extends Controller
         }
     }
 
+    // public function selesaiStockOpname($id)
+    // {
+    //     try {
+    //         DB::beginTransaction();
+    //         $stockOpname = StockOpname::findOrFail($id);
+    //         if ($stockOpname->status_direktur !== 'Disetujui') {
+    //             return redirect()->back()->with('error', 'Stock opname belum disetujui!');
+    //         }
+
+    //         $user = $stockOpname->pengaju;
+    //         $tujuan = $stockOpname->keterangan;
+
+    //         $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
+    //         $new_transaction_number = ($lastTransaction ? intval(substr($lastTransaction->kode_transaksi, 6)) : 0) + 1;
+    //         $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT) . ' SO';
+    //         $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+
+    //         $bahan_keluar = BahanKeluar::create([
+    //             'kode_transaksi' => $kode_transaksi,
+    //             'tujuan' => $tujuan,
+    //             'keterangan' => $tujuan,
+    //             'divisi' => 'Purchasing',
+    //             'status' => 'Disetujui',
+    //             'status_leader' => 'Disetujui',
+    //             'pengaju' => $user,
+    //             'status_pengambilan' => 'Sudah Diambil',
+    //             'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+    //             'tgl_keluar' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+    //         ]);
+
+    //         foreach ($stockOpname->stockOpnameDetails as $detail) {
+    //             $selisih = $detail->selisih_audit;
+
+    //             // Abaikan jika selisih positif (tidak mengurangi stok)
+    //             if ($selisih > 0) {
+    //                 continue;
+    //             }
+
+    //             $selisih = abs($selisih);
+    //             $purchaseDetails = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
+    //                 ->where('sisa', '>', 0)
+    //                 ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+    //                 ->orderBy('purchases.tgl_masuk', 'asc')
+    //                 ->select('purchase_details.*', 'purchases.tgl_masuk')
+    //                 ->get();
+
+    //             $detailsArray = [];
+    //             $totalHarga = 0;
+
+    //             foreach ($purchaseDetails as $purchaseDetail) {
+    //                 if ($selisih <= 0) break;
+
+    //                 $qtyTerpakai = min($selisih, $purchaseDetail->sisa);
+    //                 $purchaseDetail->sisa -= $qtyTerpakai;
+    //                 $purchaseDetail->save();
+
+    //                 $detailsArray[] = [
+    //                     'kode_transaksi' => $purchaseDetail->kode_transaksi,
+    //                     'qty' => $qtyTerpakai,
+    //                     'unit_price' => $purchaseDetail->unit_price
+    //                 ];
+
+    //                 $selisih -= $qtyTerpakai;
+    //             }
+
+    //             $groupedDetails = [];
+    //             foreach ($detailsArray as $detailItem) {
+    //                 $unitPrice = $detailItem['unit_price'];
+    //                 if (isset($groupedDetails[$unitPrice])) {
+    //                     $groupedDetails[$unitPrice]['qty'] += $detailItem['qty'];
+    //                 } else {
+    //                     $groupedDetails[$unitPrice] = [
+    //                         'qty' => $detailItem['qty'],
+    //                         'unit_price' => $unitPrice,
+    //                     ];
+    //                 }
+    //             }
+
+    //             BahanKeluarDetails::create([
+    //                 'bahan_keluar_id' => $bahan_keluar->id,
+    //                 'bahan_id' => $detail->dataBahan->id,
+    //                 'qty' => array_sum(array_column($groupedDetails, 'qty')),
+    //                 'jml_bahan' => array_sum(array_column($groupedDetails, 'qty')),
+    //                 'used_materials' => array_sum(array_column($groupedDetails, 'qty')),
+    //                 'details' => json_encode(array_values($groupedDetails)),
+    //                 'sub_total' => array_sum(array_map(function($item) {
+    //                     return $item['qty'] * $item['unit_price'];
+    //                 }, $groupedDetails)),
+    //             ]);
+    //         }
+
+    //         $stockOpname->status_selesai = 'Selesai';
+    //         $stockOpname->save();
+
+    //         DB::commit();
+    //         LogHelper::success('Stock opname selesai dan data sisa diperbarui.');
+    //         return redirect()->route('stock-opname.index')->with('success', 'Stock opname selesai dan data sisa diperbarui.');
+    //     } catch (Throwable $e) {
+    //         DB::rollBack();
+    //         LogHelper::error($e->getMessage());
+    //         return view('pages.utility.404');
+    //     }
+    // }
     public function selesaiStockOpname($id)
     {
         try {
@@ -382,7 +666,7 @@ class StockOpnameController extends Controller
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
             $new_transaction_number = ($lastTransaction ? intval(substr($lastTransaction->kode_transaksi, 6)) : 0) + 1;
             $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT) . ' SO';
-            $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $tanggal = now()->setTimezone('Asia/Jakarta');
 
             $bahan_keluar = BahanKeluar::create([
                 'kode_transaksi' => $kode_transaksi,
@@ -393,69 +677,98 @@ class StockOpnameController extends Controller
                 'status_leader' => 'Disetujui',
                 'pengaju' => $user,
                 'status_pengambilan' => 'Sudah Diambil',
-                'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
-                'tgl_keluar' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+                'tgl_pengajuan' => $tanggal,
+                'tgl_keluar' => $tanggal,
             ]);
 
             foreach ($stockOpname->stockOpnameDetails as $detail) {
-                $selisih = $detail->selisih;
+                $selisih = $detail->selisih_audit;
 
-                // Abaikan jika selisih positif (tidak mengurangi stok)
-                if ($selisih > 0) {
-                    continue;
-                }
+                // Abaikan jika selisih positif
+                if ($selisih > 0) continue;
 
                 $selisih = abs($selisih);
-                $purchaseDetails = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
-                    ->where('sisa', '>', 0)
-                    ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
-                    ->orderBy('purchases.tgl_masuk', 'asc')
-                    ->select('purchase_details.*', 'purchases.tgl_masuk')
-                    ->get();
-
-                $detailsArray = [];
-                $totalHarga = 0;
-
-                foreach ($purchaseDetails as $purchaseDetail) {
-                    if ($selisih <= 0) break;
-
-                    $qtyTerpakai = min($selisih, $purchaseDetail->sisa);
-                    $purchaseDetail->sisa -= $qtyTerpakai;
-                    $purchaseDetail->save();
-
-                    $detailsArray[] = [
-                        'kode_transaksi' => $purchaseDetail->kode_transaksi,
-                        'qty' => $qtyTerpakai,
-                        'unit_price' => $purchaseDetail->unit_price
-                    ];
-
-                    $selisih -= $qtyTerpakai;
-                }
-
                 $groupedDetails = [];
-                foreach ($detailsArray as $detailItem) {
-                    $unitPrice = $detailItem['unit_price'];
-                    if (isset($groupedDetails[$unitPrice])) {
-                        $groupedDetails[$unitPrice]['qty'] += $detailItem['qty'];
-                    } else {
-                        $groupedDetails[$unitPrice] = [
-                            'qty' => $detailItem['qty'],
-                            'unit_price' => $unitPrice,
-                        ];
-                    }
-                }
+                $produkId = $detail->produk_id;
+                if ($produkId) {
+                    // Kasus: Bahan setengah jadi
+                    $produkDetail = BahanSetengahJadiDetails::where('id', $produkId)->first();
 
-                BahanKeluarDetails::create([
-                    'bahan_keluar_id' => $bahan_keluar->id,
-                    'bahan_id' => $detail->dataBahan->id,
-                    'qty' => array_sum(array_column($groupedDetails, 'qty')),
-                    'jml_bahan' => array_sum(array_column($groupedDetails, 'qty')),
-                    'used_materials' => array_sum(array_column($groupedDetails, 'qty')),
-                    'details' => json_encode(array_values($groupedDetails)),
-                    'sub_total' => array_sum(array_map(function($item) {
-                        return $item['qty'] * $item['unit_price'];
-                    }, $groupedDetails)),
-                ]);
+                    if ($produkDetail && $produkDetail->sisa >= $selisih) {
+                        $produkDetail->sisa -= $selisih;
+                        $produkDetail->save();
+
+                        $groupedDetails[] = [
+                            'qty' => $selisih,
+                            'unit_price' => $produkDetail->unit_price ?? 0
+                        ];
+
+                        BahanKeluarDetails::create([
+                            'bahan_keluar_id' => $bahan_keluar->id,
+                            'bahan_id' => null,
+                            'produk_id' => $produkId,
+                            'qty' => $selisih,
+                            'jml_bahan' => $selisih,
+                            'used_materials' => $selisih,
+                            'serial_number' => $produkDetail->serial_number ?? null,
+                            'details' => json_encode($groupedDetails),
+                            'sub_total' => $selisih * ($produkDetail->unit_price ?? 0),
+                        ]);
+                    }
+
+                } else {
+                    // Kasus: Bahan biasa
+                    $purchaseDetails = PurchaseDetail::where('bahan_id', $detail->dataBahan->id)
+                        ->where('sisa', '>', 0)
+                        ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+                        ->orderBy('purchases.tgl_masuk', 'asc')
+                        ->select('purchase_details.*', 'purchases.tgl_masuk')
+                        ->get();
+
+                    $detailsArray = [];
+
+                    foreach ($purchaseDetails as $purchaseDetail) {
+                        if ($selisih <= 0) break;
+
+                        $qtyTerpakai = min($selisih, $purchaseDetail->sisa);
+                        $purchaseDetail->sisa -= $qtyTerpakai;
+                        $purchaseDetail->save();
+
+                        $detailsArray[] = [
+                            'kode_transaksi' => $purchaseDetail->kode_transaksi,
+                            'qty' => $qtyTerpakai,
+                            'unit_price' => $purchaseDetail->unit_price
+                        ];
+
+                        $selisih -= $qtyTerpakai;
+                    }
+
+                    $groupedDetails = [];
+                    foreach ($detailsArray as $detailItem) {
+                        $unitPrice = $detailItem['unit_price'];
+                        if (isset($groupedDetails[$unitPrice])) {
+                            $groupedDetails[$unitPrice]['qty'] += $detailItem['qty'];
+                        } else {
+                            $groupedDetails[$unitPrice] = [
+                                'qty' => $detailItem['qty'],
+                                'unit_price' => $unitPrice,
+                            ];
+                        }
+                    }
+
+                    BahanKeluarDetails::create([
+                        'bahan_keluar_id' => $bahan_keluar->id,
+                        'bahan_id' => $detail->dataBahan->id,
+                        'produk_id' => null,
+                        'qty' => array_sum(array_column($groupedDetails, 'qty')),
+                        'jml_bahan' => array_sum(array_column($groupedDetails, 'qty')),
+                        'used_materials' => array_sum(array_column($groupedDetails, 'qty')),
+                        'details' => json_encode(array_values($groupedDetails)),
+                        'sub_total' => array_sum(array_map(function ($item) {
+                            return $item['qty'] * $item['unit_price'];
+                        }, $groupedDetails)),
+                    ]);
+                }
             }
 
             $stockOpname->status_selesai = 'Selesai';
@@ -470,6 +783,8 @@ class StockOpnameController extends Controller
             return view('pages.utility.404');
         }
     }
+
+
 
 
 

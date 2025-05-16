@@ -20,4 +20,10 @@ class StockOpnameDetails extends Model
     {
         return $this->belongsTo(Bahan::class, 'bahan_id');
     }
+
+    public function dataProduk()
+    {
+        return $this->belongsTo(BahanSetengahJadiDetails::class, 'produk_id');
+    }
+
 }

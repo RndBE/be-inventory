@@ -82,51 +82,53 @@ class SearchBahanProduksi extends Component
 
     }
 
-    public function selectBahan($type, $id)
+    public function selectBahan($bahanId)
     {
-        if ($type === 'setengahjadi') {
-            $bahanSetengahJadiDetail = BahanSetengahjadiDetails::with('bahanSetengahjadi')
-                ->where('id', $id)
-                ->first();
+        // Cek apakah ID ada di hasil pencarian dari Bahan Setengah Jadi
+        $bahanSetengahJadiDetail = BahanSetengahjadiDetails::with('bahanSetengahjadi')
+            ->where('id', $bahanId)
+            ->first();
 
-            if ($bahanSetengahJadiDetail) {
-                $bahanSetengahJadiData = (object) [
-                    'produk_id' => $bahanSetengahJadiDetail->id,
-                    'nama' => $bahanSetengahJadiDetail->nama_bahan,
-                    'serial_number' => $bahanSetengahJadiDetail->serial_number,
-                    'stok' => $bahanSetengahJadiDetail->sisa,
-                    'unit' => 'Pcs',
-                    'type' => 'setengahjadi',
-                    'bahan_setengahjadi_details_id' => $bahanSetengahJadiDetail->id,
-                ];
+        if ($bahanSetengahJadiDetail) {
+            // Emit event untuk mengirim data bahan setengah jadi yang dipilih
+            $bahanSetengahJadiData = (object) [
+                'produk_id' => $bahanSetengahJadiDetail->id,
+                'nama' => $bahanSetengahJadiDetail->nama_bahan,
+                'serial_number' => $bahanSetengahJadiDetail->serial_number,
+                // 'kode' => $bahanSetengahJadiDetail->bahanSetengahjadi->kode_bahan,
+                'stok' => $bahanSetengahJadiDetail->sisa,
 
-                $this->dispatch('bahanSetengahJadiSelected', $bahanSetengahJadiData);
-            } else {
-                session()->flash('message', 'Bahan setengah jadi tidak ditemukan.');
-            }
-        } elseif ($type === 'bahan') {
+                'unit' => 'Pcs',
+                'type' => 'setengahjadi', // Tambahkan ini agar dikenali sebagai bahan setengah jadi
+                'bahan_setengahjadi_details_id' => $bahanSetengahJadiDetail->id, // ID unik bahan setengah jadi details
+            ];
+
+            $this->dispatch('bahanSetengahJadiSelected', $bahanSetengahJadiData);
+        } else {
+            // Jika tidak ditemukan, cari di tabel Bahan
             $bahan = Bahan::with('dataUnit')
-                ->where('id', $id)
+                ->where('id', $bahanId)
                 ->first();
-
+                //dd($bahan);
             if ($bahan) {
+                // dispatch event untuk mengirim data bahan yang dipilih
                 $bahanData = (object) [
                     'bahan_id' => $bahan->id,
-                    'nama' => $bahan->nama_bahan,
+                    'nama' => $bahan->nama_bahan, // Use 'nama' instead of 'nama_bahan'
                     'kode' => $bahan->kode_bahan,
                     'stok' => $bahan->purchaseDetails->sum('sisa'),
                     'unit' => $bahan->dataUnit->nama ?? 'N/A',
-                    'type' => 'bahan',
                 ];
                 $this->dispatch('bahanSelected', $bahanData);
             } else {
+                // Jika tidak ditemukan di kedua tabel
                 session()->flash('message', 'Bahan tidak ditemukan.');
             }
         }
 
+        // Reset query setelah memilih bahan
         $this->resetQuery();
     }
-
 
     public function loadMore()
     {

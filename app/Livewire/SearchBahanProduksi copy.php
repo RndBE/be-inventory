@@ -82,11 +82,11 @@ class SearchBahanProduksi extends Component
 
     }
 
-    public function selectBahan($type, $id)
+    public function selectBahan($bahanId, $type)
     {
         if ($type === 'setengahjadi') {
             $bahanSetengahJadiDetail = BahanSetengahjadiDetails::with('bahanSetengahjadi')
-                ->where('id', $id)
+                ->where('id', $bahanId)
                 ->first();
 
             if ($bahanSetengahJadiDetail) {
@@ -101,12 +101,10 @@ class SearchBahanProduksi extends Component
                 ];
 
                 $this->dispatch('bahanSetengahJadiSelected', $bahanSetengahJadiData);
-            } else {
-                session()->flash('message', 'Bahan setengah jadi tidak ditemukan.');
             }
-        } elseif ($type === 'bahan') {
-            $bahan = Bahan::with('dataUnit')
-                ->where('id', $id)
+        } else {
+            $bahan = Bahan::with('dataUnit', 'purchaseDetails')
+                ->where('id', $bahanId)
                 ->first();
 
             if ($bahan) {
@@ -118,15 +116,59 @@ class SearchBahanProduksi extends Component
                     'unit' => $bahan->dataUnit->nama ?? 'N/A',
                     'type' => 'bahan',
                 ];
+
                 $this->dispatch('bahanSelected', $bahanData);
-            } else {
-                session()->flash('message', 'Bahan tidak ditemukan.');
             }
         }
-
-        $this->resetQuery();
     }
 
+    // public function selectBahan($bahanId)
+    // {
+    //     // Cek apakah ID ada di hasil pencarian dari Bahan Setengah Jadi
+    //     $bahanSetengahJadiDetail = BahanSetengahjadiDetails::with('bahanSetengahjadi')
+    //         ->where('id', $bahanId)
+    //         ->first();
+
+    //     if ($bahanSetengahJadiDetail) {
+    //         // Emit event untuk mengirim data bahan setengah jadi yang dipilih
+    //         $bahanSetengahJadiData = (object) [
+    //             'produk_id' => $bahanSetengahJadiDetail->id,
+    //             'nama' => $bahanSetengahJadiDetail->nama_bahan,
+    //             'serial_number' => $bahanSetengahJadiDetail->serial_number,
+    //             // 'kode' => $bahanSetengahJadiDetail->bahanSetengahjadi->kode_bahan,
+    //             'stok' => $bahanSetengahJadiDetail->sisa,
+
+    //             'unit' => 'Pcs',
+    //             'type' => 'setengahjadi', // Tambahkan ini agar dikenali sebagai bahan setengah jadi
+    //             'bahan_setengahjadi_details_id' => $bahanSetengahJadiDetail->id, // ID unik bahan setengah jadi details
+    //         ];
+
+    //         $this->dispatch('bahanSetengahJadiSelected', $bahanSetengahJadiData);
+    //     } else {
+    //         // Jika tidak ditemukan, cari di tabel Bahan
+    //         $bahan = Bahan::with('dataUnit')
+    //             ->where('id', $bahanId)
+    //             ->first();
+    //             //dd($bahan);
+    //         if ($bahan) {
+    //             // dispatch event untuk mengirim data bahan yang dipilih
+    //             $bahanData = (object) [
+    //                 'bahan_id' => $bahan->id,
+    //                 'nama' => $bahan->nama_bahan, // Use 'nama' instead of 'nama_bahan'
+    //                 'kode' => $bahan->kode_bahan,
+    //                 'stok' => $bahan->purchaseDetails->sum('sisa'),
+    //                 'unit' => $bahan->dataUnit->nama ?? 'N/A',
+    //             ];
+    //             $this->dispatch('bahanSelected', $bahanData);
+    //         } else {
+    //             // Jika tidak ditemukan di kedua tabel
+    //             session()->flash('message', 'Bahan tidak ditemukan.');
+    //         }
+    //     }
+
+    //     // Reset query setelah memilih bahan
+    //     $this->resetQuery();
+    // }
 
     public function loadMore()
     {
@@ -160,11 +202,11 @@ class SearchBahanProduksi extends Component
     }
 
 
-    public function selectCurrent()
-    {
+    // public function selectCurrent()
+    // {
 
-        if ($this->selectedIndex >= 0 && $this->selectedIndex < $this->search_results->count()) {
-            $this->selectBahan($this->search_results[$this->selectedIndex]->id);
-        }
-    }
+    //     if ($this->selectedIndex >= 0 && $this->selectedIndex < $this->search_results->count()) {
+    //         $this->selectBahan($this->search_results[$this->selectedIndex]->id);
+    //     }
+    // }
 }

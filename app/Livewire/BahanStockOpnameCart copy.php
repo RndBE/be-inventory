@@ -93,18 +93,18 @@ class BahanStockOpnameCart extends Component
                 return;
             }
         }
+
         // Tambahkan item ke keranjang
         $item = (object)[
             'id' => $itemId,
-            'kode_bahan' => $item->kode_bahan ?? '',
             'bahan_id' => $bahan->bahan_id ?? null,
             'produk_id' => $bahan->produk_id ?? null,
             'serial_number' => $bahan->serial_number ?? null,
-            'kode_transaksi' => $item->kode_transaksi ?? null,
             'nama_bahan' => $bahan->nama ?? 'Tanpa Nama',
             'stok' => $bahan->stok ?? 0,
             'unit' => $bahan->unit ?? 'Pcs',
         ];
+
         $this->cart[] = $item;
         $this->qty[$itemId] = 1;
         $this->unit_price_raw[$itemId] = null;

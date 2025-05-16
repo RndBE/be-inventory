@@ -110,8 +110,10 @@
                         <th scope="col" class="p-4">No</th>
                         <th scope="col" class="px-6 py-3">Nomor Referensi</th>
                         <th scope="col" class="px-6 py-3">Tanggal Pengajuan</th>
+                        <th scope="col" class="px-6 py-3">Tanggal Audit</th>
                         <th scope="col" class="px-6 py-3">Tanggal Diterima</th>
                         <th scope="col" class="px-6 py-3">Pengaju</th>
+                        <th scope="col" class="px-6 py-3">Auditor</th>
                         <th scope="col" class="px-6 py-3">Keterangan</th>
                         <th scope="col" class="px-6 py-3">Status Finance</th>
                         <th scope="col" class="px-6 py-3">Status Direktur</th>
@@ -128,8 +130,10 @@
                                 {{-- </button> --}}
                             </th>
                             <td class="px-6 py-4">{{ $stock_opname->tgl_pengajuan }}</td>
+                            <td class="px-6 py-4">{{ $stock_opname->tgl_audit }}</td>
                             <td class="px-6 py-4">{{ $stock_opname->tgl_diterima }}</td>
                             <td class="px-6 py-4">{{ $stock_opname->pengajuUser->name ?? null }}</td>
+                            <td class="px-6 py-4">{{ $stock_opname->auditor ?? null }}</td>
                             <td class="px-6 py-4">{{ $stock_opname->keterangan }}</td>
                             <td class="px-6 py-4">
                                 @if ($stock_opname->status_finance == 'Belum disetujui')

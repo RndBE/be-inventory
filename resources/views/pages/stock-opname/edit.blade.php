@@ -61,8 +61,8 @@
                         </div>
 
                         <div class="flex items-center">
-                            <label for="divisi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
-                                Tanggal <sup class="text-red-500 text-base">*</sup>
+                            <label for="tgl_pengajuan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                Tanggal Pengajuan<sup class="text-red-500 text-base">*</sup>
                             </label>
                             <div class="relative mt-2 w-full"> <!-- Tambahkan w-full dan relative pada div pembungkus -->
                                 <!-- Ikon di kiri input -->
@@ -81,6 +81,25 @@
                         </div>
 
                         <div class="flex items-center">
+                            @role('administrasi|superadmin')
+                                <label for="tgl_audit" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                    Tanggal Audit<sup class="text-red-500 text-base">*</sup>
+                                </label>
+                                <div class="relative mt-2 w-full"> <!-- Tambahkan w-full dan relative pada div pembungkus -->
+                                    <!-- Ikon di kiri input -->
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                                        </svg>
+                                    </div>
+                                    <!-- Input field -->
+                                    <input type="text" value="{{ $stockOpname->tgl_audit }}" name="tgl_audit" id="datetimepicker" value="{{ old('tgl_audit') }}" placeholder="Pilih tanggal"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required @if($stockOpname->status_selesai === 'Selesai') disabled @endif>
+                                </div>
+                                @error('tgl_audit')
+                                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                @enderror
+                            @endrole
                         </div>
 
                         <div class="flex items-center">
@@ -90,12 +109,19 @@
                             <textarea id="keterangan" name="keterangan" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" @if($stockOpname->status_selesai === 'Selesai') disabled @endif>{{ $stockOpname->keterangan }}</textarea>
                         </div>
 
+
                         <div class="flex items-center">
+                            @role('administrasi|superadmin')
+                                <label for="auditor" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Auditor</label>
+                                <input type="text" id="auditor" name="auditor" value="{{ $stockOpname->auditor }}" class="block w-full rounded-md border-gray-50 bg-gray-50 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                            @endrole
                         </div>
+
                     </div>
 
                     </div>
-                    <livewire:search-bahan/>
+                    {{-- <livewire:search-bahan/> --}}
+                    <livewire:search-bahan-stock-opname/>
                     <livewire:edit-bahan-stock-opname-cart :stockOpnameId="$stockOpnameId"/>
                 </div>
 

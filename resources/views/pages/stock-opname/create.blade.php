@@ -94,7 +94,8 @@
                 </div>
 
                     </div>
-                    <livewire:search-bahan/>
+                    {{-- <livewire:search-bahan/> --}}
+                    <livewire:search-bahan-stock-opname/>
                     <livewire:bahan-stock-opname-cart/>
                 </div>
 

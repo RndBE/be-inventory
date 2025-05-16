@@ -7,7 +7,7 @@ use Livewire\Component;
 use Illuminate\Support\Collection;
 use App\Models\BahanSetengahjadiDetails;
 
-class SearchBahanProduksi extends Component
+class SearchBahanStockOpname extends Component
 {
     public $query;
     public $search_results;
@@ -23,7 +23,7 @@ class SearchBahanProduksi extends Component
 
     public function render()
     {
-        return view('livewire.search-bahan-produksi');
+        return view('livewire.search-bahan-stock-opname');
     }
 
 
@@ -51,10 +51,6 @@ class SearchBahanProduksi extends Component
 
         // Pencarian di tabel Bahan Setengah Jadi Details
         $bahanSetengahJadiResults = BahanSetengahjadiDetails::with('bahanSetengahjadi', 'dataBahan.dataUnit')
-        // ->whereHas('bahanSetengahjadi', function ($query) {
-        //     $query->whereHas('produksiS'); // Pastikan bahan setengah jadi memiliki produksi
-        // })
-        ->where('sisa', '>', 0)
         ->get()
         ->map(function ($bahanSetengahJadiDetail) {
             return (object) [
@@ -67,15 +63,7 @@ class SearchBahanProduksi extends Component
                 'unit' => 'Pcs',
             ];
         });
-
-        //dd($bahanSetengahJadiResults);
-        // Gabungkan hasil dari kedua tabel
         $this->search_results = collect(array_merge($bahanResults->toArray(), $bahanSetengahJadiResults->toArray()));
-
-        // Filter hasil hanya yang memiliki stok > 0
-        $this->search_results = $this->search_results->filter(function ($item) {
-            return $item->stok >= 0;
-        })->take($this->how_many);
 
         // Reset selected index
         $this->selectedIndex = -1;
@@ -88,7 +76,7 @@ class SearchBahanProduksi extends Component
             $bahanSetengahJadiDetail = BahanSetengahjadiDetails::with('bahanSetengahjadi')
                 ->where('id', $id)
                 ->first();
-
+            // dd($bahanSetengahJadiDetail);
             if ($bahanSetengahJadiDetail) {
                 $bahanSetengahJadiData = (object) [
                     'produk_id' => $bahanSetengahJadiDetail->id,
@@ -162,9 +150,10 @@ class SearchBahanProduksi extends Component
 
     public function selectCurrent()
     {
-
         if ($this->selectedIndex >= 0 && $this->selectedIndex < $this->search_results->count()) {
-            $this->selectBahan($this->search_results[$this->selectedIndex]->id);
+            $item = $this->search_results[$this->selectedIndex];
+            $this->selectBahan($item->type, $item->id);
         }
     }
+
 }

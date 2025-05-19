@@ -69,9 +69,9 @@ Route::get('/register', function () {
     abort(404);
 });
 
-Route::get('/forgot-password', function () {
-    abort(404);
-});
+// Route::get('/forgot-password', function () {
+//     abort(404);
+// });
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/notif-transaksi', [PurchaseController::class, 'notifTransaksi']);

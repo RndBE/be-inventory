@@ -1,77 +1,99 @@
 <x-authentication-layout>
     @if (session('status'))
-        <div class="mb-4 font-medium text-sm text-green-600">
-            {{ session('status') }}
-        </div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Sukses',
+                text: @json(session('status')),
+                background: '#2E2E4D',       // Warna background biru gelap
+                color: '#FFFFFF',            // Warna teks putih
+                confirmButtonColor: '#B40404', // Warna tombol merah gelap
+                confirmButtonText: 'OK'
+            });
+        </script>
     @endif
-    <section class="bg-gray-100 dark:bg-gray-900">
-        <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-            <a href="#" class="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-                <img class="w-25 h-12 mr-2" src="{{ asset('images/logo_be2.png') }}" alt="logo">
-            </a>
-            <div class="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-                <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
-                    <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-                        Sign in to your account
-                    </h1>
-                    <form class="space-y-4 md:space-y-6" method="POST" action="{{ route('login') }}">
-                        @csrf
-                        <div>
-                            <x-label for="email" value="{{ __('Email') }}" />
-                            <x-input id="email" placeholder="name@company.com" type="email" name="email" :value="old('email')" required autofocus />
-                        </div>
-                        <div>
-                            <x-label for="password" value="{{ __('Password') }}" />
 
-                                {{-- <x-input id="password" placeholder="••••••••" type="password" name="password" required autocomplete="current-password" /> --}}
-                            <!-- Password Input Field -->
-                            <div class="relative">
-                                <div class="flex items-center">
-                                    <input type="password" id="password" placeholder="••••••••" name="password" required autocomplete="current-password" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-                                    <button type="button" id="togglePassword" class="ml-2 text-gray-600 dark:text-gray-300">
-                                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-eye"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+    <section class="min-h-screen bg-[#D2D2DB] flex items-center justify-center">
+        <div class="flex flex-col md:flex-row w-full max-w-6xl bg-white rounded-xl shadow-lg overflow-hidden">
 
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-
-                                </div>
-                                <div class="ml-3 text-sm">
-
-                                </div>
-                            </div>
-                            {{-- @if (Route::has('password.request'))
-                            <a href="{{ route('password.request') }}" class="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">{{ __('Forgot Password?') }}</a>
-                            @endif --}}
-                        </div>
-                        <button type="submit" class="w-full text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-primary-800">{{ __('Sign in') }}</button>
-                        {{-- <p class="text-sm font-light text-gray-500 dark:text-gray-400">
-                            Don’t have an account yet? <a href="{{ route('register') }}" class="font-medium text-primary-600 hover:underline dark:text-primary-500">{{ __('Sign Up') }}</a>
-                        </p> --}}
-                    </form>
-                    <x-validation-errors class="mt-4" />
+            <!-- KIRI: Branding dengan background warehouse -->
+            <div class="hidden md:flex md:w-1/2 relative bg-[#2E2E4D] items-center justify-center">
+                <img src="{{ asset('images/warehousing.jpg') }}" alt="Warehouse" class="absolute inset-0 object-cover w-full h-full opacity-20" />
+                <div class="relative z-10 text-center px-6 text-white">
+                    <h2 class="text-5xl font-extrabold tracking-tight mb-4 drop-shadow-lg">
+                        BE-Inventory
+                    </h2>
+                    <p class="text-2xl font-semibold italic text-[#FFFFFF] drop-shadow-md">
+                        Optimalkan Stok Anda, Maksimalkan Produktivitas
+                    </p>
+                    <p class="mt-6 max-w-md mx-auto text-lg leading-relaxed drop-shadow-sm">
+                        Kendalikan inventaris Anda secara real-time. Efisien, presisi, dan siap mendukung setiap kebutuhan bisnis.
+                    </p>
                 </div>
+            </div>
+
+            <!-- KANAN: Form Login -->
+            <div class="w-full md:w-1/2 p-8 sm:p-10 bg-[#FFFFFF]">
+                <div class="flex justify-center mb-6">
+                    <img src="{{ asset('images/logo_be2.png') }}" alt="Logo" class="w-32">
+                </div>
+
+                <h1 class="text-2xl font-bold text-[#2E2E4D] mb-6 text-center">
+                    Masuk ke Akun Anda
+                </h1>
+
+                <form method="POST" action="{{ route('login') }}" class="space-y-5">
+                    @csrf
+
+                    <div>
+                        <x-label for="email" value="{{ __('Email') }}" class="text-[#2E2E4D]" />
+                        <x-input id="email" type="email" name="email" placeholder="email@perusahaan.com" :value="old('email')" required autofocus class="border-gray-300 focus:ring-[#B40404] focus:border-[#B40404]" />
+                    </div>
+
+                    <div>
+                        <x-label for="password" value="{{ __('Password') }}" class="text-[#2E2E4D]" />
+                        <div class="relative">
+                            <input type="password" id="password" name="password" placeholder="••••••••" required
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-[#B40404] focus:border-[#B40404]">
+                            <button type="button" id="togglePassword" class="absolute right-3 top-2.5 text-gray-600">
+                                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <a href="{{ route('password.request') }}" class="text-sm text-[#2E2E4D] hover:underline">
+                            {{ __('Lupa password?') }}
+                        </a>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-[#B40404] hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B40404] focus:ring-offset-1">
+                        {{ __('Sign in') }}
+                    </button>
+
+                    <x-validation-errors class="mt-4" />
+                </form>
             </div>
         </div>
     </section>
+
     <script>
         document.getElementById('togglePassword').addEventListener('click', function () {
             const passwordField = document.getElementById('password');
             const eyeIcon = document.getElementById('eyeIcon');
 
-            // Toggle the password field type between text and password
             if (passwordField.type === "password") {
                 passwordField.type = "text";
-                eyeIcon.setAttribute('class', 'bi bi-eye-slash'); // Change icon to eye-slash
+                eyeIcon.innerHTML = `<path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a10.05 10.05 0 012.302-3.775M3 3l18 18" />`;
             } else {
                 passwordField.type = "password";
-                eyeIcon.setAttribute('class', 'bi bi-eye'); // Change icon back to eye
+                eyeIcon.innerHTML = `<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
             }
         });
     </script>
-
 </x-authentication-layout>

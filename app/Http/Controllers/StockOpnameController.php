@@ -148,7 +148,7 @@ class StockOpnameController extends Controller
             // $role = Auth::user();
             $user = Auth::user();
             $canSeeAuditDate = $user->hasAnyRole(['superadmin', 'administrasi']);
-            $canSeeAuditDatePengaju = $user->hasAnyRole(['purchasing']);
+            $canSeeAuditDatePengaju = $user->hasAnyRole(['purchasing','produksi']);
             // dd($canSeeAuditDate);
             $pdf = Pdf::loadView('pages.stock-opname.pdf', compact(
                 'stockOpname',

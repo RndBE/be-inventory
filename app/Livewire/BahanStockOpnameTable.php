@@ -52,14 +52,6 @@ class BahanStockOpnameTable extends Component
         $this->isShowModalOpen = true;
     }
 
-    // public function calculateTotalHarga()
-    // {
-    //     $this->totalHarga = BahanRetur::where('status', 'Disetujui')->with('stockOpnameDetails')
-    //     ->get()
-    //         ->sum(function ($bahanRetur) {
-    //             return $bahanRetur->stockOpnameDetails->sum('sub_total');
-    //         });
-    // }
 
     public function editStockOpname(int $id)
     {
@@ -85,34 +77,45 @@ class BahanStockOpnameTable extends Component
 
     public function render()
     {
-        $stock_opnames = StockOpname::with('stockOpnameDetails')->orderBy('id', 'desc')
-        ->where(function ($query) {
-            $query->where('tgl_pengajuan', 'like', '%' . $this->search . '%')
-            ->orWhere('tgl_diterima', 'like', '%' . $this->search . '%')
-                ->orWhere('status_finance', 'like', '%' . $this->search . '%')
-                ->orWhere('status_direktur', 'like', '%' . $this->search . '%')
-                ->orWhere('nomor_referensi', 'like', '%' . $this->search . '%')
-                ->orWhere('keterangan', 'like', '%' . $this->search . '%')
-                ->orWhereHas('stockOpnameDetails.dataBahan', function ($query) {
-                    $query->where('nama_bahan', 'like', '%' . $this->search . '%');
-                });
-        })
+        $stock_opnames = StockOpname::with('stockOpnameDetails')
+            ->when(!auth()->user()->hasRole('superadmin','administrasi'), function ($query) {
+                $query->where('pengaju', auth()->id());
+            })
+            ->where(function ($query) {
+                $query->where('tgl_pengajuan', 'like', '%' . $this->search . '%')
+                    ->orWhere('tgl_diterima', 'like', '%' . $this->search . '%')
+                    ->orWhere('status_finance', 'like', '%' . $this->search . '%')
+                    ->orWhere('status_direktur', 'like', '%' . $this->search . '%')
+                    ->orWhere('nomor_referensi', 'like', '%' . $this->search . '%')
+                    ->orWhere('keterangan', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('stockOpnameDetails.dataBahan', function ($query) {
+                        $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                    });
+            })
             ->when($this->filter === 'Ditolak', function ($query) {
-                return $query->where('status_finance', 'Ditolak');
-            return $query->where('status_direktur', 'Ditolak');
+                return $query->where(function ($q) {
+                    $q->where('status_finance', 'Ditolak')
+                    ->orWhere('status_direktur', 'Ditolak');
+                });
             })
             ->when($this->filter === 'Disetujui', function ($query) {
-                return $query->where('status_finance', 'Disetujui');
-                return $query->where('status_direktur', 'Disetujui');
+                return $query->where(function ($q) {
+                    $q->where('status_finance', 'Disetujui')
+                    ->orWhere('status_direktur', 'Disetujui');
+                });
             })
             ->when($this->filter === 'Belum disetujui', function ($query) {
-                return $query->where('status_finance', 'Belum disetujui');
-                return $query->where('status_direktur', 'Belum disetujui');
+                return $query->where(function ($q) {
+                    $q->where('status_finance', 'Belum disetujui')
+                    ->orWhere('status_direktur', 'Belum disetujui');
+                });
             })
+            ->orderBy('id', 'desc')
             ->paginate($this->perPage);
 
         return view('livewire.bahan-stock-opname-table', [
             'stock_opnames' => $stock_opnames,
         ]);
     }
+
 }

@@ -2,10 +2,11 @@
 
 namespace App\Livewire;
 
+use Livewire\Component;
 use App\Models\BahanRetur;
 use App\Models\StockOpname;
-use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Auth;
 
 class BahanStockOpnameTable extends Component
 {
@@ -77,31 +78,51 @@ class BahanStockOpnameTable extends Component
 
     public function render()
     {
-        $stock_opnames = StockOpname::with('stockOpnameDetails')->orderBy('id', 'desc')
-        ->where(function ($query) {
-            $query->where('tgl_pengajuan', 'like', '%' . $this->search . '%')
-            ->orWhere('tgl_diterima', 'like', '%' . $this->search . '%')
+        // Dasar query
+        $query = StockOpname::with('stockOpnameDetails')->orderBy('id', 'desc');
+
+        // Filter berdasarkan role
+        if (!Auth::user()->hasRole(['administrasi','superadmin'])) {
+            $query->where('pengaju', Auth::id());
+        }
+
+        // Pencarian
+        $query->where(function ($q) {
+            $q->where('tgl_pengajuan', 'like', '%' . $this->search . '%')
+                ->orWhere('tgl_diterima', 'like', '%' . $this->search . '%')
                 ->orWhere('status_finance', 'like', '%' . $this->search . '%')
                 ->orWhere('status_direktur', 'like', '%' . $this->search . '%')
                 ->orWhere('nomor_referensi', 'like', '%' . $this->search . '%')
                 ->orWhere('keterangan', 'like', '%' . $this->search . '%')
-                ->orWhereHas('stockOpnameDetails.dataBahan', function ($query) {
-                    $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                ->orWhereHas('stockOpnameDetails.dataBahan', function ($q) {
+                    $q->where('nama_bahan', 'like', '%' . $this->search . '%');
                 });
-        })
-            ->when($this->filter === 'Ditolak', function ($query) {
-                return $query->where('status_finance', 'Ditolak');
-            return $query->where('status_direktur', 'Ditolak');
-            })
-            ->when($this->filter === 'Disetujui', function ($query) {
-                return $query->where('status_finance', 'Disetujui');
-                return $query->where('status_direktur', 'Disetujui');
-            })
-            ->when($this->filter === 'Belum disetujui', function ($query) {
-                return $query->where('status_finance', 'Belum disetujui');
-                return $query->where('status_direktur', 'Belum disetujui');
-            })
-            ->paginate($this->perPage);
+        });
+
+        // Filter status
+        $query->when($this->filter === 'Ditolak', function ($q) {
+            $q->where(function ($sub) {
+                $sub->where('status_finance', 'Ditolak')
+                    ->orWhere('status_direktur', 'Ditolak');
+            });
+        });
+
+        $query->when($this->filter === 'Disetujui', function ($q) {
+            $q->where(function ($sub) {
+                $sub->where('status_finance', 'Disetujui')
+                    ->orWhere('status_direktur', 'Disetujui');
+            });
+        });
+
+        $query->when($this->filter === 'Belum disetujui', function ($q) {
+            $q->where(function ($sub) {
+                $sub->where('status_finance', 'Belum disetujui')
+                    ->orWhere('status_direktur', 'Belum disetujui');
+            });
+        });
+
+        // Paginate
+        $stock_opnames = $query->paginate($this->perPage);
 
         return view('livewire.bahan-stock-opname-table', [
             'stock_opnames' => $stock_opnames,

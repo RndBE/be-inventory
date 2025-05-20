@@ -286,7 +286,7 @@
             </table>
         </div>
     </div>
-    <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+    <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-1">
         @if($produksiStatus !== 'Selesai')
             <div class=" border-gray-900/10">
                 <h1 class="mt-6"><strong>Bahan Rusak</strong></h1>

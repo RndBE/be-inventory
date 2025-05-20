@@ -96,7 +96,9 @@
             <div class="flex flex-col lg:flex-row items-start gap-6">
                 <div class="w-full lg:w-3/4 bg-white border rounded-lg p-6 shadow">
                     <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
-                    <livewire:search-bahan-produk-sample/>
+                    @if ($produkSample->status !== 'Selesai')
+                        <livewire:search-bahan-produk-sample/>
+                    @endif
                 </div>
 
                 <div class="w-full lg:w-2/4 bg-white border rounded-lg p-6 shadow">

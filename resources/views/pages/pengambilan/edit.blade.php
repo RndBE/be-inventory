@@ -93,94 +93,89 @@
         <div class="sm:flex sm:justify-between sm:items-center mb-2">
         </div>
 
-        <div class="w-full bg-white border border-gray-200 rounded-lg p-4 shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
-            <form action="{{ route('pengambilan-bahan.update', $pengambilanBahan->id) }}" method="POST" enctype="multipart/form-data" id="produksiForm">
-                @csrf
-                @method('PUT') <!-- Use PUT method for updating -->
-                <div class="space-y-6">
-                    <div>
-                        <div class="border-b border-gray-900/10 pb-2 mb-2">
-                            <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
-                                <div class="flex items-center">
-                                    <label for="kode_pengajuan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Pengajuan</label>
-                                    <input type="text" id="kode_pengajuan" value="{{ $pengambilanBahan->kode_pengajuan }}" disabled placeholder="PR - " class="block rounded-md w-3/4 border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" readonly>
-                                </div>
+        <div class="w-full max-w-9xl mx-auto">
+            <div class="flex flex-col lg:flex-row items-start gap-6">
+                <div class="w-full lg:w-3/4 bg-white border rounded-lg p-6 shadow">
+                    <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
+                    @if ($pengambilanBahan->status !== 'Selesai')
+                        <livewire:search-bahan-pengambilan/>
+                    @endif
+                </div>
 
-                                <div class="flex items-center">
-                                    <label for="project" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
-                                        Project <sup class="text-red-500 text-base">*</sup>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="project"
-                                        name="project" disabled
-                                        value="{{ old('project', $pengambilanBahan->project) }}"
-                                        class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                </div>
-
-
-                                <div class="flex items-center">
-                                    <label for="divisi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
-                                        Divisi <sup class="text-red-500 text-base">*</sup>
-                                    </label>
-                                    <select disabled name="divisi" id="divisi" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
-                                        <option value="">-- Pilih Divisi --</option>
-                                        <option value="Produksi" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Produksi' ? 'selected' : '' }}>Produksi</option>
-                                        <option value="Teknisi" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Teknisi' ? 'selected' : '' }}>Teknisi</option>
-                                        <option value="RnD" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'RnD' ? 'selected' : '' }}>RnD</option>
-                                        <option value="Publikasi" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Publikasi' ? 'selected' : '' }}>Publikasi</option>
-                                        <option value="Software" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Software' ? 'selected' : '' }}>Software</option>
-                                        <option value="Marketing" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Marketing' ? 'selected' : '' }}>Marketing</option>
-                                        <option value="Purchasing" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Purchasing' ? 'selected' : '' }}>Purchasing</option>
-                                        <option value="HSE" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'HSE' ? 'selected' : '' }}>HSE</option>
-                                        <option value="OP" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'OP' ? 'selected' : '' }}>OP</option>
-                                        <option value="Administrasi" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Administrasi' ? 'selected' : '' }}>Administrasi</option>
-                                        <option value="Sekretaris" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Sekretaris' ? 'selected' : '' }}>Sekretaris</option>
-                                    </select>
-                                </div>
-
-                                {{-- <div class="flex items-center">
-                                    <label for="mulai_pengajuan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Pengajuan<sup class="text-red-500 text-base">*</sup></label>
-                                    <div class="relative w-3/4">
-                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                            <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
-                                            </svg>
+                <div class="w-full lg:w-2/4 bg-white border rounded-lg p-6 shadow">
+                    <form action="{{ route('pengambilan-bahan.update', $pengambilanBahan->id) }}" method="POST" enctype="multipart/form-data" id="produksiForm">
+                        @csrf
+                        @method('PUT') <!-- Use PUT method for updating -->
+                        <div class="space-y-6">
+                            <div>
+                                <div class="border-b border-gray-900/10 pb-2 mb-2">
+                                    <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-1">
+                                        <div class="flex items-center">
+                                            <label for="kode_pengajuan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Pengajuan</label>
+                                            <input type="text" id="kode_pengajuan" value="{{ $pengambilanBahan->kode_pengajuan }}" disabled placeholder="PR - " class="block rounded-md w-3/4 border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" readonly>
                                         </div>
-                                        <input type="text" value="{{ $pengajuan->mulai_pengajuan }}" name="mulai_pengajuan" id="datetimepicker" placeholder="Pilih tanggal dan waktu" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 sm:text-sm sm:leading-6 cursor-default pointer-events-none" {{ $pengajuan->status === 'Selesai' ? 'disabled' : '' }} readonly required>
-                                    </div>
-                                    @error('mulai_pengajuan')
-                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                                </div> --}}
 
-                                <div class="flex items-center">
-                                    <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
-                                        Keterangan <sup class="text-red-500 text-base">*</sup>
-                                    </label>
-                                    <textarea disabled id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan', $pengambilanBahan->keterangan) }}</textarea>
-                                </div>
-
-                                <div class="flex items-center">
-                                    <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
-                                    <div class="relative w-3/4 mr-2">
-                                        <div class="flex items-center me-4">
-                                            <p class="text-red-500 text-sm"><sup>*</sup>) Wajib diisi</p>
+                                        <div class="flex items-center">
+                                            <label for="project" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                                Project <sup class="text-red-500 text-base">*</sup>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="project"
+                                                name="project" disabled
+                                                value="{{ old('project', $pengambilanBahan->project) }}"
+                                                class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                         </div>
+
+
+                                        <div class="flex items-center">
+                                            <label for="divisi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                                Divisi <sup class="text-red-500 text-base">*</sup>
+                                            </label>
+                                            <select disabled name="divisi" id="divisi" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
+                                                <option value="">-- Pilih Divisi --</option>
+                                                <option value="Produksi" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Produksi' ? 'selected' : '' }}>Produksi</option>
+                                                <option value="Teknisi" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Teknisi' ? 'selected' : '' }}>Teknisi</option>
+                                                <option value="RnD" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'RnD' ? 'selected' : '' }}>RnD</option>
+                                                <option value="Publikasi" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Publikasi' ? 'selected' : '' }}>Publikasi</option>
+                                                <option value="Software" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Software' ? 'selected' : '' }}>Software</option>
+                                                <option value="Marketing" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Marketing' ? 'selected' : '' }}>Marketing</option>
+                                                <option value="Purchasing" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Purchasing' ? 'selected' : '' }}>Purchasing</option>
+                                                <option value="HSE" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'HSE' ? 'selected' : '' }}>HSE</option>
+                                                <option value="OP" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'OP' ? 'selected' : '' }}>OP</option>
+                                                <option value="Administrasi" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Administrasi' ? 'selected' : '' }}>Administrasi</option>
+                                                <option value="Sekretaris" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Sekretaris' ? 'selected' : '' }}>Sekretaris</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="flex items-center">
+                                            <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                                Keterangan <sup class="text-red-500 text-base">*</sup>
+                                            </label>
+                                            <textarea disabled id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan', $pengambilanBahan->keterangan) }}</textarea>
+                                        </div>
+
+                                        <div class="flex items-center">
+                                            <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
+                                            <div class="relative w-3/4 mr-2">
+                                                <div class="flex items-center me-4">
+                                                    <p class="text-red-500 text-sm"><sup>*</sup>) Wajib diisi</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
-
+                                {{-- @if ($pengambilanBahan->status !== 'Selesai')
+                                    <livewire:search-pengambilan-bahan/>
+                                @endif --}}
+                                {{-- <livewire:bahan-pengajuan-cart :pengajuanId="$pengajuanId" /> --}}
+                                <livewire:edit-bahan-pengambilan-bahan-cart :pengambilanBahanId="$pengambilanBahanId" />
                             </div>
                         </div>
-                        @if ($pengambilanBahan->status !== 'Selesai')
-                            {{-- <livewire:search-bahan-produksi/> --}}
-                            <livewire:search-pengambilan-bahan/>
-                        @endif
-                        {{-- <livewire:bahan-pengajuan-cart :pengajuanId="$pengajuanId" /> --}}
-                        <livewire:edit-bahan-pengambilan-bahan-cart :pengambilanBahanId="$pengambilanBahanId" />
-                    </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
     @include('pages.pengambilan.selesai')

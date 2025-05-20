@@ -136,14 +136,6 @@
                     <input type="hidden" name="pengambilanBahanDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $detail['bahan']->nama_bahan }}</td>
-                        {{-- <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                            <input value="{{ old('jml_bahan.'.$detail['bahan']->id, $this->jml_bahan[$detail['bahan']->id] ?? 0) }}"
-                                type="number"
-                                wire:model="jml_bahan.{{ $detail['bahan']->id }}"
-                                wire:keyup="updateQuantity({{ $detail['bahan']->id }})"
-                                class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="0" min="0" required @if($this->produksiStatus === 'Selesai') disabled @endif/>
-                        </td> --}}
                         <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
                             <div class="flex justify-center items-center">
                                 <input value="{{ old('qty.'.$detail['bahan']->id, $qty[$detail['bahan']->id] ?? 0) }}"
@@ -154,9 +146,6 @@
                                     placeholder="0" min="0" required @if($this->produksiStatus === 'Selesai') disabled @endif/>
                             </div>
                         </td>
-                        {{-- <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
-                            <span><strong>Rp.</strong> {{ number_format($subtotals[$detail['bahan']->id] ?? 0, 0, ',', '.') }}</span>
-                        </td> --}}
 
                         <td class="items-right px-6 py-4 text-right">
                             @foreach($detail['details'] as $d)
@@ -214,7 +203,7 @@
             </table>
         </div>
     </div>
-    <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+    <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-1">
         @if($produksiStatus !== 'Selesai')
             <div class=" border-gray-900/10">
                 <h1 class="mt-6"><strong>Bahan Rusak</strong></h1>

@@ -75,13 +75,25 @@
         <div class="sm:flex sm:justify-between sm:items-center mb-2">
         </div>
 
-        <div class="w-full bg-white border border-gray-200 rounded-lg p-4 shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
-            <form action="{{ route('pengambilan-bahan.store') }}" method="POST" enctype="multipart/form-data" id="pengajuanForm">
-                @csrf
-                <div class="space-y-6">
-                    <livewire:bahan-pengambilan-cart/>
+        <div class="w-full max-w-9xl mx-auto">
+            {{-- Layout --}}
+            <div class="flex flex-col lg:flex-row items-start gap-6">
+                {{-- Left: Product List + Search --}}
+                <div class="w-full lg:w-3/4 bg-white border rounded-lg p-6 shadow">
+                    <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
+                    <livewire:search-bahan-pengambilan/>
                 </div>
-            </form>
+
+                {{-- Right: Cart --}}
+                <div class="w-full lg:w-2/4 bg-white border rounded-lg p-6 shadow">
+                    <form action="{{ route('pengambilan-bahan.store') }}" method="POST" enctype="multipart/form-data" id="pengajuanForm">
+                        @csrf
+                        <div class="space-y-6">
+                            <livewire:bahan-pengambilan-cart/>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 

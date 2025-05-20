@@ -25,47 +25,70 @@ class BahanPengambilanCart extends Component
     {
 
     }
-    
     public function addToCart($bahan)
     {
         if (is_array($bahan)) {
             $bahan = (object) $bahan;
         }
 
-        $existingItemKey = array_search($bahan->bahan_id, array_column($this->cart, 'id'));
+        $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
 
         if ($existingItemKey !== false) {
-            $this->updateQuantity($bahan->bahan_id);
+            $this->updateQuantity($bahan->id);
         } else {
-            $item = Bahan::with('purchaseDetails')->find($bahan->bahan_id);
+            // Periksa apakah sisa bahan masih ada
+            $item = Bahan::find($bahan->id);
+            if ($item) {
+                if ($item->jenisBahan->nama === 'Produksi') {
+                    $bahanSetengahjadiDetails = $item->bahanSetengahjadiDetails()
+                        ->where('sisa', '>', 0)
+                        ->with(['bahanSetengahjadi' => function ($query) {
+                            $query->orderBy('tgl_masuk', 'asc');
+                        }])->get();
 
-            if (!$item) {
-                session()->flash('error', 'Bahan tidak ditemukan.');
-                return;
+                    $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
+                    if ($totalAvailable <= 0) {
+                        // Tampilkan pesan error jika sisa bahan tidak ada
+                        session()->flash('error', 'Sisa bahan tidak ada');
+                        return;
+                    }
+                } elseif ($item->jenisBahan->nama !== 'Produksi') {
+                    $purchaseDetails = $item->purchaseDetails()
+                        ->where('sisa', '>', 0)
+                        ->with(['purchase' => function ($query) {
+                            $query->orderBy('tgl_masuk', 'asc');
+                        }])->get();
+
+                    $totalAvailable = $purchaseDetails->sum('sisa');
+                    if ($totalAvailable <= 0) {
+                        // Tampilkan pesan error jika sisa bahan tidak ada
+                        session()->flash('error', 'Sisa bahan tidak ada');
+                        return;
+                    }
+                }
             }
 
-            $totalAvailable = $item->purchaseDetails->sum('sisa');
-            if ($totalAvailable <= 0) {
-                session()->flash('error', 'Sisa bahan tidak tersedia.');
-                return;
-            }
-
-            // Tambahkan item ke keranjang
-            $cartItem = (object)[
-                'id' => $item->id,
-                'nama_bahan' => $item->nama_bahan,
-                'stok' => $totalAvailable,
-                'unit' => $bahan->unit ?? ($item->dataUnit->nama ?? '-'),
+            // Buat objek item
+            $item = (object)[
+                'id' => $bahan->id,
+                'nama_bahan' => Bahan::find($bahan->id)->nama_bahan,
+                'stok' => $bahan->stok,
+                'unit' => $bahan->unit,
             ];
 
-            $this->cart[] = $cartItem;
-            $this->qty[$item->id] = null;
-            $this->jml_bahan[$item->id] = null;
+            // Tambahkan item ke keranjang
+            $this->cart[] = $item;
+            $this->qty[$bahan->id] = null;
+            $this->jml_bahan[$bahan->id] = null;
         }
 
+        // Simpan ke sesi
         $this->saveCartToSession();
-        $this->calculateSubTotal($bahan->bahan_id);
+        $this->calculateSubTotal($bahan->id);
     }
+
+
+
 
     protected function saveCartToSession()
     {

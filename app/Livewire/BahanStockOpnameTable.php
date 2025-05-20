@@ -2,10 +2,11 @@
 
 namespace App\Livewire;
 
+use Livewire\Component;
 use App\Models\BahanRetur;
 use App\Models\StockOpname;
-use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Auth;
 
 class BahanStockOpnameTable extends Component
 {
@@ -78,7 +79,7 @@ class BahanStockOpnameTable extends Component
     public function render()
     {
         $stock_opnames = StockOpname::with('stockOpnameDetails')
-            ->when(!auth()->user()->hasRole('superadmin','administrasi'), function ($query) {
+            ->when(!Auth::user()->hasRole('superadmin','administrasi'), function ($query) {
                 $query->where('pengaju', auth()->id());
             })
             ->where(function ($query) {

@@ -40,11 +40,11 @@ class ProdukSampleController extends Controller
 
     public function __construct()
     {
-        $this->middleware('permission:lihat-projek', ['only' => ['index']]);
-        $this->middleware('permission:selesai-projek', ['only' => ['updateStatus']]);
-        $this->middleware('permission:tambah-projek', ['only' => ['create','store']]);
-        $this->middleware('permission:edit-projek', ['only' => ['update','edit']]);
-        $this->middleware('permission:hapus-projek', ['only' => ['destroy']]);
+        $this->middleware('permission:lihat-produk-sample', ['only' => ['index']]);
+        $this->middleware('permission:selesai-produk-sample', ['only' => ['updateStatus']]);
+        $this->middleware('permission:tambah-produk-sample', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-produk-sample', ['only' => ['update','edit']]);
+        $this->middleware('permission:hapus-produk-sample', ['only' => ['destroy']]);
     }
 
     public function export($produkSample_id)

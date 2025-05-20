@@ -76,88 +76,72 @@
         <div class="sm:flex sm:justify-between sm:items-center mb-2">
         </div>
 
-        <div class="w-full bg-white border border-gray-200 rounded-lg p-4 shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
-            <form action="{{ route('projek-rnd.store') }}" method="POST" enctype="multipart/form-data" id="projekRndForm">
-                @csrf
-                <div class="space-y-6">
-                    <div>
-                        <div class="border-b border-gray-900/10 pb-2 mb-2">
-                            <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
-                                <div class="flex items-center">
-                                    <label for="kode_projek_rnd" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Proyek</label>
-                                    <input type="text" id="kode_projek_rnd" disabled placeholder="PR - " class="block rounded-md w-3/4 border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                </div>
+        <div class="w-full max-w-9xl mx-auto">
+            {{-- Layout --}}
+            <div class="flex flex-col lg:flex-row items-start gap-6">
+                {{-- Left: Product List + Search --}}
+                <div class="w-full lg:w-3/4 bg-white border rounded-lg p-6 shadow">
+                    <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
+                    <livewire:search-bahan-produk-sample/>
+                </div>
 
-                                <div class="flex items-center">
-                                    <label for="nama_projek_rnd" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk/Riset
-                                        <sup class="text-red-500 text-base">*</sup>
-                                    </label>
-                                    <input type="text" id="nama_projek_rnd" name="nama_projek_rnd" class=" w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                </div>
-
-                                {{-- <div class="flex items-center">
-                                    <label for="bahan_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">Nama Produk
-                                        <sup class="text-red-500 text-base">*</sup>
-                                    </label>
-                                    <select name="bahan_id" id="bahan_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
-                                        <option value="">-- Nama Proyek --</option>
-                                        @foreach($bahans as $bahan)
-                                            <option value="{{ $bahan->id }}">{{ $bahan->nama_bahan }}</option>
-                                        @endforeach
-                                    </select>
-                                </div> --}}
-
-                                <div class="flex items-center">
-                                    <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Proyek<sup class="text-red-500 text-base">*</sup></label>
-                                    <div class="relative w-3/4">
-                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                            <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
-                                            </svg>
+                {{-- Right: Cart --}}
+                <div class="w-full lg:w-2/4 bg-white border rounded-lg p-6 shadow">
+                    <form action="{{ route('projek-rnd.store') }}" method="POST" enctype="multipart/form-data" id="projekRndForm">
+                        @csrf
+                        <div class="space-y-6">
+                            <div>
+                                <div class="border-b border-gray-900/10 pb-2 mb-2">
+                                    <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-1">
+                                        <div class="flex items-center">
+                                            <label for="kode_projek_rnd" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Proyek</label>
+                                            <input type="text" id="kode_projek_rnd" disabled placeholder="PR - " class="block rounded-md w-3/4 border-gray-300 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                         </div>
-                                        <input type="text" name="mulai_projek_rnd" id="datetimepicker" placeholder="Pilih tanggal dan waktu" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
-                                    </div>
-                                </div>
 
-                                {{-- <div class="flex items-center"> --}}
-                                    {{-- <label for="jenis_produksi" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jenis Produksi<sup class="text-red-500 text-base">*</sup></label>
-                                    <div class="relative w-3/4 mr-2">
-                                        <div class="flex flex-wrap">
-                                            <div class="flex items-center me-4">
-                                                <input id="red-radio" type="radio" value="Produk Jadi" name="jenis_produksi" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="red-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Produk Jadi</label>
-                                            </div>
-                                            <div class="flex items-center me-4">
-                                                <input id="green-radio" type="radio" value="Produk Setengah Jadi" name="jenis_produksi" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                <label for="green-radio" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Produk Setengah Jadi</label>
+                                        <div class="flex items-center">
+                                            <label for="nama_projek_rnd" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk/Riset
+                                                <sup class="text-red-500 text-base">*</sup>
+                                            </label>
+                                            <input type="text" id="nama_projek_rnd" name="nama_projek_rnd" class=" w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                        </div>
+
+                                        <div class="flex items-center">
+                                            <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Proyek<sup class="text-red-500 text-base">*</sup></label>
+                                            <div class="relative w-3/4">
+                                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                                    <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                                                    </svg>
+                                                </div>
+                                                <input type="text" name="mulai_projek_rnd" id="datetimepicker" placeholder="Pilih tanggal dan waktu" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full py-1.5 pl-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
                                             </div>
                                         </div>
-                                    </div> --}}
-                                {{-- </div> --}}
 
-                                <div class="flex items-center">
-                                    <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
-                                        Keterangan <sup class="text-red-500 text-base">*</sup>
-                                    </label>
-                                    <textarea id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan') }}</textarea>
-                                </div>
-
-                                <div class="flex items-center">
-                                    <label for="text" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
-                                    <div class="relative w-3/4 mr-2">
-                                        <div class="flex items-center me-4">
-                                            <p class="text-red-500 text-sm"><sup>*</sup>) Wajib diisi</p>
+                                        <div class="flex items-center">
+                                            <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                                Keterangan <sup class="text-red-500 text-base">*</sup>
+                                            </label>
+                                            <textarea id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan') }}</textarea>
                                         </div>
+
+                                        <div class="flex items-center">
+                                            <label for="text" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
+                                            <div class="relative w-3/4 mr-2">
+                                                <div class="flex items-center me-4">
+                                                    <p class="text-red-500 text-sm"><sup>*</sup>) Wajib diisi</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
-
+                                {{-- <livewire:search-bahan-produksi/> --}}
+                                <livewire:bahan-projek-resource-cart/>
                             </div>
                         </div>
-                        <livewire:search-bahan-produksi/>
-                        <livewire:bahan-projek-resource-cart/>
-                    </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
     <script>

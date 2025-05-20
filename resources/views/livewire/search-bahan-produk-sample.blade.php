@@ -24,7 +24,7 @@
         <!-- List Bahan Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($bahanList as $bahan)
-                <div class="bg-white border rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
+                <div class="bg-white border rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer" wire:click="selectBahan({{ $bahan['id'] }}, '{{ $bahan['type'] }}')">
                     @if($bahan['gambar'])
                         <img src="{{ asset('storage/' . $bahan['gambar']) }}" alt="{{ $bahan['nama'] }}" class="w-full h-40 object-cover rounded mb-4">
                     @else
@@ -33,21 +33,26 @@
                         </div>
                     @endif
 
-                    <h4 class="font-bold text-lg">{{ $bahan['nama'] }}</h4>
+                    <h4 class="font-bold text-sm">{{ $bahan['nama'] }}</h4>
                     {{-- Jika tipe setengahjadi, tampilkan serial number --}}
                     @if($bahan['type'] === 'setengahjadi')
                         <p class="text-sm text-gray-600">Serial: {{ $bahan['kode'] }}</p>
                     @else
                         <p class="text-sm text-gray-600">{{ $bahan['kode'] }}</p>
                     @endif
-                    <div class="flex justify-between items-center mt-4">
-                        <span class="text-xs font-medium px-2.5 py-0.5 rounded border
-                            {{ $bahan['type'] === 'setengahjadi' ? 'bg-blue-100 text-blue-800 border-blue-400' : 'bg-green-100 text-green-800 border-green-400' }}
-                        ">
-                            {{ $bahan['stok'] }} {{ $bahan['unit'] }}
-                        </span>
+                    <div class="flex justify-between items-start mt-4">
+                        <div>
+                            <span class="text-sm font-medium px-2.5 py-0.5 rounded border
+                                {{ $bahan['type'] === 'setengahjadi' ? 'bg-blue-100 text-blue-800 border-blue-400' : 'bg-green-100 text-green-800 border-green-400' }}
+                            ">
+                                {{ $bahan['stok'] }} {{ $bahan['unit'] }}
+                            </span>
 
-                        <button class=" text-white py-2 px-4 rounded-full" style="background-color: #2E2E4D;" wire:click="selectBahan({{ $bahan['id'] }}, '{{ $bahan['type'] }}')"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-shopping-cart-plus"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M12.5 17h-6.5v-14h-2" /><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5" /><path d="M16 19h6" /><path d="M19 16v6" /></svg></button>
+                            <div class="text-xs text-gray-600 mt-1">
+                                <div><strong>Penempatan:</strong> {{ $bahan['penempatan'] ?? '-' }}</div>
+                                <div><strong>Supplier:</strong> {{ $bahan['supplier'] ?? '-' }}</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endforeach

@@ -93,8 +93,10 @@ class SearchBahanProdukSample extends Component
                     'nama' => $bahan->nama_bahan,
                     'gambar' => $bahan->gambar,
                     'kode' => $bahan->kode_bahan,
+                    'penempatan' => $bahan->penempatan ?? '-',
+                    'supplier' => $bahan->dataSupplier->nama ?? '-',
                     'stok' => $bahan->purchaseDetails->sum('sisa'),
-                    'unit' => optional($bahan->dataUnit)->nama ?? 'N/A',
+                    'unit' => optional($bahan->dataUnit)->nama ?? '-',
                 ];
         });
 

@@ -216,8 +216,8 @@ class ProdukSampleController extends Controller
             }
 
             $request->session()->forget('cartItems');
-            LogHelper::success('Berhasil Menambahkan Pengajuan Proyek!');
-            return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Proyek!');
+            LogHelper::success('Berhasil Menambahkan Pengajuan Produk Sample!');
+            return redirect()->back()->with('success', 'Berhasil Menambahkan Pengajuan Produk Sample!');
         } catch (\Exception $e) {
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan data: ' . $e->getMessage());
@@ -512,8 +512,8 @@ class ProdukSampleController extends Controller
                 }
             }
 
-            LogHelper::success('Berhasil Mengubah Detail Projek!');
-            return redirect()->back()->with('success', 'Projek berhasil diperbarui!');
+            LogHelper::success('Berhasil Mengubah Detail Produk Sample!');
+            return redirect()->back()->with('success', 'Produk sample berhasil diperbarui!');
         } catch (\Exception $e) {
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();

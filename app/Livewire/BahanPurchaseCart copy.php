@@ -31,19 +31,19 @@ class BahanPurchaseCart extends Component
             $bahan = (object) $bahan;
         }
         // Cek apakah bahan sudah ada di keranjang
-        $existingItemKey = array_search($bahan->bahan_id, array_column($this->cart, 'bahan_id'));
+        $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
         if ($existingItemKey !== false) {
             // Jika bahan sudah ada, tingkatkan kuantitas
-            $this->qty[$bahan->bahan_id]++;
+            $this->qty[$bahan->id]++;
         } else {
             // Jika bahan belum ada, tambahkan ke keranjang
             $this->cart[] = $bahan;
-            $this->qty[$bahan->bahan_id] = null; // Set kuantitas menjadi 1
-            $this->unit_price_raw[$bahan->bahan_id] = null;
-            $this->unit_price[$bahan->bahan_id] = null;
+            $this->qty[$bahan->id] = null; // Set kuantitas menjadi 1
+            $this->unit_price_raw[$bahan->id] = null;
+            $this->unit_price[$bahan->id] = null;
         }
         // Hitung subtotal untuk item yang ditambahkan atau diperbarui
-        $this->calculateSubTotal($bahan->bahan_id);
+        $this->calculateSubTotal($bahan->id);
 
         $this->updateSession();
     }
@@ -129,7 +129,7 @@ class BahanPurchaseCart extends Component
     {
         // Hapus item dari keranjang
         $this->cart = collect($this->cart)->filter(function ($item) use ($itemId) {
-            return $item->bahan_id !== $itemId;
+            return $item->id !== $itemId;
         })->values()->all(); // Menggunakan collect untuk memfilter dan mengembalikan array
         // Hapus subtotal yang terkait dengan item yang dihapus
         unset($this->subtotals[$itemId]);
@@ -142,7 +142,7 @@ class BahanPurchaseCart extends Component
     {
         $items = [];
         foreach ($this->cart as $item) {
-            $itemId = $item->bahan_id; // Store the item ID for reuse
+            $itemId = $item->id; // Store the item ID for reuse
             $items[] = [
                 'id' => $itemId,
                 'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,

@@ -8,7 +8,7 @@ export default defineConfig({
         port: 5173,
         strictPort: true,
         hmr: {
-            host: '192.168.12.81', // Pastikan alamat ini digunakan
+            host: '192.168.12.53', // Pastikan alamat ini digunakan
             port: 5173, // Port yang sama dengan server
         },
         // proxy: {

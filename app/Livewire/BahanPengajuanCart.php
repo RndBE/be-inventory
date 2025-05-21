@@ -54,31 +54,31 @@ class BahanPengajuanCart extends Component
         // Periksa apakah properti 'type' ada sebelum mengaksesnya
         $isSetengahJadi = isset($bahan->type) && $bahan->type === 'setengahjadi';
 
-        $existingItemKey = array_search($bahan->id, array_column($this->cart, 'id'));
+        $existingItemKey = array_search($bahan->bahan_id, array_column($this->cart, 'id'));
 
         if ($existingItemKey !== false) {
-            // $this->updateQuantity($bahan->id);
+            // $this->updateQuantity($bahan->bahan_id);
         } else {
             // Buat objek item
             $item = (object)[
-                'id' => $bahan->id,
-                'nama_bahan' => $isSetengahJadi ? $bahan->nama : Bahan::find($bahan->id)->nama_bahan,
+                'id' => $bahan->bahan_id,
+                'nama_bahan' => $isSetengahJadi ? $bahan->nama : Bahan::find($bahan->bahan_id)->nama_bahan,
                 'stok' => $bahan->stok,
                 'unit' => $bahan->unit,
             ];
 
             // Tambahkan item ke keranjang
             $this->cart[] = $item;
-            $this->qty[$bahan->id] = null;
-            $this->jml_bahan[$bahan->id] = null;
-            $this->spesifikasi[$bahan->id] = null;
-            $this->penanggungjawabaset[$bahan->id] = null;
-            $this->alasan[$bahan->id] = null;
+            $this->qty[$bahan->bahan_id] = null;
+            $this->jml_bahan[$bahan->bahan_id] = null;
+            $this->spesifikasi[$bahan->bahan_id] = null;
+            $this->penanggungjawabaset[$bahan->bahan_id] = null;
+            $this->alasan[$bahan->bahan_id] = null;
         }
 
         // Simpan ke sesi
         $this->saveCartToSession();
-        $this->calculateSubTotal($bahan->id);
+        $this->calculateSubTotal($bahan->bahan_id);
     }
 
     protected function saveCartToSession()

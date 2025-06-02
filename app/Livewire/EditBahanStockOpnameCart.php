@@ -321,7 +321,7 @@ class EditBahanStockOpnameCart extends Component
         $this->tersedia_fisik[$itemId] = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
 
         // Format ulang ke format Rupiah dengan 2 desimal (ribuan pake titik, desimal pake koma)
-        $this->tersedia_fisik_raw[$itemId] = number_format($this->tersedia_fisik[$itemId], 2, ',', '.');
+        // $this->tersedia_fisik_raw[$itemId] = number_format($this->tersedia_fisik[$itemId], 2, ',', '.');
 
         $this->selisih[$itemId] = $this->getSelisih($itemId);
 
@@ -348,7 +348,7 @@ class EditBahanStockOpnameCart extends Component
         $this->tersedia_fisik_audit[$itemId] = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
 
         // Format ulang ke format Rupiah dengan 2 desimal (ribuan pake titik, desimal pake koma)
-        $this->tersedia_fisik_audit_raw[$itemId] = number_format($this->tersedia_fisik_audit[$itemId], 2, ',', '.');
+        // $this->tersedia_fisik_audit_raw[$itemId] = number_format($this->tersedia_fisik_audit[$itemId], 2, ',', '.');
 
         $this->selisih_audit[$itemId] = $this->getSelisihAudit($itemId);
 

@@ -57,36 +57,32 @@ class BahanPurchaseCart extends Component
         Session::put('totalharga', $this->totalharga);
     }
 
+    // public function calculateSubTotal($itemId)
+    // {
+    //     $unitPrice = isset($this->unit_price[$itemId]) ? intval($this->unit_price[$itemId]) : 0;
+    //     $qty = isset($this->qty[$itemId]) ? intval($this->qty[$itemId]) : 0;
+
+    //     $this->subtotals[$itemId] = $unitPrice * $qty;
+
+    //     // Hitung total harga setelah memperbarui subtotal
+    //     $this->calculateTotalHarga();
+    // }
+
     public function calculateSubTotal($itemId)
     {
-        $unitPrice = isset($this->unit_price[$itemId]) ? intval($this->unit_price[$itemId]) : 0;
-        $qty = isset($this->qty[$itemId]) ? intval($this->qty[$itemId]) : 0;
+        $unitPrice = isset($this->unit_price[$itemId]) ? floatval($this->unit_price[$itemId]) : 0;
+        $qty = isset($this->qty[$itemId]) ? floatval($this->qty[$itemId]) : 0;
 
         $this->subtotals[$itemId] = $unitPrice * $qty;
 
-        // Hitung total harga setelah memperbarui subtotal
         $this->calculateTotalHarga();
     }
+
 
 
     public function calculateTotalHarga()
     {
         $this->totalharga = array_sum($this->subtotals);
-    }
-
-
-    public function increaseQuantity($itemId)
-    {
-        $this->qty[$itemId] = isset($this->qty[$itemId]) ? $this->qty[$itemId] + 1 : 1;
-        $this->calculateSubTotal($itemId); // Panggil untuk menghitung subtotal
-    }
-
-    public function decreaseQuantity($itemId)
-    {
-        if (isset($this->qty[$itemId]) && $this->qty[$itemId] > 1) {
-            $this->qty[$itemId]--;
-            $this->calculateSubTotal($itemId); // Panggil untuk menghitung subtotal
-        }
     }
 
     public function formatToRupiah($itemId)
@@ -98,14 +94,23 @@ class BahanPurchaseCart extends Component
         $this->editingItemId = null; // Reset ID setelah selesai
     }
 
+    // public function updateQuantity($itemId)
+    // {
+    //     // Pastikan kuantitas adalah angka dan tidak kurang dari 1
+    //     if (isset($this->qty[$itemId])) {
+    //         $this->qty[$itemId] = max(0, intval($this->qty[$itemId]));
+    //         $this->calculateSubTotal($itemId);
+    //     }
+    // }
+
     public function updateQuantity($itemId)
     {
-        // Pastikan kuantitas adalah angka dan tidak kurang dari 1
         if (isset($this->qty[$itemId])) {
-            $this->qty[$itemId] = max(0, intval($this->qty[$itemId]));
+            $this->qty[$itemId] = max(0, floatval($this->qty[$itemId]));
             $this->calculateSubTotal($itemId);
         }
     }
+
 
     public function editItem($itemId)
     {
@@ -145,7 +150,8 @@ class BahanPurchaseCart extends Component
             $itemId = $item->bahan_id; // Store the item ID for reuse
             $items[] = [
                 'id' => $itemId,
-                'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
+                // 'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
+                'qty' => isset($this->qty[$itemId]) ? floatval($this->qty[$itemId]) : 0,
                 'unit_price' => isset($this->unit_price_raw[$itemId]) ? $this->unit_price_raw[$itemId] : 0,
                 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
             ];

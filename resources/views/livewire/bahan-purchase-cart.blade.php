@@ -37,7 +37,15 @@
                             <td class="px-6 py-4">
                                 <div class="flex justify-center items-center">
 
-                                    <input value="{{ old('qty.'.$item->bahan_id, $qty[$item->bahan_id] ?? 0) }}" type="number" wire:model="qty.{{ $item->bahan_id }}" wire:keyup="updateQuantity({{ $item->bahan_id }})" class="bg-gray-50 w-32 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="0" required />
+                                    <input value="{{ old('qty.'.$item->bahan_id, $qty[$item->bahan_id] ?? 0) }}"
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        wire:model.lazy="qty.{{ $item->bahan_id }}"
+                                        wire:change="updateQuantity({{ $item->bahan_id }})"
+                                        class="bg-gray-50 w-32 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        placeholder="0.00"
+                                        required />
                                 </div>
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">

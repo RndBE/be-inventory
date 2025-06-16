@@ -68,7 +68,7 @@ class PurchaseController extends Controller
     public function store(Request $request)
     {
         try{
-           //dd($request->all());
+        //    dd($request->all());
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
                 'tgl_masuk' => $request->tgl_masuk,
@@ -76,8 +76,8 @@ class PurchaseController extends Controller
             ], [
                 'tgl_masuk' => 'required|date_format:Y-m-d',
                 'cartItems' => 'required|array',
-                'cartItems.*.id' => 'required|integer',
-                'cartItems.*.qty' => 'required|integer|min:1',
+                'cartItems.*.id' => 'required',
+                'cartItems.*.qty' => 'required',
                 'cartItems.*.unit_price' => 'required',
                 'cartItems.*.sub_total' => 'required',
             ]);

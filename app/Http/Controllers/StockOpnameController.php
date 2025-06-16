@@ -682,7 +682,7 @@ class StockOpnameController extends Controller
             ]);
 
             foreach ($stockOpname->stockOpnameDetails as $detail) {
-                $selisih = $detail->selisih_audit;
+                $selisih = $detail->selisih;
 
                 // Abaikan jika selisih positif
                 if ($selisih > 0) continue;

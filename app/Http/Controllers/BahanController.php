@@ -54,9 +54,9 @@ class BahanController extends Controller
 
     public function create()
     {
-        $units = Unit::all();
-        $suppliers = Supplier::all();
-        $jenisBahan = JenisBahan::all();
+        $units = Unit::orderBy('nama', 'asc')->get();
+        $suppliers = Supplier::orderBy('nama', 'asc')->get();
+        $jenisBahan = JenisBahan::orderBy('nama', 'asc')->get();
         return view('pages.bahan.create', compact('units', 'suppliers', 'jenisBahan'));
     }
 
@@ -93,9 +93,9 @@ class BahanController extends Controller
 
     public function edit($id)
     {
-        $units = Unit::all();
-        $jenisBahan = JenisBahan::all();
-        $suppliers = Supplier::all();
+        $units = Unit::orderBy('nama', 'asc')->get();
+        $suppliers = Supplier::orderBy('nama', 'asc')->get();
+        $jenisBahan = JenisBahan::orderBy('nama', 'asc')->get();
         $bahan = Bahan::with('jenisBahan', 'dataUnit', 'purchaseDetails')->findOrFail($id);
         $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
         return view('pages.bahan.edit',

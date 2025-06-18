@@ -66,7 +66,7 @@
                         <th scope="col" class="px-6 py-3">Tanggal Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Tanggal Diterima</th>
                         <th scope="col" class="px-6 py-3">Keterangan | Qty</th>
-                        {{-- <th scope="col" class="px-6 py-3">Total Item</th> --}}
+                        <th scope="col" class="px-6 py-3">Status</th>
                         <th scope="col" class="px-6 py-3">Total Harga</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
@@ -101,7 +101,15 @@
                                 N/A
                             @endif
                         </td>
-                        {{-- <td class="px-6 py-3">{{ $bahanRusak->bahanRusakDetails->sum('qty') }}</td> --}}
+                        <td class="px-6 py-4">
+                                @if ($bahanRusak->status == 'Belum disetujui')
+                                    <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahanRusak->status }}</span>
+                                @elseif($bahanRusak->status == 'Disetujui')
+                                    <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-green-400 border border-green-100">{{ $bahanRusak->status }}</span>
+                                @else
+                                    <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $bahanRusak->status }}</span>
+                                @endif
+                            </td>
                         <td class="px-6 py-3">Rp {{ number_format($bahanRusak->bahanRusakDetails->sum('sub_total'), 2, ',', '.') }}</td>
                         <td class="px-6 py-4">
                             <div class="row flex space-x-2">

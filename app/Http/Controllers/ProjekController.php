@@ -375,10 +375,10 @@ class ProjekController extends Controller
                     ];
                 }
 
-                $groupedItems[$key]['qty'] += (int) $item['qty'];
-                $groupedItems[$key]['jml_bahan'] += (int) $item['jml_bahan'];
-                $groupedItems[$key]['sub_total'] += (float) $item['sub_total'];
-                $totalQty += (int) $item['qty']; // Tambahkan qty item ke total qty
+                $groupedItems[$key]['qty'] += $item['qty'];
+                $groupedItems[$key]['jml_bahan'] += $item['jml_bahan'];
+                $groupedItems[$key]['sub_total'] += $item['sub_total'];
+                $totalQty += $item['qty']; // Tambahkan qty item ke total qty
             }
 
             if ($totalQty !== 0) {

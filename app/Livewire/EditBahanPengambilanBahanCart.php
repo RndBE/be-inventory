@@ -284,41 +284,63 @@ class EditBahanPengambilanBahanCart extends Component
         $this->calculateTotalHarga();
     }
 
+    // public function returQuantityPerPrice($itemId, $unitPrice)
+    // {
+    //     foreach ($this->pengambilanBahanDetails as &$detail) {
+    //         if ($detail['bahan']->id === $itemId) {
+    //             foreach ($detail['details'] as &$d) {
+    //                 if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
+    //                     $found = false;
+    //                     foreach ($this->bahanRetur as &$retur) {
+    //                         if ($retur['id'] === $itemId && $retur['unit_price'] === $unitPrice) {
+    //                             $retur['qty'] += 1;
+    //                             $found = true;
+    //                             break;
+    //                         }
+    //                     }
+    //                     if (!$found) {
+    //                         $this->bahanRetur[] = [
+    //                             'id' => $itemId,
+    //                             'qty' => 1,
+    //                             'unit_price' => $unitPrice,
+    //                         ];
+    //                     }
+    //                     $d['qty'] -= 1;
+    //                     $detail['sub_total'] -= $unitPrice;
+    //                     if ($d['qty'] < 0) {
+    //                         $d['qty'] = 0;
+    //                     }
+
+    //                     break;
+    //                 }
+    //             }
+    //             break;
+    //         }
+    //     }
+    //     $this->calculateTotalHarga();
+    // }
     public function returQuantityPerPrice($itemId, $unitPrice)
     {
-        foreach ($this->pengambilanBahanDetails as &$detail) {
-            if ($detail['bahan']->id === $itemId) {
-                foreach ($detail['details'] as &$d) {
-                    if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
-                        $found = false;
-                        foreach ($this->bahanRetur as &$retur) {
-                            if ($retur['id'] === $itemId && $retur['unit_price'] === $unitPrice) {
-                                $retur['qty'] += 1;
-                                $found = true;
-                                break;
-                            }
-                        }
-                        if (!$found) {
-                            $this->bahanRetur[] = [
-                                'id' => $itemId,
-                                'qty' => 1,
-                                'unit_price' => $unitPrice,
-                            ];
-                        }
-                        $d['qty'] -= 1;
-                        $detail['sub_total'] -= $unitPrice;
-                        if ($d['qty'] < 0) {
-                            $d['qty'] = 0;
-                        }
-
-                        break;
-                    }
-                }
+        // Cek apakah sudah ada bahan ini dalam bahanRetur
+        $alreadyExists = false;
+        foreach ($this->bahanRetur as $retur) {
+            if ($retur['id'] === $itemId) {
+                $alreadyExists = true;
                 break;
             }
         }
-        $this->calculateTotalHarga();
+
+        if (!$alreadyExists) {
+            $this->bahanRetur[] = [
+                'id' => $itemId,
+                'unit_price' => $unitPrice,
+            ];
+        }
+
+        // Tidak perlu manipulasi qty, sub_total, atau pemanggilan fungsi lain
     }
+
+
 
     public function returnToProduction($itemId, $unitPrice, $qty)
     {
@@ -350,35 +372,48 @@ class EditBahanPengambilanBahanCart extends Component
         $this->calculateTotalHarga();
     }
 
-    public function returnReturToProduction($itemId, $unitPrice, $qty)
-    {
-        foreach ($this->bahanRetur as $key => $retur) {
-            if ($retur['id'] === $itemId && $retur['unit_price'] === $unitPrice) {
-                $this->bahanRetur[$key]['qty'] -= $qty;
-                if ($this->bahanRetur[$key]['qty'] <= 0) {
-                    unset($this->bahanRetur[$key]);
-                }
-                $foundInDetails = false;
-                foreach ($this->pengambilanBahanDetails as &$detail) {
-                    if ($detail['bahan']->id === $itemId) {
-                        foreach ($detail['details'] as &$d) {
-                            if ($d['unit_price'] === $unitPrice) {
-                                $d['qty'] += $qty;
-                                $detail['sub_total'] += $unitPrice * $qty;
-                                $foundInDetails = true;
-                                break;
-                            }
-                        }
-                    }
-                    if ($foundInDetails) {
-                        break;
-                    }
-                }
-                break;
-            }
+    // public function returnReturToProduction($itemId, $unitPrice, $qty)
+    // {
+    //     foreach ($this->bahanRetur as $key => $retur) {
+    //         if ($retur['id'] === $itemId && $retur['unit_price'] === $unitPrice) {
+    //             $this->bahanRetur[$key]['qty'] -= $qty;
+    //             if ($this->bahanRetur[$key]['qty'] <= 0) {
+    //                 unset($this->bahanRetur[$key]);
+    //             }
+    //             $foundInDetails = false;
+    //             foreach ($this->pengambilanBahanDetails as &$detail) {
+    //                 if ($detail['bahan']->id === $itemId) {
+    //                     foreach ($detail['details'] as &$d) {
+    //                         if ($d['unit_price'] === $unitPrice) {
+    //                             $d['qty'] += $qty;
+    //                             $detail['sub_total'] += $unitPrice * $qty;
+    //                             $foundInDetails = true;
+    //                             break;
+    //                         }
+    //                     }
+    //                 }
+    //                 if ($foundInDetails) {
+    //                     break;
+    //                 }
+    //             }
+    //             break;
+    //         }
+    //     }
+    //     $this->calculateTotalHarga();
+    // }
+
+    public function returnReturToProduction($itemId, $unitPrice)
+{
+    foreach ($this->bahanRetur as $key => $retur) {
+        if ($retur['id'] === $itemId && $retur['unit_price'] === $unitPrice) {
+            unset($this->bahanRetur[$key]);
+            break;
         }
-        $this->calculateTotalHarga();
     }
+
+    $this->calculateTotalHarga();
+}
+
 
     public function getCartItemsForStorage()
     {
@@ -422,19 +457,83 @@ class EditBahanPengambilanBahanCart extends Component
     }
 
 
-    public function getCartItemsForBahanRetur()
-    {
-        $bahanRetur = [];
-        foreach ($this->bahanRetur as $retur) {
-            $bahanRetur[] = [
-                'id' => $retur['id'],
-                'qty' => $retur['qty'],
-                'unit_price' => $retur['unit_price'],
-                'sub_total' => $retur['qty'] * $retur['unit_price'],
-            ];
-        }
-        return $bahanRetur;
+    // public function getCartItemsForBahanRetur()
+    // {
+    //     $bahanRetur = [];
+    //     foreach ($this->bahanRetur as $retur) {
+    //         $bahanRetur[] = [
+    //             'id' => $retur['id'],
+    //             'qty' => $retur['qty'],
+    //             'unit_price' => $retur['unit_price'],
+    //             'sub_total' => $retur['qty'] * $retur['unit_price'],
+    //         ];
+    //     }
+    //     return $bahanRetur;
+    // }
+public function getCartItemsForBahanRetur()
+{
+    $bahanRetur = [];
+
+    foreach ($this->bahanRetur as $retur) {
+        $qty = isset($retur['qty'])
+            ? floatval(str_replace(',', '.', $retur['qty']))
+            : 1;
+
+        $unitPrice = isset($retur['unit_price'])
+            ? floatval($retur['unit_price'])
+            : 0;
+
+        // ROUND sub_total ke 2 desimal (atau 0 jika integer)
+        $subTotal = round($qty * $unitPrice, 2);
+
+        $bahanRetur[] = [
+            'id' => $retur['id'],
+            'qty' => $qty,
+            'unit_price' => $unitPrice,
+            'sub_total' => $subTotal,
+        ];
     }
+
+    return $bahanRetur;
+}
+
+
+
+public function updateReturQty($id, $unitPrice, $newQty)
+{
+    $parsedQty = floatval(str_replace(',', '.', $newQty));
+
+    // Hitung total qty pengambilan untuk bahan ini
+    $maxQty = 0;
+    foreach ($this->pengambilanBahanDetails as $detail) {
+        if ($detail['bahan']->id == $id) {
+            foreach ($detail['details'] as $d) {
+                $maxQty += $d['qty'];
+            }
+            break;
+        }
+    }
+
+    // Validasi agar tidak melebihi
+    if ($parsedQty > $maxQty) {
+        $parsedQty = $maxQty;
+        session()->flash('error', 'Qty retur tidak boleh melebihi jumlah pengambilan.');
+    }
+
+    // Update nilai qty bahan retur
+    foreach ($this->bahanRetur as &$retur) {
+        if ($retur['id'] == $id && $retur['unit_price'] == $unitPrice) {
+            $retur['qty'] = max(0, $parsedQty);
+            break;
+        }
+    }
+
+    $this->calculateTotalHarga();
+}
+
+
+
+
 
 
     public function render()

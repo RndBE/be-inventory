@@ -255,7 +255,7 @@ class PengambilanBahanController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            //dd($request->all());
+            // dd($request->all());
             $pengambilanBahanDetails = json_decode($request->pengambilanBahanDetails, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];

@@ -217,11 +217,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($bahanRusak as $rusak)
+                            @foreach($bahanRusak as $index => $rusak)
                             <input type="hidden" name="bahanRusak" value="{{ json_encode($this->getCartItemsForBahanRusak()) }}">
                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ App\Models\Bahan::find($rusak['id'])->nama_bahan ?? 'Unknown' }}</td>
-                                    <td class="px-6 py-4">
+                                    {{-- <td class="px-6 py-4">
                                         <div class="flex justify-end items-center">
                                             {{ $rusak['qty'] }} x {{ number_format($rusak['unit_price'], 0, ',', '.') }}
                                             <button type="button" wire:click="returnToProduction({{ $rusak['id'] }}, {{ $rusak['unit_price'] }}, 1)" class="text-blue-600 hover:underline">
@@ -230,9 +230,34 @@
                                                 </svg>
                                             </button>
                                         </div>
+                                    </td> --}}
+                                    <td class="px-6 py-4">
+                                        <div class="flex justify-end items-center gap-2">
+                                            {{-- Input manual qty --}}
+                                            <input type="text" pattern="[0-9]+([,\.][0-9]+)?" inputmode="decimal"
+                                                class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                                wire:model.defer="bahanRusak.{{ $index }}.qty"
+                                                wire:change="updateRusakQty({{ $rusak['id'] }}, {{ $rusak['unit_price'] }}, $event.target.value)">
+
+                                            x {{ number_format($rusak['unit_price'] ?? 0, 0, ',', '.') }} <br>
+
+                                            {{-- Tombol hapus/cancel rusak --}}
+                                            <button type="button"
+                                                wire:click="returnToProduction({{ $rusak['id'] }}, {{ $rusak['unit_price'] }})"
+                                                class="text-blue-600 hover:underline">
+                                                <svg class="w-6 h-6 text-red-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                    width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="m16 10 3-3m0 0-3-3m3 3H5v3m3 4-3 3m0 0 3 3m-3-3h14v-3"/>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </td>
+
                                     <td class="px-6 py-4 text-right">
-                                        {{ number_format($rusak['unit_price'] * $rusak['qty'], 0, ',', '.') }}
+                                        {{-- {{ number_format(($rusak['unit_price'] ?? 0) * floatval($rusak['qty'] ?? 0), 0, ',', '.') }} --}}
+                                        {{ number_format(round(($rusak['unit_price'] ?? 0) * floatval($rusak['qty'] ?? 0), 0), 0, ',', '.') }}
+
                                     </td>
                                 </tr>
                             @endforeach

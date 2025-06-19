@@ -248,41 +248,89 @@ class EditBahanPengambilanBahanCart extends Component
 
 
 
+    // public function decreaseQuantityPerPrice($itemId, $unitPrice)
+    // {
+    //     foreach ($this->pengambilanBahanDetails as &$detail) {
+    //         if ($detail['bahan']->id === $itemId) {
+    //             foreach ($detail['details'] as &$d) {
+    //                 if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
+    //                     $found = false;
+    //                     foreach ($this->bahanRusak as &$rusak) {
+    //                         if ($rusak['id'] === $itemId && $rusak['unit_price'] === $unitPrice) {
+    //                             $rusak['qty'] += 1;
+    //                             $found = true;
+    //                             break;
+    //                         }
+    //                     }
+    //                     if (!$found) {
+    //                         $this->bahanRusak[] = [
+    //                             'id' => $itemId,
+    //                             'qty' => 1,
+    //                             'unit_price' => $unitPrice,
+    //                         ];
+    //                     }
+    //                     $d['qty'] -= 1;
+    //                     $detail['sub_total'] -= $unitPrice;
+    //                     if ($d['qty'] < 0) {
+    //                         $d['qty'] = 0;
+    //                     }
+
+    //                     break;
+    //                 }
+    //             }
+    //             break;
+    //         }
+    //     }
+    //     $this->calculateTotalHarga();
+    // }
+
+    // public function decreaseQuantityPerPrice($itemId, $unitPrice)
+    // {
+    //     // Cek apakah sudah ada bahan ini dalam bahanRusak
+    //     $alreadyExists = false;
+    //     foreach ($this->bahanRusak as $retur) {
+    //         if ($retur['id'] === $itemId) {
+    //             $alreadyExists = true;
+    //             break;
+    //         }
+    //     }
+
+    //     if (!$alreadyExists) {
+    //         $this->bahanRusak[] = [
+    //             'id' => $itemId,
+    //             'unit_price' => $unitPrice,
+    //         ];
+    //     }
+
+    //     // Tidak perlu manipulasi qty, sub_total, atau pemanggilan fungsi lain
+    // }
     public function decreaseQuantityPerPrice($itemId, $unitPrice)
     {
-        foreach ($this->pengambilanBahanDetails as &$detail) {
-            if ($detail['bahan']->id === $itemId) {
-                foreach ($detail['details'] as &$d) {
-                    if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
-                        $found = false;
-                        foreach ($this->bahanRusak as &$rusak) {
-                            if ($rusak['id'] === $itemId && $rusak['unit_price'] === $unitPrice) {
-                                $rusak['qty'] += 1;
-                                $found = true;
-                                break;
-                            }
-                        }
-                        if (!$found) {
-                            $this->bahanRusak[] = [
-                                'id' => $itemId,
-                                'qty' => 1,
-                                'unit_price' => $unitPrice,
-                            ];
-                        }
-                        $d['qty'] -= 1;
-                        $detail['sub_total'] -= $unitPrice;
-                        if ($d['qty'] < 0) {
-                            $d['qty'] = 0;
-                        }
+        // Cek apakah bahan sudah ada di bahanRetur
+        foreach ($this->bahanRetur as $retur) {
+            if ($retur['id'] === $itemId) {
+                // Jika sudah ada di bahan retur, tidak boleh ditambahkan ke bahan rusak
+                return;
+            }
+        }
 
-                        break;
-                    }
-                }
+        // Cek apakah sudah ada bahan ini dalam bahanRusak
+        $alreadyExists = false;
+        foreach ($this->bahanRusak as $rusak) {
+            if ($rusak['id'] === $itemId) {
+                $alreadyExists = true;
                 break;
             }
         }
-        $this->calculateTotalHarga();
+
+        if (!$alreadyExists) {
+            $this->bahanRusak[] = [
+                'id' => $itemId,
+                'unit_price' => $unitPrice,
+            ];
+        }
     }
+
 
     // public function returQuantityPerPrice($itemId, $unitPrice)
     // {
@@ -319,8 +367,37 @@ class EditBahanPengambilanBahanCart extends Component
     //     }
     //     $this->calculateTotalHarga();
     // }
+    // public function returQuantityPerPrice($itemId, $unitPrice)
+    // {
+    //     // Cek apakah sudah ada bahan ini dalam bahanRetur
+    //     $alreadyExists = false;
+    //     foreach ($this->bahanRetur as $retur) {
+    //         if ($retur['id'] === $itemId) {
+    //             $alreadyExists = true;
+    //             break;
+    //         }
+    //     }
+
+    //     if (!$alreadyExists) {
+    //         $this->bahanRetur[] = [
+    //             'id' => $itemId,
+    //             'unit_price' => $unitPrice,
+    //         ];
+    //     }
+
+    //     // Tidak perlu manipulasi qty, sub_total, atau pemanggilan fungsi lain
+    // }
+
     public function returQuantityPerPrice($itemId, $unitPrice)
     {
+        // Cek apakah bahan sudah ada di bahanRusak
+        foreach ($this->bahanRusak as $rusak) {
+            if ($rusak['id'] === $itemId) {
+                // Jika sudah ada di bahan rusak, tidak boleh ditambahkan ke bahan retur
+                return;
+            }
+        }
+
         // Cek apakah sudah ada bahan ini dalam bahanRetur
         $alreadyExists = false;
         foreach ($this->bahanRetur as $retur) {
@@ -336,39 +413,49 @@ class EditBahanPengambilanBahanCart extends Component
                 'unit_price' => $unitPrice,
             ];
         }
-
-        // Tidak perlu manipulasi qty, sub_total, atau pemanggilan fungsi lain
     }
 
 
 
-    public function returnToProduction($itemId, $unitPrice, $qty)
+
+    // public function returnToProduction($itemId, $unitPrice, $qty)
+    // {
+    //     foreach ($this->bahanRusak as $key => $rusak) {
+    //         if ($rusak['id'] === $itemId && $rusak['unit_price'] === $unitPrice) {
+    //             $this->bahanRusak[$key]['qty'] -= $qty;
+    //             if ($this->bahanRusak[$key]['qty'] <= 0) {
+    //                 unset($this->bahanRusak[$key]);
+    //             }
+    //             $foundInDetails = false;
+    //             foreach ($this->pengambilanBahanDetails as &$detail) {
+    //                 if ($detail['bahan']->id === $itemId) {
+    //                     foreach ($detail['details'] as &$d) {
+    //                         if ($d['unit_price'] === $unitPrice) {
+    //                             $d['qty'] += $qty;
+    //                             $detail['sub_total'] += $unitPrice * $qty;
+    //                             $foundInDetails = true;
+    //                             break;
+    //                         }
+    //                     }
+    //                 }
+    //                 if ($foundInDetails) {
+    //                     break;
+    //                 }
+    //             }
+    //             break;
+    //         }
+    //     }
+    //     $this->calculateTotalHarga();
+    // }
+    public function returnToProduction($itemId, $unitPrice)
     {
         foreach ($this->bahanRusak as $key => $rusak) {
             if ($rusak['id'] === $itemId && $rusak['unit_price'] === $unitPrice) {
-                $this->bahanRusak[$key]['qty'] -= $qty;
-                if ($this->bahanRusak[$key]['qty'] <= 0) {
-                    unset($this->bahanRusak[$key]);
-                }
-                $foundInDetails = false;
-                foreach ($this->pengambilanBahanDetails as &$detail) {
-                    if ($detail['bahan']->id === $itemId) {
-                        foreach ($detail['details'] as &$d) {
-                            if ($d['unit_price'] === $unitPrice) {
-                                $d['qty'] += $qty;
-                                $detail['sub_total'] += $unitPrice * $qty;
-                                $foundInDetails = true;
-                                break;
-                            }
-                        }
-                    }
-                    if ($foundInDetails) {
-                        break;
-                    }
-                }
+                unset($this->bahanRusak[$key]);
                 break;
             }
         }
+
         $this->calculateTotalHarga();
     }
 
@@ -403,16 +490,16 @@ class EditBahanPengambilanBahanCart extends Component
     // }
 
     public function returnReturToProduction($itemId, $unitPrice)
-{
-    foreach ($this->bahanRetur as $key => $retur) {
-        if ($retur['id'] === $itemId && $retur['unit_price'] === $unitPrice) {
-            unset($this->bahanRetur[$key]);
-            break;
+    {
+        foreach ($this->bahanRetur as $key => $retur) {
+            if ($retur['id'] === $itemId && $retur['unit_price'] === $unitPrice) {
+                unset($this->bahanRetur[$key]);
+                break;
+            }
         }
-    }
 
-    $this->calculateTotalHarga();
-}
+        $this->calculateTotalHarga();
+    }
 
 
     public function getCartItemsForStorage()
@@ -442,17 +529,43 @@ class EditBahanPengambilanBahanCart extends Component
         return $pengambilanBahanDetails;
     }
 
+    // public function getCartItemsForBahanRusak()
+    // {
+    //     $bahanRusak = [];
+    //     foreach ($this->bahanRusak as $rusak) {
+    //         $bahanRusak[] = [
+    //             'id' => $rusak['id'],
+    //             'qty' => $rusak['qty'],
+    //             'unit_price' => $rusak['unit_price'],
+    //             'sub_total' => $rusak['qty'] * $rusak['unit_price'],
+    //         ];
+    //     }
+    //     return $bahanRusak;
+    // }
     public function getCartItemsForBahanRusak()
     {
         $bahanRusak = [];
+
         foreach ($this->bahanRusak as $rusak) {
+            $qty = isset($rusak['qty'])
+                ? floatval(str_replace(',', '.', $rusak['qty']))
+                : 1;
+
+            $unitPrice = isset($rusak['unit_price'])
+                ? floatval($rusak['unit_price'])
+                : 0;
+
+            // ROUND sub_total ke 2 desimal (atau 0 jika integer)
+            $subTotal = round($qty * $unitPrice, 2);
+
             $bahanRusak[] = [
                 'id' => $rusak['id'],
-                'qty' => $rusak['qty'],
-                'unit_price' => $rusak['unit_price'],
-                'sub_total' => $rusak['qty'] * $rusak['unit_price'],
+                'qty' => $qty,
+                'unit_price' => $unitPrice,
+                'sub_total' => $subTotal,
             ];
         }
+
         return $bahanRusak;
     }
 
@@ -524,6 +637,38 @@ public function updateReturQty($id, $unitPrice, $newQty)
     foreach ($this->bahanRetur as &$retur) {
         if ($retur['id'] == $id && $retur['unit_price'] == $unitPrice) {
             $retur['qty'] = max(0, $parsedQty);
+            break;
+        }
+    }
+
+    $this->calculateTotalHarga();
+}
+
+public function updateRusakQty($id, $unitPrice, $newQty)
+{
+    $parsedQty = floatval(str_replace(',', '.', $newQty));
+
+    // Hitung total qty pengambilan untuk bahan ini
+    $maxQty = 0;
+    foreach ($this->pengambilanBahanDetails as $detail) {
+        if ($detail['bahan']->id == $id) {
+            foreach ($detail['details'] as $d) {
+                $maxQty += $d['qty'];
+            }
+            break;
+        }
+    }
+
+    // Validasi agar tidak melebihi
+    if ($parsedQty > $maxQty) {
+        $parsedQty = $maxQty;
+        session()->flash('error', 'Qty rusak tidak boleh melebihi jumlah pengambilan.');
+    }
+
+    // Update nilai qty bahan rusak
+    foreach ($this->bahanRusak as &$rusak) {
+        if ($rusak['id'] == $id && $rusak['unit_price'] == $unitPrice) {
+            $rusak['qty'] = max(0, $parsedQty);
             break;
         }
     }

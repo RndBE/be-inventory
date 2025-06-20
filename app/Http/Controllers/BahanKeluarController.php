@@ -454,36 +454,52 @@ class BahanKeluarController extends Controller
                                 throw new \Exception('Bahan setengah jadi tidak ditemukan!');
                             }
                         } elseif ($detail->bahan_id) {
-                            // Jika bahan dari pembelian (menggunakan bahan_id)
-                            $purchaseDetail = PurchaseDetail::where('bahan_id', $detail->bahan_id)
+                            // Total qty yang perlu diambil
+                            $qtyToConsume = $transaksiDetail['qty'];
+                            $unitPrice = $transaksiDetail['unit_price'];
+
+                            // Ambil semua purchase_detail dengan FIFO berdasarkan tanggal pembelian (tgl_masuk)
+                            $purchaseDetails = PurchaseDetail::where('bahan_id', $detail->bahan_id)
+                                ->where('unit_price', $unitPrice)
+                                ->where('sisa', '>', 0)
                                 ->whereHas('purchase', function ($query) use ($transaksiDetail) {
                                     $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
                                 })
-                                ->where('unit_price', $transaksiDetail['unit_price'])
-                                ->first();
+                                ->with('purchase')
+                                ->orderByRaw('(select tgl_masuk from purchases where purchases.id = purchase_details.purchase_id) ASC')
+                                ->get();
 
-                            if ($purchaseDetail) {
-                                if ($transaksiDetail['qty'] > $purchaseDetail->sisa) {
-                                    throw new \Exception('Tolak pengajuan, Lakukan pengajuan bahan kembali!');
-                                }
+                            // dd($purchaseDetails);
+
+                            if ($purchaseDetails->isEmpty()) {
+                                throw new \Exception('Bahan dari pembelian tidak ditemukan!');
+                            }
+
+                            $totalAvailable = $purchaseDetails->sum('sisa');
+
+                            if ($qtyToConsume > $totalAvailable) {
+                                throw new \Exception('Tolak pengajuan, stok tidak cukup. Lakukan pengajuan bahan kembali!');
+                            }
+
+                            // Mulai kurangi stok sesuai FIFO
+                            foreach ($purchaseDetails as $pd) {
+                                if ($qtyToConsume <= 0) break;
+
+                                $takeQty = min($pd->sisa, $qtyToConsume);
+                                $pd->sisa -= $takeQty;
+                                $pd->save();
+
+                                $qtyToConsume -= $takeQty;
 
                                 // Pengelompokan berdasarkan harga satuan
-                                $unitPrice = $transaksiDetail['unit_price'];
                                 if (isset($groupedDetails[$unitPrice])) {
-                                    $groupedDetails[$unitPrice]['qty'] += $transaksiDetail['qty'];
+                                    $groupedDetails[$unitPrice]['qty'] += $takeQty;
                                 } else {
                                     $groupedDetails[$unitPrice] = [
-                                        'qty' => $transaksiDetail['qty'],
+                                        'qty' => $takeQty,
                                         'unit_price' => $unitPrice,
                                     ];
                                 }
-
-                                // Kurangi stok bahan dari purchase_details
-                                $purchaseDetail->sisa -= $transaksiDetail['qty'];
-                                $purchaseDetail->sisa = max(0, $purchaseDetail->sisa);
-                                $purchaseDetail->save();
-                            } else {
-                                throw new \Exception('Bahan dari pembelian tidak ditemukan!');
                             }
                         } else {
                             throw new \Exception('Bahan atau produk tidak valid!');

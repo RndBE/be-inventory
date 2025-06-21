@@ -365,42 +365,46 @@ $this->stokAkhirColIndex = count($row) - 3;
 
         // Merge Kode Transaksi dan Nomor jika memiliki baris lebih dari 1
         foreach ($sheet->toArray() as $row) {
-    if (!isset($row[2]) || !isset($row[$this->stokAkhirColIndex])) continue;
+            if (!isset($row[2]) || !isset($row[$this->stokAkhirColIndex])) continue;
 
-    $namaProduk = $row[2];
-    $stokAkhirRaw = $row[$this->stokAkhirColIndex];
+            $namaProduk = $row[2];
+            $stokAkhirRaw = $row[$this->stokAkhirColIndex];
 
-    $stokAkhir = is_numeric(str_replace(['.', ','], '', $stokAkhirRaw))
-        ? (int) str_replace(['.', ','], '', $stokAkhirRaw)
-        : (int) $stokAkhirRaw;
+            $stokAkhir = is_numeric(str_replace(['.', ','], '', $stokAkhirRaw))
+                ? (int) str_replace(['.', ','], '', $stokAkhirRaw)
+                : (int) $stokAkhirRaw;
 
-    if (!isset($this->produkSummary[$namaProduk])) {
-        $this->produkSummary[$namaProduk] = 0;
-    }
+            if (!isset($this->produkSummary[$namaProduk])) {
+                $this->produkSummary[$namaProduk] = 0;
+            }
 
-    $this->produkSummary[$namaProduk] += $stokAkhir;
-}
+            $this->produkSummary[$namaProduk] += $stokAkhir;
+        }
 
 
         // Hitung total stok akhir per produk
         $this->produkSummary = [];
-         foreach ($sheet->toArray() as $row) {
-    if (!isset($row[2]) || !isset($row[$this->stokAkhirColIndex])) continue;
+        foreach ($sheet->toArray() as $row) {
+            if (!isset($row[2]) || !isset($row[$this->stokAkhirColIndex])) continue;
 
-    $namaProduk = $row[2];
-    $stokAkhirRaw = $row[$this->stokAkhirColIndex];
+            $namaProduk = $row[2];
 
-    // Hapus pemisah ribuan dan koma
-    $cleaned = str_replace(['.', ','], '', $stokAkhirRaw);
+            // Tambahkan validasi nama produk
+            if (in_array($namaProduk, ['Nama Produk', null, ''])) continue;
 
-    $stokAkhir = is_numeric($cleaned) ? (int)$cleaned : 0;
+            $stokAkhirRaw = $row[$this->stokAkhirColIndex];
 
-    if (!isset($this->produkSummary[$namaProduk])) {
-        $this->produkSummary[$namaProduk] = 0;
-    }
+            $stokAkhir = is_numeric(str_replace(['.', ','], '', $stokAkhirRaw))
+                ? (int) str_replace(['.', ','], '', $stokAkhirRaw)
+                : (int) $stokAkhirRaw;
 
-    $this->produkSummary[$namaProduk] += $stokAkhir;
-}
+            if (!isset($this->produkSummary[$namaProduk])) {
+                $this->produkSummary[$namaProduk] = 0;
+            }
+
+            $this->produkSummary[$namaProduk] += $stokAkhir;
+        }
+
 
 
 
@@ -425,64 +429,64 @@ $this->stokAkhirColIndex = count($row) - 3;
 
     }
     public function registerEvents(): array
-{
-    return [
-        AfterSheet::class => function(AfterSheet $event) {
-            if (empty($this->produkSummary)) {
-                return;
-            }
+    {
+        return [
+            AfterSheet::class => function(AfterSheet $event) {
+                if (empty($this->produkSummary)) {
+                    return;
+                }
 
-            $summaryColumn1 = 'B'; // Nama Produk
-            $summaryColumn2 = 'C'; // Total Stok Akhir
+                $summaryColumn1 = 'B'; // Nama Produk
+                $summaryColumn2 = 'C'; // Total Stok Akhir
 
-            $startRow = $this->summaryStartRow ?? 30;
-            $endRow = $this->summaryEndRow ?? ($startRow + 10);
-            $countProduk = count($this->produkSummary);
+                $startRow = $this->summaryStartRow ?? 30;
+                $endRow = $this->summaryEndRow ?? ($startRow + 10);
+                $countProduk = count($this->produkSummary);
 
-            $labels = [
-                new DataSeriesValues(
-                    'String',
-                    "'{$event->sheet->getTitle()}'!{$summaryColumn1}" . ($startRow + 1) . ":{$summaryColumn1}{$endRow}",
+                $labels = [
+                    new DataSeriesValues(
+                        'String',
+                        "'{$event->sheet->getTitle()}'!{$summaryColumn1}" . ($startRow + 1) . ":{$summaryColumn1}{$endRow}",
+                        null,
+                        $countProduk
+                    ),
+                ];
+                $values = [
+                    new DataSeriesValues(
+                        'Number',
+                        "'{$event->sheet->getTitle()}'!{$summaryColumn2}" . ($startRow + 1) . ":{$summaryColumn2}{$endRow}",
+                        null,
+                        $countProduk
+                    ),
+                ];
+
+                $series = new DataSeries(
+                    DataSeries::TYPE_PIECHART,
                     null,
-                    $countProduk
-                ),
-            ];
-            $values = [
-                new DataSeriesValues(
-                    'Number',
-                    "'{$event->sheet->getTitle()}'!{$summaryColumn2}" . ($startRow + 1) . ":{$summaryColumn2}{$endRow}",
+                    range(0, count($values) - 1),
+                    $labels,  // <-- penting untuk tampilkan label
+                    $labels,
+                    $values,
                     null,
-                    $countProduk
-                ),
-            ];
+                    null,
+                    true   // <-- ini akan menampilkan label nama produk di pie
+                );
 
-            $series = new DataSeries(
-                DataSeries::TYPE_PIECHART,
-                null,
-                range(0, count($values) - 1),
-                $labels,  // <-- penting untuk tampilkan label
-                $labels,
-                $values,
-                null,
-                null,
-                true   // <-- ini akan menampilkan label nama produk di pie
-            );
+                $plotArea = new PlotArea(null, [$series]);
+                $chart = new Chart(
+                    'StokAkhirPieChart',
+                    new Title('Distribusi Stok Akhir per Produk'),
+                    new Legend(Legend::POSITION_RIGHT, null, false), // tampilkan legend di kanan
+                    $plotArea
+                );
 
-            $plotArea = new PlotArea(null, [$series]);
-            $chart = new Chart(
-                'StokAkhirPieChart',
-                new Title('Distribusi Stok Akhir per Produk'),
-                new Legend(Legend::POSITION_RIGHT, null, false), // tampilkan legend di kanan
-                $plotArea
-            );
+                $chart->setTopLeftPosition("E{$startRow}");
+                $chart->setBottomRightPosition("K" . ($startRow + 15));
 
-            $chart->setTopLeftPosition("E{$startRow}");
-            $chart->setBottomRightPosition("K" . ($startRow + 15));
-
-            $event->sheet->getDelegate()->addChart($chart);
-        },
-    ];
-}
+                $event->sheet->getDelegate()->addChart($chart);
+            },
+        ];
+    }
 
     public function charts()
     {
@@ -498,8 +502,4 @@ $this->stokAkhirColIndex = count($row) - 3;
         }
         return $letters;
     }
-
-
-
-
 }

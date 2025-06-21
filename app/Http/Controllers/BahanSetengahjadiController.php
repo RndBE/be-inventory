@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 use App\Models\ProdukProduksi;
 use App\Models\BahanSetengahjadi;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Models\BahanSetengahjadiDetails;
+use App\Exports\BahanSetengahjadisExport;
 
 class BahanSetengahjadiController extends Controller
 {
@@ -19,6 +21,27 @@ class BahanSetengahjadiController extends Controller
         $this->middleware('permission:lihat-bahan-setengahjadi', ['only' => ['index']]);
         $this->middleware('permission:tambah-bahan-setengahjadi', ['only' => ['create','store']]);
         $this->middleware('permission:detail-bahan-setengahjadi', ['only' => ['show']]);
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $startDate = $request->input('start_date') . ' 00:00:00';
+        $endDate = $request->input('end_date') . ' 23:59:59';
+
+        $companyName = "PT ARTA TEKNOLOGI COMUNINDO";
+
+        return Excel::download(
+    new BahanSetengahjadisExport($startDate, $endDate, $companyName),
+    'laporan_bahan_setengahjadi.xlsx',
+    \Maatwebsite\Excel\Excel::XLSX,
+    ['charts' => true] // <== penting
+);
+
     }
 
     public function index()

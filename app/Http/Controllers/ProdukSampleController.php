@@ -269,6 +269,7 @@ class ProdukSampleController extends Controller
     {
         // dd($request->all());
         $validatedData = $request->validate([
+            'nama_produk_sample' => 'required|string|max:255',
             'keterangan' => 'required|string|max:255', // Validasi keterangan
         ]);
         try {
@@ -279,6 +280,7 @@ class ProdukSampleController extends Controller
             $produkSample = ProdukSample::findOrFail($id);
 
             $produkSample->update([
+                'nama_produk_sample' => $validatedData['nama_produk_sample'],
                 'keterangan' => $validatedData['keterangan'],
             ]);
 

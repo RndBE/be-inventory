@@ -118,7 +118,7 @@
                                                 <sup class="text-red-500 text-base">*</sup>
                                             </label>
                                             <div class="relative w-3/4">
-                                                <input type="text" id="nama_produk_sample" value="{{ $produkSample->nama_produk_sample }}" disabled name="nama_produk_sample" placeholder="Nama Produk Sample" class="block w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                                <input type="text" id="nama_produk_sample" value="{{ $produkSample->nama_produk_sample }}" name="nama_produk_sample" placeholder="Nama Produk Sample" class="block w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                             </div>
                                         </div>
 

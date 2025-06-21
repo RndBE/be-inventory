@@ -253,6 +253,7 @@ class ProjekRndController extends Controller
     public function update(Request $request, $id)
     {
         $validatedData = $request->validate([
+            'nama_projek_rnd' => 'required|string|max:255',
             'keterangan' => 'required|string|max:255', // Validasi keterangan
             'serial_number' => 'nullable|string|max:255',
         ]);
@@ -264,6 +265,7 @@ class ProjekRndController extends Controller
             $projek_rnd = ProjekRnd::findOrFail($id);
 
             $projek_rnd->update([
+                'nama_projek_rnd' => $validatedData['nama_projek_rnd'],
                 'keterangan' => $validatedData['keterangan'],
                 'serial_number' => $validatedData['serial_number'],
             ]);
@@ -340,10 +342,10 @@ class ProjekRndController extends Controller
                         'sub_total' => 0,
                     ];
                 }
-                $groupedItems[$key]['qty'] += (int) $item['qty'];
-                $groupedItems[$key]['jml_bahan'] += (int) $item['jml_bahan'];
-                $groupedItems[$key]['sub_total'] += (float) $item['sub_total'];
-                $totalQty += (int) $item['qty']; // Tambahkan qty item ke total qty
+                $groupedItems[$key]['qty'] += $item['qty'];
+                $groupedItems[$key]['jml_bahan'] += $item['jml_bahan'];
+                $groupedItems[$key]['sub_total'] += $item['sub_total'];
+                $totalQty += $item['qty']; // Tambahkan qty item ke total qty
             }
 
             if ($totalQty !== 0) {

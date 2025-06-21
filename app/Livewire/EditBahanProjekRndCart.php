@@ -271,195 +271,327 @@ class EditBahanProjekRndCart extends Component
 
 
 
+    // public function decreaseQuantityPerPrice($type, $itemId, $unitPrice)
+    // {
+    //     foreach ($this->projekRndDetails as &$detail) {
+    //         $bahanId = $detail['bahan_id'] ?? null;
+    //         $produkId = $detail['produk_id'] ?? null;
+
+    //         // Tentukan ID berdasarkan tipe (bahan atau produk)
+    //         $currentId = ($type === 'bahan') ? $bahanId : (($type === 'produk') ? $produkId : null);
+    //         // dd($currentId);
+    //         // Jika tidak ada ID yang cocok, lanjutkan ke iterasi berikutnya
+    //         if ($currentId !== $itemId) {
+    //             continue;
+    //         }
+
+    //         foreach ($detail['details'] as &$d) {
+    //             if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
+    //                 $found = false;
+
+    //                 // Cek apakah item sudah ada dalam bahanRusak atau produkRusak
+    //                 foreach ($this->bahanRusak as &$rusak) {
+    //                     if (
+    //                         (($type === 'bahan' && isset($rusak['bahan_id']) && $rusak['bahan_id'] === $itemId) ||
+    //                             ($type === 'produk' && isset($rusak['produk_id']) && $rusak['produk_id'] === $itemId)) &&
+    //                         $rusak['unit_price'] === $unitPrice
+    //                     ) {
+    //                         $rusak['qty'] += 1;
+    //                         $found = true;
+    //                         break;
+    //                     }
+    //                 }
+
+    //                 // Jika belum ada, tambahkan ke bahanRusak
+    //                 if (!$found) {
+    //                     $this->bahanRusak[] = [
+    //                         'bahan_id' => ($type === 'bahan') ? $itemId : null,
+    //                         'produk_id' => ($type === 'produk') ? $itemId : null,
+    //                         'serial_number' => $detail['serial_number'] ?? null,
+    //                         'qty' => 1,
+    //                         'unit_price' => $unitPrice,
+
+    //                     ];
+    //                 }
+
+    //                 // Kurangi qty, pastikan tidak negatif
+    //                 $d['qty'] = max(0, $d['qty'] - 1);
+    //                 $detail['sub_total'] = max(0, $detail['sub_total'] - $unitPrice);
+
+    //                 break; // Hentikan iterasi setelah menemukan dan memperbarui item
+    //             }
+    //         }
+    //         break; // Hentikan iterasi setelah menemukan detail yang sesuai
+    //     }
+
+    //     $this->calculateTotalHarga();
+    // }
     public function decreaseQuantityPerPrice($type, $itemId, $unitPrice)
     {
         foreach ($this->projekRndDetails as &$detail) {
             $bahanId = $detail['bahan_id'] ?? null;
             $produkId = $detail['produk_id'] ?? null;
 
-            // Tentukan ID berdasarkan tipe (bahan atau produk)
             $currentId = ($type === 'bahan') ? $bahanId : (($type === 'produk') ? $produkId : null);
-            // dd($currentId);
-            // Jika tidak ada ID yang cocok, lanjutkan ke iterasi berikutnya
             if ($currentId !== $itemId) {
                 continue;
             }
 
-            foreach ($detail['details'] as &$d) {
-                if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
-                    $found = false;
-
-                    // Cek apakah item sudah ada dalam bahanRusak atau produkRusak
-                    foreach ($this->bahanRusak as &$rusak) {
-                        if (
-                            (($type === 'bahan' && isset($rusak['bahan_id']) && $rusak['bahan_id'] === $itemId) ||
-                                ($type === 'produk' && isset($rusak['produk_id']) && $rusak['produk_id'] === $itemId)) &&
-                            $rusak['unit_price'] === $unitPrice
-                        ) {
-                            $rusak['qty'] += 1;
-                            $found = true;
-                            break;
-                        }
-                    }
-
-                    // Jika belum ada, tambahkan ke bahanRusak
-                    if (!$found) {
-                        $this->bahanRusak[] = [
-                            'bahan_id' => ($type === 'bahan') ? $itemId : null,
-                            'produk_id' => ($type === 'produk') ? $itemId : null,
-                            'serial_number' => $detail['serial_number'] ?? null,
-                            'qty' => 1,
-                            'unit_price' => $unitPrice,
-
-                        ];
-                    }
-
-                    // Kurangi qty, pastikan tidak negatif
-                    $d['qty'] = max(0, $d['qty'] - 1);
-                    $detail['sub_total'] = max(0, $detail['sub_total'] - $unitPrice);
-
-                    break; // Hentikan iterasi setelah menemukan dan memperbarui item
+            // ❌ Jika sudah ada di bahanRetur, jangan tambahkan ke bahanRusak
+            foreach ($this->bahanRetur as $retur) {
+                if (
+                    ($type === 'bahan' && isset($retur['bahan_id']) && $retur['bahan_id'] === $itemId) ||
+                    ($type === 'produk' && isset($retur['produk_id']) && $retur['produk_id'] === $itemId)
+                ) {
+                    session()->flash('error', 'Item ini sudah masuk daftar retur dan tidak bisa ditandai rusak.');
+                    return; // langsung keluar
                 }
             }
-            break; // Hentikan iterasi setelah menemukan detail yang sesuai
+
+            // Cek apakah item sudah ada dalam bahanRusak
+            $alreadyExists = false;
+            foreach ($this->bahanRusak as $rusak) {
+                if (
+                    ($type === 'bahan' && isset($rusak['bahan_id']) && $rusak['bahan_id'] === $itemId) ||
+                    ($type === 'produk' && isset($rusak['produk_id']) && $rusak['produk_id'] === $itemId)
+                ) {
+                    $alreadyExists = true;
+                    break;
+                }
+            }
+
+            // Jika belum ada, tambahkan ke bahanRusak
+            if (!$alreadyExists) {
+                $this->bahanRusak[] = [
+                    'bahan_id' => ($type === 'bahan') ? $itemId : null,
+                    'produk_id' => ($type === 'produk') ? $itemId : null,
+                    'unit_price' => $unitPrice,
+                    'serial_number' => $detail['serial_number'] ?? null,
+                ];
+            }
+
+            break; // Hentikan iterasi setelah item ditemukan dan diproses
         }
 
-        $this->calculateTotalHarga();
+        // Tidak perlu update qty atau hitung ulang harga
     }
 
+    // public function returQuantityPerPrice($type, $itemId, $unitPrice)
+    // {
+    //     foreach ($this->projekRndDetails as &$detail) {
+    //         $bahanId = $detail['bahan_id'] ?? null;
+    //         $produkId = $detail['produk_id'] ?? null;
+
+    //         // Tentukan ID berdasarkan tipe (bahan atau produk)
+    //         $currentId = ($type === 'bahan') ? $bahanId : (($type === 'produk') ? $produkId : null);
+    //         // dd($currentId);
+    //         // Jika tidak ada ID yang cocok, lanjutkan ke iterasi berikutnya
+    //         if ($currentId !== $itemId) {
+    //             continue;
+    //         }
+
+    //         foreach ($detail['details'] as &$d) {
+    //             if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
+    //                 $found = false;
+
+    //                 // Cek apakah item sudah ada dalam bahanRusak atau produkRusak
+    //                 foreach ($this->bahanRetur as &$retur) {
+    //                     if (
+    //                         (($type === 'bahan' && isset($retur['bahan_id']) && $retur['bahan_id'] === $itemId) ||
+    //                             ($type === 'produk' && isset($retur['produk_id']) && $retur['produk_id'] === $itemId)) &&
+    //                         $retur['unit_price'] === $unitPrice
+    //                     ) {
+    //                         $retur['qty'] += 1;
+    //                         $found = true;
+    //                         break;
+    //                     }
+    //                 }
+
+    //                 // Jika belum ada, tambahkan ke bahanRetur
+    //                 if (!$found) {
+    //                     $this->bahanRetur[] = [
+    //                         'bahan_id' => ($type === 'bahan') ? $itemId : null,
+    //                         'produk_id' => ($type === 'produk') ? $itemId : null,
+    //                         'serial_number' => $detail['serial_number'] ?? null,
+    //                         'qty' => 1,
+    //                         'unit_price' => $unitPrice,
+
+    //                     ];
+    //                 }
+
+    //                 // Kurangi qty, pastikan tidak negatif
+    //                 $d['qty'] = max(0, $d['qty'] - 1);
+    //                 $detail['sub_total'] = max(0, $detail['sub_total'] - $unitPrice);
+
+    //                 break; // Hentikan iterasi setelah menemukan dan memperbarui item
+    //             }
+    //         }
+    //         break; // Hentikan iterasi setelah menemukan detail yang sesuai
+    //     }
+
+    //     $this->calculateTotalHarga();
+    // }
     public function returQuantityPerPrice($type, $itemId, $unitPrice)
     {
         foreach ($this->projekRndDetails as &$detail) {
             $bahanId = $detail['bahan_id'] ?? null;
             $produkId = $detail['produk_id'] ?? null;
 
-            // Tentukan ID berdasarkan tipe (bahan atau produk)
             $currentId = ($type === 'bahan') ? $bahanId : (($type === 'produk') ? $produkId : null);
-            // dd($currentId);
-            // Jika tidak ada ID yang cocok, lanjutkan ke iterasi berikutnya
             if ($currentId !== $itemId) {
                 continue;
             }
 
-            foreach ($detail['details'] as &$d) {
-                if ($d['unit_price'] === $unitPrice && $d['qty'] > 0) {
-                    $found = false;
-
-                    // Cek apakah item sudah ada dalam bahanRusak atau produkRusak
-                    foreach ($this->bahanRetur as &$retur) {
-                        if (
-                            (($type === 'bahan' && isset($retur['bahan_id']) && $retur['bahan_id'] === $itemId) ||
-                                ($type === 'produk' && isset($retur['produk_id']) && $retur['produk_id'] === $itemId)) &&
-                            $retur['unit_price'] === $unitPrice
-                        ) {
-                            $retur['qty'] += 1;
-                            $found = true;
-                            break;
-                        }
-                    }
-
-                    // Jika belum ada, tambahkan ke bahanRetur
-                    if (!$found) {
-                        $this->bahanRetur[] = [
-                            'bahan_id' => ($type === 'bahan') ? $itemId : null,
-                            'produk_id' => ($type === 'produk') ? $itemId : null,
-                            'serial_number' => $detail['serial_number'] ?? null,
-                            'qty' => 1,
-                            'unit_price' => $unitPrice,
-
-                        ];
-                    }
-
-                    // Kurangi qty, pastikan tidak negatif
-                    $d['qty'] = max(0, $d['qty'] - 1);
-                    $detail['sub_total'] = max(0, $detail['sub_total'] - $unitPrice);
-
-                    break; // Hentikan iterasi setelah menemukan dan memperbarui item
+            // ❌ Jika sudah ada di bahan rusak, jangan tambahkan ke bahan retur
+            foreach ($this->bahanRusak as $rusak) {
+                if (
+                    ($type === 'bahan' && isset($rusak['bahan_id']) && $rusak['bahan_id'] === $itemId) ||
+                    ($type === 'produk' && isset($rusak['produk_id']) && $rusak['produk_id'] === $itemId)
+                ) {
+                    session()->flash('error', 'Item ini sudah masuk daftar bahan rusak dan tidak bisa diretur.');
+                    return; // keluar langsung
                 }
             }
-            break; // Hentikan iterasi setelah menemukan detail yang sesuai
-        }
 
-        $this->calculateTotalHarga();
+            // Cek apakah item sudah ada dalam bahanRetur
+            foreach ($this->bahanRetur as $retur) {
+                if (
+                    ($type === 'bahan' && isset($retur['bahan_id']) && $retur['bahan_id'] === $itemId) ||
+                    ($type === 'produk' && isset($retur['produk_id']) && $retur['produk_id'] === $itemId)
+                ) {
+                    return; // sudah ada di bahanRetur, tidak perlu ditambahkan lagi
+                }
+            }
+
+            // Tambahkan ke bahanRetur
+            $this->bahanRetur[] = [
+                'bahan_id' => ($type === 'bahan') ? $itemId : null,
+                'produk_id' => ($type === 'produk') ? $itemId : null,
+                'unit_price' => $unitPrice,
+                'serial_number' => $detail['serial_number'] ?? null,
+            ];
+
+            break; // hentikan setelah ditambahkan
+        }
     }
 
+    // public function returnToProduction($type, $itemId, $unitPrice)
+    // {
+    //     foreach ($this->bahanRusak as $key => &$rusak) {
+    //         // Pastikan bahan_id atau produk_id sesuai dengan tipe yang diberikan
+    //         if (
+    //             (($type === 'bahan' && isset($rusak['bahan_id']) && $rusak['bahan_id'] === $itemId) ||
+    //             ($type === 'produk' && isset($rusak['produk_id']) && $rusak['produk_id'] === $itemId)) &&
+    //             $rusak['unit_price'] === $unitPrice
+    //         ) {
+    //             // Kurangi qty, hapus jika qty == 0
+    //             $rusak['qty'] -= 1;
+    //             if ($rusak['qty'] <= 0) {
+    //                 unset($this->bahanRusak[$key]);
+    //             }
+    //             break;
+    //         }
+    //     }
+
+    //     // Kembalikan qty ke projekRndDetails
+    //     foreach ($this->projekRndDetails as &$detail) {
+    //         $bahanId = $detail['bahan_id'] ?? null;
+    //         $produkId = $detail['produk_id'] ?? null;
+    //         $currentId = ($type === 'bahan') ? $bahanId : (($type === 'produk') ? $produkId : null);
+
+    //         if ($currentId === $itemId) {
+    //             foreach ($detail['details'] as &$d) {
+    //                 if ($d['unit_price'] === $unitPrice) {
+    //                     $d['qty'] += 1;
+    //                     $detail['sub_total'] += $unitPrice;
+    //                     break;
+    //                 }
+    //             }
+    //             break;
+    //         }
+    //     }
+
+    //     $this->calculateTotalHarga();
+    // }
     public function returnToProduction($type, $itemId, $unitPrice)
     {
-        foreach ($this->bahanRusak as $key => &$rusak) {
-            // Pastikan bahan_id atau produk_id sesuai dengan tipe yang diberikan
-            if (
-                (($type === 'bahan' && isset($rusak['bahan_id']) && $rusak['bahan_id'] === $itemId) ||
-                ($type === 'produk' && isset($rusak['produk_id']) && $rusak['produk_id'] === $itemId)) &&
-                $rusak['unit_price'] === $unitPrice
-            ) {
-                // Kurangi qty, hapus jika qty == 0
-                $rusak['qty'] -= 1;
-                if ($rusak['qty'] <= 0) {
-                    unset($this->bahanRusak[$key]);
-                }
+        foreach ($this->bahanRusak as $key => $rusak) {
+            $isMatch = false;
+
+            if ($type === 'bahan' && isset($rusak['bahan_id']) && $rusak['bahan_id'] === $itemId) {
+                $isMatch = true;
+            } elseif ($type === 'produk' && isset($rusak['produk_id']) && $rusak['produk_id'] === $itemId) {
+                $isMatch = true;
+            }
+
+            if ($isMatch && isset($rusak['unit_price']) && $rusak['unit_price'] === $unitPrice) {
+                unset($this->bahanRusak[$key]);
                 break;
             }
         }
 
-        // Kembalikan qty ke projekRndDetails
-        foreach ($this->projekRndDetails as &$detail) {
-            $bahanId = $detail['bahan_id'] ?? null;
-            $produkId = $detail['produk_id'] ?? null;
-            $currentId = ($type === 'bahan') ? $bahanId : (($type === 'produk') ? $produkId : null);
-
-            if ($currentId === $itemId) {
-                foreach ($detail['details'] as &$d) {
-                    if ($d['unit_price'] === $unitPrice) {
-                        $d['qty'] += 1;
-                        $detail['sub_total'] += $unitPrice;
-                        break;
-                    }
-                }
-                break;
-            }
-        }
-
+        // Tidak perlu update projekDetails atau qty
         $this->calculateTotalHarga();
     }
 
 
 
+    // public function returnReturToProduction($type, $itemId, $unitPrice)
+    // {
+    //     foreach ($this->bahanRetur as $key => &$retur) {
+    //         // Pastikan bahan_id atau produk_id sesuai dengan tipe yang diberikan
+    //         if (
+    //             (($type === 'bahan' && isset($retur['bahan_id']) && $retur['bahan_id'] === $itemId) ||
+    //             ($type === 'produk' && isset($retur['produk_id']) && $retur['produk_id'] === $itemId)) &&
+    //             $retur['unit_price'] === $unitPrice
+    //         ) {
+    //             // Kurangi qty, hapus jika qty == 0
+    //             $retur['qty'] -= 1;
+    //             if ($retur['qty'] <= 0) {
+    //                 unset($this->bahanRetur[$key]);
+    //             }
+    //             break;
+    //         }
+    //     }
+
+    //     // Kembalikan qty ke projekRndDetails
+    //     foreach ($this->projekRndDetails as &$detail) {
+    //         $bahanId = $detail['bahan_id'] ?? null;
+    //         $produkId = $detail['produk_id'] ?? null;
+    //         $currentId = ($type === 'bahan') ? $bahanId : (($type === 'produk') ? $produkId : null);
+
+    //         if ($currentId === $itemId) {
+    //             foreach ($detail['details'] as &$d) {
+    //                 if ($d['unit_price'] === $unitPrice) {
+    //                     $d['qty'] += 1;
+    //                     $detail['sub_total'] += $unitPrice;
+    //                     break;
+    //                 }
+    //             }
+    //             break;
+    //         }
+    //     }
+
+    //     $this->calculateTotalHarga();
+    // }
     public function returnReturToProduction($type, $itemId, $unitPrice)
     {
-        foreach ($this->bahanRetur as $key => &$retur) {
-            // Pastikan bahan_id atau produk_id sesuai dengan tipe yang diberikan
-            if (
-                (($type === 'bahan' && isset($retur['bahan_id']) && $retur['bahan_id'] === $itemId) ||
-                ($type === 'produk' && isset($retur['produk_id']) && $retur['produk_id'] === $itemId)) &&
-                $retur['unit_price'] === $unitPrice
-            ) {
-                // Kurangi qty, hapus jika qty == 0
-                $retur['qty'] -= 1;
-                if ($retur['qty'] <= 0) {
-                    unset($this->bahanRetur[$key]);
-                }
+        foreach ($this->bahanRetur as $key => $retur) {
+            $isMatch = false;
+
+            if ($type === 'bahan' && isset($retur['bahan_id']) && $retur['bahan_id'] === $itemId) {
+                $isMatch = true;
+            } elseif ($type === 'produk' && isset($retur['produk_id']) && $retur['produk_id'] === $itemId) {
+                $isMatch = true;
+            }
+
+            if ($isMatch && isset($retur['unit_price']) && $retur['unit_price'] === $unitPrice) {
+                unset($this->bahanRetur[$key]);
                 break;
             }
         }
 
-        // Kembalikan qty ke projekRndDetails
-        foreach ($this->projekRndDetails as &$detail) {
-            $bahanId = $detail['bahan_id'] ?? null;
-            $produkId = $detail['produk_id'] ?? null;
-            $currentId = ($type === 'bahan') ? $bahanId : (($type === 'produk') ? $produkId : null);
-
-            if ($currentId === $itemId) {
-                foreach ($detail['details'] as &$d) {
-                    if ($d['unit_price'] === $unitPrice) {
-                        $d['qty'] += 1;
-                        $detail['sub_total'] += $unitPrice;
-                        break;
-                    }
-                }
-                break;
-            }
-        }
-
+        // Tidak perlu update projekDetails atau qty
         $this->calculateTotalHarga();
     }
 
@@ -558,6 +690,120 @@ class EditBahanProjekRndCart extends Component
         }
 
         return $bahanRetur;
+    }
+
+    public function updateRusakQty($id, $unitPrice, $newQty)
+    {
+        $parsedQty = floatval(str_replace(',', '.', $newQty));
+        $maxQty = 0;
+
+        // Loop projekRndDetails untuk bahan_id / produk_id
+        foreach ($this->projekRndDetails as $detail) {
+            $match = false;
+
+            // Cek apakah item adalah bahan
+            if (isset($detail['bahan_id']) && $detail['bahan_id'] == $id) {
+                $match = true;
+            }
+
+            // Cek apakah item adalah produk
+            if (isset($detail['produk_id']) && $detail['produk_id'] == $id) {
+                $match = true;
+            }
+
+            if ($match) {
+                foreach ($detail['details'] as $d) {
+                    if ($d['unit_price'] == $unitPrice) {
+                        $maxQty += $d['qty']; // Hanya total dari unit_price yang cocok
+                    }
+                }
+                break;
+            }
+        }
+
+        // Validasi agar tidak melebihi qty pengambilan
+        if ($parsedQty > $maxQty) {
+            $parsedQty = $maxQty;
+            session()->flash('error', 'Qty rusak tidak boleh melebihi jumlah pengambilan.');
+        }
+
+        // Update qty di bahanRusak
+        foreach ($this->bahanRusak as &$rusak) {
+            $match = false;
+
+            if (
+                (isset($rusak['bahan_id']) && $rusak['bahan_id'] == $id) ||
+                (isset($rusak['produk_id']) && $rusak['produk_id'] == $id)
+            ) {
+                if (isset($rusak['unit_price']) && $rusak['unit_price'] == $unitPrice) {
+                    $match = true;
+                }
+            }
+
+            if ($match) {
+                $rusak['qty'] = max(0, $parsedQty);
+                break;
+            }
+        }
+
+        $this->calculateTotalHarga();
+    }
+
+    public function updateReturQty($id, $unitPrice, $newQty)
+    {
+        $parsedQty = floatval(str_replace(',', '.', $newQty));
+        $maxQty = 0;
+
+        // Loop projekRndDetails untuk bahan_id / produk_id
+        foreach ($this->projekRndDetails as $detail) {
+            $match = false;
+
+            // Cek apakah item adalah bahan
+            if (isset($detail['bahan_id']) && $detail['bahan_id'] == $id) {
+                $match = true;
+            }
+
+            // Cek apakah item adalah produk
+            if (isset($detail['produk_id']) && $detail['produk_id'] == $id) {
+                $match = true;
+            }
+
+            if ($match) {
+                foreach ($detail['details'] as $d) {
+                    if ($d['unit_price'] == $unitPrice) {
+                        $maxQty += $d['qty']; // Hanya total dari unit_price yang cocok
+                    }
+                }
+                break;
+            }
+        }
+
+        // Validasi agar tidak melebihi qty pengambilan
+        if ($parsedQty > $maxQty) {
+            $parsedQty = $maxQty;
+            session()->flash('error', 'Qty retur tidak boleh melebihi jumlah pengambilan.');
+        }
+
+        // Update qty di bahanRetur
+        foreach ($this->bahanRetur as &$retur) {
+            $match = false;
+
+            if (
+                (isset($retur['bahan_id']) && $retur['bahan_id'] == $id) ||
+                (isset($retur['produk_id']) && $retur['produk_id'] == $id)
+            ) {
+                if (isset($retur['unit_price']) && $retur['unit_price'] == $unitPrice) {
+                    $match = true;
+                }
+            }
+
+            if ($match) {
+                $retur['qty'] = max(0, $parsedQty);
+                break;
+            }
+        }
+
+        $this->calculateTotalHarga();
     }
 
 

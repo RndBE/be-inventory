@@ -90,7 +90,7 @@
             </div>
 
             {{-- Bahan Masuk vs Bahan Keluar  --}}
-            <div class="col-span-full xl:col-span-8 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+            <div class="col-span-full xl:col-span-12 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100">Bahan Masuk vs Bahan Keluar</h2>
                     <form method="GET" action="{{ route('dashboard') }}" class="flex gap-2">
@@ -122,7 +122,7 @@
             </div>
 
             {{-- Jumlah Pengajuan --}}
-            <div class="flex flex-col col-span-full sm:col-span-4 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+            <div class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100">Pengajuan Bahan</h2>
                 </header>
@@ -164,7 +164,8 @@
             </div>
 
             {{-- Total Bahan Setengah Jadi --}}
-            <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+            <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl min-h-[300px] max-h-[500px]">
+
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60"><h2 class="font-semibold text-gray-800 dark:text-gray-100">Produk Setengah Jadi</h2>
                 </header>
                 <div class="grow">
@@ -173,7 +174,7 @@
             </div>
 
             {{-- Proses Produksi --}}
-            <div class="col-span-full xl:col-span-8 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+            <div class="col-span-full xl:col-span-12 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100">Proses Produksi</h2>
                 </header>

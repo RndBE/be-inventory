@@ -91,7 +91,7 @@
                 <th style="border: 1px solid black; width: 5%;">No</th>
             <th style="border: 1px solid black; width: 10%;">Kode Barang</th>
             <th style="border: 1px solid black; width: 25%;">Nama</th> <!-- Kolom lebih lebar -->
-            <th style="border: 1px solid black; width: 25%;">Spesifikasi</th> <!-- Kolom lebih lebar -->
+            <th style="border: 1px solid black; width: 25%;">Penempatan</th> <!-- Kolom lebih lebar -->
             <th style="border: 1px solid black; width: 5%;">Qty</th>
             <th style="border: 1px solid black; width: 10%;">Satuan</th>
             <th style="border: 1px solid black; width: 10%;">Ceklis Purchasing</th>
@@ -120,7 +120,7 @@
                             Data tidak tersedia
                         @endif
                     </td>
-                    <td style="border: 1px solid black"></td>
+                    <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->penempatan ?? null }}</td>
                     <td style="border: 1px solid black;text-align: center;">{{ $detail->qty }}</td>
                     <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama ?? 'Pcs' }}</td>
                     <td style="border: 1px solid black"></td>

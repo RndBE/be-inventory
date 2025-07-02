@@ -148,7 +148,7 @@
         <tr style="text-align: left; vertical-align: top;">
             <td style=" text-align: center;"><strong>Pengambil</strong></td>
             <td colspan="2" style=" text-align: center;"><strong>Purchasing</strong></td>
-            <td style=" text-align: center;"><strong>Manager</strong></td>
+            <td style=" text-align: center;"><strong>Leader</strong></td>
         </tr>
         <tr>
             <td style="text-align: center; width: 25%;">
@@ -167,7 +167,7 @@
                 {{ $bahanKeluar->dataUser->name ?? null }}
             </td>
             <td colspan="2" style="text-align: center;">{{ $purchasingUser->name }}</td>
-            <td style="text-align: center;">{{ $managerName ?? '' }}</td>
+            <td style="text-align: center;">{{ $leaderName ?? '' }}</td>
         </tr>
 
 
@@ -176,9 +176,9 @@
         </tr>
         <tr style="text-align: left; vertical-align: top;">
             <td style="text-align: center;">
-                @if($hasProduk)
+                {{-- @if($hasProduk)
                     <strong>Produksi</strong>
-                @endif
+                @endif --}}
             </td>
             <td colspan="2" style=" text-align: center;"><strong>Manager Admin</strong></td>
             <td style=" text-align: center;"><strong></strong></td>
@@ -196,9 +196,9 @@
         </tr>
         <tr style="text-align: left; vertical-align: top;">
             <td style="text-align: center;">
-                @if($hasProduk)
+                {{-- @if($hasProduk)
                     RHOMADONI
-                @endif
+                @endif --}}
             </td>
             <td colspan="2" style="text-align: center;">{{ $adminManagerceUser->name ?? '' }}</td>
             <td style="text-align: center;"></td>

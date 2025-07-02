@@ -1010,7 +1010,6 @@ class BahanKeluarController extends Controller
         }
     }
 
-
     public function destroy(string $id)
     {
         try{

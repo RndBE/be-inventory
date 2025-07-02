@@ -122,6 +122,15 @@ class BahanStockOpnameCart extends Component
         session()->put('cartItems', $this->getCartItemsForStorage());
     }
 
+    public function updateSession()
+    {
+        Session::put('cart', $this->cart);
+        Session::put('qty', $this->qty);
+        Session::put('subtotals', $this->subtotals);
+        Session::put('totalharga', $this->totalharga);
+        Session::put('keterangan', $this->keterangan);
+    }
+
     protected function loadCartFromSession()
     {
         if (session()->has('cartItems')) {

@@ -78,15 +78,15 @@
 
         <div class="w-full max-w-9xl mx-auto">
             {{-- Layout --}}
-            <div class="flex flex-col lg:flex-row items-start gap-6">
+            <div class="flex flex-col items-start gap-6">
                 {{-- Left: Product List + Search --}}
-                <div class="w-full lg:w-3/4 bg-white border rounded-lg p-6 shadow">
+                <div class="w-full bg-white border rounded-lg p-6 shadow">
                     <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
                     <livewire:search-bahan-produk-sample/>
                 </div>
 
                 {{-- Right: Cart --}}
-                <div class="w-full lg:w-2/4 bg-white border rounded-lg p-6 shadow">
+                <div class="w-full bg-white border rounded-lg p-6 shadow">
                     <form action="{{ route('garansi-projeks.store') }}" method="POST" enctype="multipart/form-data" id="produksiProdukForm">
                         @csrf
                         <div class="space-y-6">

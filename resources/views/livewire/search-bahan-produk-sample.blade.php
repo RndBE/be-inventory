@@ -22,7 +22,7 @@
 
     <div class="space-y-4 mt-6">
         <!-- List Bahan Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
             @foreach($bahanList as $bahan)
                 <div class="bg-white border rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer" wire:click="selectBahan({{ $bahan['id'] }}, '{{ $bahan['type'] }}')">
                     @if($bahan['gambar'])

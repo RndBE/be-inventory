@@ -397,7 +397,7 @@
                 </ul>
             </div>
             <!-- RnD -->
-            @role('superadmin|purchasing|purchasing level 3|rnd|rnd level 3|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager')
+            @role('superadmin|produksi|purchasing|purchasing level 3|rnd|rnd level 3|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager')
             <div>
                 <h3 class="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
                     <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>

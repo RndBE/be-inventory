@@ -176,7 +176,7 @@
         </tr>
         <tr style="border: 0px solid black;">
             <td colspan="4" style="border: 0px solid black;text-align: center; width: 25%;">
-                <div style="height: 80px; width: 150px;"></div>
+                <div style="height: 60px; width: 150px;"></div>
             </td>
         </tr>
 
@@ -194,10 +194,10 @@
         </tr>
         <tr>
             <td colspan="2" style="border: 0px solid black;text-align: center;">
-                <div style="height: 80px; width: 150px;"></div>
+                <div style="height: 60px; width: 150px;"></div>
             </td>
             <td colspan="2"style="border: 0px solid black;text-align: center; width: 33%;">
-                <div style="height: 80px; width: 150px;"></div>
+                <div style="height: 60px; width: 150px;"></div>
             </td>
         </tr>
         <tr style="border: 0px solid black;text-align: left; vertical-align: top;">
@@ -216,10 +216,10 @@
         </tr>
         <tr>
             <td colspan="2" style="border: 0px solid black;text-align: center;">
-                <div style="height: 80px; width: 150px;"></div>
+                <div style="height: 60px; width: 150px;"></div>
             </td>
             <td colspan="2"style="border: 0px solid black;text-align: center; width: 33%;">
-                <div style="height: 80px; width: 150px;"></div>
+                <div style="height: 60px; width: 150px;"></div>
             </td>
         </tr>
         <tr style="border: 0px solid black;text-align: left; vertical-align: top;">

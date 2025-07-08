@@ -76,6 +76,7 @@
                             No
                         </th>
                         <th scope="col" class="px-6 py-3">Kode Transaksi</th>
+                        <th scope="col" class="px-6 py-3">No Invoice</th>
                         <th scope="col" class="px-6 py-3">Tanggal Masuk</th>
                         <th scope="col" class="px-6 py-3">Keterangan | Sisa</th>
                         <th scope="col" class="px-6 py-3">Total Harga</th>
@@ -87,6 +88,7 @@
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $purchases->firstItem() + $index }}</div></td>
                         <td class="px-6 py-3">{{ $purchase->kode_transaksi }}</td>
+                        <td class="px-6 py-3">{{ $purchase->no_invoice }}</td>
                         <td class="px-6 py-3">{{ $purchase->tgl_masuk }}</td>
                         <td class="px-6 py-3">
                             @if($purchase->purchaseDetails->isNotEmpty())

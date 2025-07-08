@@ -12,7 +12,8 @@
                     <div class="flex w-full">
                         <div class="grid grid-cols-4 gap-12">
                             <div class="text-sm font-light text-slate-500">
-                                <p class="text-sm font-normal text-slate-700">Detail Transaksi:</p>
+                                <p class="text-sm font-normal text-slate-700">No Invoice:</p>
+                                <p class="text-sm font-normal text-slate-700">{{ $no_invoice }}</p>
                             </div>
                             <div class="text-sm font-light text-slate-500">
                                 <p class="text-sm font-normal text-slate-700">Divisi:</p>

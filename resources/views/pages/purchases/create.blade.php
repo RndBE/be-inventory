@@ -132,6 +132,10 @@
                                     @enderror
                                 </div>
 
+                                <div class="flex items-center">
+                                    <label for="no_invoice" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">No Invoice</label>
+                                    <input type="text" name="no_invoice" id="no_invoice" placeholder="Masukkan Invoice" class="block rounded-md w-3/4 border-gray-300 bg-white-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                </div>
 
                                 <div class="flex items-center">
                                     <label for="text" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>

@@ -36,6 +36,7 @@ class PurchaseTable extends Component
         ->where(function ($query) {
             $query->where('tgl_masuk', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')
+                ->orWhere('no_invoice', 'like', '%' . $this->search . '%')
                 ->orWhereHas('purchaseDetails.dataBahan', function ($query) {
                     $query->where('nama_bahan', 'like', '%' . $this->search . '%');
                 });

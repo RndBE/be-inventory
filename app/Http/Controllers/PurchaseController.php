@@ -54,6 +54,7 @@ class PurchaseController extends Controller
         $purchase = Purchase::with('purchaseDetails.dataBahan.dataUnit')->findOrFail($id);
         return view('pages.purchases.show', [
             'kode_transaksi' => $purchase->kode_transaksi,
+            'no_invoice' => $purchase->no_invoice,
             'tgl_masuk' => $purchase->tgl_masuk,
             'purchaseDetails' => $purchase->purchaseDetails,
         ]);
@@ -72,9 +73,11 @@ class PurchaseController extends Controller
             $cartItems = json_decode($request->cartItems, true);
             $validator = Validator::make([
                 'tgl_masuk' => $request->tgl_masuk,
+                'no_invoice' => $request->no_invoice,
                 'cartItems' => $cartItems
             ], [
                 'tgl_masuk' => 'required|date_format:Y-m-d',
+                'no_invoice' => 'nullable',
                 'cartItems' => 'required|array',
                 'cartItems.*.id' => 'required',
                 'cartItems.*.qty' => 'required',
@@ -89,6 +92,7 @@ class PurchaseController extends Controller
             $purchase = new Purchase();
             $purchase->kode_transaksi = $kode_transaksi;
             $purchase->tgl_masuk = $request->tgl_masuk;
+            $purchase->no_invoice = $request->no_invoice;
             $purchase->save();
             foreach ($cartItems as $item) {
                 PurchaseDetail::create([

@@ -22,7 +22,9 @@
                                 @if($editingItemId === $item->bahan_id)
                                     <input
                                         autofocus
-                                        value="{{ old('unit_price_raw.' . $item->bahan_id, isset($unit_price[$item->bahan_id]) ? $unit_price[$item->bahan_id] : '') }}"
+                                        {{-- value="{{ old('unit_price_raw.' . $item->bahan_id, isset($unit_price[$item->bahan_id]) ? $unit_price[$item->bahan_id] : '') }}" --}}
+                                        value="{{ old('unit_price_raw.' . $item->bahan_id, isset($unit_price[$item->bahan_id]) ? number_format($unit_price[$item->bahan_id], 2, '.', '') : '') }}"
+
                                         wire:model="unit_price_raw.{{ $item->bahan_id }}"
                                         type="text"
                                         class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -31,7 +33,10 @@
                                         wire:blur="formatToRupiah({{ $item->bahan_id }})"
                                     />
                                 @else
-                                    <span class="cursor-pointer" wire:click="editItem({{ $item->bahan_id }})">Rp. {{ number_format($unit_price[$item->bahan_id] ?? 0, 0, ',', '.') }}</span>
+                                    {{-- <span class="cursor-pointer" wire:click="editItem({{ $item->bahan_id }})">Rp. {{ number_format($unit_price[$item->bahan_id] ?? 0, 0, ',', '.') }}</span> --}}
+                                    <span class="cursor-pointer" wire:click="editItem({{ $item->bahan_id }})">
+                                        Rp. {{ number_format($unit_price[$item->bahan_id] ?? 0, 2, ',', '.') }}
+                                    </span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
@@ -49,7 +54,8 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                <span><strong>Rp.</strong> {{ number_format($subtotals[$item->bahan_id] ?? 0, 0, ',', '.') }}</span>
+                                {{-- <span><strong>Rp.</strong> {{ number_format($subtotals[$item->bahan_id] ?? 0, 0, ',', '.') }}</span> --}}
+                                <span><strong>Rp.</strong> {{ number_format($subtotals[$item->bahan_id] ?? 0, 2, ',', '.') }}</span>
                             </td>
                             <td class="px-6 py-4">
                                 <a href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline" wire:click.prevent="removeItem({{ $item->bahan_id }})">

@@ -73,7 +73,9 @@ class BahanPurchaseCart extends Component
         $unitPrice = isset($this->unit_price[$itemId]) ? floatval($this->unit_price[$itemId]) : 0;
         $qty = isset($this->qty[$itemId]) ? floatval($this->qty[$itemId]) : 0;
 
-        $this->subtotals[$itemId] = $unitPrice * $qty;
+        // $this->subtotals[$itemId] = $unitPrice * $qty;
+        $this->subtotals[$itemId] = round($unitPrice * $qty, 2);
+
 
         $this->calculateTotalHarga();
     }
@@ -88,7 +90,14 @@ class BahanPurchaseCart extends Component
     public function formatToRupiah($itemId)
     {
         // Pastikan untuk menghapus 'Rp.' dan mengonversi ke integer
-        $this->unit_price[$itemId] = intval(str_replace(['.', ' '], '', $this->unit_price_raw[$itemId]));
+        // $this->unit_price[$itemId] = intval(str_replace(['.', ' '], '', $this->unit_price_raw[$itemId]));
+        // $this->unit_price[$itemId] = round(floatval(str_replace(['.', ' '], '', $this->unit_price_raw[$itemId])), 2);
+        // Ganti koma dengan titik (jika user mengetik "194615,95")
+        $cleaned = str_replace([' ', ','], ['', '.'], $this->unit_price_raw[$itemId]);
+
+        // Konversi ke float dan bulatkan ke 2 angka
+        $this->unit_price[$itemId] = round(floatval($cleaned), 2);
+
         $this->unit_price_raw[$itemId] = $this->unit_price[$itemId];
         $this->calculateSubTotal($itemId); // Hitung subtotal setelah format
         $this->editingItemId = null; // Reset ID setelah selesai
@@ -152,8 +161,11 @@ class BahanPurchaseCart extends Component
                 'id' => $itemId,
                 // 'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
                 'qty' => isset($this->qty[$itemId]) ? floatval($this->qty[$itemId]) : 0,
-                'unit_price' => isset($this->unit_price_raw[$itemId]) ? $this->unit_price_raw[$itemId] : 0,
-                'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
+                'unit_price' => isset($this->unit_price_raw[$itemId]) ? round(floatval($this->unit_price_raw[$itemId]), 2) : 0.00,
+                'sub_total' => isset($this->subtotals[$itemId]) ? round($this->subtotals[$itemId], 2) : 0.00,
+
+                // 'unit_price' => isset($this->unit_price_raw[$itemId]) ? $this->unit_price_raw[$itemId] : 0,
+                // 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
             ];
         }
         return $items;

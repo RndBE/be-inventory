@@ -17,6 +17,7 @@ class BahansExport implements FromCollection, WithHeadings, WithStyles, WithEven
     public function collection()
     {
         return Bahan::with('jenisBahan', 'dataUnit')
+            ->orderBy('nama_bahan') // ✅ Urutkan berdasarkan abjad nama_bahan
             ->get()
             ->map(function ($item) {
                 return [
@@ -28,6 +29,7 @@ class BahansExport implements FromCollection, WithHeadings, WithStyles, WithEven
                 ];
             });
     }
+
 
     public function headings(): array
     {

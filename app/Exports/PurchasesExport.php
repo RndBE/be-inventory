@@ -71,7 +71,7 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
         $bahan = Bahan::with(['dataUnit', 'jenisBahan'])
             ->whereHas('jenisBahan', function ($query) {
                 $query->where('nama', '!=', 'Produksi')->where('nama', '!=', 'Projek RnD');
-            })
+            })->orderBy('nama_bahan')
             ->get();
 
         foreach ($bahan as $index => $item) {

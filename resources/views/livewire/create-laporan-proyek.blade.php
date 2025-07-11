@@ -127,7 +127,8 @@
                                             <thead class="text-xs uppercase text-black bg-white shadow-xl border-b dark:bg-gray-800 dark:border-gray-700">
                                                 <tr>
                                                     <th scope="col" class="px-6 py-3 w-1/5">Bahan</th>
-                                                    <th scope="col" class="px-6 py-3 text-right w-1">Details</th>
+                                                    <th scope="col" class="px-6 py-3 text-right w-1">Qty</th>
+                                                    <th scope="col" class="px-6 py-3 text-right w-1">Harga Satuan</th>
                                                     <th scope="col" class="px-6 py-3 text-right w-0.5">Sub Total</th>
                                                 </tr>
                                             </thead>
@@ -147,27 +148,41 @@
                                                             ({{ $detail['serial_number'] }})
                                                         @endif
                                                     </td>
-                                                    <td class="items-right px-6 py-4 text-right">
-                                                        @php
-                                                            $detailsArray = json_decode($detail['details'], true);
-                                                        @endphp
+                                                    @php
+                                                        $detailsArray = json_decode($detail['details'], true);
+                                                    @endphp
 
+                                                    <td class="items-right px-6 py-4 text-right">
                                                         @if (is_array($detailsArray))
                                                             @foreach ($detailsArray as $d)
                                                                 <div class="flex flex-col space-y-2">
                                                                     <div class="flex justify-end items-center">
-                                                                        <p>{{ $d['qty'] }} x {{ number_format($d['unit_price'], 0, ',', '.') }}</p>
+                                                                        <p>{{ $d['qty'] }}</p>
                                                                     </div>
                                                                 </div>
                                                             @endforeach
                                                         @endif
                                                     </td>
+
+                                                    <td class="items-right px-6 py-4 text-right">
+                                                        @if (is_array($detailsArray))
+                                                            @foreach ($detailsArray as $d)
+                                                                <div class="flex flex-col space-y-2">
+                                                                    <div class="flex justify-end items-center">
+                                                                        <p>{{ number_format($d['unit_price'], 0, ',', '.') }}</p>
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        @endif
+                                                    </td>
+
                                                     <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
                                                         <span><strong></strong> {{ number_format($detail['sub_total'], 0, ',', '.') }}</span>
                                                     </td>
                                                 </tr>
                                                 @endforeach
                                                 <tr class="bg-white dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                                    <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                                                     <td class="px-6 py-4 text-right text-black"><strong>Total Harga</strong></td>
                                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">

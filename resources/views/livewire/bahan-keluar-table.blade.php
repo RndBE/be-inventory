@@ -70,7 +70,22 @@
                                 Ditolak
                             </button>
                         </li>
-
+                        <li class="m-1">
+                            <button wire:click="setFilter('Sudah Diambil')" type="button"
+                                class="group dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700 text-black dark:border-gray-500 bg-transparent border border-black font-medium rounded-full px-3 py-1 text-sm text-center transition duration-200 ease-in-out
+                                hover:bg-black hover:text-white focus:bg-black focus:text-white group-focus:bg-black group-focus:text-white
+                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black {{ $filter === 'Sudah Diambil' ? 'dark:bg-gray-700 bg-black text-black' : '' }}">
+                                Sudah Diambil
+                            </button>
+                        </li>
+                        <li class="m-1">
+                            <button wire:click="setFilter('Belum Diambil')" type="button"
+                                class="group dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700 text-black dark:border-gray-500 bg-transparent border border-black font-medium rounded-full px-3 py-1 text-sm text-center transition duration-200 ease-in-out
+                                hover:bg-black hover:text-white focus:bg-black focus:text-white group-focus:bg-black group-focus:text-white
+                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black {{ $filter === 'Belum Diambil' ? 'dark:bg-gray-700 bg-black text-black' : '' }}">
+                                Belum Diambil
+                            </button>
+                        </li>
                     </ul>
                 </div>
             <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">

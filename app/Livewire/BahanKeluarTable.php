@@ -139,6 +139,7 @@ class BahanKeluarTable extends Component
                 ->orWhere('tujuan', 'like', '%' . $this->search . '%')
                 ->orWhere('divisi', 'like', '%' . $this->search . '%')
                 ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhere('status_pengambilan', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')
                 ->orWhereHas('dataUser', function ($query) {
                     $query->where('name', 'like', '%' . $this->search . '%');
@@ -157,6 +158,10 @@ class BahanKeluarTable extends Component
             })
             ->when($this->filter === 'Belum disetujui', function ($query) {
                 return $query->where('status', 'Belum disetujui');
+            })->when($this->filter === 'Belum Diambil', function ($query) {
+                return $query->where('status_pengambilan', 'Belum Diambil');
+            })->when($this->filter === 'Sudah Diambil', function ($query) {
+                return $query->where('status_pengambilan', 'Sudah Diambil');
             });
 
         // Paginate hasil query

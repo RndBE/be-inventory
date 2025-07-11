@@ -51,20 +51,24 @@ class LaporanGaransiProyekExport implements FromArray, WithHeadings, ShouldAutoS
 
         foreach ($projek->garansiProjekDetails as $index => $detail) {
             $detailsArray = json_decode($detail->details, true);
-            $detailsFormatted = [];
+            $detailsFormattedQty = [];
+            $detailsFormattedHarga = [];
 
             foreach ($detailsArray as $item) {
-                $detailsFormatted[] = $item['qty'] . 'x' . $item['unit_price'];
+                $detailsFormattedQty[] = $item['qty'];
+                $detailsFormattedHarga[] = $item['unit_price'];
             }
 
-            $formattedDetailsString = implode(', ', $detailsFormatted);
+            // Contoh gabung string dari qty dan harga
+            $formattedQtyString = implode(', ', $detailsFormattedQty);
+            $formattedHargaString = implode(', ', $detailsFormattedHarga);
 
             $data[] = [
                 $index + 1,
                 ($detail->dataProduk ? $detail->dataProduk->nama_bahan . ' (' . ($detail->serial_number ?? '-') . ')' : $detail->dataBahan->nama_bahan ?? null),
-                $detail->qty,
+                $formattedQtyString,
                 $detail->dataBahan->dataUnit->nama ?? 'Pcs',
-                $formattedDetailsString,
+                $formattedHargaString,
                 number_format($detail->sub_total, 2, ',', '.'),
             ];
 

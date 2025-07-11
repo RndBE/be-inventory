@@ -214,53 +214,99 @@ class UpdateHargaPembelianBahanCart extends Component
         $this->newtotalharga_usd = array_sum($this->new_subtotals_usd);
     }
 
+    // public function formatToRupiah($item)
+    // {
+    //     // Pastikan nilai mentah tidak kosong
+    //     $rawValue = $this->{$item . '_raw'} ?? '0';
+
+    //     // Hapus titik ribuan, ubah koma menjadi titik
+    //     $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+
+    //     // Simpan dengan presisi dua desimal menggunakan bcadd
+    //     $this->$item = is_numeric($cleanValue) ? bcadd($cleanValue, '0', 2) : '0.00';
+
+    //     // Format ulang tampilan dengan dua desimal tetap
+    //     $this->{$item . '_raw'} = number_format($this->$item, 2, ',', '.');
+
+    //     // Jika item adalah unit_price, hitung ulang subtotal
+    //     if ($item === 'unit_price') {
+    //         $this->calculateSubTotal($this->editingItemId);
+    //     }
+
+    //     // Tutup mode edit
+    //     $this->editingItemId = null;
+    // }
     public function formatToRupiah($item)
     {
-        // Pastikan nilai mentah tidak kosong
+        // Ambil nilai mentah dari input user, misalnya 'ppn_raw' atau 'biaya_raw'
         $rawValue = $this->{$item . '_raw'} ?? '0';
 
-        // Hapus titik ribuan, ubah koma menjadi titik
-        $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+        // Gunakan helper untuk parsing input ke float
+        $parsed = $this->parseRupiahInput($rawValue);
 
-        // Simpan dengan presisi dua desimal menggunakan bcadd
-        $this->$item = is_numeric($cleanValue) ? bcadd($cleanValue, '0', 2) : '0.00';
+        // Simpan dengan presisi 2 desimal menggunakan bcadd
+        $this->$item = bcadd((string) $parsed, '0', 2);
 
-        // Format ulang tampilan dengan dua desimal tetap
+        // Tampilkan kembali dalam format Rupiah (dua desimal, koma sebagai desimal)
         $this->{$item . '_raw'} = number_format($this->$item, 2, ',', '.');
 
-        // Jika item adalah unit_price, hitung ulang subtotal
+        // Jika field adalah 'unit_price', hitung ulang subtotal
         if ($item === 'unit_price') {
             $this->calculateSubTotal($this->editingItemId);
         }
 
-        // Tutup mode edit
+        // Keluar dari mode edit
         $this->editingItemId = null;
     }
 
 
 
+
+    // public function formatToRupiahNew($item)
+    // {
+    //     // Pastikan nilai mentah tidak kosong
+    //     $rawValue = $this->{$item . '_raw'} ?? '0';
+
+    //     // Hapus karakter pemisah ribuan (.) dan ubah koma menjadi titik agar angka desimal tetap terjaga
+    //     $cleanValue = str_replace(['Rp', '.', ','], ['', '', '.'], $rawValue);
+
+    //     // Konversi ke float agar angka desimal tetap ada
+    //     $this->$item = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+
+    //     // Format kembali ke bentuk Rupiah dengan dua desimal
+    //     $this->{$item . '_raw'} = number_format($this->$item, 2, ',', '.');
+
+    //     // Recalculate subtotal jika diperlukan
+    //     if ($item === 'unit_price') {
+    //         $this->calculateSubTotal($this->editingItemId);
+    //     }
+
+    //     // Tutup mode edit
+    //     $this->editingItemId = null;
+    // }
     public function formatToRupiahNew($item)
     {
-        // Pastikan nilai mentah tidak kosong
+        // Ambil input mentah
         $rawValue = $this->{$item . '_raw'} ?? '0';
 
-        // Hapus karakter pemisah ribuan (.) dan ubah koma menjadi titik agar angka desimal tetap terjaga
-        $cleanValue = str_replace(['Rp', '.', ','], ['', '', '.'], $rawValue);
+        // Gunakan helper untuk parsing nilai (lokal atau dot-decimal)
+        $parsedValue = $this->parseRupiahInput($rawValue);
 
-        // Konversi ke float agar angka desimal tetap ada
-        $this->$item = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+        // Simpan hasil parsing ke properti utama
+        $this->$item = $parsedValue;
 
-        // Format kembali ke bentuk Rupiah dengan dua desimal
-        $this->{$item . '_raw'} = number_format($this->$item, 2, ',', '.');
+        // Format tampilan dengan dua desimal
+        $this->{$item . '_raw'} = number_format($parsedValue, 2, ',', '.');
 
-        // Recalculate subtotal jika diperlukan
+        // Hitung ulang subtotal jika field-nya 'unit_price'
         if ($item === 'unit_price') {
             $this->calculateSubTotal($this->editingItemId);
         }
 
-        // Tutup mode edit
+        // Keluar dari mode edit
         $this->editingItemId = null;
     }
+
 
 
     public function editItemNew($item)
@@ -275,24 +321,58 @@ class UpdateHargaPembelianBahanCart extends Component
         $this->{$item . '_raw'} = $this->$item ?? null;
     }
 
+    // public function formatToRupiahPrice($itemId)
+    // {
+    //     // $this->unit_price[$itemId] = intval(str_replace(['.', 'Rp'], '', $this->unit_price_raw[$itemId]));
+    //     // Format new_unit_price
+    //     $rawValue = $this->new_unit_price_raw[$itemId] ?? '0';
+
+    //     // Hapus titik sebagai pemisah ribuan dan ubah koma menjadi titik untuk parsing angka desimal
+    //     $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+
+    //     // Konversi ke float agar angka desimal tetap terjaga
+    //     $this->new_unit_price[$itemId] = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+
+    //     // Format kembali ke format Rupiah dengan dua desimal
+    //     $this->new_unit_price_raw[$itemId] = number_format($this->new_unit_price[$itemId], 2, ',', '.');
+
+    //     $this->calculateSubTotal($itemId);
+    //     $this->editingItemId = null;
+    // }
+
+    private function parseRupiahInput($input)
+    {
+        // Jika input sudah dalam format dot-decimal (contoh: 16227.50), langsung gunakan
+        if (preg_match('/^\d+(\.\d{1,2})?$/', $input)) {
+            return floatval($input);
+        }
+
+        // Jika input dalam format lokal (contoh: 2.066.698,20), ubah menjadi 2066698.20
+        $cleaned = str_replace('.', '', $input);     // Hapus titik ribuan
+        $cleaned = str_replace(',', '.', $cleaned);  // Ganti koma jadi titik desimal
+
+        return is_numeric($cleaned) ? floatval($cleaned) : 0;
+    }
+
     public function formatToRupiahPrice($itemId)
     {
-        // $this->unit_price[$itemId] = intval(str_replace(['.', 'Rp'], '', $this->unit_price_raw[$itemId]));
-        // Format new_unit_price
+        // Ambil input mentah dari user
         $rawValue = $this->new_unit_price_raw[$itemId] ?? '0';
 
-        // Hapus titik sebagai pemisah ribuan dan ubah koma menjadi titik untuk parsing angka desimal
-        $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+        // Gunakan helper untuk parsing input
+        $parsedValue = $this->parseRupiahInput($rawValue);
 
-        // Konversi ke float agar angka desimal tetap terjaga
-        $this->new_unit_price[$itemId] = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+        // Simpan ke variabel utama
+        $this->new_unit_price[$itemId] = $parsedValue;
 
-        // Format kembali ke format Rupiah dengan dua desimal
-        $this->new_unit_price_raw[$itemId] = number_format($this->new_unit_price[$itemId], 2, ',', '.');
+        // Format ulang ke tampilan rupiah
+        $this->new_unit_price_raw[$itemId] = number_format($parsedValue, 2, ',', '.');
 
+        // Hitung subtotal & tutup mode edit
         $this->calculateSubTotal($itemId);
         $this->editingItemId = null;
     }
+
 
     public function editItemPrice($itemId)
     {
@@ -308,26 +388,47 @@ class UpdateHargaPembelianBahanCart extends Component
         }
     }
 
+    // public function formatToRupiahPriceNew($itemId)
+    // {
+    //     // Pastikan nilai mentah tidak kosong
+    //     $rawValue = $this->new_unit_price_raw[$itemId] ?? '0';
+
+    //     // Hapus titik sebagai pemisah ribuan dan ubah koma menjadi titik untuk parsing angka desimal
+    //     $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+
+    //     // Konversi ke float agar angka desimal tetap terjaga
+    //     $this->new_unit_price[$itemId] = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+
+    //     // Format kembali ke format Rupiah dengan dua desimal
+    //     $this->new_unit_price_raw[$itemId] = number_format($this->new_unit_price[$itemId], 2, ',', '.');
+
+    //     // Hitung Sub Total Rupiah
+    //     $this->calculateSubTotal($itemId);
+
+    //     // Tutup mode edit
+    //     $this->editingItemId = null;
+    // }
     public function formatToRupiahPriceNew($itemId)
     {
-        // Pastikan nilai mentah tidak kosong
+        // Ambil input mentah dari user
         $rawValue = $this->new_unit_price_raw[$itemId] ?? '0';
 
-        // Hapus titik sebagai pemisah ribuan dan ubah koma menjadi titik untuk parsing angka desimal
-        $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
+        // Gunakan helper untuk parsing angka (lokal & dot decimal)
+        $parsedValue = $this->parseRupiahInput($rawValue);
 
-        // Konversi ke float agar angka desimal tetap terjaga
-        $this->new_unit_price[$itemId] = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+        // Simpan nilai yang sudah diparsing
+        $this->new_unit_price[$itemId] = $parsedValue;
 
-        // Format kembali ke format Rupiah dengan dua desimal
-        $this->new_unit_price_raw[$itemId] = number_format($this->new_unit_price[$itemId], 2, ',', '.');
+        // Format ulang untuk tampilan dengan 2 desimal
+        $this->new_unit_price_raw[$itemId] = number_format($parsedValue, 2, ',', '.');
 
-        // Hitung Sub Total Rupiah
+        // Hitung ulang subtotal
         $this->calculateSubTotal($itemId);
 
-        // Tutup mode edit
+        // Keluar dari mode edit
         $this->editingItemId = null;
     }
+
 
 
     public function formatToUSDPrice($itemId)

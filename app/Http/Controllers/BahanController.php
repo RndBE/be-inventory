@@ -106,6 +106,7 @@ class BahanController extends Controller
     public function update(Request $request, $id)
     {
         try{
+            // dd(request()->all());
             $bahan = Bahan::findOrFail($id);
 
             $validated = $request->validate([
@@ -130,7 +131,9 @@ class BahanController extends Controller
             }
             $bahan->update($validated);
             LogHelper::success('Berhasil Mengubah Bahan!');
-            return redirect()->back()->with('success', 'Berhasil Mengubah Bahan!');
+           $page = $request->input('page', 1);
+        return redirect()->route('bahan.index', ['page' => $page])
+            ->with('success', 'Berhasil Mengubah Bahan!');
         } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         }catch(Throwable $e){

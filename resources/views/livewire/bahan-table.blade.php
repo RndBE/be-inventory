@@ -27,7 +27,7 @@
     <div class="sm:flex sm:justify-between sm:items-center mb-2">
 
         <div class="mb-4 sm:mb-0">
-            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Bahan</h6>
+            <h6 class="text-4xl text-gray-800 dark:text-gray-100 font-bold">Bahan</h6>
         </div>
 
         <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
@@ -47,14 +47,14 @@
                         </a>
                     @endcan
                 </li>
-                <li class="m-1">
+                {{-- <li class="m-1">
                     @can('edit-bahan')
                         <button id="bulk-edit-button" wire:click="bulkEdit"
                             class="mt-2 block w-fit rounded-md py-1.5 px-3 bg-yellow-600 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed" disabled="selectedIds.length === 0">
                             Edit
                         </button>
                     @endcan
-                </li>
+                </li> --}}
                 <li class="m-1">
                     @can('tambah-bahan')
                         <a href="{{ route('bahan.create') }}" class="mt-2 block w-fit rounded-md py-1.5 px-3 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
@@ -71,7 +71,7 @@
 
     </ul>
     <div class="relative overflow-x-auto pt-2">
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        {{-- <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
@@ -80,8 +80,7 @@
                         </th>
                         <th scope="col" class="p-4">
                             <div class="flex items-center">
-                                {{-- <input id="checkbox-all-search" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                <label for="checkbox-all-search" class="sr-only">checkbox</label> --}}
+
                             </div>
                         </th>
                         <th scope="col" class="px-6 py-3">
@@ -131,14 +130,12 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="row flex space-x-2">
-                                    <!-- Detail Button -->
                                     @can('detail-bahan')
                                         <button wire:click="showBahan({{$row->id}})" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600 focus:text-white focus:bg-blue-600 focus:border-blue-600" type="button">
                                             <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/><path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
                                         </button>
                                     @endcan
 
-                                    <!-- Edit Button -->
                                     @can('edit-bahan')
                                         <a href="{{ route('bahan.edit', $row->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
                                             <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -170,13 +167,122 @@
                     @endforelse
                 </tbody>
             </table>
+        </div> --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+            @forelse($bahans as $row)
+                <div
+                    wire:click="showBahan({{ $row->id }})"
+                    class="cursor-pointer group relative bg-white border border-gray-200 rounded-lg overflow-hidden shadow hover:shadow-md transition-all duration-300 min-h-[450px]"
+                >
+                    {{-- Dropdown Button --}}
+                    <div class="absolute top-2 right-2 z-10">
+                        <div x-data="{ open: false }" class="relative">
+                            <button
+                                @click.stop="open = !open"
+                                class="text-gray-600 hover:text-gray-900 border border-gray-300 rounded-full p-1 bg-white shadow-sm"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12h.01M12 12h.01M18 12h.01"/>
+                                </svg>
+                            </button>
+
+                            <div
+                                x-cloak
+                                x-show="open"
+                                x-transition.origin.top.right.duration.150ms
+                                @click.away="open = false"
+                                class="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow text-sm z-20"
+                            >
+                                @can('edit-bahan')
+                                    <a href="{{ route('bahan.edit', ['id' => $row->id, 'page' => $bahans->currentPage()]) }}" @click.stop class="block px-4 py-2 hover:bg-gray-100 text-gray-700" >Edit</a>
+                                @endcan
+                                @can('hapus-bahan')
+                                    <button
+                                        wire:click.stop="deleteBahan({{ $row->id }})"
+                                        class="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600"
+                                    >Hapus</button>
+                                @endcan
+                            </div>
+                        </div>
+                    </div>
+
+
+                    {{-- Gambar --}}
+                    <img src="{{ $row->gambar ? asset('storage/' . $row->gambar) : asset('images/image-4@2x.jpg') }}"
+                        alt="Gambar {{ $row->nama_bahan }}"
+                        class="w-full h-64 object-cover rounded-t-lg"
+                    >
+
+                    {{-- Konten --}}
+                    <div class="p-4 relative">
+                        {{-- Nama Bahan --}}
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">{{ $row->nama_bahan }}</h3>
+
+                        {{-- Stok di pojok kanan atas konten --}}
+                        <div class="absolute top-12 right-4">
+                            <span class="inline-flex items-center gap-1
+                                text-sm font-medium px-2.5 py-0.5 rounded-xl border
+                                {{ $row->total_stok == 0
+                                    ? 'bg-red-100 text-red-800 border-red-400'
+                                    : 'bg-green-100 text-green-800 border-green-400' }}">
+                                <i class="fas fa-box"></i>
+                                {{ $row->total_stok }} {{ $row->dataUnit->nama ?? 'N/A' }}
+                            </span>
+                        </div>
+
+                        {{-- Detail Informasi --}}
+                        <div class="mt-10 space-y-1 text-sm text-gray-600">
+                            {{-- Kode Bahan --}}
+                            <p class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z" />
+                                </svg>
+                                {{ $row->kode_bahan }}
+                            </p>
+                            {{-- Jenis Bahan --}}
+                            <p class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                                </svg>
+                                {{ $row->jenisBahan->nama ?? 'N/A' }}
+                            </p>
+                            <p class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7m0 0a3 3 0 0 1-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z" />
+                                </svg>
+                                {{ $row->penempatan ?? 'N/A' }}
+                            </p>
+                            {{-- Supplier --}}
+                            <p class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                                </svg>
+
+                                {{ $row->dataSupplier->nama ?? 'N/A' }}
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+            @empty
+                <div class="col-span-full text-center py-10 text-gray-500">
+                    <p class="text-sm">Data tidak ditemukan.</p>
+                </div>
+            @endforelse
         </div>
+
         <div class="px-6 py-4">
             {{ $bahans->links() }}
         </div>
-        {{-- MODAL --}}
-        @include('pages.bahan.show')
-        @include('pages.bahan.remove')
+        @if ($isDeleteModalOpen)
+                @include('pages.bahan.remove')
+        @endif
+        @if ($isShowModalOpen)
+                @include('pages.bahan.show')
+        @endif
     </div>
 </div>
 <script>

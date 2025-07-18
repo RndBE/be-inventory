@@ -17,6 +17,17 @@ class BahanTable extends Component
     public $isDeleteModalOpen = false;
     public $isShowModalOpen = false;
 
+    public function mount()
+    {
+        $this->resetModalState();
+    }
+
+    public function resetModalState()
+    {
+        $this->isDeleteModalOpen = false;
+        $this->isShowModalOpen = false;
+    }
+
     public function updatedSearch()
     {
         $this->resetPage();

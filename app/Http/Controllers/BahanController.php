@@ -213,16 +213,20 @@ class BahanController extends Controller
     }
 
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try{
+            // dd(request()->all());
             $bahan = Bahan::findOrFail($id);
             if ($bahan->gambar && Storage::exists('public/' . $bahan->gambar)) {
                 Storage::delete('public/' . $bahan->gambar);
             }
             $bahan->delete();
             LogHelper::success('Berhasil Menghapus Bahan!');
-            return redirect()->route('bahan.index')->with('success', 'Berhasil Menghapus Bahan!');
+            // return redirect()->route('bahan.index')->with('success', 'Berhasil Menghapus Bahan!');
+            $page = $request->input('page', 1);
+            return redirect()->route('bahan.index', ['page' => $page])
+                ->with('success', 'Berhasil Menghapus Bahan!');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

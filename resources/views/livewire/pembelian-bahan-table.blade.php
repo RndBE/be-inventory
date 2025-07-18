@@ -339,9 +339,17 @@
 
                                             {{-- @if($pembelian_bahan->status !== 'Disetujui' && $pembelian_bahan->status !== 'Ditolak') --}}
                                                 @can('edit-approvepembelian-leader')
-                                                    @if($pembelian_bahan->status_leader !== 'Disetujui' && $pembelian_bahan->status_leader !== 'Ditolak')
-                                                        <button wire:click="editLeaderPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Leader
-                                                        </button>
+                                                    @php
+                                                        $pengaju = $pembelian_bahan->dataUser;
+                                                        $loginUser = Auth::user();
+                                                        $isAtasanLevel3 = $pengaju?->atasan_level3_id == $loginUser->id;
+                                                        $isAtasanLevel2 = $pengaju?->atasan_level2_id == $loginUser->id;
+                                                    @endphp
+                                                    @if ($isAtasanLevel3 || (!$pengaju?->atasan_level3_id && $isAtasanLevel2))
+                                                        @if($pembelian_bahan->status_leader !== 'Disetujui' && $pembelian_bahan->status_leader !== 'Ditolak')
+                                                            <button wire:click="editLeaderPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Leader
+                                                            </button>
+                                                        @endif
                                                     @endif
                                                 @endcan
                                                 @can('edit-approvepembelian-gm')

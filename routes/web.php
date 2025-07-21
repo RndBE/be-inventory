@@ -38,10 +38,12 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\BahanKeluarController;
 use App\Http\Controllers\JobPositionController;
 use App\Http\Controllers\LogActivityController;
+use App\Http\Controllers\QualityPageController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProdukSampleController;
+use App\Http\Controllers\QCBahanMasukController;
 use App\Http\Controllers\StokProduksiController;
 use App\Http\Controllers\GaransiProjekController;
 use App\Http\Controllers\LaporanProyekController;
@@ -75,6 +77,8 @@ Route::get('/register', function () {
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/notif-transaksi', [PurchaseController::class, 'notifTransaksi']);
+// web.php
+Route::get('/auto-login/{token}', [AuthController::class, 'autoLogin']);
 
 
 
@@ -197,7 +201,11 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
         return Excel::download(new LaporanGaransiProyekExport($garansi_proyek_id), 'LaporanGaransiProyek.xlsx');
     })->name('laporan-garansi-proyek.export');
 
+    Route::prefix('quality-page')->name('quality-page.')->group(function () {
+        Route::get('/', [QualityPageController::class, 'index'])->name('index');
 
+        Route::resource('qc-bahan-masuk', QCBahanMasukController::class);
+    });
 
     Route::fallback(function() {
         return view('pages/utility/404');

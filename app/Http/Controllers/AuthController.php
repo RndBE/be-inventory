@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Helpers\LogHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Helpers\LogHelper;
 
 class AuthController extends Controller
 {
@@ -25,6 +26,19 @@ class AuthController extends Controller
             'email' => 'The provided credentials do not match our records.',
         ]);
     }
+
+    public function autoLogin($token)
+    {
+        $user = User::where('auto_login_token', $token)->first();
+
+        if ($user) {
+            Auth::login($user);
+            return redirect('/dashboard');
+        }
+
+        abort(403);
+    }
+
 
     // Metode untuk menangani logout
     public function logout(Request $request)

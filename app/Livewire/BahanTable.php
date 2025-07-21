@@ -16,6 +16,7 @@ class BahanTable extends Component
     public $selectedIds = [];
     public $isDeleteModalOpen = false;
     public $isShowModalOpen = false;
+    public $currentPage;
 
     public function mount()
     {
@@ -58,9 +59,10 @@ class BahanTable extends Component
     }
 
 
-    public function deleteBahan(int $id)
+    public function deleteBahan(int $id, $page)
     {
         $this->id_bahan = $id;
+        $this->currentPage = $page;
         $this->isDeleteModalOpen = true;
     }
 

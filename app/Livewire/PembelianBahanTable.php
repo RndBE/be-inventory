@@ -15,8 +15,9 @@ class PembelianBahanTable extends Component
     use WithPagination;
     public $search = "";
     public $perPage = 25;
-    public $id_pembelian_bahan, $status,
+    public $id_pembelian_bahan, $status, $gambar, $nama_bahan, $kode_bahan, $jenis_bahan_id, $stok_awal,  $unit_id, $total_stok,  $penempatan, $supplier,
     $kode_transaksi, $tgl_keluar, $divisi,$link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $ppn, $new_value_today_fee, $status_general_manager, $catatan;
+
     public $filter = 'semua';
     public $totalHarga;
     public $isShowModalOpen = false;
@@ -33,6 +34,122 @@ class PembelianBahanTable extends Component
     public $pembelian_bahan;
     public $selectedStatus = [];
     public $selectedTab = 'semua';
+    public $isDetailOpen = false;
+    public $detailTransaksi;
+    public $statusList = [];
+    public $dateList = [];
+    public $timeDiffs = [];
+
+    public function mount()
+    {
+        $this->resetModalState();
+        $this->calculateTotalHarga();
+        foreach (PembelianBahan::all() as $bahan) {
+            $this->selectedStatus[$bahan->id] = $bahan->status_pembelian;
+        }
+    }
+
+    public function showPembelianBahanDetail($id)
+    {
+        $Data = PembelianBahan::with('pembelianBahanDetails')->findOrFail($id);
+        $this->id_pembelian_bahan = $id;
+        $this->tgl_keluar = $Data->tgl_keluar;
+        $this->kode_transaksi = $Data->kode_transaksi;
+        $this->divisi = $Data->divisi;
+        $this->status = $Data->status;
+        $this->jenis_pengajuan = $Data->jenis_pengajuan;
+        $this->pembelianBahanDetails  = $Data->pembelianBahanDetails;
+        $this->ongkir = $Data->ongkir;
+        $this->asuransi = $Data->asuransi;
+        $this->layanan = $Data->layanan;
+        $this->jasa_aplikasi = $Data->jasa_aplikasi;
+        $this->ppn = $Data->ppn;
+        $this->shipping_cost = $Data->shipping_cost;
+        $this->full_amount_fee = $Data->full_amount_fee;
+        $this->value_today_fee = $Data->value_today_fee;
+
+        $this->new_shipping_cost = $Data->new_shipping_cost;
+        $this->new_full_amount_fee = $Data->new_full_amount_fee;
+        $this->new_value_today_fee = $Data->new_value_today_fee;
+
+        // $this->isDetailOpen = true;
+        // Ambil jenis pengajuan
+        $jenis = $Data->jenis_pengajuan;
+
+        // Daftar status
+        if ($jenis === 'Pembelian Aset') {
+            $this->statusList = [
+                'Leader' => $Data->status_leader ?? 'Belum disetujui',
+                'General Affair' => $Data->status_general_manager ?? 'Belum disetujui',
+                'Purchasing' => $Data->status_purchasing ?? 'Belum disetujui',
+                'Manager' => $Data->status_manager ?? 'Belum disetujui',
+                'Finance' => $Data->status_finance ?? 'Belum disetujui',
+                'Manager Admin' => $Data->status_admin_manager ?? 'Belum disetujui',
+                'Direktur' => $Data->status ?? 'Belum disetujui',
+            ];
+
+            $this->dateList = [
+                'Pengajuan' => $Data->tgl_pengajuan,
+                'Leader' => $Data->tgl_approve_leader,
+                'General Affair' => $Data->tgl_approve_general_manager,
+                'Purchasing' => $Data->tgl_approve_purchasing,
+                'Manager' => $Data->tgl_approve_manager,
+                'Finance' => $Data->tgl_approve_finance,
+                'Manager Admin' => $Data->tgl_approve_admin_manager,
+                'Direktur' => $Data->tgl_approve_direktur,
+            ];
+        } else {
+            $this->statusList = [
+                'Leader' => $Data->status_leader ?? 'Belum disetujui',
+                'Purchasing' => $Data->status_purchasing ?? 'Belum disetujui',
+                'Manager' => $Data->status_manager ?? 'Belum disetujui',
+                'Finance' => $Data->status_finance ?? 'Belum disetujui',
+                'Manager Admin' => $Data->status_admin_manager ?? 'Belum disetujui',
+                'Direktur' => $Data->status ?? 'Belum disetujui',
+            ];
+
+            $this->dateList = [
+                'Pengajuan' => $Data->tgl_pengajuan,
+                'Leader' => $Data->tgl_approve_leader,
+                'Purchasing' => $Data->tgl_approve_purchasing,
+                'Manager' => $Data->tgl_approve_manager,
+                'Finance' => $Data->tgl_approve_finance,
+                'Manager Admin' => $Data->tgl_approve_admin_manager,
+                'Direktur' => $Data->tgl_approve_direktur,
+            ];
+        }
+
+        // Hitung perbedaan waktu antar approval
+        $previousDate = null;
+        $this->timeDiffs = [];
+
+        foreach ($this->dateList as $key => $date) {
+            if ($previousDate && $date) {
+                $this->timeDiffs[$key] = Carbon::parse($date)->diffForHumans(Carbon::parse($previousDate), ['parts' => 2, 'short' => true]);
+            } else {
+                $this->timeDiffs[$key] = null;
+            }
+            $previousDate = $date;
+        }
+
+        $this->isDetailOpen = true;
+    }
+
+
+    public function resetModalState()
+    {
+        $this->isDeleteModalOpen = false;
+        $this->isShowModalOpen = false;
+        $this->isApproveLeaderModalOpen = false;
+        $this->isApproveManagerModalOpen = false;
+        $this->isApprovePurchasingModalOpen = false;
+        $this->isApproveFinanceModalOpen = false;
+        $this->isApproveAdminManagerModalOpen = false;
+        $this->isApproveDirekturModalOpen = false;
+        $this->isApproveGMModalOpen = false;
+        $this->isShowInvoiceModalOpen = false;
+        $this->isUploadInvoiceModalOpen = false;
+    }
 
     public function updatedSearch()
     {
@@ -42,14 +159,6 @@ class PembelianBahanTable extends Component
     public function setTab($tab)
     {
         $this->selectedTab = $tab;
-    }
-
-    public function mount()
-    {
-        $this->calculateTotalHarga();
-        foreach (PembelianBahan::all() as $bahan) {
-            $this->selectedStatus[$bahan->id] = $bahan->status_pembelian;
-        }
     }
 
     public function updateStatus($id)

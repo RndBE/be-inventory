@@ -66,41 +66,6 @@
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
                 <div class="mb-4 sm:mb-0">
-                    {{-- <ul class="flex flex-wrap -m-1">
-                        <li class="m-1">
-                            <button wire:click="setFilter('semua')" type="button"
-                                class="group dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700 text-black dark:border-gray-500 bg-transparent border border-black font-medium rounded-full px-3 py-1 text-sm text-center transition duration-200 ease-in-out
-                                hover:bg-black hover:text-white focus:bg-black focus:text-white group-focus:bg-black group-focus:text-white
-                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black {{ is_null($filter) ? 'dark:bg-gray-700 bg-black text-black' : '' }}">
-                                Lihat Semua
-                            </button>
-                        </li>
-                        <li class="m-1">
-                            <button wire:click="setFilter('Belum disetujui')" type="button"
-                                class="group dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700 text-black dark:border-gray-500 bg-transparent border border-black font-medium rounded-full px-3 py-1 text-sm text-center transition duration-200 ease-in-out
-                                hover:bg-black hover:text-white focus:bg-black focus:text-white group-focus:bg-black group-focus:text-white
-                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black {{ $filter === 'Belum disetujui' ? 'dark:bg-gray-700 bg-black text-black' : '' }}">
-                                Belum disetujui
-                            </button>
-                        </li>
-                        <li class="m-1">
-                            <button wire:click="setFilter('Disetujui')" type="button"
-                                class="group dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700 text-black dark:border-gray-500 bg-transparent border border-black font-medium rounded-full px-3 py-1 text-sm text-center transition duration-200 ease-in-out
-                                hover:bg-black hover:text-white focus:bg-black focus:text-white group-focus:bg-black group-focus:text-white
-                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black {{ $filter === 'Disetujui' ? 'dark:bg-gray-700 bg-black text-black' : '' }}">
-                                Disetujui
-                            </button>
-                        </li>
-                        <li class="m-1">
-                            <button wire:click="setFilter('Ditolak')" type="button"
-                                class="group dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700 text-black dark:border-gray-500 bg-transparent border border-black font-medium rounded-full px-3 py-1 text-sm text-center transition duration-200 ease-in-out
-                                hover:bg-black hover:text-white focus:bg-black focus:text-white group-focus:bg-black group-focus:text-white
-                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black {{ $filter === 'Ditolak' ? 'dark:bg-gray-700 bg-black text-black' : '' }}">
-                                Ditolak
-                            </button>
-                        </li>
-
-                    </ul> --}}
                 </div>
                 <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
                     @include('livewire.searchdata')
@@ -118,7 +83,7 @@
                         <th scope="col" class="px-6 py-3">Tujuan</th>
                         <th scope="col" class="px-6 py-3">Pengaju</th>
                         <th scope="col" class="px-6 py-3">Total Item</th>
-                        <th scope="col" class="px-6 py-3">Jenis Pengajuan</th>
+                        {{-- <th scope="col" class="px-6 py-3">Jenis Pengajuan</th> --}}
                         <th scope="col" class="px-6 py-3">Status Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Status Pembelian</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
@@ -126,12 +91,15 @@
                 </thead>
                 <tbody>
                     @forelse($pembelian_bahans as $index => $pembelian_bahan)
-                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <tr wire:click="showPembelianBahanDetail({{ $pembelian_bahan->id }})" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-100 cursor-pointer transition">
                             <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $pembelian_bahans->firstItem() + $index }}</div></td>
                             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                <button class="text-blue-600 hover:underline" type="button" wire:click="showPembelianBahan({{$pembelian_bahan->id}})">
+                                {{-- <button class="text-blue-600 hover:underline" type="button" wire:click="showPembelianBahan({{$pembelian_bahan->id}})">
                                     {{ $pembelian_bahan->kode_transaksi }}
-                                </button>
+                                </button> --}}
+                                {{-- <button class="text-blue-600 hover:underline" type="button"> --}}
+                                    {{ $pembelian_bahan->kode_transaksi }}
+                                {{-- </button> --}}
                             </th>
                             <td class="px-6 py-4">{{ $pembelian_bahan->tgl_pengajuan }}</td>
                             <td class="px-6 py-4">{{ $pembelian_bahan->tgl_keluar }}</td>
@@ -149,7 +117,7 @@
                             </td>
                             <td class="px-6 py-4">{{ $pembelian_bahan->pembelianBahanDetails->sum('jml_bahan') }}</td>
                             <td class="px-6 py-4">{{ $pembelian_bahan->jenis_pengajuan }}</td>
-                            <td class="px-6 py-4 min-w-[500px]">
+                            {{-- <td class="px-6 py-4 min-w-[500px]">
                                 @php
                                     // use Carbon\Carbon;
 
@@ -222,31 +190,6 @@
                                         $previousDate = $date;
                                     }
                                 @endphp
-
-
-                                {{-- <div class="grid grid-cols-1 gap-1">
-                                    @foreach ($statusList as $role => $status)
-                                        <div class="flex items-center space-x-2">
-                                            <span class="text-gray-700 text-xs font-medium">{{ $role }}:</span>
-                                            <div class="relative group inline-block">
-                                                <span class="px-3 py-1 rounded-full text-xs font-medium border
-                                                    {{ $statusColors[$status] ?? 'bg-gray-100 text-gray-800 border-gray-400' }}">
-                                                    {{ $status }}
-                                                </span>
-                                                @if (!empty($timeDiffs[$role]))
-                                                    <span class="ml-2 text-xs text-gray-500">
-                                                        (+{{ $timeDiffs[$role] }})
-                                                    </span>
-                                                @endif
-                                                @if ($status === 'Ditolak' && isset($pembelian_bahan->catatan))
-                                                    <div class="absolute left-1/2 bottom-full mb-2 transform -translate-x-1/2 w-56 p-2 text-xs text-white bg-gray-900 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                        {{ $pembelian_bahan->catatan ?? 'Tidak ada catatan' }}
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div> --}}
                                 <table class="w-full text-sm text-left border-collapse">
                                     <tbody>
                                         @foreach ($statusList as $role => $status)
@@ -278,10 +221,10 @@
                                     </tbody>
                                 </table>
 
-                            </td>
+                            </td> --}}
 
                             <td class="px-6 py-4">
-                                <select wire:model="selectedStatus.{{ $pembelian_bahan->id }}"
+                                <select @click.stop wire:model="selectedStatus.{{ $pembelian_bahan->id }}"
                                         wire:change="updateStatus({{ $pembelian_bahan->id }})"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-25 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" @unless(auth()->user()->hasRole(['purchasing', 'superadmin'])) disabled @endunless>
                                     <option value="Status Pembelian" disabled>Status Pembelian</option>
@@ -302,7 +245,7 @@
                                             dropUp = true;
                                         }
                                     })">
-                                    <button @click="open = !open"
+                                    <button @click.stop @click="open = !open"
                                     class="rounded-md border border-slate-300 py-1 px-2 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600"
                                     type="button" x-ref="button">
                                     Opsi
@@ -314,7 +257,7 @@
                                     class="absolute right-0 w-48 bg-white border rounded-md shadow-lg z-50">
 
                                             {{-- @if($pembelian_bahan->status_finance === 'Disetujui') --}}
-                                                <a href="{{ route('pengajuan-pembelian-bahan.downloadPdf', $pembelian_bahan->id) }}" target="__blank"
+                                                <a @click.stop href="{{ route('pengajuan-pembelian-bahan.downloadPdf', $pembelian_bahan->id) }}" target="__blank"
                                                     class="block px-4 py-2 text-sm text-slate-600 hover:bg-red-600 hover:text-white flex items-center">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf">
                                                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" />
@@ -324,13 +267,13 @@
                                             {{-- @endif --}}
 
                                             @if($pembelian_bahan->link)
-                                                <button wire:click="showInvoice({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-eye-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M13.193 17.924c-.39 .05 -.788 .076 -1.193 .076c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.005 0 5.592 1.394 7.761 4.181" /><path d="M21 15h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5" /><path d="M19 21v1m0 -8v1" /></svg> Lihat Invoice
+                                                <button @click.stop wire:click="showInvoice({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-eye-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M13.193 17.924c-.39 .05 -.788 .076 -1.193 .076c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.005 0 5.592 1.394 7.761 4.181" /><path d="M21 15h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5" /><path d="M19 21v1m0 -8v1" /></svg> Lihat Invoice
                                                 </button>
                                             @endif
 
                                             @can('edit-approve-purchasing')
                                                 {{-- @if($pembelian_bahan->status_finance !== 'Disetujui' && $pembelian_bahan->status_finance !== 'Ditolak') --}}
-                                                    <a href="{{ route('pengajuan-pembelian-bahan.edit', $pembelian_bahan->id) }}"
+                                                    <a @click.stop href="{{ route('pengajuan-pembelian-bahan.edit', $pembelian_bahan->id) }}"
                                                         class="block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center">
                                                         <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg> Edit Pengajuan
                                                     </a>
@@ -338,77 +281,77 @@
                                             @endcan
 
                                             {{-- @if($pembelian_bahan->status !== 'Disetujui' && $pembelian_bahan->status !== 'Ditolak') --}}
-                                                @can('edit-approvepembelian-leader')
-                                                    @php
-                                                        $pengaju = $pembelian_bahan->dataUser;
-                                                        $loginUser = Auth::user();
-                                                        $isAtasanLevel3 = $pengaju?->atasan_level3_id == $loginUser->id;
-                                                        $isAtasanLevel2 = $pengaju?->atasan_level2_id == $loginUser->id;
-                                                    @endphp
-                                                    @if ($isAtasanLevel3 || (!$pengaju?->atasan_level3_id && $isAtasanLevel2))
-                                                        @if($pembelian_bahan->status_leader !== 'Disetujui' && $pembelian_bahan->status_leader !== 'Ditolak')
-                                                            <button wire:click="editLeaderPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Leader
-                                                            </button>
-                                                        @endif
-                                                    @endif
-                                                @endcan
-                                                @can('edit-approvepembelian-gm')
-                                                    @if($pembelian_bahan->status_leader == 'Disetujui' && $pembelian_bahan->status_general_manager !== 'Disetujui' && $pembelian_bahan->status_general_manager !== 'Ditolak' && $pembelian_bahan->jenis_pengajuan == 'Pembelian Aset')
-                                                        <button wire:click="editGMPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve General Affair
+                                            @can('edit-approvepembelian-leader')
+                                                @php
+                                                    $pengaju = $pembelian_bahan->dataUser;
+                                                    $loginUser = Auth::user();
+                                                    $isAtasanLevel3 = $pengaju?->atasan_level3_id == $loginUser->id;
+                                                    $isAtasanLevel2 = $pengaju?->atasan_level2_id == $loginUser->id;
+                                                @endphp
+                                                @if ($isAtasanLevel3 || (!$pengaju?->atasan_level3_id && $isAtasanLevel2))
+                                                    @if($pembelian_bahan->status_leader !== 'Disetujui' && $pembelian_bahan->status_leader !== 'Ditolak')
+                                                        <button @click.stop wire:click="editLeaderPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Leader
                                                         </button>
                                                     @endif
-                                                @endcan
-                                                @can('edit-approve-purchasing')
-                                                    @if($pembelian_bahan->status_leader == 'Disetujui' && $pembelian_bahan->status_purchasing !== 'Disetujui' && $pembelian_bahan->status_purchasing !== 'Ditolak')
-                                                        <button wire:click="editPurchasingPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Purchasing
-                                                        </button>
-                                                    @endif
-                                                @endcan
-                                                @can('edit-approve-manager')
-                                                    @if($pembelian_bahan->status_manager !== 'Disetujui' && $pembelian_bahan->status_manager !== 'Ditolak')
-                                                        <button wire:click="editManagerPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Manager
-                                                        </button>
-                                                    @endif
-                                                @endcan
-                                                @can('edit-pembelian-bahan')
-                                                    @if($pembelian_bahan->status_finance !== 'Disetujui' && $pembelian_bahan->status_finance !== 'Ditolak')
-                                                        <button wire:click="editFinancePembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Finance
-                                                        </button>
-                                                    @endif
-
-                                                    @if($pembelian_bahan->status_admin_manager !== 'Disetujui' && $pembelian_bahan->status_admin_manager !== 'Ditolak')
-                                                        <button wire:click="editAdminManagerPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Admin Manager
-                                                        </button>
-                                                    @endif
-
-                                                    @if($pembelian_bahan->status !== 'Disetujui' && $pembelian_bahan->status !== 'Ditolak')
-                                                        <button wire:click="editPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>
-                                                            Approve Direktur
-                                                        </button>
-                                                    @endif
-                                                @endcan
-                                                @can('update-harga-pembelian-bahan')
-                                                    @if($pembelian_bahan->status == 'Disetujui')
-                                                    <a href="{{ route('pengajuan-pembelian-bahan.editHarga', $pembelian_bahan->id) }}"
-                                                        class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center">
-                                                        <svg class="w-6 h-5 me-2 -ms-1"  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-pencil-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M21 15h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5" /><path d="M19 21v1m0 -8v1" /></svg> Update Harga
-                                                    </a>
-                                                    @endif
-                                                @endcan
-                                                @can('upload-link-invoice')
-                                                    <button wire:click="uploadInvoice({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button">
-                                                        <svg class="w-6 h-5 me-2 -ms-1" xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M14 11h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5" /><path d="M12 17v1m0 -8v1" /></svg>
-                                                        Upload Invoice
+                                                @endif
+                                            @endcan
+                                            @can('edit-approvepembelian-gm')
+                                                @if($pembelian_bahan->status_leader == 'Disetujui' && $pembelian_bahan->status_general_manager !== 'Disetujui' && $pembelian_bahan->status_general_manager !== 'Ditolak' && $pembelian_bahan->jenis_pengajuan == 'Pembelian Aset')
+                                                    <button @click.stop wire:click="editGMPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve General Affair
                                                     </button>
-                                                @endcan
-                                                @can('hapus-pembelian-bahan')
-                                                    @if($pembelian_bahan->status !== 'Disetujui')
-                                                        <button wire:click="deletePembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-red-600 hover:text-white flex items-center" type="button">
-                                                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
-                                                            </svg> Hapus Pengajuan
-                                                        </button>
-                                                    @endif
-                                                @endcan
+                                                @endif
+                                            @endcan
+                                            @can('edit-approve-purchasing')
+                                                @if($pembelian_bahan->status_leader == 'Disetujui' && $pembelian_bahan->status_purchasing !== 'Disetujui' && $pembelian_bahan->status_purchasing !== 'Ditolak')
+                                                    <button @click.stop wire:click="editPurchasingPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Purchasing
+                                                    </button>
+                                                @endif
+                                            @endcan
+                                            @can('edit-approve-manager')
+                                                @if($pembelian_bahan->status_manager !== 'Disetujui' && $pembelian_bahan->status_manager !== 'Ditolak')
+                                                    <button @click.stop wire:click="editManagerPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Manager
+                                                    </button>
+                                                @endif
+                                            @endcan
+                                            @can('edit-pembelian-bahan')
+                                                @if($pembelian_bahan->status_finance !== 'Disetujui' && $pembelian_bahan->status_finance !== 'Ditolak')
+                                                    <button @click.stop wire:click="editFinancePembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Finance
+                                                    </button>
+                                                @endif
+
+                                                @if($pembelian_bahan->status_admin_manager !== 'Disetujui' && $pembelian_bahan->status_admin_manager !== 'Ditolak')
+                                                    <button @click.stop wire:click="editAdminManagerPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>Approve Admin Manager
+                                                    </button>
+                                                @endif
+
+                                                @if($pembelian_bahan->status !== 'Disetujui' && $pembelian_bahan->status !== 'Ditolak')
+                                                    <button @click.stop wire:click="editPembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-pencil-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M15 19l2 2l4 -4" /></svg>
+                                                        Approve Direktur
+                                                    </button>
+                                                @endif
+                                            @endcan
+                                            @can('update-harga-pembelian-bahan')
+                                                @if($pembelian_bahan->status == 'Disetujui')
+                                                <a @click.stop href="{{ route('pengajuan-pembelian-bahan.editHarga', $pembelian_bahan->id) }}"
+                                                    class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center">
+                                                    <svg class="w-6 h-5 me-2 -ms-1"  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-pencil-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /><path d="M21 15h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5" /><path d="M19 21v1m0 -8v1" /></svg> Update Harga
+                                                </a>
+                                                @endif
+                                            @endcan
+                                            @can('upload-link-invoice')
+                                                <button @click.stop wire:click="uploadInvoice({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button">
+                                                    <svg class="w-6 h-5 me-2 -ms-1" xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M14 11h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5" /><path d="M12 17v1m0 -8v1" /></svg>
+                                                    Upload Invoice
+                                                </button>
+                                            @endcan
+                                            @can('hapus-pembelian-bahan')
+                                                @if($pembelian_bahan->status !== 'Disetujui')
+                                                    <button @click.stop wire:click="deletePembelianBahan({{ $pembelian_bahan->id }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-red-600 hover:text-white flex items-center" type="button">
+                                                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+                                                        </svg> Hapus Pengajuan
+                                                    </button>
+                                                @endif
+                                            @endcan
                                             {{-- @endif --}}
                                         </div>
                                     </div>
@@ -429,25 +372,54 @@
                     @endforelse
                 </tbody>
             </table>
+
         </div>
         <!-- Table -->
         <div class="px-6 py-4">
             {{$pembelian_bahans->links()}}
         </div>
         {{-- MODAL --}}
-        @include('pages.pembelian-bahan.test')
-        @include('pages.pembelian-bahan.invoice')
-        @include('pages.pembelian-bahan.approval-leader')
-        @include('pages.pembelian-bahan.approval-general-manager')
-        @include('pages.pembelian-bahan.approval-manager')
-        @include('pages.pembelian-bahan.approval-purchasing')
-        @include('pages.pembelian-bahan.approval-finance')
-        @include('pages.pembelian-bahan.approval-admin-manager')
-        @include('pages.pembelian-bahan.approval-direktur')
-        @include('pages.pembelian-bahan.remove')
-        @include('pages.pembelian-bahan.upload-invoice')
+        {{-- @include('pages.pembelian-bahan.test') --}}
+
+        @include('pages.pembelian-bahan.sidebar-detail')
+
+        @if ($isShowInvoiceModalOpen)
+            @include('pages.pembelian-bahan.invoice')
+        @endif
+        @if ($isApproveLeaderModalOpen)
+            @include('pages.pembelian-bahan.approval-leader')
+        @endif
+        @if ($isApproveGMModalOpen)
+            @include('pages.pembelian-bahan.approval-general-manager')
+        @endif
+        @if ($isApproveManagerModalOpen)
+            @include('pages.pembelian-bahan.approval-manager')
+        @endif
+        @if ($isApprovePurchasingModalOpen)
+            @include('pages.pembelian-bahan.approval-purchasing')
+        @endif
+        @if ($isApproveFinanceModalOpen)
+            @include('pages.pembelian-bahan.approval-finance')
+        @endif
+        @if ($isApproveAdminManagerModalOpen)
+            @include('pages.pembelian-bahan.approval-admin-manager')
+        @endif
+        @if ($isApproveDirekturModalOpen)
+                @include('pages.pembelian-bahan.approval-direktur')
+        @endif
+        @if ($isDeleteModalOpen)
+                @include('pages.pembelian-bahan.remove')
+        @endif
+        @if ($isShowModalOpen)
+                @include('pages.pembelian-bahan.test')
+        @endif
+        @if ($isUploadInvoiceModalOpen)
+                @include('pages.pembelian-bahan.upload-invoice')
+        @endif
     </div>
 </div>
+
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Atur waktu delay dalam milidetik (contoh: 5000 = 5 detik)

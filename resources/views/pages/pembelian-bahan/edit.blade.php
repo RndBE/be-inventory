@@ -63,6 +63,7 @@
             <form action="{{ route('pengajuan-pembelian-bahan.update', $pembelian_bahan->id) }}" method="POST" enctype="multipart/form-data" id="produksiForm">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="page" value="{{ request('page') }}">
                 <div class="space-y-6">
                     <div>
                         <div class="border-b border-gray-900/10 pb-2 mb-2">

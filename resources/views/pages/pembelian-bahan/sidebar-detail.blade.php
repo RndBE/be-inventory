@@ -463,7 +463,7 @@
             @endif
         </div>
 
-        @if ($isDetailOpen)
+        {{-- @if ($isDetailOpen)
             <div class="p-4">
                 <h2 class="text-lg font-semibold mb-2">Status Pengajuan</h2>
 
@@ -496,7 +496,7 @@
                     </tbody>
                 </table>
             </div>
-        @endif
+        @endif --}}
 
     </div>
 </div>

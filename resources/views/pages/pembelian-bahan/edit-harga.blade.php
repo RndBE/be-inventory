@@ -17,7 +17,7 @@
         <!-- Header: Right side -->
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
-                <a href="{{ route('pengajuan-pembelian-bahan.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
+                <a href="{{ url()->previous() }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                 {{-- @if($pembelian_bahan->status_finance === 'Belum disetujui') --}}
                     <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
                 {{-- @endif --}}
@@ -63,6 +63,7 @@
             <form action="{{ route('pengajuan-pembelian-bahan.updateHarga', $pembelian_bahan->id) }}" method="POST" enctype="multipart/form-data" id="produksiForm">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="page" value="{{ request('page') }}">
                 <div class="space-y-6">
                     <div>
                         <div class="border-b border-gray-900/10 pb-2 mb-2">

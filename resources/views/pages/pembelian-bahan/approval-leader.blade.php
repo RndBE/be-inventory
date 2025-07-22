@@ -40,7 +40,7 @@
                 <form class="formeditdata space-y-6" method="post" action="{{ route('pengajuan-pembelian-bahan.updateApprovalLeader', (int)$id_pembelian_bahan) }}">
                     @csrf
                     {{ method_field('PUT') }}
-
+                    <input type="hidden" name="page" value="{{ $currentPage }}">
                     <div x-data="{ statusLeader: '{{ $status_leader }}' }">
                         <label for="status_leader" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                             Status Leader

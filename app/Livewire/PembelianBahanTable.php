@@ -39,6 +39,7 @@ class PembelianBahanTable extends Component
     public $statusList = [];
     public $dateList = [];
     public $timeDiffs = [];
+    public $currentPage;
 
     public function mount()
     {
@@ -222,66 +223,73 @@ class PembelianBahanTable extends Component
             });
     }
 
-    public function editPembelianBahan(int $id)
+    public function editPembelianBahan(int $id, $page)
     {
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status = $Data->status;
         $this->catatan = $Data->catatan;
+        $this->currentPage = $page;
         $this->isApproveDirekturModalOpen = true;
     }
 
-    public function editLeaderPembelianBahan(int $id)
+    public function editLeaderPembelianBahan(int $id, $page)
     {
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_leader = $Data->status_leader;
         $this->catatan = $Data->catatan;
+        $this->currentPage = $page;
         $this->isApproveLeaderModalOpen = true;
     }
 
-    public function editGMPembelianBahan(int $id)
+    public function editGMPembelianBahan(int $id, $page)
     {
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_general_manager = $Data->status_general_manager;
         $this->catatan = $Data->catatan;
+        $this->currentPage = $page;
         $this->isApproveGMModalOpen = true;
     }
 
-    public function editPurchasingPembelianBahan(int $id)
+    public function editPurchasingPembelianBahan(int $id, $page)
     {
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_purchasing = $Data->status_purchasing;
         $this->catatan = $Data->catatan;
+        $this->currentPage = $page;
         $this->isApprovePurchasingModalOpen = true;
     }
 
-    public function editManagerPembelianBahan(int $id)
+    public function editManagerPembelianBahan(int $id, $page)
     {
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_manager = $Data->status_manager;
         $this->catatan = $Data->catatan;
+        $this->currentPage = $page;
         $this->isApproveManagerModalOpen = true;
     }
 
-    public function editFinancePembelianBahan(int $id)
+    public function editFinancePembelianBahan(int $id, $page)
     {
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_finance = $Data->status_finance;
         $this->catatan = $Data->catatan;
+        $this->currentPage = $page;
         $this->isApproveFinanceModalOpen = true;
     }
 
-    public function editAdminManagerPembelianBahan(int $id)
+    public function editAdminManagerPembelianBahan(int $id, $page)
     {
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->status_admin_manager = $Data->status_admin_manager;
         $this->catatan = $Data->catatan;
+        $this->currentPage = $page;
         $this->isApproveAdminManagerModalOpen = true;
     }
 
@@ -301,17 +309,19 @@ class PembelianBahanTable extends Component
         $this->status_pengambilan = $Data->status_pengambilan;
     }
 
-    public function uploadInvoice(int $id)
+    public function uploadInvoice(int $id, $page)
     {
         $Data = PembelianBahan::findOrFail($id);
         $this->id_pembelian_bahan = $id;
         $this->link = $Data->link;
+        $this->currentPage = $page;
         $this->isUploadInvoiceModalOpen = true;
     }
 
-    public function deletePembelianBahan(int $id)
+    public function deletePembelianBahan(int $id, $page)
     {
         $this->id_pembelian_bahan = $id;
+        $this->currentPage = $page;
         $this->isDeleteModalOpen = true;
     }
 

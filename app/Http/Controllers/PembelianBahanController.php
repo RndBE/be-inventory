@@ -427,7 +427,9 @@ class PembelianBahanController extends Controller
             }
         }
         // Redirect back with success message
-        return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status berhasil diubah.');
+        // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status berhasil diubah.');
+        $page = $request->input('page', 1);
+        return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Status berhasil diubah.');
     }
 
 
@@ -496,7 +498,9 @@ class PembelianBahanController extends Controller
 
             DB::commit();
             LogHelper::success('Pembelian Bahan berhasil diubah.');
-            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Pembelian Bahan berhasil diubah.');
+            // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Pembelian Bahan berhasil diubah.');
+            $page = $request->input('page', 1);
+            return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Pembelian Bahan berhasil diubah.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -624,7 +628,9 @@ class PembelianBahanController extends Controller
             }
             DB::commit();
             LogHelper::success('Status approval leader berhasil diubah.');
-            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval leader berhasil diubah.');
+            // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval leader berhasil diubah.');
+            $page = $request->input('page', 1);
+            return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Status approval leader berhasil diubah.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -727,7 +733,9 @@ class PembelianBahanController extends Controller
             }
             DB::commit();
             LogHelper::success('Status approval general Affair berhasil diubah.');
-            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval general Affair berhasil diubah.');
+            // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval general Affair berhasil diubah.');
+            $page = $request->input('page', 1);
+            return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Status approval general Affair berhasil diubah.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -879,7 +887,9 @@ class PembelianBahanController extends Controller
             }
             DB::commit();
             LogHelper::success('Status approval purchasing berhasil diubah.');
-            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval purchasing berhasil diubah.');
+            // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval purchasing berhasil diubah.');
+            $page = $request->input('page', 1);
+            return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Status approval purchasing berhasil diubah.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -974,7 +984,9 @@ class PembelianBahanController extends Controller
             }
             DB::commit();
             LogHelper::success('Status approval manager berhasil diubah.');
-            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval manager berhasil diubah.');
+            // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval manager berhasil diubah.');
+            $page = $request->input('page', 1);
+            return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Status approval manager berhasil diubah.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -1052,7 +1064,9 @@ class PembelianBahanController extends Controller
             }
             DB::commit();
             LogHelper::success('Status approval finance berhasil diubah.');
-            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval finance berhasil diubah.');
+            // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval finance berhasil diubah.');
+            $page = $request->input('page', 1);
+            return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Status approval finance berhasil diubah.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -1128,7 +1142,9 @@ class PembelianBahanController extends Controller
             }
             DB::commit();
             LogHelper::success('Status approval admin manager berhasil diubah.');
-            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval admin manager berhasil diubah.');
+            // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval admin manager berhasil diubah.');
+            $page = $request->input('page', 1);
+            return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Status approval admin manager berhasil diubah.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -1150,7 +1166,9 @@ class PembelianBahanController extends Controller
 
             DB::commit();
             LogHelper::success('Upload link invoice berhasil.');
-            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Upload link invoice berhasil.');
+            // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Upload link invoice berhasil.');
+            $page = $request->input('page', 1);
+            return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Upload link invoice berhasil.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -1334,7 +1352,9 @@ class PembelianBahanController extends Controller
             }
             DB::commit();
             LogHelper::success('Status approval direktur berhasil diubah.');
-            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval direktur berhasil diubah.');
+            // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status approval direktur berhasil diubah.');
+            $page = $request->input('page', 1);
+            return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Status approval direktur berhasil diubah.');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -1343,7 +1363,7 @@ class PembelianBahanController extends Controller
         }
     }
 
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         try{
             $data = PembelianBahan::find($id);
@@ -1352,7 +1372,9 @@ class PembelianBahanController extends Controller
             }
             $data->delete();
             LogHelper::success('Berhasil Menghapus Pengajuan Pembelian Bahan!');
-            return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Berhasil Menghapus Pengajuan Pembelian Bahan!');
+            // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Berhasil Menghapus Pengajuan Pembelian Bahan!');
+            $page = $request->input('page', 1);
+            return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Berhasil Menghapus Pengajuan Pembelian Bahan!');
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

@@ -40,6 +40,7 @@
                 <form class="formeditdata space-y-6" method="post" action="{{ route('pengajuan-pembelian-bahan.updateApprovalPurchasing', (int)$id_pembelian_bahan) }}">
                     @csrf
                     {{ method_field('PUT') }}
+                    <input type="hidden" name="page" value="{{ $currentPage }}">
                     <div x-data="{ statusPurchasing: '{{ $status_purchasing }}' }">
                         <label for="status_purchasing" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status Purchasing</label>
                         <select x-model="statusPurchasing" name="status_purchasing" id="status_purchasing" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>

@@ -85,7 +85,7 @@
         </tr> --}}
     </table>
 
-    <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
+    <table style="border: 1px solid black; width: 100%; border-collapse: collapse; padding-top:10;">
         <thead>
             <tr>
                 <th style="border: 1px solid black; width: 5%;">No</th>
@@ -93,6 +93,7 @@
                 <th style="border: 1px solid black; width: 25%;">Nama</th>
                 <th style="border: 1px solid black; width: 10%;">Min Unit/Produksi</th>
                 <th style="border: 1px solid black; width: 15%;">Harga Satuan</th>
+                <th style="border: 1px solid black; width: 15%;">Harga Total</th>
             </tr>
         </thead>
         <tbody>
@@ -101,7 +102,7 @@
             @endphp
             @foreach ($produkProduksis->produkProduksiDetails as $index => $detail)
                 @php
-                    $details = json_decode($detail->details, true); // Decode JSON details column
+                    $details = json_decode($detail->details, true);
                     $qty = $detail->jml_bahan ?? 0;
                     $harga = $detail->latest_harga ?? 0;
                     $subtotal = $qty * $harga;
@@ -109,8 +110,8 @@
                 @endphp
                 <tr>
                     <td style="border: 1px solid black; text-align: center;">{{ $index + 1 }}</td>
-                    <td style="border: 1px solid black">{{ $detail->dataBahan->kode_bahan ?? null }}</td>
-                    <td style="border: 1px solid black">
+                    <td style="border: 1px solid black;">{{ $detail->dataBahan->kode_bahan ?? '-' }}</td>
+                    <td style="border: 1px solid black;">
                         @if ($detail->dataBahan)
                             {{ $detail->dataBahan->nama_bahan }}
                         @elseif ($detail->dataProduk)
@@ -124,12 +125,15 @@
                     <td style="border: 1px solid black; text-align: right;">
                         {{ number_format($harga, 2, ',', '.') }}
                     </td>
+                    <td style="border: 1px solid black; text-align: right;">
+                        {{ number_format($subtotal, 2, ',', '.') }}
+                    </td>
                 </tr>
             @endforeach
 
-            {{-- Baris Total --}}
+            {{-- Baris Total Keseluruhan --}}
             <tr>
-                <td colspan="4" style="border: 1px solid black; text-align: right; font-weight: bold;">Total</td>
+                <td colspan="5" style="border: 1px solid black; text-align: right; font-weight: bold;">Total</td>
                 <td style="border: 1px solid black; text-align: right; font-weight: bold;">
                     {{ 'Rp ' . number_format($totalSubTotal, 2, ',', '.') }}
                 </td>

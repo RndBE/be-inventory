@@ -173,6 +173,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('bahan-jadis', BahanJadiController::class);
     Route::resource('produk-produksis', ProdukProduksiController::class);
     Route::get('/produk-produksis/pdf/{id}', [ProdukProduksiController::class, 'downloadPdf'])->name('produk-produksis.downloadPdf');
+    Route::get('/produk-produksis/pdfmodal/{id}', [ProdukProduksiController::class, 'downloadPdfmodal'])->name('produk-produksis.downloadPdfmodal');
     Route::resource('bahan-returs', BahanReturController::class);
     Route::get('/bahan-returs/pdf/{id}', [BahanReturController::class, 'downloadPdf'])->name('bahan-returs.downloadPdf');
 

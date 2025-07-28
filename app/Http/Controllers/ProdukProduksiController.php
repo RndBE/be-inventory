@@ -154,6 +154,47 @@ class ProdukProduksiController extends Controller
         }
     }
 
+    public function downloadPdfmodal(int $id)
+    {
+        try {
+            // Ambil data produksi dengan detail dan relasi dataBahan + purchaseDetails + purchase
+            $produkProduksis = ProdukProduksi::with([
+                'produkProduksiDetails.dataBahan.purchaseDetails.purchase',
+            ])->findOrFail($id);
+
+            // Urutkan detail berdasarkan nama_bahan
+            $sortedDetails = $produkProduksis->produkProduksiDetails->sortBy(function ($detail) {
+                return strtolower($detail->dataBahan->nama_bahan ?? '');
+            });
+
+            // Loop setiap detail dan cari unit_price terbaru berdasarkan tgl_masuk dari purchase
+            foreach ($sortedDetails as $detail) {
+                $purchaseDetails = $detail->dataBahan->purchaseDetails ?? collect();
+
+                $latestPurchaseDetail = $purchaseDetails
+                    ->filter(fn($pd) => $pd->purchase) // pastikan relasi purchase ada
+                    ->sortByDesc(fn($pd) => $pd->purchase->tgl_masuk)
+                    ->first();
+
+                $detail->latest_harga = $latestPurchaseDetail?->unit_price ?? 0;
+            }
+
+            $produkProduksis->setRelation('produkProduksiDetails', $sortedDetails->values());
+
+            $pdf = Pdf::loadView('pages.produk-produksis.pdfmodal', compact('produkProduksis'))
+                ->setPaper('letter', 'portrait');
+
+            LogHelper::success("Berhasil generating PDF for BahanProdukProduksi ID {$id}!");
+            return $pdf->stream("BahanProdukProduksi_{$id}.pdf");
+
+        } catch (\Exception $e) {
+            LogHelper::error("Error generating PDF for BahanProdukProduksi ID {$id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
+        }
+    }
+
+
+
 
     public function destroy($id)
     {

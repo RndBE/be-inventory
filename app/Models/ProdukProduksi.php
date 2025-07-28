@@ -20,4 +20,14 @@ class ProdukProduksi extends Model
     {
         return $this->belongsTo(Bahan::class, 'bahan_id');
     }
+
+    public function purchase()
+    {
+        return $this->belongsTo(Purchase::class);
+    }
+
+    public function purchaseDetails()
+    {
+        return $this->hasMany(PurchaseDetail::class);
+    }
 }

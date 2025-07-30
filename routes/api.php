@@ -35,9 +35,9 @@ use App\Http\Controllers\API\DashboardApiController;
         Route::get('/bahan-setengah-jadi', 'getBahanSetengahJadi');
         Route::get('/sisa-stok-bahan', 'getSisaStokBahan');
     });
-Route::post('/login', [AuthController::class, 'login']);
+// Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
+// Route::middleware('auth:sanctum')->group(function () {
 
     // Route::prefix('dashboard')->controller(DashboardApiController::class)->group(function () {
     //     Route::get('/statistics', 'getStatistics');
@@ -100,5 +100,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::post('/logout', [AuthController::class, 'logout']);
-});
+// });
 

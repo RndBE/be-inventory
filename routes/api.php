@@ -23,6 +23,11 @@ use App\Http\Controllers\API\DashboardApiController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+
     Route::prefix('dashboard')->controller(DashboardApiController::class)->group(function () {
         Route::get('/statistics', 'getStatistics');
         Route::get('/pengajuan', 'getPendingPengajuan');
@@ -35,22 +40,6 @@ use App\Http\Controllers\API\DashboardApiController;
         Route::get('/bahan-setengah-jadi', 'getBahanSetengahJadi');
         Route::get('/sisa-stok-bahan', 'getSisaStokBahan');
     });
-// Route::post('/login', [AuthController::class, 'login']);
-
-// Route::middleware('auth:sanctum')->group(function () {
-
-    // Route::prefix('dashboard')->controller(DashboardApiController::class)->group(function () {
-    //     Route::get('/statistics', 'getStatistics');
-    //     Route::get('/pengajuan', 'getPendingPengajuan');
-    //     Route::get('/bahan-sisa-terbanyak', 'getBahanSisaTerbanyak');
-    //     Route::get('/bahan-sisa-tersedikit', 'getBahanSisaPalingSedikit');
-    //     Route::get('/produksi-proses', 'getProduksiProses');
-    //     Route::get('/projek-proses', 'getProjekProses');
-    //     Route::get('/projek-rnd-proses', 'getProjekRndProses');
-    //     Route::get('/chart', 'getChartData');
-    //     Route::get('/bahan-setengah-jadi', 'getBahanSetengahJadi');
-    //     Route::get('/sisa-stok-bahan', 'getSisaStokBahan');
-    // });
 
     Route::get('/bahans', [BahanApiController::class, 'index']);
     Route::get('/bahans/create', [BahanApiController::class, 'create']);
@@ -100,5 +89,5 @@ use App\Http\Controllers\API\DashboardApiController;
 
 
     Route::post('/logout', [AuthController::class, 'logout']);
-// });
+});
 

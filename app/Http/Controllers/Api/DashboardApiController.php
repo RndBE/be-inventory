@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\LogHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -168,6 +169,7 @@ class DashboardApiController extends Controller
 
     public function getSisaStokBahan(Request $request)
 {
+     try {
     $namaBahan = $request->query('nama_bahan'); // ambil parameter dari URL
 
     $query = PurchaseDetail::with([
@@ -204,6 +206,13 @@ class DashboardApiController extends Controller
         'success' => true,
         'data' => $data,
     ]);
+} catch (\Throwable $e) {
+        LogHelper::error('SISA STOK ERROR: ' . $e->getMessage());
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
 }
 
 

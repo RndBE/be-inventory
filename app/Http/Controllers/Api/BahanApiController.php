@@ -26,7 +26,6 @@ class BahanApiController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 20);
         $search = $request->input('search');
 
         $query = Bahan::with('jenisBahan', 'dataUnit', 'dataSupplier', 'purchaseDetails');
@@ -46,19 +45,14 @@ class BahanApiController extends Controller
                 });
         }
 
-        $bahans = $query->paginate($perPage);
+        $bahans = $query->get(); // Ambil semua data tanpa paginate
 
         return response()->json([
             'status' => 'success',
             'data' => BahanResource::collection($bahans),
-            'meta' => [
-                'current_page' => $bahans->currentPage(),
-                'last_page' => $bahans->lastPage(),
-                'per_page' => $bahans->perPage(),
-                'total' => $bahans->total(),
-            ]
         ]);
     }
+
 
     public function create()
     {

@@ -28,17 +28,17 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::prefix('dashboard')->controller(DashboardApiController::class)->group(function () {
-        Route::get('/statistics', 'getStatistics');
-        Route::get('/pengajuan', 'getPendingPengajuan');
-        Route::get('/bahan-sisa-terbanyak', 'getBahanSisaTerbanyak');
-        Route::get('/bahan-sisa-tersedikit', 'getBahanSisaPalingSedikit');
-        Route::get('/produksi-proses', 'getProduksiProses');
-        Route::get('/projek-proses', 'getProjekProses');
-        Route::get('/projek-rnd-proses', 'getProjekRndProses');
-        Route::get('/chart', 'getChartData');
-        Route::get('/bahan-setengah-jadi', 'getBahanSetengahJadi');
-        Route::get('/sisa-stok-bahan', 'getSisaStokBahan');
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/statistics', [DashboardApiController::class,'getStatistics']);
+        Route::get('/pengajuan', [DashboardApiController::class,'getPendingPengajuan']);
+        Route::get('/bahan-sisa-terbanyak', [DashboardApiController::class,'getBahanSisaTerbanyak']);
+        Route::get('/bahan-sisa-tersedikit', [DashboardApiController::class,'getBahanSisaPalingSedikit']);
+        Route::get('/produksi-proses', [DashboardApiController::class,'getProduksiProses']);
+        Route::get('/projek-proses', [DashboardApiController::class,'getProjekProses']);
+        Route::get('/projek-rnd-proses', [DashboardApiController::class,'getProjekRndProses']);
+        Route::get('/chart', [DashboardApiController::class,'getChartData']);
+        Route::get('/bahan-setengah-jadi', [DashboardApiController::class,'getBahanSetengahJadi']);
+        Route::get('/sisa-stok-bahan', [DashboardApiController::class, 'getSisaStokBahan']);
     });
 
     Route::get('/bahans', [BahanApiController::class, 'index']);

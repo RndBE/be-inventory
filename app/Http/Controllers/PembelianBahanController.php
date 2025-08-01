@@ -582,7 +582,7 @@ class PembelianBahanController extends Controller
                     // Kirim notifikasi ke General Affair
                     $targetUser = User::whereHas('dataJobPosition', function ($query) {
                         $query->where('nama', 'General Affair'); // Posisi General Affair
-                    })->where('job_level', 4)->first();
+                    })->where('job_level', 3)->first();
                     $targetRole = "General Affair";
                 } else {
                     // Kirim notifikasi ke Purchasing

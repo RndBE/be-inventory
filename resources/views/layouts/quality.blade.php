@@ -9,9 +9,10 @@
 
         <title>{{ $title ?? 'Quality Page | BE INVENTORY' }}</title>
         <!-- BEGIN: CSS Assets-->
-        {{-- <link rel="stylesheet" href="{{ asset('dist/css/app.css') }}" /> --}}
-        @vite(['resources/assets/css/app.css',
-                'resources/assets/js/app.js',])
+        <link rel="stylesheet" href="{{ asset('dist/css/app.css') }}" />
+        {{-- @vite(['resources/assets/css/app.css',
+                'resources/assets/js/app.js',]) --}}
+
         <!-- di <head> atau sebelum </body> -->
         <!-- SweetAlert2 CSS -->
         <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
@@ -43,7 +44,7 @@
         <!-- BEGIN: JS Assets-->
         <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
         <script src="https://maps.googleapis.com/maps/api/js?key=["your-google-map-api"]&libraries=places"></script>
-        {{-- <script src="{{ asset('dist/js/app.js') }}"></script> --}}
+        <script src="{{ asset('dist/js/app.js') }}"></script>
         <script src="https://unpkg.com/feather-icons"></script>
 
         <!-- END: JS Assets-->

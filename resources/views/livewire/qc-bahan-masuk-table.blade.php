@@ -65,7 +65,7 @@
                             {{ $item->tanggal_masuk_gudang ? $item->tanggal_masuk_gudang->format('d-m-Y H:i:s') : '-' }}
                         </td>
                         <td class="table-report__action w-72">
-                            <div class="flex justify-center items-center space-x-4">
+                            <div class="flex justify-start items-start space-x-4">
                                 <a class="flex items-center text-theme-1"
                                 href="{{ route('quality-page.qc-bahan-masuk.view', $item->id_qc_bahan_masuk) }}">
                                     <i data-feather="check-square" class="w-4 h-4 mr-1"></i> View

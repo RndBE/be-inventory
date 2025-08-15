@@ -60,6 +60,13 @@
                         </a>
                     @endcan
                 </li>
+                <li class="m-1">
+                    @can('tambah-bahan-masuk')
+                        <a href="{{ route('quality-page.qc-bahan-masuk.index') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-[#b40404] text-sm font-semibold text-white shadow-sm hover:bg-[#b40404]/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                            QC Bahan Masuk
+                        </a>
+                    @endcan
+                </li>
             </ul>
         </div>
     </div>

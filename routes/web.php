@@ -1,10 +1,12 @@
 <?php
 
 use App\Helpers\LogHelper;
+use App\Livewire\Quality\QcWizard;
 use App\Exports\LaporanProyekExport;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Quality\QcBahanMasuk;
 use App\Http\Controllers\JobController;
 use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\AuthController;
@@ -15,10 +17,12 @@ use App\Http\Controllers\BahanController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProjekController;
+use App\Livewire\Quality\QcBahanMasukView;
 use App\Exports\LaporanGaransiProyekExport;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\StokRndController;
+use App\Livewire\Quality\QcBahanMasukTable;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DataFeedController;
@@ -35,6 +39,7 @@ use App\Http\Controllers\BahanRusakController;
 use App\Http\Controllers\BarangAsetController;
 use App\Http\Controllers\JenisBahanController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\UploadTempController;
 use App\Http\Controllers\BahanKeluarController;
 use App\Http\Controllers\JobPositionController;
 use App\Http\Controllers\LogActivityController;
@@ -205,7 +210,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::prefix('quality-page')->name('quality-page.')->group(function () {
         Route::get('/', [QualityPageController::class, 'index'])->name('index');
 
-        Route::resource('qc-bahan-masuk', QCBahanMasukController::class);
+        Route::get('qc-bahan-masuk', QcBahanMasukTable::class)->name('qc-bahan-masuk.index');
+        Route::get('qc-bahan-masuk/create', QcWizard::class)->name('qc-bahan-masuk.wizard');
+        Route::get('qc-bahan-masuk/view/{id}', QcBahanMasukView::class)->name('qc-bahan-masuk.view');
     });
 
     Route::fallback(function() {

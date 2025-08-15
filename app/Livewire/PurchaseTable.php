@@ -32,7 +32,7 @@ class PurchaseTable extends Component
 
     public function render()
     {
-        $purchases = Purchase::with('purchaseDetails.dataBahan')->orderBy('id', 'desc')
+        $purchases = Purchase::with('purchaseDetails.dataBahan', 'qcBahanMasuk')->orderBy('id', 'desc')
         ->where(function ($query) {
             $query->where('tgl_masuk', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')

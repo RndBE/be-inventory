@@ -21,4 +21,10 @@ class Purchase extends Model
     {
         return $this->belongsTo(Bahan::class);
     }
+
+    public function qcBahanMasuk()
+    {
+        return $this->belongsTo(QcBahanMasuk::class, 'id_qc_bahan_masuk', 'id_qc_bahan_masuk');
+    }
+
 }

@@ -78,6 +78,7 @@
                         <th scope="col" class="px-6 py-3">Kode Transaksi</th>
                         <th scope="col" class="px-6 py-3">No Invoice</th>
                         <th scope="col" class="px-6 py-3">Tanggal Masuk</th>
+                        <th scope="col" class="px-6 py-3">Kode QC</th>
                         <th scope="col" class="px-6 py-3">Keterangan | Sisa</th>
                         <th scope="col" class="px-6 py-3">Total Harga</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
@@ -90,6 +91,7 @@
                         <td class="px-6 py-3">{{ $purchase->kode_transaksi }}</td>
                         <td class="px-6 py-3">{{ $purchase->no_invoice }}</td>
                         <td class="px-6 py-3">{{ $purchase->tgl_masuk }}</td>
+                        <td class="px-6 py-3">{{ $purchase->qcBahanMasuk->kode_qc ?? "-" }}</td>
                         <td class="px-6 py-3">
                             @if($purchase->purchaseDetails->isNotEmpty())
                                 @foreach($purchase->purchaseDetails as $detail)

@@ -24,8 +24,8 @@ export default defineConfig({
       input: [
         'resources/css/app.css',
         'resources/js/app.js',
-        'resources/assets/css/app.css',
-        'resources/assets/js/app.js',
+        // 'resources/assets/css/app.css',
+        // 'resources/assets/js/app.js',
       ],
       refresh: true,
     }),

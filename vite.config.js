@@ -3,6 +3,10 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 
 export default defineConfig({
+    build: {
+    // ubah batas warning dari default (500) jadi 1500 KB
+    chunkSizeWarningLimit: 1500
+  },
     server: {
         host: '0.0.0.0',
         port: 5173,

@@ -102,7 +102,16 @@
                         <td class="px-6 py-3">{{ $purchase->kode_transaksi }}</td>
                         <td class="px-6 py-3">{{ $purchase->no_invoice }}</td>
                         <td class="px-6 py-3">{{ $purchase->tgl_masuk }}</td>
-                        <td class="px-6 py-3">{{ $purchase->qcBahanMasuk->kode_qc ?? "-" }}</td>
+                        <td class="px-6 py-3">
+                            @if($purchase->qcBahanMasuk)
+                                <a href="{{ route('quality-page.qc-bahan-masuk.view', $purchase->qcBahanMasuk->id_qc_bahan_masuk) }}"
+                                class="text-blue-600 hover:underline" target="_blank">
+                                    {{ $purchase->qcBahanMasuk->kode_qc }}
+                                </a>
+                            @else
+                                -
+                            @endif
+                        </td>
                         <td class="px-6 py-3">
                             @if($purchase->purchaseDetails->isNotEmpty())
                                 @foreach($purchase->purchaseDetails as $detail)

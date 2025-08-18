@@ -29,6 +29,11 @@
                 Tambah QC
             </button>
         </a>
+        <a href="{{ route('purchases.index') }}">
+            <button class="button text-white bg-indigo-600 hover:bg-indigo-500 shadow-md mr-2">
+                Bahan Masuk
+            </button>
+        </a>
         <div class="hidden md:block mx-auto text-gray-600">Menampilkan {{ $qcList->firstItem() }} sampai {{ $qcList->lastItem() }} dari {{ $qcList->total() }} data</div>
         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
             <input type="text" wire:model.live='search' class="input w-56 box pr-10 placeholder-theme-13" placeholder="Cari...">

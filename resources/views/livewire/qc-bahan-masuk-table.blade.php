@@ -66,20 +66,20 @@
                         </td>
                         <td class="table-report__action w-72">
                             <div class="flex justify-start items-start space-x-4">
-                                <a class="flex items-center text-theme-1"
+                                <a wire:ignore class="flex items-center text-theme-1"
                                 href="{{ route('quality-page.qc-bahan-masuk.view', $item->id_qc_bahan_masuk) }}">
                                     <i data-feather="check-square" class="w-4 h-4 mr-1"></i> View
                                 </a>
 
                                 @if(!$item->tanggal_masuk_gudang)
-                                    <button wire:click="prosesKeGudang({{ $item->id_qc_bahan_masuk }})"
+                                    <button wire:ignore wire:click="prosesKeGudang({{ $item->id_qc_bahan_masuk }})"
                                             class="flex items-center text-green-600">
                                         <i data-feather="box" class="w-4 h-4 mr-1"></i> Add to Gudang
                                     </button>
                                 @endif
 
-                                <a class="flex items-center text-theme-6"
-                                wire:click="confirmDelete({{ $item->id }})">
+                                <a wire:ignore class="flex items-center text-theme-6 cursor-pointer"
+                                wire:click="confirmDelete({{ $item->id_qc_bahan_masuk }})">
                                     <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Hapus
                                 </a>
                             </div>
@@ -95,20 +95,44 @@
             {{ $qcList->links() }}
         </div>
     </div>
+    @if($showDeleteModal)
+        <div
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300"
+            wire:click="$set('showDeleteModal', false)"
+        >
+            <div
+                class="bg-white rounded-lg shadow-lg w-full max-w-md p-6"
+                wire:click.stop
+            >
+                <div class="flex items-start justify-between">
+                    <h2 class="text-xl font-bold text-gray-800">Konfirmasi Hapus</h2>
+                    <button
+                        wire:click="$set('showDeleteModal', false)"
+                        class="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 8.586l4.95-4.95a1 1 0 111.414 1.414L11.414 10l4.95 4.95a1 1 0 01-1.414 1.414L10 11.414l-4.95 4.95a1 1 0 01-1.414-1.414L8.586 10 3.636 5.05a1 1 0 011.414-1.414L10 8.586z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+                <p class="mt-4 text-gray-600">Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak bisa dibatalkan.</p>
 
-    @if ($showDeleteModal)
-    <div class="modal" id="delete-confirmation-modal" style="display:block">
-        <div class="modal__content">
-            <div class="p-5 text-center">
-                <i data-feather="x-circle" class="w-16 h-16 text-theme-6 mx-auto mt-3"></i>
-                <div class="text-3xl mt-5">Yakin ingin menghapus?</div>
-                <div class="text-gray-600 mt-2">Proses ini tidak dapat dibatalkan.</div>
-            </div>
-            <div class="px-5 pb-8 text-center">
-                <button wire:click="$set('showDeleteModal', false)" class="button w-24 border text-gray-700 mr-1">Batal</button>
-                <button wire:click="deleteConfirmed" class="button w-24 bg-theme-6 text-white">Hapus</button>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button
+                        wire:click="$set('showDeleteModal', false)"
+                        class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        wire:click="deleteConfirmed"
+                        class="px-4 py-2 bg-theme-1 text-white rounded hover:bg-theme-1/90"
+                    >
+                        Hapus
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
     @endif
+
 </div>

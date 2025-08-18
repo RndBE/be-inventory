@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Bahan;
 use Livewire\Component;
 use App\Models\Supplier;
+use App\Helpers\LogHelper;
 use App\Models\QcBahanMasuk;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -15,8 +16,8 @@ use Livewire\Attributes\Layout;
 use App\Models\HasilQcBahanMasuk;
 use Illuminate\Support\Facades\DB;
 use App\Models\QcBahanMasukDetails;
-use App\Models\DokumentasiQcBahanMasuk;
 use Illuminate\Support\Facades\Auth;
+use App\Models\DokumentasiQcBahanMasuk;
 
 #[Layout('layouts.quality', ['title' => 'Tambah QC'])]
 
@@ -276,22 +277,32 @@ class QcWizard extends Component
                 // Simpan foto jika ada
                 if (!empty($this->gambarPerBahan[$bahan['bahan_id']])) {
                     foreach ($this->gambarPerBahan[$bahan['bahan_id']] as $foto) {
-                        $path = $foto->store('qc_bahan_masuk', 'public');
+                        // Ambil nama asli file
+                        $originalName = $foto->getClientOriginalName();
+
+                        // Tambahkan kode QC di awal nama file
+                        $filename = $qc->kode_qc . '-' . $originalName;
+
+                        // Simpan file ke storage/public/qc_bahan_masuk
+                        $path = $foto->storeAs('qc_bahan_masuk', $filename, 'public');
+
+                        // Simpan path di database
                         DokumentasiQcBahanMasuk::create([
                             'qc_bahan_masuk_detail_id' => $detail->id,
-                            'bahan_id'                  => $bahan['bahan_id'],
-                            'gambar'                    => $path,
+                            'bahan_id'                 => $bahan['bahan_id'],
+                            'gambar'                   => $path,
                         ]);
                     }
                 }
             }
 
             DB::commit();
-
+            LogHelper::success('Data QC Bahan Masuk berhasil disimpan.');
             session()->flash('success', 'Data QC Bahan Masuk berhasil disimpan.');
             return redirect()->route('quality-page.qc-bahan-masuk.index');
         } catch (\Throwable $th) {
             DB::rollBack();
+            LogHelper::error('Gagal menyimpan data: ' . $th->getMessage());
             session()->flash('error', 'Gagal menyimpan data: ' . $th->getMessage());
         }
     }

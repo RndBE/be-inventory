@@ -44,4 +44,9 @@ class QcBahanMasuk extends Model
     {
         return $this->belongsTo(User::class, 'id_petugas_input_qc');
     }
+
+    public function purchase()
+    {
+        return $this->hasOne(Purchase::class, 'id_qc_bahan_masuk', 'id_qc_bahan_masuk');
+    }
 }

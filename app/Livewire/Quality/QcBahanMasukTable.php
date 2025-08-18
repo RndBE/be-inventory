@@ -13,7 +13,9 @@ use Livewire\WithPagination;
 use App\Models\PurchaseDetail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Attributes\Layout;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Storage;
 
 #[Layout('layouts.quality', ['title' => 'QC Bahan Masuk'])]
 class QcBahanMasukTable extends Component
@@ -105,9 +107,43 @@ class QcBahanMasukTable extends Component
 
     public function deleteConfirmed()
     {
-        QcBahanMasuk::destroy($this->deleteId);
+        DB::beginTransaction();
+
+        try {
+            $qc = QcBahanMasuk::with(['details.dokumentasi', 'purchase'])->findOrFail($this->deleteId);
+
+            // Cek apakah sudah ada transaksi
+            if ($qc->purchase) {
+                LogHelper::error('QC Bahan Masuk ini tidak dapat dihapus karena sudah memiliki transaksi di gudang.');
+                session()->flash('error', 'QC Bahan Masuk ini tidak dapat dihapus karena sudah memiliki transaksi di gudang.');
+                return redirect()->route('quality-page.qc-bahan-masuk.index');
+            }
+
+            // Hapus dokumentasi (foto) terkait detail
+            foreach ($qc->details as $detail) {
+                foreach ($detail->dokumentasi as $doc) {
+                    if ($doc->gambar && Storage::disk('public')->exists($doc->gambar)) {
+                        Storage::disk('public')->delete($doc->gambar);
+                    }
+                    $doc->delete();
+                }
+                $detail->delete();
+            }
+
+            // Hapus record QC utama
+            $qc->delete();
+
+            DB::commit();
+            LogHelper::success('Data QC Bahan Masuk beserta detail dan dokumentasinya berhasil dihapus.');
+            session()->flash('success', 'Data QC Bahan Masuk beserta detail dan dokumentasinya berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            LogHelper::error('Gagal menghapus data: ' . $e->getMessage());
+            session()->flash('error', 'Gagal menghapus data');
+        }
+
         $this->showDeleteModal = false;
-        session()->flash('message', 'Data berhasil dihapus.');
+        return redirect()->route('quality-page.qc-bahan-masuk.index');
     }
 }
 

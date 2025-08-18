@@ -62,9 +62,13 @@
                 </li>
                 <li class="m-1">
                     @can('tambah-bahan-masuk')
-                        <a href="{{ route('quality-page.qc-bahan-masuk.index') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-[#b40404] text-sm font-semibold text-white shadow-sm hover:bg-[#b40404]/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                        <a href="{{ route('quality-page.qc-bahan-masuk.index') }}"
+                            class="mt-2 block w-fit rounded-md py-1.5 px-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                            style="background-color:#b40404; transition: background-color 0.2s;"
+                            onmouseover="this.style.backgroundColor='#a00303'"
+                            onmouseout="this.style.backgroundColor='#b40404'">
                             QC Bahan Masuk
-                        </a>
+                            </a>
                     @endcan
                 </li>
             </ul>

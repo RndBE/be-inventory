@@ -54,6 +54,7 @@ use App\Http\Controllers\GaransiProjekController;
 use App\Http\Controllers\LaporanProyekController;
 use App\Http\Controllers\PembelianBahanController;
 use App\Http\Controllers\ProdukProduksiController;
+use App\Livewire\Quality\QcProdukSetengahJadiTable;
 use App\Http\Controllers\PengambilanBahanController;
 use App\Http\Controllers\BahanSetengahjadiController;
 use App\Http\Controllers\LaporanGaransiProyekController;
@@ -213,6 +214,8 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
         Route::get('qc-bahan-masuk', QcBahanMasukTable::class)->name('qc-bahan-masuk.index');
         Route::get('qc-bahan-masuk/create', QcWizard::class)->name('qc-bahan-masuk.wizard');
         Route::get('qc-bahan-masuk/view/{id}', QcBahanMasukView::class)->name('qc-bahan-masuk.view');
+
+        Route::get('qc-produk-setengah-jadi', QcProdukSetengahJadiTable::class)->name('qc-produk-setengah-jadi.index');
     });
 
     Route::fallback(function() {

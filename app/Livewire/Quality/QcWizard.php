@@ -53,6 +53,11 @@ class QcWizard extends Component
 
     public $qc_notes;
     public $is_verified = false;
+    public $selected = [];
+    public $statusBahan = [];
+    public $filteredBahanList = [];
+
+
 
 
     public function mount()
@@ -131,6 +136,7 @@ class QcWizard extends Component
                     'statusQc'          => '',
                     'notes'             => '',
                     'supplier_id'       => '',
+                    'is_selected'       => false,
                 ];
             })->toArray();
 
@@ -165,7 +171,19 @@ class QcWizard extends Component
             session()->put('selected_petugas_id', $this->selected_petugas_id);
         }
         if ($this->step === 2) {
-            foreach ($this->selectedBahanList as $index => $bahan) {
+            // Filter hanya bahan yang dipilih (is_selected = true)
+            $filteredBahan = collect($this->selectedBahanList)
+                ->where('is_selected', true)
+                ->values()
+                ->toArray();
+
+            // Jika semua OFF, tampilkan pesan error
+            if (count($filteredBahan) === 0) {
+                $this->addError('selectedBahanList', 'Minimal 1 bahan harus dipilih (ON).');
+                return; // stop, jangan lanjut step
+            }
+            // Validasi hanya bahan yang ON
+            foreach ($filteredBahan as $index => $bahan) {
                 $this->validate([
                     "selectedBahanList.$index.no_invoice" => 'required|string',
                     "selectedBahanList.$index.supplier_id" => 'required|exists:supplier,id',
@@ -187,6 +205,11 @@ class QcWizard extends Component
                     "selectedBahanList.$index.statusQc.required" => "Status QC wajib dipilih.",
                 ]);
             }
+            // Simpan ke session hanya bahan ON
+            session()->put('selected_bahan_list', $filteredBahan);
+
+            // Jangan overwrite list asli, cukup buat property baru
+            $this->filteredBahanList = $filteredBahan;
         }
 
         if ($this->step < 4) {
@@ -223,7 +246,20 @@ class QcWizard extends Component
             'is_verified.accepted' => 'Anda harus mencentang pernyataan verifikasi.',
         ]);
 
-        foreach ($this->selectedBahanList as $index => $bahan) {
+        // Ambil hanya bahan yang ON
+        $filteredBahan = collect($this->selectedBahanList)
+            ->where('is_selected', true)
+            ->values()
+            ->toArray();
+
+        // Validasi minimal 1 ON
+        if (count($filteredBahan) === 0) {
+            $this->addError('selectedBahanList', 'Minimal 1 bahan harus dipilih (ON).');
+            return;
+        }
+
+        // Validasi detail hanya untuk bahan ON
+        foreach ($filteredBahan as $index => $bahan) {
             $this->validate([
                 "selectedBahanList.$index.no_invoice" => 'required|string',
                 "selectedBahanList.$index.supplier_id" => 'required|exists:supplier,id',
@@ -249,8 +285,8 @@ class QcWizard extends Component
                 'is_verified'          => $this->is_verified ? 1 : 0,
             ]);
 
-            // Simpan detail bahan
-            foreach ($this->selectedBahanList as $bahan) {
+            // Simpan detail bahan hanya untuk yang ON
+            foreach ($filteredBahan as $bahan) {
                 $detail = QcBahanMasukDetails::create([
                     'id_qc_bahan_masuk' => $qc->id_qc_bahan_masuk,
                     'bahan_id'          => $bahan['bahan_id'],
@@ -274,19 +310,14 @@ class QcWizard extends Component
                     'notes'             => $bahan['notes'] ?? null,
                 ]);
 
-                // Simpan foto jika ada
+                // Simpan foto hanya jika ada
                 if (!empty($this->gambarPerBahan[$bahan['bahan_id']])) {
                     foreach ($this->gambarPerBahan[$bahan['bahan_id']] as $foto) {
-                        // Ambil nama asli file
                         $originalName = $foto->getClientOriginalName();
-
-                        // Tambahkan kode QC di awal nama file
                         $filename = $qc->kode_qc . '-' . $originalName;
 
-                        // Simpan file ke storage/public/qc_bahan_masuk
                         $path = $foto->storeAs('qc_bahan_masuk', $filename, 'public');
 
-                        // Simpan path di database
                         DokumentasiQcBahanMasuk::create([
                             'qc_bahan_masuk_detail_id' => $detail->id,
                             'bahan_id'                 => $bahan['bahan_id'],
@@ -306,6 +337,7 @@ class QcWizard extends Component
             session()->flash('error', 'Gagal menyimpan data: ' . $th->getMessage());
         }
     }
+
 
 
     public function render()
@@ -336,7 +368,6 @@ class QcWizard extends Component
                 $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
             }
         }
-        // return view('livewire.quality.qc-wizard');
         return view('livewire.quality.qc-wizard', [
             'bahanList' => $bahanList,
             'pembelianList' => $this->pembelianList,

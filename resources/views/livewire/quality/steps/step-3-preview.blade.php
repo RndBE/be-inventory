@@ -67,24 +67,24 @@
                     </tr>
                 </thead>
                 @php
-                    $totalPengajuan = collect($selectedBahanList)->sum(function ($bahan) {
+                    $totalPengajuan = collect($selectedBahanList)->where('is_selected', true)->sum(function ($bahan) {
                         return (float) ($bahan['jumlah_pengajuan'] ?? 0) * (float) ($bahan['unit_price'] ?? 0);
                     });
-                    $totalDiterima = collect($selectedBahanList)->sum(function ($bahan) {
+                    $totalDiterima = collect($selectedBahanList)->where('is_selected', true)->sum(function ($bahan) {
                         return (float) ($bahan['jumlah_diterima'] ?? 0) * (float) ($bahan['unit_price'] ?? 0);
                     });
-                    $totalBaik = collect($selectedBahanList)->sum(function ($bahan) {
+                    $totalBaik = collect($selectedBahanList)->where('is_selected', true)->sum(function ($bahan) {
                         return (float) ($bahan['fisik_baik'] ?? 0) * (float) ($bahan['unit_price'] ?? 0);
                     });
-                    $totalRusak = collect($selectedBahanList)->sum(function ($bahan) {
+                    $totalRusak = collect($selectedBahanList)->where('is_selected', true)->sum(function ($bahan) {
                         return (float) ($bahan['fisik_rusak'] ?? 0) * (float) ($bahan['unit_price'] ?? 0);
                     });
-                    $totalRetur = collect($selectedBahanList)->sum(function ($bahan) {
+                    $totalRetur = collect($selectedBahanList)->where('is_selected', true)->sum(function ($bahan) {
                         return (float) ($bahan['fisik_retur'] ?? 0) * (float) ($bahan['unit_price'] ?? 0);
                     });
                 @endphp
                 <tbody>
-                    @foreach ($selectedBahanList as $index => $bahan)
+                    @foreach (collect($selectedBahanList)->where('is_selected', true)->values() as $index => $bahan)
                         <tr>
                             <td class="border px-2 py-1 text-center">{{ $index + 1 }}</td>
                             <td class="border px-2 py-1">{{ $bahan['nama_bahan'] }}</td>

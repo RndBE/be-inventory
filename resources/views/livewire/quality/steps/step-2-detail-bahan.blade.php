@@ -34,8 +34,26 @@
 
                             <!-- Header -->
                             <div class="flex items-center justify-between">
-                                <h3 class="font-semibold text-sm text-gray-800">{{ $bahan['nama_bahan'] }}</h3>
-                                <span class="text-xs text-black">#{{ $index + 1 }}</span>
+                                <h3 class="font-semibold text-sm text-gray-800">
+                                    {{ $bahan['nama_bahan'] }}
+                                </h3>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-black">#{{ $index + 1 }}</span>
+                                    <!-- Toggle Switch -->
+                                    <div x-data="{ on: @entangle('selectedBahanList.' . $index . '.is_selected') }">
+                                        <button
+                                            type="button"
+                                            @click="on = !on"
+                                            :class="on ? 'bg-theme-1' : 'bg-gray-300'"
+                                            class="relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none"
+                                        >
+                                            <span
+                                                :class="on ? 'translate-x-5' : 'translate-x-1'"
+                                                class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                                            ></span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label class="text-black">No Invoice</label>

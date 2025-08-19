@@ -127,33 +127,35 @@
                     @php
                         $bahanAdaDokumentasi = collect($selectedBahanList)->filter(function($bahan) use ($gambarPerBahan) {
                             $bahanId = $bahan['bahan_id'];
-                            return !empty($gambarPerBahan[$bahanId] ?? []);
+                            $files   = $gambarPerBahan[$bahanId] ?? [];
+                            return count($files) > 0; // hanya ambil bahan yang benar-benar ada file
                         });
                     @endphp
 
-                    @if ($bahanAdaDokumentasi->isEmpty())
-                        <p class="text-gray-500 italic">Tidak ada dokumentasi bahan.</p>
-                    @else
-                        @foreach ($bahanAdaDokumentasi as $bahan)
-                            @php
-                                $bahanId = $bahan['bahan_id'];
-                                $files   = $gambarPerBahan[$bahanId] ?? [];
-                            @endphp
 
-                            <div class="mb-8">
-                                <p class="font-medium text-gray-700 mb-3">{{ $bahan['nama_bahan'] }}</p>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                    @foreach ($files as $file)
-                                        <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                                            <img src="{{ asset('storage/'.$file->gambar) }}"
-                                                alt="Foto {{ $bahan['nama_bahan'] }}"
-                                                class="w-full h-100 object-cover">
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endforeach
-                    @endif
+                    @if ($bahanAdaDokumentasi->isEmpty())
+    <p class="text-gray-500 italic">Tidak ada dokumentasi bahan.</p>
+@else
+    @foreach ($bahanAdaDokumentasi as $bahan)
+        @php
+            $bahanId = $bahan['bahan_id'];
+            $files   = $gambarPerBahan[$bahanId] ?? [];
+        @endphp
+
+        <div class="mb-8">
+            <p class="font-medium text-gray-700 mb-3">{{ $bahan['nama_bahan'] }}</p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                @foreach ($files as $file)
+                    <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
+                        <img src="{{ asset('storage/'.$file->gambar) }}"
+                             alt="Foto {{ $bahan['nama_bahan'] }}"
+                             class="w-full h-100 object-cover">
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endforeach
+@endif
 
                 </div>
 

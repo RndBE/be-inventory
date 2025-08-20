@@ -154,6 +154,31 @@ class QcWizard extends Component
         }
     }
 
+    public function updated($propertyName)
+    {
+        // Validasi hanya field yang sedang diupdate
+        $this->validateOnly($propertyName, [
+            'selectedBahanList.*.no_invoice'      => 'required|string',
+            'selectedBahanList.*.supplier_id'     => 'required|exists:supplier,id',
+            'selectedBahanList.*.jumlah_diterima' => 'required|numeric|min:0',
+            'selectedBahanList.*.fisik_baik'      => 'required|numeric|min:0',
+            'selectedBahanList.*.fisik_rusak'     => 'required|numeric|min:0',
+            'selectedBahanList.*.fisik_retur'     => 'required|numeric|min:0',
+            'selectedBahanList.*.unit_price'      => 'required|numeric|min:0',
+            'selectedBahanList.*.statusQc'        => 'required|in:Belum Diterima,Diterima Semua,Diterima Sebagian,Ditolak',
+        ], [
+            'selectedBahanList.*.no_invoice.required'  => 'No Invoice wajib diisi.',
+            'selectedBahanList.*.supplier_id.required' => 'Pilih supplier.',
+            'selectedBahanList.*.jumlah_diterima'      => 'Jumlah Diterima wajib diisi.',
+            'selectedBahanList.*.fisik_baik'           => 'Fisik Baik wajib diisi.',
+            'selectedBahanList.*.fisik_rusak'          => 'Fisik Rusak wajib diisi.',
+            'selectedBahanList.*.fisik_retur'          => 'Fisik Retur wajib diisi.',
+            'selectedBahanList.*.unit_price'           => 'Harga wajib diisi.',
+            'selectedBahanList.*.statusQc.required'    => 'Status QC wajib dipilih.',
+        ]);
+    }
+
+
 
     public function nextStep()
     {
@@ -170,20 +195,24 @@ class QcWizard extends Component
             session()->put('selected_pembelian_id', $this->selected_pembelian_id);
             session()->put('selected_petugas_id', $this->selected_petugas_id);
         }
+
         if ($this->step === 2) {
-            // Filter hanya bahan yang dipilih (is_selected = true)
+            // Filter hanya bahan yang toggle ON
             $filteredBahan = collect($this->selectedBahanList)
-                ->where('is_selected', true)
+                ->filter(fn($bahan) => $bahan['is_selected'])
                 ->values()
                 ->toArray();
 
-            // Jika semua OFF, tampilkan pesan error
             if (count($filteredBahan) === 0) {
-                $this->addError('selectedBahanList', 'Minimal 1 bahan harus dipilih (ON).');
-                return; // stop, jangan lanjut step
+                $this->addError('selectedBahanList', 'Silakan pilih minimal 1 bahan yang aktif.');
+                return; // jangan lanjut step
             }
-            // Validasi hanya bahan yang ON
-            foreach ($filteredBahan as $index => $bahan) {
+
+            // Validasi hanya bahan yang toggle ON
+            foreach ($filteredBahan as $i => $bahan) {
+                // ambil index asli di selectedBahanList agar binding Livewire tetap aman
+                $index = array_search($bahan, $this->selectedBahanList);
+
                 $this->validate([
                     "selectedBahanList.$index.no_invoice" => 'required|string',
                     "selectedBahanList.$index.supplier_id" => 'required|exists:supplier,id',
@@ -194,7 +223,6 @@ class QcWizard extends Component
                     "selectedBahanList.$index.unit_price" => 'required|numeric|min:0',
                     "selectedBahanList.$index.statusQc" => 'required|in:Belum Diterima,Diterima Semua,Diterima Sebagian,Ditolak',
                 ], [
-                    // Pesan error kustom opsional
                     "selectedBahanList.$index.no_invoice.required" => "No Invoice wajib diisi.",
                     "selectedBahanList.$index.supplier_id.required" => "Pilih supplier.",
                     "selectedBahanList.$index.jumlah_diterima" => 'Jumlah Diterima wajib diisi.',
@@ -205,17 +233,16 @@ class QcWizard extends Component
                     "selectedBahanList.$index.statusQc.required" => "Status QC wajib dipilih.",
                 ]);
             }
-            // Simpan ke session hanya bahan ON
-            session()->put('selected_bahan_list', $filteredBahan);
 
-            // Jangan overwrite list asli, cukup buat property baru
-            $this->filteredBahanList = $filteredBahan;
+            // Opsional: simpan kembali hanya bahan aktif agar step selanjutnya tidak membawa bahan OFF
+            // $this->selectedBahanList = $filteredBahan;
         }
 
         if ($this->step < 4) {
             $this->step++;
         }
     }
+
 
 
     public function previousStep()

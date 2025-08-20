@@ -263,40 +263,149 @@ class QcWizard extends Component
         }
     }
 
+    // public function saveQCBahanMasuk()
+    // {
+    //     $this->validate([
+    //         'is_verified' => 'accepted',
+    //         'selected_pembelian_id' => 'required|exists:pembelian_bahan,id',
+    //         'selected_petugas_id' => 'required|exists:users,id',
+    //     ], [
+    //         'is_verified.accepted' => 'Anda harus mencentang pernyataan verifikasi.',
+    //     ]);
+
+    //     // Ambil hanya bahan yang ON
+    //     $filteredBahan = collect($this->selectedBahanList)
+    //         ->where('is_selected', true)
+    //         ->values()
+    //         ->toArray();
+
+    //     // Validasi minimal 1 ON
+    //     if (count($filteredBahan) === 0) {
+    //         $this->addError('selectedBahanList', 'Minimal 1 bahan harus dipilih (ON).');
+    //         return;
+    //     }
+
+    //     // Validasi detail hanya untuk bahan ON
+    //     foreach ($filteredBahan as $index => $bahan) {
+    //         $this->validate([
+    //             "selectedBahanList.$index.no_invoice" => 'required|string',
+    //             "selectedBahanList.$index.supplier_id" => 'required|exists:supplier,id',
+    //             "selectedBahanList.$index.jumlah_diterima" => 'required|numeric|min:0',
+    //             "selectedBahanList.$index.fisik_baik" => 'required|numeric|min:0',
+    //             "selectedBahanList.$index.fisik_rusak" => 'required|numeric|min:0',
+    //             "selectedBahanList.$index.fisik_retur" => 'required|numeric|min:0',
+    //             "selectedBahanList.$index.unit_price" => 'required|numeric|min:0',
+    //             "selectedBahanList.$index.statusQc" => 'required|in:Belum Diterima,Diterima Semua,Diterima Sebagian,Ditolak',
+    //         ]);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Simpan QC utama
+    //         $qc = QcBahanMasuk::create([
+    //             'id_pembelian_bahan'   => $this->selected_pembelian_id,
+    //             'kode_qc'              => 'QC-' . now('Asia/Jakarta')->format('YmdHis') . '-BM',
+    //             'tanggal_qc'           => now('Asia/Jakarta'),
+    //             'keterangan_qc'        => $this->keterangan_qc ?? null,
+    //             'id_petugas_qc'        => $this->selected_petugas_id,
+    //             'id_petugas_input_qc' => Auth::user()->id,
+    //             'is_verified'          => $this->is_verified ? 1 : 0,
+    //         ]);
+
+    //         // Simpan detail bahan hanya untuk yang ON
+    //         foreach ($filteredBahan as $bahan) {
+    //             $detail = QcBahanMasukDetails::create([
+    //                 'id_qc_bahan_masuk' => $qc->id_qc_bahan_masuk,
+    //                 'bahan_id'          => $bahan['bahan_id'],
+    //                 'supplier_id'       => $bahan['supplier_id'],
+    //                 'no_invoice'        => $bahan['no_invoice'],
+    //                 'jumlah_pengajuan'  => $bahan['jumlah_pengajuan'],
+    //                 'stok_lama'         => $bahan['stok_lama'],
+    //                 'jumlah_diterima'   => $bahan['jumlah_diterima'],
+    //                 'fisik_baik'        => $bahan['fisik_baik'],
+    //                 'fisik_rusak'       => $bahan['fisik_rusak'],
+    //                 'fisik_retur'       => $bahan['fisik_retur'],
+    //                 'unit_price'        => $bahan['unit_price'],
+    //                 'sub_total'         => $bahan['fisik_baik'] * $bahan['unit_price'],
+    //                 'status'            => match($bahan['statusQc']) {
+    //                     'Belum Diterima' => 'Belum Diterima',
+    //                     'Diterima Semua' => 'Diterima Semua',
+    //                     'Diterima Sebagian' => 'Diterima Sebagian',
+    //                     'Ditolak' => 'Ditolak',
+    //                     default => 'Belum Diterima'
+    //                 },
+    //                 'notes'             => $bahan['notes'] ?? null,
+    //             ]);
+
+    //             // Simpan foto hanya jika ada
+    //             if (!empty($this->gambarPerBahan[$bahan['bahan_id']])) {
+    //                 foreach ($this->gambarPerBahan[$bahan['bahan_id']] as $foto) {
+    //                     $originalName = $foto->getClientOriginalName();
+    //                     $filename = $qc->kode_qc . '-' . $originalName;
+
+    //                     $path = $foto->storeAs('qc_bahan_masuk', $filename, 'public');
+
+    //                     DokumentasiQcBahanMasuk::create([
+    //                         'qc_bahan_masuk_detail_id' => $detail->id,
+    //                         'bahan_id'                 => $bahan['bahan_id'],
+    //                         'gambar'                   => $path,
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+
+    //         DB::commit();
+    //         LogHelper::success('Data QC Bahan Masuk berhasil disimpan.');
+    //         session()->flash('success', 'Data QC Bahan Masuk berhasil disimpan.');
+    //         return redirect()->route('quality-page.qc-bahan-masuk.index');
+    //     } catch (\Throwable $th) {
+    //         DB::rollBack();
+    //         LogHelper::error('Gagal menyimpan data: ' . $th->getMessage());
+    //         session()->flash('error', 'Gagal menyimpan data: ' . $th->getMessage());
+    //     }
+    // }
+    /**
+     * Aturan validasi detail bahan
+     */
+    private function rulesDetail($index)
+    {
+        return [
+            "selectedBahanList.$index.no_invoice"      => 'required|string',
+            "selectedBahanList.$index.supplier_id"     => 'required|exists:supplier,id',
+            "selectedBahanList.$index.jumlah_diterima" => 'required|numeric|min:0',
+            "selectedBahanList.$index.fisik_baik"      => 'required|numeric|min:0',
+            "selectedBahanList.$index.fisik_rusak"     => 'required|numeric|min:0',
+            "selectedBahanList.$index.fisik_retur"     => 'required|numeric|min:0',
+            "selectedBahanList.$index.unit_price"      => 'required|numeric|min:0',
+            "selectedBahanList.$index.statusQc"        => 'required|in:Belum Diterima,Diterima Semua,Diterima Sebagian,Ditolak',
+        ];
+    }
+
     public function saveQCBahanMasuk()
     {
         $this->validate([
-            'is_verified' => 'accepted',
+            'is_verified'           => 'accepted',
             'selected_pembelian_id' => 'required|exists:pembelian_bahan,id',
-            'selected_petugas_id' => 'required|exists:users,id',
+            'selected_petugas_id'   => 'required|exists:users,id',
         ], [
             'is_verified.accepted' => 'Anda harus mencentang pernyataan verifikasi.',
         ]);
 
-        // Ambil hanya bahan yang ON
+        // Ambil hanya bahan ON
         $filteredBahan = collect($this->selectedBahanList)
-            ->where('is_selected', true)
+            ->filter(fn($bahan) => $bahan['is_selected'])
             ->values()
             ->toArray();
 
-        // Validasi minimal 1 ON
         if (count($filteredBahan) === 0) {
             $this->addError('selectedBahanList', 'Minimal 1 bahan harus dipilih (ON).');
             return;
         }
 
-        // Validasi detail hanya untuk bahan ON
-        foreach ($filteredBahan as $index => $bahan) {
-            $this->validate([
-                "selectedBahanList.$index.no_invoice" => 'required|string',
-                "selectedBahanList.$index.supplier_id" => 'required|exists:supplier,id',
-                "selectedBahanList.$index.jumlah_diterima" => 'required|numeric|min:0',
-                "selectedBahanList.$index.fisik_baik" => 'required|numeric|min:0',
-                "selectedBahanList.$index.fisik_rusak" => 'required|numeric|min:0',
-                "selectedBahanList.$index.fisik_retur" => 'required|numeric|min:0',
-                "selectedBahanList.$index.unit_price" => 'required|numeric|min:0',
-                "selectedBahanList.$index.statusQc" => 'required|in:Belum Diterima,Diterima Semua,Diterima Sebagian,Ditolak',
-            ]);
+        // Validasi detail tiap bahan ON
+        foreach ($filteredBahan as $bahan) {
+            $index = array_search($bahan, $this->selectedBahanList); // ambil index asli
+            $this->validate($this->rulesDetail($index));
         }
 
         DB::beginTransaction();
@@ -308,11 +417,11 @@ class QcWizard extends Component
                 'tanggal_qc'           => now('Asia/Jakarta'),
                 'keterangan_qc'        => $this->keterangan_qc ?? null,
                 'id_petugas_qc'        => $this->selected_petugas_id,
-                'id_petugas_input_qc' => Auth::user()->id,
+                'id_petugas_input_qc'  => Auth::id(),
                 'is_verified'          => $this->is_verified ? 1 : 0,
             ]);
 
-            // Simpan detail bahan hanya untuk yang ON
+            // Simpan detail bahan
             foreach ($filteredBahan as $bahan) {
                 $detail = QcBahanMasukDetails::create([
                     'id_qc_bahan_masuk' => $qc->id_qc_bahan_masuk,
@@ -327,22 +436,14 @@ class QcWizard extends Component
                     'fisik_retur'       => $bahan['fisik_retur'],
                     'unit_price'        => $bahan['unit_price'],
                     'sub_total'         => $bahan['fisik_baik'] * $bahan['unit_price'],
-                    'status'            => match($bahan['statusQc']) {
-                        'Belum Diterima' => 'Belum Diterima',
-                        'Diterima Semua' => 'Diterima Semua',
-                        'Diterima Sebagian' => 'Diterima Sebagian',
-                        'Ditolak' => 'Ditolak',
-                        default => 'Belum Diterima'
-                    },
+                    'status'            => $bahan['statusQc'],
                     'notes'             => $bahan['notes'] ?? null,
                 ]);
 
-                // Simpan foto hanya jika ada
+                // Simpan foto
                 if (!empty($this->gambarPerBahan[$bahan['bahan_id']])) {
                     foreach ($this->gambarPerBahan[$bahan['bahan_id']] as $foto) {
-                        $originalName = $foto->getClientOriginalName();
-                        $filename = $qc->kode_qc . '-' . $originalName;
-
+                        $filename = $qc->kode_qc . '-' . $foto->getClientOriginalName();
                         $path = $foto->storeAs('qc_bahan_masuk', $filename, 'public');
 
                         DokumentasiQcBahanMasuk::create([
@@ -358,6 +459,7 @@ class QcWizard extends Component
             LogHelper::success('Data QC Bahan Masuk berhasil disimpan.');
             session()->flash('success', 'Data QC Bahan Masuk berhasil disimpan.');
             return redirect()->route('quality-page.qc-bahan-masuk.index');
+
         } catch (\Throwable $th) {
             DB::rollBack();
             LogHelper::error('Gagal menyimpan data: ' . $th->getMessage());

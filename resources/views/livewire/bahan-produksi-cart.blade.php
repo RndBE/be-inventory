@@ -8,11 +8,11 @@
             </div>
 
             <div class="flex items-center">
-                <label for="bahan_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">Nama Produk
+                <label for="bahan_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">Product Number
                     <sup class="text-red-500 text-base">*</sup>
                 </label>
                 <select name="bahan_id" id="bahan_id" wire:model="selectedProdukId" wire:change="onProductSelected" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
-                    <option value="">-- Pilih Produk --</option>
+                    <option value="">-- Pilih Product Number --</option>
                     @foreach($produkProduksi as $produk)
                         <option value="{{ $produk->dataBahan->id }}">{{ $produk->dataBahan->nama_bahan }}</option>
                     @endforeach

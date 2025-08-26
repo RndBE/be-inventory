@@ -67,7 +67,7 @@
                         <td class="text-center">{{ $item->petugasQc->name }}</td>
                         <td class="text-center">{{ $item->petugasInputQc->name }}</td>
                         <td class="text-center">
-                            {{ $item->tanggal_masuk_gudang ? $item->tanggal_masuk_gudang->format('d-m-Y H:i:s') : '-' }}
+                            {{ $item->tanggal_masuk_gudang ? $item->tanggal_masuk_gudang->format('Y-m-d H:i:s') : '-' }}
                         </td>
                         <td class="table-report__action w-72">
                             <div class="flex justify-start items-start space-x-4">

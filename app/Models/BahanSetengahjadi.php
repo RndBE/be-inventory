@@ -46,4 +46,9 @@ class BahanSetengahjadi extends Model
         );
     }
 
+    public function qcProdukSetengaJadi()
+    {
+        return $this->belongsTo(QcProdukSetengahJadiList::class, 'id_qc_produk_setengahjadi', 'id');
+    }
+
 }

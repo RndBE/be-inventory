@@ -28,7 +28,7 @@
 
         <div class="mb-4 sm:mb-0">
             {{-- <p>Total transaksi yang <strong>disetujui</strong></p> --}}
-            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Proses Produksi</h6>
+            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Proses Produksi Produk Setengah Jadi</h6>
         </div>
 
 
@@ -76,8 +76,8 @@
                         <th scope="col" class="px-6 py-3">Mulai Produksi</th>
                         <th scope="col" class="px-6 py-3">Selesai Produksi</th>
                         <th scope="col" class="px-6 py-3">Pengaju</th>
-                        <th scope="col" class="px-6 py-3">Tujuan</th>
-                        <th scope="col" class="px-6 py-3">Jenis Produksi</th>
+                        <th scope="col" class="px-6 py-3">Product Number/Keterangan</th>
+                        {{-- <th scope="col" class="px-6 py-3">Jenis Produksi</th> --}}
                         <th scope="col" class="px-6 py-3">Jumlah Produksi</th>
                         {{-- <th scope="col" class="px-6 py-3">Total Item</th> --}}
                         <th scope="col" class="px-6 py-3">Status</th>
@@ -106,7 +106,7 @@
                             </div>
                             <div class="text-xs text-gray-500">{{ $produksi->keterangan }}</div>
                         </td>
-                        <td class="px-6 py-3">{{ $produksi->jenis_produksi }}</td>
+                        {{-- <td class="px-6 py-3">{{ $produksi->jenis_produksi }}</td> --}}
                         <td class="px-6 py-3"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $produksi->jml_produksi }}</span></td>
                         {{-- <td class="px-6 py-3">{{ $produksi->produksiDetails->sum('qty') }}</td> --}}
                         <td class="px-6 py-3">{{ $produksi->status }}</td>

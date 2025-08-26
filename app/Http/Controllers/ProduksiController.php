@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Throwable;
+use Carbon\Carbon;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\Bahan;
@@ -145,7 +146,23 @@ class ProduksiController extends Controller
 
             // Simpan data ke Produksi
             $produksi = new Produksi();
-            $produksi->kode_produksi = null;
+            // Generate kode produksi
+            $prefix = "PRD";
+            $timestamp = Carbon::now('Asia/Jakarta')->format('YmdHis'); // format dengan jam Jakarta
+            // Cari nomor urut terakhir di hari yang sama (Jakarta time)
+            $lastProduksi = Produksi::whereDate('created_at', Carbon::now('Asia/Jakarta')->toDateString())
+                ->orderBy('id', 'desc')
+                ->first();
+            if ($lastProduksi) {
+                $lastNumber = (int) substr($lastProduksi->kode_produksi, -4);
+                $nextNumber = $lastNumber + 1;
+            } else {
+                $nextNumber = 1;
+            }
+            $nomorUrut = str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            $kodeProduksi = $prefix . "-" . $timestamp . "-" . $nomorUrut;
+
+            $produksi->kode_produksi = $kodeProduksi;
             $produksi->bahan_id = $request->bahan_id;
             $produksi->pengaju = $user->name;
             $produksi->keterangan = $request->keterangan;
@@ -237,13 +254,13 @@ class ProduksiController extends Controller
                     $kebutuhan = $detail->jml_bahan - $detail->used_materials;
                     if ($kebutuhan > 0) {
                         $isComplete = false;
-                        $canInputKodeProduksi = false;
+                        // $canInputKodeProduksi = false;
                         break;
                     }
                 }
             }else {
                 $isComplete = false;
-                $canInputKodeProduksi = false;
+                // $canInputKodeProduksi = false;
             }
         }
 
@@ -267,7 +284,7 @@ class ProduksiController extends Controller
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $produksi = Produksi::findOrFail($id);
             $validator = Validator::make($request->all(), [
-                'kode_produksi' => 'nullable',
+                // 'kode_produksi' => 'nullable',
                 'keterangan' => 'nullable|string|max:255',
                 'serial_number' => 'nullable|string|max:255', // Setiap item dalam array harus string
             ]);
@@ -277,7 +294,7 @@ class ProduksiController extends Controller
             }
 
             $produksi->update([
-                'kode_produksi' => $request->kode_produksi,
+                // 'kode_produksi' => $request->kode_produksi,
                 'keterangan' => $request->keterangan,
                 'serial_number' => $request->serial_number,
             ]);

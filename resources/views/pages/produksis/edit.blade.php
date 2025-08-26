@@ -96,9 +96,9 @@
                             <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                                 <div class="flex items-center">
                                     <label for="kode_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Kode Produksi</label>
-                                    @if($canInputKodeProduksi)
-                                        <input type="text" id="kode_produksi" name="kode_produksi" value="{{ $produksi->kode_produksi }}" placeholder="PR - " class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }}>
-                                    @endif
+                                    {{-- @if($canInputKodeProduksi) --}}
+                                        <input type="text" disabled id="kode_produksi" name="kode_produksi" value="{{ $produksi->kode_produksi }}" placeholder="PR - " class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                    {{-- @endif --}}
                                 </div>
 
                                 {{-- <div class="flex items-center">
@@ -109,8 +109,7 @@
                                 </div> --}}
 
                                 <div class="flex items-center">
-                                    <label for="produk_id" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Nama Produk
-                                        <sup class="text-red-500 text-base">*</sup>
+                                    <label for="produk_id" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Product Number
                                     </label>
                                     <input type="text" name="produk_id" value="{{ $produksi->dataBahan->nama_bahan }}" id="produk_id"
                                     placeholder="" class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }} required readonly>
@@ -120,7 +119,7 @@
                                 </div>
 
                                 <div class="flex items-center">
-                                    <label for="mulai_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Produksi<sup class="text-red-500 text-base">*</sup></label>
+                                    <label for="mulai_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Mulai Produksi></label>
                                     <div class="relative w-3/4">
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                             <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -137,7 +136,7 @@
                                     @enderror
                                 </div>
                                 <div class="flex items-center">
-                                    <label for="jml_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi<sup class="text-red-500 text-base">*</sup></label>
+                                    <label for="jml_produksi" class="dark:text-white block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Jumlah Produksi</label>
                                     <div class="relative w-3/4">
                                         <div class="flex item-center">
                                             <input type="number" name="jml_produksi" value="{{ $produksi->jml_produksi }}"  id="jml_produksi" placeholder="" class="dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
@@ -185,12 +184,12 @@
                                     <textarea id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }}>{{ old('keterangan', $produksi->keterangan) }}</textarea>
                                 </div>
 
-                                <div class="flex items-center">
+                                {{-- <div class="flex items-center">
                                     <label for="serial_number" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
                                         Serial Number
                                     </label>
                                     <textarea id="serial_number" name="serial_number" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $produksi->status === 'Selesai' ? 'disabled' : '' }}>{{ old('serial_number', $produksi->serial_number) }}</textarea>
-                                </div>
+                                </div> --}}
 
                                 <div class="flex items-center">
                                     <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>

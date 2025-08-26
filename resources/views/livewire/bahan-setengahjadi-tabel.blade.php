@@ -77,7 +77,18 @@
                     @forelse($bahanSetengahjadis as $index => $bahanSetengahjadi)
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $bahanSetengahjadis->firstItem() + $index }}</div></td>
-                        <td class="px-6 py-3">{{ $bahanSetengahjadi->kode_transaksi }}</td>
+                        <td class="px-6 py-3">
+                            @if($bahanSetengahjadi->qcProdukSetengaJadi)
+                                <a href="{{ route('quality-page.qc-produk-setengah-jadi.view', $bahanSetengahjadi->qcProdukSetengaJadi->id) }}"
+                                class="text-blue-600 hover:underline" target="_blank">
+                                    {{ $bahanSetengahjadi->qcProdukSetengaJadi->kode_list }}
+                                </a>
+                            @else
+                                {{ $bahanSetengahjadi->kode_transaksi }}
+                            @else
+                                -
+                            @endif
+                        </td>
                         <td class="px-6 py-3">{{ $bahanSetengahjadi->tgl_masuk }}</td>
                         <td class="px-6 py-3">
                             @if($bahanSetengahjadi->bahanSetengahjadiDetails->isNotEmpty())

@@ -23,10 +23,36 @@
         </script>
     @endif
 
+    <script>
+        window.addEventListener('swal:error', event => {
+            // console.log(event.detail);
+            Swal.fire({
+                icon: 'error',
+                title: event.detail[0].title,
+                text: event.detail[0].text,
+                showConfirmButton: true,
+                timer: 5000
+            });
+        });
+    </script>
+
+    <script>
+        window.addEventListener('swal:success', event => {
+            // console.log(event.detail);
+            Swal.fire({
+                icon: 'success',
+                title: event.detail[0].title,
+                text: event.detail[0].text,
+                showConfirmButton: true,
+                timer: 5000
+            });
+        });
+    </script>
+
     <div class="intro-y col-span-12 flex flex-wrap sm:flex-no-wrap items-center mt-2">
-        <a href="{{ route('quality-page.qc-bahan-masuk.wizard') }}">
+        <a href="{{ route('quality-page.qc-produk-setengah-jadi.wizard') }}">
             <button class="button text-white bg-theme-primary shadow-md mr-2">
-                Tambah QC
+                Selesaikan Produksi
             </button>
         </a>
         <a href="{{ route('produksis.index') }}">
@@ -41,102 +67,478 @@
         </div>
     </div>
 
-
-    <div class="intro-y col-span-12 overflow-auto lg:overflow-visible mt-5">
+    <div>
         <table class="table table-report -mt-2">
             <thead>
                 <tr>
-                    <th>Kode QC</th>
-                    <th class="text-center">Tanggal QC</th>
-                    <th class="text-center">Petugas QC</th>
-                    <th class="text-center">Petugas Input</th>
-                    <th class="text-center">Tanggal Masuk Gudang</th>
-                    <th class="text-center w-72">Aksi</th>
+                    <th rowspan="2">Kode Produksi/List</th>
+                    <th rowspan="2" class="text-center">Waktu Produksi</th>
+                    <th rowspan="2" class="text-center">PN/SN</th>
+                    <th colspan="2" class="text-center">Hasil QC</th>
+                    <th rowspan="2" class="text-center">Final Grade</th>
+                    <th rowspan="2" class="text-center">Qty</th>
+                    <th rowspan="2" class="text-center">Unit Price</th>
+                    <th rowspan="2" class="text-center">Sub Total</th>
+                    <th rowspan="2" class="text-center">Tanggal Masuk Gudang</th>
+                    <th rowspan="2" class="text-center w-72">Aksi</th>
+                </tr>
+                <tr>
+                    <th class="text-center">QC 1</th>
+                    <th class="text-center">QC 2</th>
                 </tr>
             </thead>
+
             <tbody>
-                {{-- @forelse ($qcList as $item) --}}
-                {{-- {{ dd($item->id_qc_bahan_masuk) }} --}}
-                    {{-- <tr class="intro-x">
+                @forelse($qcList as $item)
+                    <tr class="intro-x">
+                        <!-- Kode Produksi/List -->
                         <td>
-                            <a href="#" class="font-medium">{{ $item->kode_qc }}</a>
-                            <div class="text-gray-600 text-xs">{{ $item->pembelianBahan->kode_transaksi }}</div>
+                            <a href="{{ route('quality-page.qc-produk-setengah-jadi.view', $item->id) }}" class="font-medium">
+                                {{ $item->produksi->kode_produksi ?? '-' }}
+                            </a>
+                            <div class="text-gray-600 text-xs">
+                                {{ $item->kode_list }}
+                            </div>
                         </td>
-                        <td class="text-center">{{ $item->tanggal_qc->format('d-m-Y H:i:s') }}</td>
-                        <td class="text-center">{{ $item->petugasQc->name }}</td>
-                        <td class="text-center">{{ $item->petugasInputQc->name }}</td>
+
+                        <!-- Waktu Produksi -->
                         <td class="text-center">
-                            {{ $item->tanggal_masuk_gudang ? $item->tanggal_masuk_gudang->format('d-m-Y H:i:s') : '-' }}
+                            @if($item->mulai_produksi && $item->selesai_produksi)
+                                {{ \Carbon\Carbon::parse($item->mulai_produksi)->format('d-m-Y') }} /
+                                {{ \Carbon\Carbon::parse($item->selesai_produksi)->format('d-m-Y') }}
+                                <div class="text-xs text-gray-500">
+                                    {{ \Carbon\Carbon::parse($item->mulai_produksi)->diffForHumans($item->selesai_produksi, true) }}
+                                </div>
+                            @else
+                                <span class="text-gray-400">-</span>
+                            @endif
                         </td>
+
+                        <td>
+                            <div class="text-black text-sm">
+                                {{ $item->produksi->dataBahan->nama_bahan }}
+                            </div>
+                            <div class="text-gray-600 text-xs">
+                                {{ $item->serial_number ?? '-' }}
+                            </div>
+                        </td>
+
+                        <td class="text-center">
+                            @if($item->qc1)
+                                <div class="font-medium text-blue-700 cursor-pointer"
+                                    wire:click="$dispatch('open-edit-qc-modal', { id: {{ $item->qc1->id }}, qc: 1 })">
+                                    {{ $item->qc1->kode_qc }}
+                                </div>
+                            @else
+                                <span class="text-gray-400">-</span>
+                            @endif
+                        </td>
+
+                        <td class="text-center">
+                            @if($item->qc2)
+                                <div class="font-medium text-blue-700 cursor-pointer"
+                                    wire:click="$dispatch('open-edit-qc-modal', { id: {{ $item->qc2->id }}, qc: 2 })">
+                                    {{ $item->qc2->kode_qc }}
+                                </div>
+                            @else
+                                <span class="text-gray-400">-</span>
+                            @endif
+                        </td>
+
+                        <td class="text-center font-semibold">
+                            @if($item->qc2)
+                                <span><img src="{{ asset('images/grade B.png') }}" alt="Grade B" class="h-16"></span>
+                            @elseif($item->qc1)
+                                @if($item->qc1->grade == 'A')
+                                    <img src="{{ asset('images/grade A.png') }}" alt="Grade A" class="h-16 inline">
+                                @elseif($item->qc1->grade == 'B')
+                                    <img src="{{ asset('images/grade B.png') }}" alt="Grade B" class="h-16 inline">
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            @else
+                                <span class="text-gray-400">-</span>
+                            @endif
+                        </td>
+
+                        <!-- Qty -->
+                        <td class="text-center">{{ number_format($item->qty, 2) }}</td>
+
+                        <!-- Unit Price -->
+                        <td class="text-center">Rp. {{ number_format($item->unit_price, 2, ',', '.') }}</td>
+
+                        <!-- Sub Total -->
+                        <td class="text-center">Rp. {{ number_format($item->sub_total, 2, ',', '.') }}</td>
+
+                        <td class="text-center">
+                            {{ $item->tanggal_masuk_gudang ? $item->tanggal_masuk_gudang->format('Y-m-d H:i:s') : '-' }}
+                        </td>
+
+                        <!-- Aksi -->
                         <td class="table-report__action w-72">
                             <div class="flex justify-start items-start space-x-4">
-                                <a wire:ignore class="flex items-center text-theme-1"
-                                href="{{ route('quality-page.qc-bahan-masuk.view', $item->id_qc_bahan_masuk) }}">
-                                    <i data-feather="check-square" class="w-4 h-4 mr-1"></i> View
-                                </a>
 
-                                @if(!$item->tanggal_masuk_gudang)
-                                    <button wire:ignore wire:click="prosesKeGudang({{ $item->id_qc_bahan_masuk }})"
-                                            class="flex items-center text-green-600">
+                                {{-- <a wire:ignore class="flex items-center text-theme-1"
+                                href="{{ route('quality-page.qc-produk-setengah-jadi.view', $item->id) }}">
+                                    <i data-feather="check-square" class="w-4 h-4 mr-1"></i> View
+                                </a> --}}
+
+                                @if(!$item->qc1)
+                                    <button wire:ignore
+                                        wire:click="$dispatch('open-qc-modal', { id: {{ $item->id }}, qc: 1 })"
+                                        class="flex items-center text-blue-600 cursor-pointer">
+                                        <i data-feather="check-circle" class="w-4 h-4 mr-1"></i> QC 1
+                                    </button>
+                                @endif
+
+                                {{-- Tombol QC 2 (hanya muncul jika QC1 sudah ada & QC2 belum ada) --}}
+                                @if($item->qc1 && !$item->qc2 && empty($item->serial_number))
+                                    <button wire:ignore
+                                        wire:click="$dispatch('open-qc-modal', { id: {{ $item->id }}, qc: 2 })"
+                                        class="flex items-center text-green-600 cursor-pointer">
+                                        <i data-feather="check-circle" class="w-4 h-4 mr-1"></i> QC 2
+                                    </button>
+                                @endif
+
+                                @if(!$item->tanggal_masuk_gudang && $item->qc1)
+                                    <button
+                                        x-data wire:ignore
+                                        x-on:click="$dispatch('open-gudang-modal', { id: {{ $item->id }} })"
+                                        class="flex items-center text-green-600">
                                         <i data-feather="box" class="w-4 h-4 mr-1"></i> Add to Gudang
                                     </button>
                                 @endif
 
-                                <a wire:ignore class="flex items-center text-theme-6 cursor-pointer"
-                                wire:click="confirmDelete({{ $item->id_qc_bahan_masuk }})">
-                                    <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Hapus
-                                </a>
+                                <!-- Tombol Hapus -->
+                                @if(empty($item->serial_number))
+                                    <a wire:ignore wire:click="confirmDelete({{ $item->id }})"
+                                    class="flex items-center text-red-600 cursor-pointer">
+                                        <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Hapus
+                                    </a>
+                                @endif
                             </div>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center text-gray-500">Tidak ada data.</td></tr>
-                @endforelse --}}
+                    <tr>
+                        <td colspan="11" class="text-center text-gray-500">
+                            Tidak ada data.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
 
         <div class="mt-5">
-            {{-- {{ $qcList->links() }} --}}
+            {{ $qcList->links() }}
         </div>
     </div>
-    {{-- @if($showDeleteModal)
-        <div
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300"
-            wire:click="$set('showDeleteModal', false)"
-        >
-            <div
-                class="bg-white rounded-lg shadow-lg w-full max-w-md p-6"
-                wire:click.stop
-            >
-                <div class="flex items-start justify-between">
-                    <h2 class="text-xl font-bold text-gray-800">Konfirmasi Hapus</h2>
-                    <button
-                        wire:click="$set('showDeleteModal', false)"
-                        class="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 8.586l4.95-4.95a1 1 0 111.414 1.414L11.414 10l4.95 4.95a1 1 0 01-1.414 1.414L10 11.414l-4.95 4.95a1 1 0 01-1.414-1.414L8.586 10 3.636 5.05a1 1 0 011.414-1.414L10 8.586z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                </div>
-                <p class="mt-4 text-gray-600">Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak bisa dibatalkan.</p>
 
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button
-                        wire:click="$set('showDeleteModal', false)"
-                        class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100"
+    <!-- Modal QC -->
+    <div x-data="{ open: false, qc: null, id: null }"
+        x-on:open-qc-modal.window="
+            open = true;
+            qc = $event.detail.qc;
+            id = $event.detail.id;
+            if(qc == 2){
+                $wire.set('grade', 'B'); // otomatis set grade ke B
+            } else {
+                $wire.set('grade', ''); // reset jika QC1
+            }
+        "
+        x-show="open"
+        class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+        style="display: none;">
+
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6" @click.outside="open = false; $wire.resetForm()">
+            <h2 class="text-lg font-bold mb-4">Input QC <span x-text="qc"></span></h2>
+
+            <!-- Select Grade -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Grade</label>
+                <select
+                    wire:model="grade"
+                    class="input border w-full mt-1 text-sm"
+                    :disabled="qc == 2"
+                >
+                    <option value="">Pilih Grade</option>
+                    <option value="A" x-show="qc == 1">Grade A</option>
+                    <option value="B">Grade B</option>
+                </select>
+                @error('grade') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+
+            <!-- Laporan QC (file) -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Laporan QC</label>
+                <input type="file" wire:model="laporan_qc" accept="application/pdf"
+                    class="mt-1 block w-full text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm"/>
+                @error('laporan_qc') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+            <!-- Catatan -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Catatan</label>
+                <textarea wire:model="catatan"
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                    rows="3"></textarea>
+                @error('catatan') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+            <!-- Dokumentasi (multiple files) -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Dokumentasi QC</label>
+                <div
+                    class="p-5 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition cursor-pointer">
+
+                    <!-- Input Upload -->
+                    <input
+                        type="file"
+                        id="dokumentasi-upload"
+                        multiple
+                        accept="image/png, image/jpeg, image/jpg, image/webp"
+                        wire:model="dokumentasi"
+                        class="hidden"
                     >
-                        Batal
-                    </button>
-                    <button
-                        wire:click="deleteConfirmed"
-                        class="px-4 py-2 bg-theme-1 text-white rounded hover:bg-theme-1/90"
-                    >
-                        Hapus
-                    </button>
+
+                    <label for="dokumentasi-upload" class="flex flex-col items-center justify-center cursor-pointer">
+                        <svg class="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M7 16V4a1 1 0 011-1h8a1 1 0 011 1v12m-4-4h.01M5 20h14a2 2 0 002-2v-5a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
+                        </svg>
+                        <p class="text-gray-600">Klik atau drag & drop gambar</p>
+                        <p class="text-lg text-gray-400">PNG, JPG, JPEG, WEBP</p>
+                    </label>
+
+                    <!-- Preview -->
+                    @if ($dokumentasi)
+                        <div class="grid grid-cols-3 gap-2 mt-4">
+                            @foreach ($dokumentasi as $index => $file)
+                                <div class="relative w-full h-24 border rounded overflow-hidden">
+                                    <!-- Tombol hapus -->
+                                    <button
+                                        type="button"
+                                        wire:click="removeDokumentasi({{ $index }})"
+                                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                                            background-color: #8b0000; color: white; font-size: 20px; width: 32px; height: 32px;
+                                            display: flex; align-items: center; justify-content: center; border: none; border-radius: 50%;
+                                            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                                        ×
+                                    </button>
+
+                                    <!-- Preview -->
+                                    <img src="{{ $file->temporaryUrl() }}" alt="Preview"
+                                        class="w-full h-full object-cover">
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
+                @error('dokumentasi.*') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+
+            <!-- Tombol -->
+            <div class="flex justify-end space-x-2">
+                <button @click="open=false; $wire.resetForm()"  @click="open=false" class="px-4 py-2 bg-gray-300 rounded-lg">Batal</button>
+                <button wire:click="simpanQc(id, qc)" @click="open=false"
+                    class="px-4 py-2 bg-theme-1 text-white rounded-lg">
+                    Simpan
+                </button>
             </div>
         </div>
-    @endif --}}
+    </div>
+
+    <!-- Modal Edit QC -->
+    <div x-data="{ open: false, qc: null, id: null }"
+        x-on:open-edit-qc-modal.window="
+            open = true;
+            qc = $event.detail.qc;
+            id = $event.detail.id;
+            $wire.loadQcData(id, qc);
+            if(qc == 2){
+                $wire.set('grade', 'B'); // otomatis set grade ke B
+            } else {
+                $wire.set('grade', ''); // reset jika QC1
+            }"
+        x-show="open" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50" style="display: none;">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6" @click.outside="open = false; $wire.resetForm()">
+            <h2 class="text-lg font-bold mb-4">Edit QC <span x-text="qc"></span></h2>
+
+            <!-- Grade -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Grade</label>
+                <select wire:model="grade" class="input border w-full mt-1 text-sm" :disabled="qc == 2">
+                    <option value="">Pilih Grade</option>
+                    <option value="A" x-show="qc == 1">Grade A</option>
+                    <option value="B">Grade B</option>
+                </select>
+                @error('grade') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+            <!-- Laporan QC (file PDF) -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Laporan QC</label>
+
+                @if($laporan_qc_old)
+                    <p class="text-sm text-gray-600 mb-2">
+                        File lama: <a href="{{ Storage::url($laporan_qc_old) }}" target="_blank" class="text-blue-600 underline">Lihat PDF</a>
+                    </p>
+                @endif
+
+                <input type="file" wire:model="laporan_qc" accept="application/pdf"
+                    class="mt-1 block w-full text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm"/>
+                @error('laporan_qc') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+            <!-- Catatan -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Catatan</label>
+                <textarea wire:model="catatan"
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                    rows="3"></textarea>
+                @error('catatan') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+            <!-- Dokumentasi (lama + baru) -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Dokumentasi QC</label>
+
+                <!-- Kotak Upload -->
+                <div class="p-5 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
+                    <input type="file" id="dokumentasi-upload-edit" multiple
+                        accept="image/png, image/jpeg, image/jpg, image/webp"
+                        wire:model="dokumentasi"
+                        class="hidden">
+                    <label for="dokumentasi-upload-edit" class="flex flex-col items-center justify-center cursor-pointer">
+                        <svg class="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M7 16V4a1 1 0 011-1h8a1 1 0 011 1v12m-4-4h.01M5 20h14a2 2 0 002-2v-5a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
+                        </svg>
+                        <p class="text-gray-600">Klik atau drag & drop gambar</p>
+                        <p class="text-lg text-gray-400">PNG, JPG, JPEG, WEBP</p>
+                    </label>
+
+                    <!-- Gabungan Preview Lama & Baru -->
+                    <div class="grid grid-cols-3 gap-2 mt-4">
+                        {{-- Dokumentasi Lama --}}
+                        @if($dokumentasi_lama && count($dokumentasi_lama) > 0)
+                            @foreach($dokumentasi_lama as $doc)
+                                <div class="relative w-full h-24 border rounded overflow-hidden group">
+                                    <img src="{{ Storage::url($doc->file_path) }}" class="w-full h-full object-cover">
+                                    <button type="button"
+                                            wire:click="hapusDokumentasi({{ $doc->id }})"
+                                            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                                                    background-color: #8b0000; color: white; font-size: 20px; width: 32px; height: 32px;
+                                                    display: flex; align-items: center; justify-content: center; border: none; border-radius: 50%;
+                                                    cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                                        ×
+                                    </button>
+                                </div>
+                            @endforeach
+                        @endif
+
+                        {{-- Dokumentasi Baru --}}
+                        @if ($dokumentasi && count($dokumentasi) > 0)
+                            @foreach ($dokumentasi as $index => $file)
+                                <div class="relative w-full h-24 border rounded overflow-hidden group">
+                                    <img src="{{ $file->temporaryUrl() }}" alt="Preview" class="w-full h-full object-cover">
+                                    <button type="button"
+                                            wire:click="removeDokumentasi({{ $index }})"
+                                            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                                                    background-color: #8b0000; color: white; font-size: 20px; width: 32px; height: 32px;
+                                                    display: flex; align-items: center; justify-content: center; border: none; border-radius: 50%;
+                                                    cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                                        ×
+                                    </button>
+                                </div>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <!-- Tombol -->
+            <div class="flex justify-end space-x-2">
+                <button @click="open=false" class="px-4 py-2 bg-gray-300 rounded-lg">Batal</button>
+                <button wire:click="updateQc(id, qc)" @click="open=false"
+                    class="px-4 py-2 bg-theme-1 text-white rounded-lg">
+                    Update
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Konfirmasi + Input Serial Number --}}
+    <div x-data="{ open: false, id: null, serial: '' }"
+        x-on:open-gudang-modal.window="open = true; id = $event.detail.id;"
+        x-show="open"
+        class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+        style="display: none;"
+        >
+        <div @click.away="open = false"
+            class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+
+            <h2 class="text-lg font-bold text-gray-700 mb-4">Konfirmasi</h2>
+            <p class="text-gray-600 mb-4">
+                Apakah Anda yakin ingin memproses produk ini ke Gudang?
+            </p>
+
+            {{-- Input Serial Number --}}
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-medium mb-1">
+                    Serial Number
+                </label>
+                <input type="text"
+                    x-model="serial"
+                    x-init="$watch('id', value => { $wire.call('generateSerialNumberLive', value).then(s => serial = s) })"
+                    placeholder="Masukkan Serial Number"
+                    class="w-full border rounded-lg p-2 focus:ring focus:ring-green-300">
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button @click="open = false"
+                    class="px-4 py-2 bg-gray-300 rounded-lg">
+                    Batal
+                </button>
+                <button
+                    @click="$wire.prosesKeGudang(id, serial); open = false;"
+                    class="px-4 py-2 rounded-lg bg-theme-1 text-white">
+                    Ya, Proses
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div
+        x-data="{ open: false, id: null }"
+        x-on:open-delete-modal.window="open = true; id = $event.detail.id;"
+        x-show="open"
+        class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+        style="display: none;"
+        >
+        <div @click.away="open = false"
+            class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+
+            <h2 class="text-lg font-bold text-gray-700 mb-4">Konfirmasi Hapus</h2>
+            <p class="text-gray-600 mb-4">
+                Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak bisa dibatalkan.
+            </p>
+
+            <div class="flex justify-end space-x-3">
+                <button @click="open = false"
+                        class="px-4 py-2 bg-gray-300 rounded-lg">
+                    Batal
+                </button>
+                <button
+                    @click="$wire.deleteItem(id); open = false;"
+                    class="px-4 py-2 rounded-lg bg-theme-1 text-white">
+                    Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
 
 </div>

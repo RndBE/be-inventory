@@ -14,7 +14,7 @@ class BahanSetengahjadiTabel extends Component
     public $id_bahanSetengahjadis;
     public function render()
     {
-        $bahanSetengahjadis = BahanSetengahjadi::with('bahanSetengahjadiDetails')->orderBy('id', 'desc')
+        $bahanSetengahjadis = BahanSetengahjadi::with(['bahanSetengahjadiDetails', 'qcProdukSetengaJadi'])->orderBy('id', 'desc')
         ->where(function ($query) {
             $query->where('tgl_masuk', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')

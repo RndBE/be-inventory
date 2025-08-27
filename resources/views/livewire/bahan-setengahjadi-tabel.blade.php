@@ -83,7 +83,7 @@
                                 class="text-blue-600 hover:underline" target="_blank">
                                     {{ $bahanSetengahjadi->qcProdukSetengaJadi->kode_list }}
                                 </a>
-                            @else
+                            @elseif($bahanSetengahjadi->kode_transaksi)
                                 {{ $bahanSetengahjadi->kode_transaksi }}
                             @else
                                 -

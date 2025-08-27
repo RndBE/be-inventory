@@ -52,6 +52,23 @@ class ProduksiController extends Controller
         return Excel::download(new ProduksiExport($produksi_id), $fileName);
     }
 
+    public function info($id)
+    {
+        $produksi = Produksi::with([
+            'dataBahan',
+            'bahanKeluar',
+            'bahanKeluar.dataUser',
+            'bahanKeluar.bahanKeluarDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'purchase']);
+            }
+        ])->findOrFail($id);
+
+
+        return view('pages.produksis.info', compact('produksi'));
+    }
+
+
     public function index()
     {
         return view('pages.produksis.index');

@@ -19,7 +19,7 @@ class Produksi extends Model
 
     public function bahanKeluar()
     {
-        return $this->belongsTo(BahanKeluar::class, 'produksi_id', 'id');
+        return $this->hasMany(BahanKeluar::class, 'produksi_id', 'id');
     }
 
     public function dataProdukProduksi()

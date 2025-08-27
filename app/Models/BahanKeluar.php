@@ -14,7 +14,7 @@ class BahanKeluar extends Model
 
     public function dataUser()
     {
-        return $this->belongsTo(User::class, 'pengaju');
+        return $this->belongsTo(User::class, 'pengaju', 'id');
     }
 
     public function bahanKeluarDetails()

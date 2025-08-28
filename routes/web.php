@@ -39,6 +39,7 @@ use App\Http\Controllers\BahanRusakController;
 use App\Http\Controllers\BarangAsetController;
 use App\Http\Controllers\JenisBahanController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProdukJadiController;
 use App\Http\Controllers\UploadTempController;
 use App\Http\Controllers\BahanKeluarController;
 use App\Http\Controllers\JobPositionController;
@@ -179,12 +180,14 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('bahan-rusaks', BahanRusakController::class);
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
     Route::get('bahan-setengahjadis-export', [BahanSetengahjadiController::class, 'export'])->name('bahan-setengahjadis-export.export');
-    Route::resource('bahan-jadis', BahanJadiController::class);
+
     Route::resource('produk-produksis', ProdukProduksiController::class);
     Route::get('/produk-produksis/pdf/{id}', [ProdukProduksiController::class, 'downloadPdf'])->name('produk-produksis.downloadPdf');
     Route::get('/produk-produksis/pdfmodal/{id}', [ProdukProduksiController::class, 'downloadPdfmodal'])->name('produk-produksis.downloadPdfmodal');
     Route::resource('bahan-returs', BahanReturController::class);
     Route::get('/bahan-returs/pdf/{id}', [BahanReturController::class, 'downloadPdf'])->name('bahan-returs.downloadPdf');
+
+    Route::resource('produk-jadis', ProdukJadiController::class);
 
     Route::resource('stock-opname', StockOpnameController::class);
     Route::put('/stock-opname/updateApprovalFinance/{id}', [StockOpnameController::class, 'updateApprovalFinance'])->name('stock-opname.updateApprovalFinance');

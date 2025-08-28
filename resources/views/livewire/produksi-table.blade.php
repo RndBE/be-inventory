@@ -76,7 +76,7 @@
                         <th scope="col" class="px-6 py-3">Mulai Produksi</th>
                         <th scope="col" class="px-6 py-3">Selesai Produksi</th>
                         <th scope="col" class="px-6 py-3">Pengaju</th>
-                        <th scope="col" class="px-6 py-3">Product Number/Keterangan</th>
+                        <th scope="col" class="px-6 py-3">Nama Produk/Keterangan</th>
                         {{-- <th scope="col" class="px-6 py-3">Jenis Produksi</th> --}}
                         <th scope="col" class="px-6 py-3">Jumlah Produksi</th>
                         {{-- <th scope="col" class="px-6 py-3">Total Item</th> --}}

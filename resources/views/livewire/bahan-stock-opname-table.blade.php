@@ -199,7 +199,9 @@
         {{-- MODAL --}}
         {{-- @include('pages.bahan-returs.test')
         @include('pages.bahan-returs.edit') --}}
-        @include('pages.stock-opname.remove')
+        @if($isDeleteModalOpen)
+            @include('pages.stock-opname.remove')
+        @endif
     </div>
 </div>
 <script>

@@ -155,9 +155,12 @@
             {{$bahan_rusaks->links()}}
         </div>
         {{-- MODAL --}}
-        @include('pages.bahan-rusaks.edit')
-        @include('pages.bahan-rusaks.remove')
-
+        @if($isEditModalOpen)
+            @include('pages.bahan-rusaks.edit')
+        @endif
+        @if($isDeleteModalOpen)
+            @include('pages.bahan-rusaks.remove')
+        @endif
     </div>
 </div>
 <script>

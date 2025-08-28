@@ -110,8 +110,12 @@
         <div class="px-6 py-4">
             {{$produkjadis->links()}}
         </div>
-        @include('pages.produk-jadis.edit')
-        @include('pages.produk-jadis.remove')
+        @if($isEditModalOpen)
+            @include('pages.produk-jadis.edit')
+        @endif
+        @if($isDeleteModalOpen)
+            @include('pages.produk-jadis.remove')
+        @endif
     </div>
 </div>
 <script>

@@ -170,9 +170,15 @@
             {{$bahan_returs->links()}}
         </div>
         {{-- MODAL --}}
-        @include('pages.bahan-returs.test')
-        @include('pages.bahan-returs.edit')
-        @include('pages.bahan-returs.remove')
+        @if($isShowModalOpen)
+            @include('pages.bahan-returs.test')
+        @endif
+        @if($isEditModalOpen)
+            @include('pages.bahan-returs.edit')
+        @endif
+        @if($isDeleteModalOpen)
+            @include('pages.bahan-returs.remove')
+        @endif
     </div>
 </div>
 <script>

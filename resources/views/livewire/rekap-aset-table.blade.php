@@ -177,8 +177,12 @@
             {{ $rekap_asets->links() }}
         </div>
         {{-- MODAL --}}
-        @include('pages.rekap_aset.remove')
-        @include('pages.rekap_aset.gambar')
+        @if($isDeleteModalOpen)
+            @include('pages.rekap_aset.remove')
+        @endif
+        @if($isShowGambarModalOpen)
+            @include('pages.rekap_aset.gambar')
+        @endif
     </div>
 </div>
 <script>

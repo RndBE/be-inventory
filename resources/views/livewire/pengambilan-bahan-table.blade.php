@@ -155,7 +155,9 @@
         </div>
         {{-- MODAL --}}
         {{-- @include('pages.jenis-bahan.edit') --}}
-        @include('pages.pengambilan.remove')
+        @if($isDeleteModalOpen)
+            @include('pages.pengambilan.remove')
+        @endif
     </div>
 </div>
 <script>

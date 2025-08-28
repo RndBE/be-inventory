@@ -199,8 +199,12 @@
         </div>
         {{-- MODAL --}}
         {{-- @include('pages.jenis-bahan.edit') --}}
-        @include('pages.pengajuan.remove')
-        @include('pages.pengajuan.shownotif')
+        @if($isDeleteModalOpen)
+            @include('pages.pengajuan.remove')
+        @endif
+        @if($showModal)
+            @include('pages.pengajuan.shownotif')
+        @endif
     </div>
 </div>
 <script>

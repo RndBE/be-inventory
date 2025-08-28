@@ -119,8 +119,13 @@
             {{$jenisbahans->links()}}
         </div>
         {{-- MODAL --}}
-        @include('pages.jenis-bahan.edit')
-        @include('pages.jenis-bahan.remove')
+        @if($isEditModalOpen)
+            @include('pages.jenis-bahan.edit')
+        @endif
+
+        @if($isDeleteModalOpen)
+            @include('pages.jenis-bahan.remove')
+        @endif
     </div>
 </div>
 <script>

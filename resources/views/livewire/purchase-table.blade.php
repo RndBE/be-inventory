@@ -161,7 +161,10 @@
         </div>
         {{-- MODAL --}}
         {{-- @include('pages.jenis-bahan.edit') --}}
-        @include('pages.purchases.remove')
+        @if($isDeleteModalOpen)
+            @include('pages.purchases.remove')
+        @endif
+
     </div>
 </div>
 <script>

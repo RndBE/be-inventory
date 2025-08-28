@@ -119,8 +119,12 @@
             {{$units->links()}}
         </div>
         {{-- MODAL --}}
-        @include('pages.unit.edit')
-        @include('pages.unit.remove')
+        @if($isEditModalOpen)
+            @include('pages.unit.edit')
+        @endif
+        @if($isDeleteModalOpen)
+            @include('pages.unit.remove')
+        @endif
     </div>
 </div>
 <script>

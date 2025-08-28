@@ -129,8 +129,12 @@
             {{$suppliers->links()}}
         </div>
         {{-- MODAL --}}
-        @include('pages.supplier.edit')
-        @include('pages.supplier.remove')
+        @if($isEditModalOpen)
+            @include('pages.supplier.edit')
+        @endif
+        @if($isDeleteModalOpen)
+            @include('pages.supplier.remove')
+        @endif
     </div>
 </div>
 <script>

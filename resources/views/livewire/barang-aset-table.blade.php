@@ -130,8 +130,14 @@
             {{ $barang_asets->links() }}
         </div>
         {{-- MODAL --}}
-        @include('pages.barang_aset.edit')
-        @include('pages.barang_aset.remove')
+        @if($isEditModalOpen)
+            @include('pages.barang_aset.edit')
+        @endif
+
+        @if($isDeleteModalOpen)
+            @include('pages.barang_aset.remove')
+        @endif
+
     </div>
 </div>
 <script>

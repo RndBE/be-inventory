@@ -150,7 +150,10 @@
         {{-- MODAL --}}
         {{-- @include('pages.bahan-keluars.test') --}}
         {{-- @include('pages.bahan-keluars.edit') --}}
-        @include('pages.produk-produksis.remove')
+        @if($isDeleteModalOpen)
+            @include('pages.produk-produksis.remove')
+        @endif
+
     </div>
 </div>
 <script>

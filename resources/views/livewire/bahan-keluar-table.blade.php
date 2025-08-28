@@ -254,10 +254,18 @@
             {{$bahan_keluars->links()}}
         </div>
         {{-- MODAL --}}
-        @include('pages.bahan-keluars.test')
-        @include('pages.bahan-keluars.approval-leader')
-        @include('pages.bahan-keluars.edit-pengambilan')
-        @include('pages.bahan-keluars.remove')
+        @if($isShowModalOpen)
+            @include('pages.bahan-keluars.test')
+        @endif
+        @if($isApproveLeaderModalOpen)
+            @include('pages.bahan-keluars.approval-leader')
+        @endif
+        @if($isEditPengambilanModalOpen)
+            @include('pages.bahan-keluars.edit-pengambilan')
+        @endif
+        @if($isDeleteModalOpen)
+            @include('pages.bahan-keluars.remove')
+        @endif
     </div>
 </div>
 <script>

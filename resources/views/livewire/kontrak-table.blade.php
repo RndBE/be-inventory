@@ -133,8 +133,12 @@
             {{$kontraks->links()}}
         </div>
         {{-- MODAL --}}
-        @include('pages.kontrak.edit')
-        @include('pages.kontrak.remove')
+        @if($isEditModalOpen)
+            @include('pages.kontrak.edit')
+        @endif
+        @if($isDeleteModalOpen)
+            @include('pages.kontrak.remove')
+        @endif
     </div>
 </div>
 <script>

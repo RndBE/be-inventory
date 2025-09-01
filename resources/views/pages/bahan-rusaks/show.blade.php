@@ -17,6 +17,8 @@
                                     <p>Kode Projek: {{ $kode_projek }}</p>
                                 @elseif ($kode_produksi != null)
                                     <p>Kode Produksi: {{ $kode_produksi }}</p>
+                                @elseif ($kode_produksi_produk_jadi != null)
+                                    <p>Kode Produksi Produk Jadi: {{ $kode_produksi_produk_jadi }}</p>
                                 @else
                                     <p>Kode Projek RnD: {{ $kode_projek_rnd }}</p>
                                 @endif

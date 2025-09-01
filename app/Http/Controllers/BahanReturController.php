@@ -21,6 +21,7 @@ use App\Models\ProdukSampleDetails;
 use App\Models\GaransiProjekDetails;
 use App\Models\PengambilanBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
+use App\Models\ProduksiProdukJadiDetails;
 
 class BahanReturController extends Controller
 {
@@ -45,7 +46,7 @@ class BahanReturController extends Controller
             $bahanRetur = BahanRetur::with([
                 'produksiS','projek','garansiProjek','projekRnd','pengajuan','pengambilanBahan','produkSample',
                 'bahanReturDetails.dataBahan.dataUnit',
-                'bahanReturDetails.dataProduk',
+                'bahanReturDetails.dataProduk', 'produksiProdukJadi',
             ])->findOrFail($id);
 
             $hasProduk = $bahanRetur->bahanReturDetails->filter(function ($detail) {
@@ -62,6 +63,8 @@ class BahanReturController extends Controller
                 $pengaju = $bahanRetur->produksiS->pengaju ?? null;
             } elseif ($bahanRetur->projek) {
                 $pengaju = $bahanRetur->projek->pengaju ?? null;
+            }elseif ($bahanRetur->produksiProdukJadi) {
+                $pengaju = $bahanRetur->produksiProdukJadi->pengaju ?? null;
             }elseif ($bahanRetur->garansiProjek) {
                 $pengaju = $bahanRetur->garansiProjek->pengaju ?? null;
             }elseif ($bahanRetur->projekRnd) {
@@ -244,7 +247,6 @@ class BahanReturController extends Controller
                         $produksiDetail->save();
                     }
 
-                    // Update untuk ProjekDetails
                     $projekDetail = ProjekDetails::where('projek_id', $bahanRetur->projek_id)
                     ->where(function ($query) use ($bahanId) {
                         $query->where('bahan_id', $bahanId)
@@ -285,6 +287,50 @@ class BahanReturController extends Controller
                         } else {
                             // Jika tidak ada entry tersisa, hapus ProjekDetails
                             $projekDetail->delete();
+                        }
+                    }
+
+                    // Update untuk ProduksiProdukJadiDetails
+                    $produksiProdukjadiDetail = ProduksiProdukJadiDetails::where('produksi_produk_jadi_id', $bahanRetur->produksi_produk_jadi_id)
+                    ->where(function ($query) use ($bahanId) {
+                        $query->where('bahan_id', $bahanId)
+                                ->orWhere('produk_id', $bahanId);
+                    })
+                    ->first();
+
+                    if ($produksiProdukjadiDetail) {
+                        $currentDetails = json_decode($produksiProdukjadiDetail->details, true) ?? [];
+
+                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                            foreach ($currentDetails as $key => &$entry) {
+                                if ($entry['unit_price'] == $unitPrice) {
+                                    $entry['qty'] -= $qtyData['qty'];
+                                    // Jika qty menjadi 0 atau negatif, hapus entry dari details
+                                    if ($entry['qty'] <= 0) {
+                                        unset($currentDetails[$key]);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                        $produksiProdukjadiDetail->qty = max(0, $produksiProdukjadiDetail->qty - $totalQtyReduction);
+                        $produksiProdukjadiDetail->used_materials = max(0, $produksiProdukjadiDetail->used_materials - $totalQtyReduction);
+
+                        // Hitung ulang sub_total hanya jika masih ada entri di details
+                        if (!empty($currentDetails)) {
+                            $produksiProdukjadiDetail->sub_total = 0;
+                            foreach ($currentDetails as $detail) {
+                                $produksiProdukjadiDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                            }
+
+                            // Simpan details yang sudah diperbarui
+                            $produksiProdukjadiDetail->details = json_encode(array_values($currentDetails));
+                            $produksiProdukjadiDetail->save();
+                        } else {
+                            // Jika tidak ada entry tersisa, hapus ProduksiProdukJadiDetails
+                            $produksiProdukjadiDetail->delete();
                         }
                     }
 

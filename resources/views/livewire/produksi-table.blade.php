@@ -28,7 +28,7 @@
 
         <div class="mb-4 sm:mb-0">
             {{-- <p>Total transaksi yang <strong>disetujui</strong></p> --}}
-            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Proses Produksi Produk Setengah Jadi</h6>
+            <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Produksi Produk Setengah Jadi</h6>
         </div>
 
 

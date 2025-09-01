@@ -50,4 +50,9 @@ class BahanRetur extends Model
     {
         return $this->hasOne(PengambilanBahan::class, 'id', 'pengambilan_bahan_id');
     }
+
+    public function produksiProdukJadi()
+    {
+        return $this->hasOne(ProduksiProdukJadi::class, 'id', 'produksi_produk_jadi_id');
+    }
 }

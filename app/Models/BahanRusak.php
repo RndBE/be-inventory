@@ -21,6 +21,10 @@ class BahanRusak extends Model
     {
         return $this->hasOne(Produksi::class, 'id', 'produksi_id');
     }
+    public function produksiProdukJadi()
+    {
+        return $this->hasOne(ProduksiProdukJadi::class, 'id', 'produksi_produk_jadi_id');
+    }
 
     public function projek()
     {

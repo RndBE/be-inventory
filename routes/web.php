@@ -60,6 +60,7 @@ use App\Livewire\Quality\QcProdukSetengahJadiTable;
 use App\Http\Controllers\PengambilanBahanController;
 use App\Livewire\Quality\QcProdukSetengahJadiWizard;
 use App\Http\Controllers\BahanSetengahjadiController;
+use App\Http\Controllers\ProduksiProdukJadiController;
 use App\Http\Controllers\LaporanGaransiProyekController;
 
 /*
@@ -164,6 +165,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::put('produksis/{produksi}/selesai', [ProduksiController::class, 'updateStatus'])->name('produksis.updateStatus');
     Route::get('produksis-export/{produksi_id}', [ProduksiController::class, 'export'])->name('produksis.export');
     Route::get('produksis/{produksi}/info', [ProduksiController::class, 'info'])->name('produksis.info');
+
+    Route::resource('produksi-produk-jadi', ProduksiProdukJadiController::class);
+    Route::put('produksi-produk-jadi/{produksi}/selesai', [ProduksiProdukJadiController::class, 'updateStatus'])->name('produksi-produk-jadi.updateStatus');
 
     Route::resource('projeks', ProjekController::class);
     Route::put('projeks/{projek}/selesai', [ProjekController::class, 'updateStatus'])->name('projeks.updateStatus');

@@ -18,17 +18,20 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProjekController;
 use App\Livewire\Quality\QcBahanMasukView;
+use App\Livewire\Quality\QcProdukJadiView;
 use App\Exports\LaporanGaransiProyekExport;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\StokRndController;
 use App\Livewire\Quality\QcBahanMasukTable;
+use App\Livewire\Quality\QcProdukJadiTable;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SupplierController;
+use App\Livewire\Quality\QcProdukJadiWizard;
 use App\Http\Controllers\BahanJadiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengajuanController;
@@ -44,6 +47,7 @@ use App\Http\Controllers\UploadTempController;
 use App\Http\Controllers\BahanKeluarController;
 use App\Http\Controllers\JobPositionController;
 use App\Http\Controllers\LogActivityController;
+use App\Http\Controllers\ProdukJadisController;
 use App\Http\Controllers\QualityPageController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransactionController;
@@ -183,6 +187,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
     Route::resource('bahan-rusaks', BahanRusakController::class);
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
+    Route::resource('produk-jadi', ProdukJadisController::class);
     Route::get('bahan-setengahjadis-export', [BahanSetengahjadiController::class, 'export'])->name('bahan-setengahjadis-export.export');
 
     Route::resource('produk-produksis', ProdukProduksiController::class);
@@ -228,6 +233,10 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
         Route::get('qc-produk-setengah-jadi', QcProdukSetengahJadiTable::class)->name('qc-produk-setengah-jadi.index');
         Route::get('qc-produk-setengah-jadi/create', QcProdukSetengahJadiWizard::class)->name('qc-produk-setengah-jadi.wizard');
         Route::get('qc-produk-setengah-jadi/view/{id}', QcProdukSetengahJadiView::class)->name('qc-produk-setengah-jadi.view');
+
+        Route::get('qc-produk-jadi', QcProdukJadiTable::class)->name('qc-produk-jadi.index');
+        Route::get('qc-produk-jadi/create', QcProdukJadiWizard::class)->name('qc-produk-jadi.wizard');
+        Route::get('qc-produk-jadi/view/{id}', QcProdukJadiView::class)->name('qc-produk-jadi.view');
     });
 
     Route::fallback(function() {

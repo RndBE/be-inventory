@@ -45,6 +45,17 @@
                         </a>
                     {{-- @endcan --}}
                 </li>
+                <li class="m-1">
+                {{-- @can('tambah-proses-produksi') --}}
+                    <a href="{{ route('quality-page.qc-produk-jadi.index') }}"
+                        class="mt-2 block w-fit rounded-md py-1.5 px-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                        style="background-color:#b40404; transition: background-color 0.2s;"
+                        onmouseover="this.style.backgroundColor='#a00303'"
+                        onmouseout="this.style.backgroundColor='#b40404'">
+                        QC Produk Jadi
+                        </a>
+                {{-- @endcan --}}
+                </li>
             </ul>
         </div>
     </div>

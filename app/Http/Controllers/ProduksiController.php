@@ -540,75 +540,89 @@ class ProduksiController extends Controller
         }
     }
 
+    // public function updateStatus(Request $request, $id)
+    // {
+    //     try {
+    //         $produksi = Produksi::findOrFail($id);
+
+    //         if ($produksi->status !== 'Selesai') {
+    //             if ($produksi->jenis_produksi === 'Produk Setengah Jadi') {
+    //                 try {
+    //                     DB::beginTransaction();
+
+    //                     // Insert data ke tabel bahan_setengahjadi
+    //                     $bahanSetengahJadi = new BahanSetengahjadi();
+    //                     $bahanSetengahJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+    //                     $bahanSetengahJadi->kode_transaksi = $produksi->kode_produksi;
+    //                     $bahanSetengahJadi->produksi_id = $produksi->id;
+    //                     $bahanSetengahJadi->save();
+
+    //                     // Hitung total produksi
+    //                     $produksiTotal = $produksi->produksiDetails->sum('sub_total');
+    //                     $unitPrice = $produksiTotal / $produksi->jml_produksi;
+
+    //                     // Ambil serial number dari kolom `serial_number` di tabel `produksi`
+    //                     $serialNumbers = explode(',', $produksi->serial_number);
+    //                     $serialNumbers = array_map('trim', $serialNumbers); // Hilangkan spasi ekstra
+    //                     // dd($serialNumbers);
+    //                     if (count($serialNumbers) < $produksi->jml_produksi) {
+    //                         DB::rollBack();
+    //                         return redirect()->back()->with('error', "Jumlah serial number kurang. Harap lengkapi serial number sebelum menyelesaikan produksi.");
+    //                     }
+
+    //                     // Loop sebanyak jumlah produksi untuk membuat serial number unik
+    //                     for ($i = 0; $i < $produksi->jml_produksi; $i++) {
+    //                         $bahanSetengahJadiDetail = new BahanSetengahjadiDetails();
+    //                         $bahanSetengahJadiDetail->bahan_setengahjadi_id = $bahanSetengahJadi->id;
+    //                         // $bahanSetengahJadiDetail->bahan_id = $produksi->bahan_id;
+    //                         $bahanSetengahJadiDetail->nama_bahan = $produksi->dataBahan->nama_bahan;
+    //                         $bahanSetengahJadiDetail->qty = 1;
+    //                         $bahanSetengahJadiDetail->sisa = 1;
+    //                         $bahanSetengahJadiDetail->unit_price = $unitPrice;
+    //                         $bahanSetengahJadiDetail->sub_total = $unitPrice;
+    //                         $bahanSetengahJadiDetail->serial_number = $serialNumbers[$i] ?? null;
+
+    //                         $bahanSetengahJadiDetail->save();
+    //                     }
+
+    //                     // Update status produksi menjadi "Selesai"
+    //                     $produksi->status = 'Selesai';
+    //                     $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+    //                     $produksi->save();
+
+    //                     DB::commit();
+
+    //                     LogHelper::success('Berhasil Menyelesaikan Produksi Produk Setengah Jadi!');
+    //                     return redirect()->back()->with('success', 'Produksi telah selesai.');
+    //                 } catch (\Exception $e) {
+    //                     DB::rollBack();
+    //                     LogHelper::error($e->getMessage());
+    //                     return redirect()->back()->with('error', "Gagal update status produksi. Simpan Kode Produksi dahulu!");
+    //                 }
+    //             }
+    //         }
+    //         return redirect()->back()->with('error', 'Produksi tidak bisa diupdate ke selesai.');
+    //     } catch (Throwable $e) {
+    //         LogHelper::error($e->getMessage());
+    //         return view('pages.utility.404');
+    //     }
+    // }
+
     public function updateStatus(Request $request, $id)
     {
-        try {
+        try{
             $produksi = Produksi::findOrFail($id);
-
-            if ($produksi->status !== 'Selesai') {
-                if ($produksi->jenis_produksi === 'Produk Setengah Jadi') {
-                    try {
-                        DB::beginTransaction();
-
-                        // Insert data ke tabel bahan_setengahjadi
-                        $bahanSetengahJadi = new BahanSetengahjadi();
-                        $bahanSetengahJadi->tgl_masuk = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                        $bahanSetengahJadi->kode_transaksi = $produksi->kode_produksi;
-                        $bahanSetengahJadi->produksi_id = $produksi->id;
-                        $bahanSetengahJadi->save();
-
-                        // Hitung total produksi
-                        $produksiTotal = $produksi->produksiDetails->sum('sub_total');
-                        $unitPrice = $produksiTotal / $produksi->jml_produksi;
-
-                        // Ambil serial number dari kolom `serial_number` di tabel `produksi`
-                        $serialNumbers = explode(',', $produksi->serial_number);
-                        $serialNumbers = array_map('trim', $serialNumbers); // Hilangkan spasi ekstra
-                        // dd($serialNumbers);
-                        if (count($serialNumbers) < $produksi->jml_produksi) {
-                            DB::rollBack();
-                            return redirect()->back()->with('error', "Jumlah serial number kurang. Harap lengkapi serial number sebelum menyelesaikan produksi.");
-                        }
-
-                        // Loop sebanyak jumlah produksi untuk membuat serial number unik
-                        for ($i = 0; $i < $produksi->jml_produksi; $i++) {
-                            $bahanSetengahJadiDetail = new BahanSetengahjadiDetails();
-                            $bahanSetengahJadiDetail->bahan_setengahjadi_id = $bahanSetengahJadi->id;
-                            // $bahanSetengahJadiDetail->bahan_id = $produksi->bahan_id;
-                            $bahanSetengahJadiDetail->nama_bahan = $produksi->dataBahan->nama_bahan;
-                            $bahanSetengahJadiDetail->qty = 1;
-                            $bahanSetengahJadiDetail->sisa = 1;
-                            $bahanSetengahJadiDetail->unit_price = $unitPrice;
-                            $bahanSetengahJadiDetail->sub_total = $unitPrice;
-                            $bahanSetengahJadiDetail->serial_number = $serialNumbers[$i] ?? null;
-
-                            $bahanSetengahJadiDetail->save();
-                        }
-
-                        // Update status produksi menjadi "Selesai"
-                        $produksi->status = 'Selesai';
-                        $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                        $produksi->save();
-
-                        DB::commit();
-
-                        LogHelper::success('Berhasil Menyelesaikan Produksi Produk Setengah Jadi!');
-                        return redirect()->back()->with('success', 'Produksi telah selesai.');
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        LogHelper::error($e->getMessage());
-                        return redirect()->back()->with('error', "Gagal update status produksi. Simpan Kode Produksi dahulu!");
-                    }
-                }
-            }
-            return redirect()->back()->with('error', 'Produksi tidak bisa diupdate ke selesai.');
-        } catch (Throwable $e) {
+            //dd($produksi);
+            $produksi->status = 'Selesai';
+            $produksi->selesai_produksi = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $produksi->save();
+            LogHelper::success('Berhasil menyelesaikan produksi produk setengah jadi!');
+            return redirect()->back()->with('success', 'Berhasil menyelesaikan produksi produk setengah jadi!');
+        }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }
     }
-
-
 
 
     public function destroy(string $id)

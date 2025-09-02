@@ -15,7 +15,10 @@
                     <div>
                         <h1 class="text-xl font-bold text-gray-800">Histori Proses Produksi</h1>
                         <p class="text-sm text-gray-600">
-                            Tanggal Produksi: {{ $produksi->mulai_produksi .'-'. $produksi->selesai_produksi }}
+                            Tanggal Produksi:
+                            {{ \Carbon\Carbon::parse($produksi->mulai_produksi)->translatedFormat('d F Y H:i') }}
+                            -
+                            {{ \Carbon\Carbon::parse($produksi->selesai_produksi)->translatedFormat('d F Y H:i') }}
                         </p>
                     </div>
                     <img src="{{ asset('images/logo_be2.png') }}" alt="Logo Be" class="h-10 w-auto">
@@ -71,7 +74,9 @@
                                     {{ $bk->kode_transaksi ?? '-' }}
                                 </p>
                                 <p class="text-xs text-gray-600">
-                                    {{ $bk->tgl_pengajuan .' - '. $bk->tgl_keluar }}
+                                    {{ \Carbon\Carbon::parse($bk->tgl_pengajuan)->translatedFormat('d F Y H:i') }}
+                                    -
+                                    {{ \Carbon\Carbon::parse($bk->tgl_keluar)->translatedFormat('d F Y H:i') }}
                                 </p>
                             </div>
                             <svg :class="open ? 'rotate-180' : ''"
@@ -198,6 +203,211 @@
                                                 @else
                                                     <p class="text-gray-500 text-xs">Tidak ada detail</p>
                                                 @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <p class="text-xs text-gray-500">Tidak ada detail bahan keluar</p>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-4 text-gray-500 border rounded-lg">
+                        Tidak ada data bahan keluar
+                    </div>
+                @endforelse
+            </div>
+
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6 mt-3 border">
+            <div class="flex flex-wrap justify-between items-center border-b pb-3 gap-3">
+                <h2 class="text-lg font-bold text-gray-800">Detail Bahan Retur</h2>
+            </div>
+
+            <div class="mt-4 space-y-3">
+                @forelse($produksi->dataBahanRetur as $index => $brtn)
+                    <div x-data="{ open: false }" class="border rounded-lg shadow-sm">
+                        <!-- Header Accordion Bahan Keluar -->
+                        <button @click="open = !open"
+                            class="w-full flex justify-between items-center px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-t-lg">
+                            <div class="text-left">
+                                <p class="text-sm font-semibold text-gray-800">
+                                    {{ $brtn->kode_transaksi ?? '-' }}
+                                </p>
+                                <p class="text-xs text-gray-600">
+                                    {{ \Carbon\Carbon::parse($brtn->tgl_pengajuan)->translatedFormat('d F Y H:i') }}
+                                    -
+                                    {{ \Carbon\Carbon::parse($brtn->tgl_diterima)->translatedFormat('d F Y H:i') }}
+                                </p>
+                            </div>
+                            <svg :class="open ? 'rotate-180' : ''"
+                                class="w-5 h-5 text-gray-600 transform transition-transform duration-200"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <!-- Content Accordion Bahan Keluar -->
+                        <div x-show="open" x-collapse class="px-4 py-3 text-sm bg-white border-t space-y-3">
+                            <div class="flex">
+                                <span class="w-32 font-semibold">Tujuan</span>
+                                <span class="pr-1">:</span>
+                                <span>{{ $brtn->tujuan ?? '-' }}</span>
+                            </div>
+                            <div class="flex">
+                                <span class="w-32 font-semibold">Status</span>
+                                <span class="pr-1">:</span>
+                                <span>{{ $brtn->status ?? '-' }}</span>
+                            </div>
+                            <div class="flex">
+                                <span class="w-32 font-semibold">Pengaju</span>
+                                <span class="pr-1">:</span>
+                                <span>{{ $brtn->produksiS->pengaju ?? '-' }}</span>
+                            </div>
+
+                            <!-- Nested Accordion: Bahan Keluar Details -->
+                            <div class="mt-4">
+                                <h3 class="font-semibold text-gray-700 mb-2">Detail Bahan</h3>
+                                @forelse($brtn->bahanReturDetails as $detailIndex => $detail)
+                                    <div x-data="{ openDetail: false }" class="border rounded mb-2">
+                                        <button @click="openDetail = !openDetail"
+                                            class="w-full flex justify-between items-center px-3 py-2 bg-gray-50 hover:bg-gray-100">
+                                            <div class="text-sm">
+                                                @if($detail->dataBahan)
+                                                    {{ $detail->dataBahan->nama_bahan }}
+                                                @elseif($detail->dataProduk)
+                                                    {{ $detail->dataProduk->nama_bahan }}
+                                                @else
+                                                    {{ 'Bahan #' . ($detailIndex+1) }}
+                                                @endif
+                                            </div>
+                                            <svg :class="openDetail ? 'rotate-180' : ''"
+                                                class="w-4 h-4 text-gray-500 transform transition-transform duration-200"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+
+                                        <div x-show="openDetail" x-collapse class="px-3 py-3 text-sm bg-white border-t rounded-b space-y-2">
+                                            <div class="flex justify-between">
+                                                <span class="font-medium w-32">Serial Number</span>
+                                                <span>{{ $detail->serial_number ?? '-' }}</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="font-medium w-32">Qty</span>
+                                                <span>{{ $detail->qty ?? 0 }}</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="font-medium w-32">Unit Price</span>
+                                                <span>Rp {{ number_format($detail->unit_price ?? 0, 0, ',', '.') }}</span>
+                                            </div>
+                                            <div class="flex justify-between border-t pt-2 font-semibold text-gray-800">
+                                                <span class="w-32">Sub Total</span>
+                                                <span>Rp {{ number_format($detail->sub_total ?? 0, 0, ',', '.') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <p class="text-xs text-gray-500">Tidak ada detail bahan keluar</p>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-4 text-gray-500 border rounded-lg">
+                        Tidak ada data bahan keluar
+                    </div>
+                @endforelse
+            </div>
+
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6 mt-3 border">
+            <div class="flex flex-wrap justify-between items-center border-b pb-3 gap-3">
+                <h2 class="text-lg font-bold text-gray-800">Detail Bahan Rusak</h2>
+            </div>
+
+            <div class="mt-4 space-y-3">
+                @forelse($produksi->dataBahanRusak as $index => $brrsk)
+                    <div x-data="{ open: false }" class="border rounded-lg shadow-sm">
+                        <!-- Header Accordion Bahan Keluar -->
+                        <button @click="open = !open"
+                            class="w-full flex justify-between items-center px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-t-lg">
+                            <div class="text-left">
+                                <p class="text-sm font-semibold text-gray-800">
+                                    {{ $brrsk->kode_transaksi ?? '-' }}
+                                </p>
+                                <p class="text-xs text-gray-600">
+                                    {{ \Carbon\Carbon::parse($brrsk->tgl_pengajuan)->translatedFormat('d F Y H:i') }}
+                                    -
+                                    {{ \Carbon\Carbon::parse($brrsk->tgl_diterima)->translatedFormat('d F Y H:i') }}
+                                </p>
+                            </div>
+                            <svg :class="open ? 'rotate-180' : ''"
+                                class="w-5 h-5 text-gray-600 transform transition-transform duration-200"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <!-- Content Accordion Bahan Keluar -->
+                        <div x-show="open" x-collapse class="px-4 py-3 text-sm bg-white border-t space-y-3">
+                            <div class="flex">
+                                <span class="w-32 font-semibold">Status</span>
+                                <span class="pr-1">:</span>
+                                <span>{{ $brrsk->status ?? '-' }}</span>
+                            </div>
+                            <div class="flex">
+                                <span class="w-32 font-semibold">Pengaju</span>
+                                <span class="pr-1">:</span>
+                                <span>{{ $brrsk->produksiS->pengaju ?? '-' }}</span>
+                            </div>
+
+                            <!-- Nested Accordion: Bahan Keluar Details -->
+                            <div class="mt-4">
+                                <h3 class="font-semibold text-gray-700 mb-2">Detail Bahan</h3>
+                                @forelse($brrsk->bahanRusakDetails as $detailIndex => $detail)
+                                    <div x-data="{ openDetail: false }" class="border rounded mb-2">
+                                        <button @click="openDetail = !openDetail"
+                                            class="w-full flex justify-between items-center px-3 py-2 bg-gray-50 hover:bg-gray-100">
+                                            <div class="text-sm">
+                                                @if($detail->dataBahan)
+                                                    {{ $detail->dataBahan->nama_bahan }}
+                                                @elseif($detail->dataProduk)
+                                                    {{ $detail->dataProduk->nama_bahan }}
+                                                @else
+                                                    {{ 'Bahan #' . ($detailIndex+1) }}
+                                                @endif
+                                            </div>
+                                            <svg :class="openDetail ? 'rotate-180' : ''"
+                                                class="w-4 h-4 text-gray-500 transform transition-transform duration-200"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+
+                                        <div x-show="openDetail" x-collapse class="px-3 py-3 text-sm bg-white border-t rounded-b space-y-2">
+                                            <div class="flex justify-between">
+                                                <span class="font-medium w-32">Serial Number</span>
+                                                <span>{{ $detail->serial_number ?? '-' }}</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="font-medium w-32">Qty</span>
+                                                <span>{{ $detail->qty ?? 0 }}</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="font-medium w-32">Unit Price</span>
+                                                <span>Rp {{ number_format($detail->unit_price ?? 0, 0, ',', '.') }}</span>
+                                            </div>
+                                            <div class="flex justify-between border-t pt-2 font-semibold text-gray-800">
+                                                <span class="w-32">Sub Total</span>
+                                                <span>Rp {{ number_format($detail->sub_total ?? 0, 0, ',', '.') }}</span>
                                             </div>
                                         </div>
                                     </div>

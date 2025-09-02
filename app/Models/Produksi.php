@@ -36,4 +36,14 @@ class Produksi extends Model
     {
         return $this->belongsTo(Unit::class, 'unit_id');
     }
+
+    public function dataBahanRusak()
+    {
+        return $this->hasMany(BahanRusak::class, 'produksi_id', 'id');
+    }
+
+    public function dataBahanRetur()
+    {
+        return $this->hasMany(BahanRetur::class, 'produksi_id', 'id');
+    }
 }

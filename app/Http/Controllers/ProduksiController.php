@@ -61,6 +61,14 @@ class ProduksiController extends Controller
             'bahanKeluar.bahanKeluarDetails' => function ($query) {
                 $query->where('qty', '>', 0)
                     ->with(['dataBahan', 'purchase']);
+            },
+            'dataBahanRetur.bahanReturDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk']);
+            },
+            'dataBahanRusak.bahanRusakDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk']);
             }
         ])->findOrFail($id);
 

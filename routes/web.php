@@ -172,6 +172,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
     Route::resource('produksi-produk-jadi', ProduksiProdukJadiController::class);
     Route::put('produksi-produk-jadi/{produksi}/selesai', [ProduksiProdukJadiController::class, 'updateStatus'])->name('produksi-produk-jadi.updateStatus');
+    Route::get('produksi-produk-jadi/{produksi}/info', [ProduksiProdukJadiController::class, 'info'])->name('produksi-produk-jadi.info');
 
     Route::resource('projeks', ProjekController::class);
     Route::put('projeks/{projek}/selesai', [ProjekController::class, 'updateStatus'])->name('projeks.updateStatus');
@@ -187,8 +188,8 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
     Route::resource('bahan-rusaks', BahanRusakController::class);
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
-    Route::resource('produk-jadi', ProdukJadisController::class);
     Route::get('bahan-setengahjadis-export', [BahanSetengahjadiController::class, 'export'])->name('bahan-setengahjadis-export.export');
+    Route::resource('produk-jadi', ProdukJadisController::class);
 
     Route::resource('produk-produksis', ProdukProduksiController::class);
     Route::get('/produk-produksis/pdf/{id}', [ProdukProduksiController::class, 'downloadPdf'])->name('produk-produksis.downloadPdf');

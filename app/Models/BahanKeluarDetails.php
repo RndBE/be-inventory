@@ -32,4 +32,9 @@ class BahanKeluarDetails extends Model
         return $this->belongsTo(Purchase::class, 'kode_transaksi', 'kode_transaksi');
     }
 
+    public function bahanSetengahJadi()
+    {
+        return $this->belongsTo(BahanSetengahjadi::class, 'kode_transaksi', 'kode_transaksi');
+    }
+
 }

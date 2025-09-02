@@ -14,7 +14,7 @@ class BahanRusak extends Model
 
     public function bahanRusakDetails()
     {
-        return $this->hasMany(BahanRusakDetails::class);
+        return $this->hasMany(BahanRusakDetails::class, 'bahan_rusak_id');
     }
 
     public function produksiS()

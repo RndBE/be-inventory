@@ -27,9 +27,14 @@ class ProduksiProdukJadi extends Model
         return $this->hasMany(ProduksiProdukJadiDetails::class, 'produksi_produk_jadi_id', 'id');
     }
 
+    // public function bahanKeluar()
+    // {
+    //     return $this->belongsTo(BahanKeluar::class, 'bahan_keluar_id');
+    // }
+
     public function bahanKeluar()
     {
-        return $this->belongsTo(BahanKeluar::class, 'bahan_keluar_id');
+        return $this->hasMany(BahanKeluar::class, 'produksi_produk_jadi_id', 'id');
     }
 
     public function dataProdukProduksi()
@@ -50,6 +55,11 @@ class ProduksiProdukJadi extends Model
     public function dataBahanRusak()
     {
         return $this->hasMany(BahanRusak::class, 'produksi_produk_jadi_id', 'id');
+    }
+
+    public function dataBahanRetur()
+    {
+        return $this->hasMany(BahanRetur::class, 'produksi_produk_jadi_id', 'id');
     }
 
 }

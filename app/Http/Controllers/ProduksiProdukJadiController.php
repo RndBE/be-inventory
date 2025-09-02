@@ -22,6 +22,32 @@ use Illuminate\Support\Facades\Validator;
 
 class ProduksiProdukJadiController extends Controller
 {
+
+    public function info($id)
+    {
+        $produksi = ProduksiProdukJadi::with([
+            'dataBahan',
+            'bahanKeluar',
+            'bahanKeluar.dataUser',
+            'bahanKeluar.bahanKeluarDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk', 'purchase']);
+            },
+            'dataBahanRetur.bahanReturDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk']);
+            },
+            'dataBahanRusak.bahanRusakDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk']);
+            }
+        ])->findOrFail($id);
+        // dd($produksi);
+
+        return view('pages.produksi-produk-jadi.info', compact('produksi'));
+    }
+
+
     public function index()
     {
         return view('pages.produksi-produk-jadi.index');

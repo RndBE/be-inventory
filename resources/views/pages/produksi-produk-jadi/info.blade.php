@@ -328,14 +328,14 @@
                                         </div>
                                     </div>
                                 @empty
-                                    <p class="text-xs text-gray-500">Tidak ada detail bahan keluar</p>
+                                    <p class="text-xs text-gray-500">Tidak ada detail bahan retur</p>
                                 @endforelse
                             </div>
                         </div>
                     </div>
                 @empty
                     <div class="text-center py-4 text-gray-500 border rounded-lg">
-                        Tidak ada data bahan keluar
+                        Tidak ada data bahan retur
                     </div>
                 @endforelse
             </div>
@@ -428,14 +428,14 @@
                                         </div>
                                     </div>
                                 @empty
-                                    <p class="text-xs text-gray-500">Tidak ada detail bahan keluar</p>
+                                    <p class="text-xs text-gray-500">Tidak ada detail bahan rusak</p>
                                 @endforelse
                             </div>
                         </div>
                     </div>
                 @empty
                     <div class="text-center py-4 text-gray-500 border rounded-lg">
-                        Tidak ada data bahan keluar
+                        Tidak ada data bahan rusak
                     </div>
                 @endforelse
             </div>

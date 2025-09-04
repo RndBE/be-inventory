@@ -80,6 +80,20 @@
                                         </div>
                                     </div>
 
+                                    <div>
+                                        <label class="block text-gray-600 font-medium">Serial Number</label>
+                                        <input
+                                            type="text"
+                                            wire:model.defer="selectedProdukList.{{ $index }}.kode_list"
+                                            placeholder="Masukkan Serial Number"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-1 focus:ring focus:ring-theme-1 focus:ring-opacity-50"
+                                            {{ $produk['is_disabled'] ? 'disabled' : '' }}
+                                        >
+                                        @error("selectedProdukList.$index.kode_list")
+                                            <span class="text-red-600 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
                                     <div class="col-span-2">
                                         <label class="text-gray-600">Diproduksi Oleh</label>
                                         <div class="mt-1 font-semibold text-black">

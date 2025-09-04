@@ -76,20 +76,20 @@ class QcProdukSetengahJadiWizard extends Component
                     // Harga per 1 produk (dibagi jumlah produksi)
                     $unitPrice = $produksi->jml_produksi > 0 ? $totalSubTotal / $produksi->jml_produksi : 0;
                     foreach (range(1, $produksi->jml_produksi) as $i) {
-                        $kodeList = ($produksi->kode_produksi ?? '') . '-' . ($i . '/' . $produksi->jml_produksi);
+                        // $kodeList = ($produksi->kode_produksi ?? '') . '-' . ($i . '/' . $produksi->jml_produksi);
 
                         $this->selectedProdukList[] = [
                             'bahan_id'      => $produksi->dataBahan->id,
                             'nama_bahan'    => $produksi->dataBahan->nama_bahan ?? '',
                             'nomor'         => $i . '/' . $produksi->jml_produksi,
                             'kode_produksi' => $produksi->kode_produksi ?? '',
-                            'kode_list'       => $kodeList,
+                            'kode_list'       => '',
                             'mulai_produksi' => $produksi->mulai_produksi ?? '',
                             'qty'           => 1,
                             'unit_price'    => $unitPrice,
                             'sub_total'     => $unitPrice,
                             'is_selected'   => false,
-                            'is_disabled'     => in_array($kodeList, $existingKodeList),
+                            'is_disabled'     => false,
                         ];
                     }
                 }
@@ -166,11 +166,34 @@ class QcProdukSetengahJadiWizard extends Component
                 return;
             }
 
-            foreach ($produkDipilih as $produk) {
+            $existingKodeList = QcProdukSetengahJadiList::pluck('kode_list')->toArray();
+
+            foreach ($produkDipilih as $index => $produk) {
+                if (empty($produk['kode_list'])) {
+                    DB::rollBack();
+                    $this->addError("selectedProdukList.$index.kode_list", "Kode List tidak boleh kosong.");
+                    $this->dispatch('swal:error', [
+                        'title' => 'Error',
+                        'text'  => "Kode List pada produk {$produk['nama_bahan']} belum diisi!",
+                    ]);
+                    return;
+                }
+
+                // Validasi: kode_list harus unik
+                if (in_array($produk['kode_list'], $existingKodeList)) {
+                    DB::rollBack();
+                    $this->addError("selectedProdukList.$index.kode_list", "Kode List sudah dipakai.");
+                    $this->dispatch('swal:error', [
+                        'title' => 'Error',
+                        'text'  => "Kode List {$produk['kode_list']} sudah digunakan!",
+                    ]);
+                    return;
+                }
+
                 //  dd($produk);
                 QcProdukSetengahJadiList::create([
                     'produksi_id' => $produksi->id,
-                    'kode_list'      => $produk['kode_produksi'] . '-' . $produk['nomor'],
+                    'kode_list'      => $produk['kode_list'],
                     'bahan_id'      => $produk['bahan_id'],
                     'qty'           => $produk['qty'],
                     'unit_price'    => $produk['unit_price'],
@@ -179,6 +202,8 @@ class QcProdukSetengahJadiWizard extends Component
                     'selesai_produksi'=> now('Asia/Jakarta'),
                     'petugas_produksi'    => $this->selected_petugas_id ?? session('selected_petugas_id'),
                 ]);
+
+                $existingKodeList[] = $produk['kode_list'];
             }
 
             DB::commit();

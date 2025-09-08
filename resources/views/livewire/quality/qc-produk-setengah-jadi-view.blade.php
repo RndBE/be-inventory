@@ -5,7 +5,7 @@
         </h2>
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <p class="text-gray-600">Kode List</p>
+                <p class="text-gray-600">Serial Product</p>
                 <p class="font-semibold">{{ $list->kode_list }}</p>
             </div>
             <div>

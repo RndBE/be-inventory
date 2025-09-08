@@ -81,7 +81,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="block text-gray-600 font-medium">Serial Number</label>
+                                        <label class="block text-gray-600 font-medium">Serial Product</label>
                                         <input
                                             type="text"
                                             wire:model.defer="selectedProdukList.{{ $index }}.kode_list"

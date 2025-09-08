@@ -71,7 +71,7 @@
         <table class="table table-report -mt-2">
             <thead>
                 <tr>
-                    <th rowspan="2">Kode Produksi/List</th>
+                    <th rowspan="2">Kode Produksi/Serial Product</th>
                     <th rowspan="2" class="text-center">Waktu Produksi</th>
                     <th rowspan="2" class="text-center">PN/SN</th>
                     <th colspan="2" class="text-center">Hasil QC</th>

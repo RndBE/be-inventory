@@ -17,7 +17,7 @@
             text-transform: uppercase;
         }
 
-        h3 {
+        .judul {
             text-align: center;
             margin: 15px 0;
             font-size: 16px;
@@ -78,7 +78,7 @@
                     </table>
 
                     <!-- Centered H3 -->
-                    <h3 class="pt-6">FORM PENGAJUAN PENGAMBILAN BARANG PT. ARTA TEKNOLOGI COMUNINDO</h3>
+                    <h3 class="pt-6 judul">FORM PENGAJUAN PENGAMBILAN BARANG PT. ARTA TEKNOLOGI COMUNINDO</h3>
 
                     <table style="border: 1px solid black;width: 100%;border-collapse: collapse;padding-top:10;">
                         <tr style="text-align: left;vertical-align: top;">

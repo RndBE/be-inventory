@@ -37,4 +37,9 @@ class BahanKeluarDetails extends Model
         return $this->belongsTo(BahanSetengahjadi::class, 'kode_transaksi', 'kode_transaksi');
     }
 
+    public function dataProdukJadi()
+    {
+        return $this->belongsTo(ProdukJadiDetails::class, 'produk_jadis_id');
+    }
+
 }

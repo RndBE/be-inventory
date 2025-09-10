@@ -174,7 +174,6 @@ class ProjekController extends Controller
             ]);
 
             // Group items by bahan_id
-            // Group items by bahan_id and serial_number
             $groupedItems = [];
             foreach ($cartItems as $item) {
                 $bahan_id = $item['bahan_id'] ?? null;
@@ -182,10 +181,16 @@ class ProjekController extends Controller
                 $produk_jadis_id = $item['produk_jadis_id'] ?? null;
                 $serial_number = $item['serial_number'] ?? null;
 
-                $final_bahan_id = $bahan_id ?? $produk_id ?? $produk_jadis_id;
-                // Gunakan kunci unik berdasarkan bahan_id dan serial_number
-                // $key = $final_bahan_id . ($serial_number ?? '');
-                $key = ($item['type'] ?? 'unknown') . '_' . ($final_bahan_id ?? '0') . '_' . ($serial_number ?? 'nosn');
+                // Gunakan key unik sesuai jenisnya
+                if ($bahan_id) {
+                    $key = "bahan-{$bahan_id}";
+                } elseif ($produk_id) {
+                    $key = "produk-{$produk_id}-{$serial_number}";
+                } elseif ($produk_jadis_id) {
+                    $key = "produk_jadi-{$produk_jadis_id}-{$serial_number}";
+                } else {
+                    $key = uniqid('unknown-');
+                }
 
                 if (!isset($groupedItems[$key])) {
                     $groupedItems[$key] = [
@@ -200,9 +205,9 @@ class ProjekController extends Controller
                     ];
                 }
 
-                $groupedItems[$key]['qty'] += $item['qty'] ?? 0;
-                $groupedItems[$key]['jml_bahan'] += $item['jml_bahan'] ?? 0;
-                $groupedItems[$key]['sub_total'] += $item['sub_total'] ?? 0;
+                $groupedItems[$key]['qty'] += (float)($item['qty'] ?? 0);
+                $groupedItems[$key]['jml_bahan'] += (float)($item['jml_bahan'] ?? 0);
+                $groupedItems[$key]['sub_total'] += (float)($item['sub_total'] ?? 0);
             }
 
             // Save items to BahanKeluarDetails and ProjekDetails
@@ -253,8 +258,7 @@ class ProjekController extends Controller
 
         $projek = Projek::with([
             'projekDetails.dataBahan',
-            'projekDetails.dataProduk',
-            'projekDetails.dataProdukJadi',
+            'projekDetails.dataProduk', // Tambahkan ini untuk memuat produk
             'bahanKeluar'
         ])->findOrFail($id);
         // dd($projek->projekDetails);
@@ -362,19 +366,16 @@ class ProjekController extends Controller
             foreach ($projekDetails as $item) {
                 $bahan_id = $item['bahan_id'] ?? null;
                 $produk_id = $item['produk_id'] ?? null;
-                $produk_jadis_id = $item['produk_jadis_id'] ?? null;
                 $serial_number = $item['serial_number'] ?? null;
 
-                $final_bahan_id = $bahan_id ?? $produk_id ?? $produk_jadis_id;
+                $final_bahan_id = $bahan_id ?? $produk_id;
                 // Gunakan kunci unik berdasarkan bahan_id dan serial_number
-                // $key = $final_bahan_id . ($serial_number ?? '');
-                $key = ($item['type'] ?? 'unknown') . '_' . ($final_bahan_id ?? '0') . '_' . ($serial_number ?? 'nosn');
+                $key = $final_bahan_id . ($serial_number ?? '');
 
                 if (!isset($groupedItems[$key])) {
                     $groupedItems[$key] = [
                         'bahan_id' => $bahan_id,
                         'produk_id' => $produk_id,
-                        'produk_jadis_id' => $produk_jadis_id,
                         'serial_number' => $serial_number,
                         'qty' => 0,
                         'jml_bahan' => 0,
@@ -410,7 +411,6 @@ class ProjekController extends Controller
                         'bahan_keluar_id' => $bahan_keluar->id,
                         'bahan_id' => $details['bahan_id'],
                         'produk_id' => $details['produk_id'],
-                        'produk_jadis_id' => $details['produk_jadis_id'],
                         'serial_number' => $details['serial_number'],
                         'qty' => $details['qty'],
                         'jml_bahan' => $details['jml_bahan'],

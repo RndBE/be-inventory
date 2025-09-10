@@ -20,10 +20,13 @@
                         $grandTotal2 = 0;
                     @endphp
                     @foreach ($bahanKeluarDetails as $detail)
+                    {{-- @php
+                        dd($bahanKeluarDetails );
+                    @endphp --}}
                     <input type="hidden" name="bahanKeluarDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                            {{ $detail['bahan']->nama_bahan ?? $detail['bahan']->nama_bahan ?? null }}
+                            {{ $detail['bahan']->nama_bahan ?? $detail['bahan']->nama_bahan ?? $detail['bahan']->nama_produk ?? null }}
                             @if (!empty($detail['serial_number']))
                                 ({{ $detail['serial_number'] }})
                             @endif
@@ -33,10 +36,10 @@
                             <div class="flex items-center">
                                 <input
                                     type="number"
-                                    wire:model="qty.{{ $detail['bahan_id'] ?? $detail['produk_id'] }}"
+                                    wire:model="qty.{{ $detail['bahan_id'] ?? $detail['produk_id'] ?? $detail['produk_jadis_id'] }}"
                                     class="bg-gray-50 w-20 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 border-transparent"
                                     placeholder="0" min="0"
-                                    value="{{ old('qty.'.($detail['bahan_id'] ?? $detail['produk_id']), $qty[$detail['bahan_id'] ?? $detail['produk_id']] ?? 0) }}"
+                                    value="{{ old('qty.'.($detail['bahan_id'] ?? $detail['produk_id'] ?? $detail['produk_jadis_id']), $qty[$detail['bahan_id'] ?? $detail['produk_id'] ?? $detail['produk_jadis_id']] ?? 0) }}"
                                     readonly
                                 />
                             </div>

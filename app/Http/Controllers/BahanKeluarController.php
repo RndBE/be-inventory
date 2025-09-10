@@ -31,6 +31,7 @@ use App\Jobs\SendWhatsAppNotification;
 use App\Jobs\SendWhatsAppApproveLeader;
 use App\Models\PengambilanBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
+use App\Models\ProdukJadiDetails;
 use App\Models\ProduksiProdukJadiDetails;
 use Illuminate\Support\Facades\Validator;
 
@@ -49,90 +50,188 @@ class BahanKeluarController extends Controller
         $this->middleware('permission:hapus-bahan-keluar', ['only' => ['destroy']]);
     }
 
-    public function downloadPdf(int $id)
-    {
-        try {
-            $bahanKeluar = BahanKeluar::with([
-                'dataUser',
-                'dataUser.atasanLevel1',
-                'dataUser.atasanLevel2',
-                'dataUser.atasanLevel3',
-                'bahanKeluarDetails.dataBahan.dataUnit',
-                'bahanKeluarDetails.dataProduk',
-            ])->findOrFail($id);
+    // public function downloadPdf(int $id)
+    // {
+    //     try {
+    //         $bahanKeluar = BahanKeluar::with([
+    //             'dataUser',
+    //             'dataUser.atasanLevel1',
+    //             'dataUser.atasanLevel2',
+    //             'dataUser.atasanLevel3',
+    //             'bahanKeluarDetails.dataBahan.dataUnit',
+    //             'bahanKeluarDetails.dataProduk',
+    //             'bahanKeluarDetails.dataProdukJadi',
+    //         ])->findOrFail($id);
 
-            $hasProduk = $bahanKeluar->bahanKeluarDetails->filter(function ($detail) {
-                return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
-            })->isNotEmpty();
+    //         $hasProduk = $bahanKeluar->bahanKeluarDetails->filter(function ($detail) {
+    //             return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
+    //         })->isNotEmpty();
 
-            $tandaTanganPengaju = $bahanKeluar->dataUser->tanda_tangan ?? null;
+    //         $hasProdukJadi = $bahanKeluar->bahanKeluarDetails->filter(function ($detail) {
+    //             return !empty($detail->dataProdukJadi) && !empty($detail->dataProdukJadi->id);
+    //         })->isNotEmpty();
 
-            $tandaTanganLeader = null;
-            $tandaTanganManager = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
-            $tandaTanganDirektur = $bahanKeluar->dataUser->atasanLevel1->tanda_tangan ?? null;
+    //         $tandaTanganPengaju = $bahanKeluar->dataUser->tanda_tangan ?? null;
 
-            if ($bahanKeluar->dataUser->atasanLevel3) {
-                $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel3->tanda_tangan ?? null;
-            } elseif ($bahanKeluar->dataUser->atasanLevel2) {
-                $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
-            }
+    //         $tandaTanganLeader = null;
+    //         $tandaTanganManager = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
+    //         $tandaTanganDirektur = $bahanKeluar->dataUser->atasanLevel1->tanda_tangan ?? null;
 
-            $leaderName = $bahanKeluar->dataUser->atasanLevel3 ? $bahanKeluar->dataUser->atasanLevel3->name : null;
-            $managerName = $bahanKeluar->dataUser->atasanLevel2 ? $bahanKeluar->dataUser->atasanLevel2->name : null;
+    //         if ($bahanKeluar->dataUser->atasanLevel3) {
+    //             $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel3->tanda_tangan ?? null;
+    //         } elseif ($bahanKeluar->dataUser->atasanLevel2) {
+    //             $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
+    //         }
 
-            if (!$leaderName && $managerName) {
-                $leaderName = $managerName;
-            }
+    //         $leaderName = $bahanKeluar->dataUser->atasanLevel3 ? $bahanKeluar->dataUser->atasanLevel3->name : null;
+    //         $managerName = $bahanKeluar->dataUser->atasanLevel2 ? $bahanKeluar->dataUser->atasanLevel2->name : null;
 
-            $purchasingUser = cache()->remember('purchasing_user', 60, function () {
-                return User::where('job_level', 3)
-                    ->whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'Purchasing');
-                    })->first();
-            });
+    //         if (!$leaderName && $managerName) {
+    //             $leaderName = $managerName;
+    //         }
 
-            $hardwareManager = cache()->remember('hardware_manager', 60, function () {
-                return User::where('job_level', 2)
-                    ->whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'Engineer Manager');
-                    })->first();
-            });
+    //         $purchasingUser = cache()->remember('purchasing_user', 60, function () {
+    //             return User::where('job_level', 3)
+    //                 ->whereHas('dataJobPosition', function ($query) {
+    //                     $query->where('nama', 'Purchasing');
+    //                 })->first();
+    //         });
 
-            $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
-            $namaManager = $hardwareManager->name ?? null;
+    //         $hardwareManager = cache()->remember('hardware_manager', 60, function () {
+    //             return User::where('job_level', 2)
+    //                 ->whereHas('dataJobPosition', function ($query) {
+    //                     $query->where('nama', 'Engineer Manager');
+    //                 })->first();
+    //         });
 
-            $financeUser = cache()->remember('finance_user', 60, function () {
-                return User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
-            });
-            $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
+    //         $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+    //         $namaManager = $hardwareManager->name ?? null;
 
-            $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
-                return User::where('job_level', 2)
-                    ->whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'Admin Manager');
-                    })->first();
-            });
-            $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
+    //         $financeUser = cache()->remember('finance_user', 60, function () {
+    //             return User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
+    //         });
+    //         $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
-            $pdf = Pdf::loadView('pages.bahan-keluars.pdf', compact(
-                'bahanKeluar',
-                'purchasingUser',
-                'adminManagerceUser',
-                'leaderName',
-                'managerName',
-                'namaManager',
-                'hasProduk'
-            ))->setPaper('letter', 'portrait');
-            return $pdf->stream("bahan_keluar_{$id}.pdf");
+    //         $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
+    //             return User::where('job_level', 2)
+    //                 ->whereHas('dataJobPosition', function ($query) {
+    //                     $query->where('nama', 'Admin Manager');
+    //                 })->first();
+    //         });
+    //         $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
 
-            LogHelper::success('Berhasil generating PDF for BahanKeluar ID {$id}!');
-            return $pdf->download("bahan_keluar_{$id}.pdf");
+    //         $pdf = Pdf::loadView('pages.bahan-keluars.pdf', compact(
+    //             'bahanKeluar',
+    //             'purchasingUser',
+    //             'adminManagerceUser',
+    //             'leaderName',
+    //             'managerName',
+    //             'namaManager',
+    //             'hasProduk',
+    //             'hasProdukJadi'
+    //         ))->setPaper('letter', 'portrait');
+    //         return $pdf->stream("bahan_keluar_{$id}.pdf");
 
-        } catch (\Exception $e) {
-            LogHelper::error("Error generating PDF for BahanKeluar ID {$id}: " . $e->getMessage());
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
+    //         LogHelper::success('Berhasil generating PDF for BahanKeluar ID {$id}!');
+    //         // return $pdf->download("bahan_keluar_{$id}.pdf");
+    //         return $pdf->stream("bahan_keluar_{$id}.pdf");
+
+    //     } catch (\Exception $e) {
+    //         LogHelper::error("Error generating PDF for BahanKeluar ID {$id}: " . $e->getMessage());
+    //         return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
+    //     }
+    // }
+
+public function downloadPdf(int $id)
+{
+    try {
+        $bahanKeluar = BahanKeluar::with([
+            'dataUser',
+            'dataUser.atasanLevel1',
+            'dataUser.atasanLevel2',
+            'dataUser.atasanLevel3',
+            'bahanKeluarDetails.dataBahan.dataUnit',
+            'bahanKeluarDetails.dataProduk',
+            'bahanKeluarDetails.dataProdukJadi',
+        ])->findOrFail($id);
+
+        $hasProduk = $bahanKeluar->bahanKeluarDetails->filter(function ($detail) {
+            return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
+        })->isNotEmpty();
+
+        $hasProdukJadi = $bahanKeluar->bahanKeluarDetails->filter(function ($detail) {
+            return !empty($detail->dataProdukJadi) && !empty($detail->dataProdukJadi->id);
+        })->isNotEmpty();
+
+        $tandaTanganPengaju   = $bahanKeluar->dataUser->tanda_tangan ?? null;
+        $tandaTanganLeader    = null;
+        $tandaTanganManager   = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
+        $tandaTanganDirektur  = $bahanKeluar->dataUser->atasanLevel1->tanda_tangan ?? null;
+
+        if ($bahanKeluar->dataUser->atasanLevel3) {
+            $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel3->tanda_tangan ?? null;
+        } elseif ($bahanKeluar->dataUser->atasanLevel2) {
+            $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
         }
+
+        $leaderName  = $bahanKeluar->dataUser->atasanLevel3 ? $bahanKeluar->dataUser->atasanLevel3->name : null;
+        $managerName = $bahanKeluar->dataUser->atasanLevel2 ? $bahanKeluar->dataUser->atasanLevel2->name : null;
+
+        if (!$leaderName && $managerName) {
+            $leaderName = $managerName;
+        }
+
+        $purchasingUser = cache()->remember('purchasing_user', 60, function () {
+            return User::where('job_level', 3)
+                ->whereHas('dataJobPosition', function ($query) {
+                    $query->where('nama', 'Purchasing');
+                })->first();
+        });
+
+        $hardwareManager = cache()->remember('hardware_manager', 60, function () {
+            return User::where('job_level', 2)
+                ->whereHas('dataJobPosition', function ($query) {
+                    $query->where('nama', 'Engineer Manager');
+                })->first();
+        });
+
+        $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+        $namaManager           = $hardwareManager->name ?? null;
+
+        $financeUser = cache()->remember('finance_user', 60, function () {
+            return User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
+        });
+        $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
+
+        $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
+            return User::where('job_level', 2)
+                ->whereHas('dataJobPosition', function ($query) {
+                    $query->where('nama', 'Admin Manager');
+                })->first();
+        });
+        $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
+
+        LogHelper::success("Berhasil menampilkan preview untuk BahanKeluar ID {$id}!");
+
+        // langsung return ke view tanpa Pdf::loadView
+        return view('pages.bahan-keluars.preview', compact(
+            'bahanKeluar',
+            'purchasingUser',
+            'adminManagerceUser',
+            'leaderName',
+            'managerName',
+            'namaManager',
+            'hasProduk',
+            'hasProdukJadi'
+        ));
+
+    } catch (\Exception $e) {
+        LogHelper::error("Error menampilkan preview BahanKeluar ID {$id}: " . $e->getMessage());
+        return redirect()->back()->with('error', 'Terjadi kesalahan saat menampilkan preview.');
     }
+}
+
+
 
     public function index()
     {
@@ -176,6 +275,7 @@ class BahanKeluarController extends Controller
                 if (empty($item['details']) || $item['sub_total'] == 0) {
                     $bahanId = $item['bahan_id'] ?? null;
                     $produkId = $item['produk_id'] ?? null;
+                    $produkJadisId = $item['produk_jadis_id'] ?? null;
 
                     if ($bahanId) {
                         $bahan = Bahan::find($bahanId); // Ambil nama bahan berdasarkan ID
@@ -185,6 +285,10 @@ class BahanKeluarController extends Controller
                         $produk = BahanSetengahjadiDetails::find($produkId); // Ambil nama produk berdasarkan ID
                         $produkNama = $produk ? $produk->nama_bahan : 'Tidak diketahui';
                         $invalidBahan[] = "Produk: $produkNama";
+                    } elseif ($produkJadisId) {
+                        $produkJadis = ProdukJadiDetails::find($produkJadisId); // Ambil nama produk berdasarkan ID
+                        $produkJadiNama = $produkJadis ? $produkJadis->nama_produk : 'Tidak diketahui';
+                        $invalidBahan[] = "ProdukJadi: $produkJadiNama";
                     }
                 }
             }
@@ -223,6 +327,7 @@ class BahanKeluarController extends Controller
                         'bahan_keluar_id' => $id,
                         'bahan_id' => $item['bahan_id'] ?? null, // Gunakan bahan_id jika ada
                         'produk_id' => $item['produk_id'] ?? null, // Gunakan produk_id jika bahan_id tidak ada
+                        'produk_jadis_id' => $item['produk_jadis_id'] ?? null,
                         'serial_number' => $item['serial_number'] ?? null // Tambahkan serial number ke kondisi pencarian
                     ],
                     [
@@ -297,7 +402,8 @@ class BahanKeluarController extends Controller
                         $existingDetail = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
                         ->where(function ($query) use ($detail) {
                             $query->where('bahan_id', $detail->bahan_id)
-                                ->orWhere('produk_id', $detail->produk_id);
+                                ->orWhere('produk_id', $detail->produk_id)
+                                ->orWhere('produk_jadis_id', $detail->produk_jadis_id);
                         })
                         ->first();
                         // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel projek_details dengan data default
@@ -306,6 +412,7 @@ class BahanKeluarController extends Controller
                                 'projek_id' => $bahanKeluar->projek_id,
                                 'bahan_id' => $detail->bahan_id ?? null,
                                 'produk_id' => $detail->produk_id ?? null,
+                                'produk_jadis_id' => $detail->produk_jadis_id ?? null,
                                 'qty' => 0,
                                 'jml_bahan' => $detail->jml_bahan,
                                 'used_materials' => 0,
@@ -474,6 +581,43 @@ class BahanKeluarController extends Controller
                                 $setengahJadiDetail->save();
                             } else {
                                 throw new \Exception('Bahan setengah jadi tidak ditemukan!');
+                            }
+                        }elseif ($detail->produk_jadis_id) {
+                            // Jika bahan setengah jadi (menggunakan produk_jadis_id)
+                            $produkJadiDetail = ProdukJadiDetails::where('id', $detail->produk_jadis_id)
+                                ->whereHas('ProdukJadis', function ($query) use ($transaksiDetail) {
+                                    $query->where('kode_transaksi', $transaksiDetail['kode_transaksi']);
+                                })
+                                ->where('unit_price', $transaksiDetail['unit_price'])
+                                ->where('serial_number', $transaksiDetail['serial_number'] ?? null)
+                                ->first();
+
+                            if ($produkJadiDetail) {
+                                if ($transaksiDetail['qty'] > $produkJadiDetail->sisa) {
+                                    throw new \Exception('Tolak pengajuan, Stok bahan setengah jadi tidak cukup!');
+                                }
+
+                                // Pengelompokan berdasarkan harga satuan
+                                $unitPrice = $transaksiDetail['unit_price'];
+                                if (isset($groupedDetails[$unitPrice])) {
+                                    $groupedDetails[$unitPrice]['qty'] += $transaksiDetail['qty'];
+                                    if (!isset($groupedDetails[$unitPrice]['serial_number'])) {
+                                        $groupedDetails[$unitPrice]['serial_number'] = $transaksiDetail['serial_number'] ?? null;
+                                    }
+                                } else {
+                                    $groupedDetails[$unitPrice] = [
+                                        'qty' => $transaksiDetail['qty'],
+                                        'unit_price' => $unitPrice,
+                                        'serial_number' => $transaksiDetail['serial_number'] ?? null,
+                                    ];
+                                }
+
+                                // Kurangi stok produk jadi
+                                $produkJadiDetail->sisa -= $transaksiDetail['qty'];
+                                $produkJadiDetail->sisa = max(0, $produkJadiDetail->sisa);
+                                $produkJadiDetail->save();
+                            } else {
+                                throw new \Exception('Porduk jadi tidak ditemukan!');
                             }
                         } elseif ($detail->bahan_id) {
                             // Total qty yang perlu diambil
@@ -646,6 +790,10 @@ class BahanKeluarController extends Controller
                                 // Jika bahan setengah jadi (menggunakan produk_id)
                                 $projekDetailQuery = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
                                     ->where('produk_id', $detail->produk_id);
+                            }elseif ($detail->produk_jadis_id) {
+                                // Jika produk jadi (menggunakan produk_jadis_id)
+                                $projekDetailQuery = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
+                                    ->where('produk_jadis_id', $detail->produk_jadis_id);
                             } elseif ($detail->bahan_id) {
                                 // Jika bahan dari pembelian (menggunakan bahan_id)
                                 $projekDetailQuery = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
@@ -695,6 +843,7 @@ class BahanKeluarController extends Controller
                                 ProjekDetails::create([
                                     'projek_id' => $bahanKeluar->projek_id,
                                     'produk_id' => $detail->produk_id ?? null,
+                                    'produk_jadis_id' => $detail->produk_jadis_id ?? null,
                                     'bahan_id' => $detail->bahan_id ?? null,
                                     'serial_number' => $group['serial_number'] ?? null, // Tambahkan serial number jika ada
                                     'qty' => $group['qty'],

@@ -89,6 +89,11 @@
                                             </span>
                                         @elseif ($detail->dataProduk)
                                             {{ $detail->dataProduk->nama_bahan }} ({{ $detail->serial_number ?? 'N/A' }}) |
+                                            <span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-blue-400 border border-blue-400">
+                                                {{ $detail->sisa }} {{ 'Pcs' }}
+                                            </span>
+                                        @elseif ($detail->dataProdukJadi)
+                                            {{ $detail->dataProdukJadi->nama_produk }} ({{ $detail->serial_number ?? 'N/A' }}) |
                                             <span class="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-yellow-400 border border-yellow-400">
                                                 {{ $detail->sisa }} {{ 'Pcs' }}
                                             </span>

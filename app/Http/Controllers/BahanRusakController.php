@@ -67,7 +67,7 @@ class BahanRusakController extends Controller
 
                 // Langkah 1: Kelompokkan BahanRusakDetails berdasarkan bahan_id dan unit_price
                 foreach ($bahanRusakDetails as $rusakDetail) {
-                    $key = $rusakDetail->bahan_id ?? $rusakDetail->produk_id;
+                    $key = $rusakDetail->bahan_id ?? $rusakDetail->produk_id ?? $rusakDetail->produk_jadis_id;
                     $unitPrice = $rusakDetail->unit_price;
                     $serialNumber = $rusakDetail->serial_number ?? null;
 
@@ -75,6 +75,7 @@ class BahanRusakController extends Controller
                         $groupedDetails[$key][$unitPrice] = [
                             'bahan_id' => $rusakDetail->bahan_id,
                             'produk_id' => $rusakDetail->produk_id,
+                            'produk_jadis_id' => $rusakDetail->produk_jadis_id,
                             'qty' => 0,
                             'unit_price' => $unitPrice,
                             'serial_number' => $serialNumber,
@@ -172,7 +173,8 @@ class BahanRusakController extends Controller
                     $projekDetail = ProjekDetails::where('projek_id', $bahanRusak->projek_id)
                         ->where(function ($query) use ($bahanId) {
                             $query->where('bahan_id', $bahanId)
-                                    ->orWhere('produk_id', $bahanId);
+                                    ->orWhere('produk_id', $bahanId)
+                                    ->orWhere('produk_jadis_id', $bahanId);
                         })
                         ->first();
 

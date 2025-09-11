@@ -455,6 +455,7 @@ class ProjekController extends Controller
                 foreach ($bahanRusak as $item) {
                     $bahan_id = $item['bahan_id'] ?? null; // Ambil bahan_id jika ada
                     $produk_id = $item['produk_id'] ?? null; // Ambil produk_id jika ada
+                    $produk_jadis_id = $item['produk_jadis_id'] ?? null;
                     $serial_number = $item['serial_number'] ?? null; // Ambil serial number jika ada
                     $qtyRusak = $item['qty'] ?? 0;
                     $unit_price = $item['unit_price'] ?? 0;
@@ -464,6 +465,7 @@ class ProjekController extends Controller
                         'bahan_rusak_id' => $bahanRusakRecord->id,
                         'bahan_id' => $bahan_id, // Bisa null jika produk
                         'produk_id' => $produk_id, // Bisa null jika bahan
+                        'produk_jadis_id' => $produk_jadis_id,
                         'serial_number' => $serial_number, // Tambahkan serial number untuk produk
                         'qty' => $qtyRusak,
                         'unit_price' => $unit_price,

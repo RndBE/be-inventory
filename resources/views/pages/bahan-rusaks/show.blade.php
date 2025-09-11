@@ -73,6 +73,9 @@
                                             @elseif ($detail->dataProduk)
                                                 {{ $detail->dataProduk->nama_bahan }}
                                                 ({{ $detail->serial_number ?? 'N/A' }})
+                                            @elseif ($detail->dataProdukJadi)
+                                                {{ $detail->dataProdukJadi->nama_produk }}
+                                                ({{ $detail->serial_number ?? 'N/A' }})
                                             @else
                                                 Data tidak tersedia
                                             @endif

@@ -25,4 +25,9 @@ class BahanRusakDetails extends Model
     {
         return $this->belongsTo(BahanSetengahjadiDetails::class, 'produk_id');
     }
+
+    public function dataProdukJadi()
+    {
+        return $this->belongsTo(ProdukJadiDetails::class, 'produk_jadis_id');
+    }
 }

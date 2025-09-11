@@ -291,7 +291,7 @@
                                                 wire:model.defer="bahanRusak.{{ $index }}.qty"
                                                 wire:change="updateRusakQty({{ $rusak['bahan_id'] ?? $rusak['produk_id'] ?? $rusak['produk_jadis_id'] }}, {{ $rusak['unit_price'] }}, $event.target.value)">
 
-                                            x {{ number_format($rusak['unit_price'] ?? 0, 0, ',', '.') }}
+                                            x {{ number_format($rusak['unit_price'] ?? 0, 2, ',', '.') }}
 
                                             {{-- Tombol hapus/cancel rusak --}}
                                             <button type="button"
@@ -311,9 +311,10 @@
                                     </td>
 
                                     <td class="px-6 py-4 text-right">
-                                        {{ number_format(round(
-                                            (floatval($rusak['unit_price'] ?? 0) * floatval(str_replace(',', '.', $rusak['qty'] ?? 0)))
-                                        ), 0, ',', '.') }}
+                                        {{ number_format(
+                                            (floatval($rusak['unit_price'] ?? 0) * floatval(str_replace(',', '.', $rusak['qty'] ?? 0))),
+                                            2, ',', '.'
+                                        ) }}
                                     </td>
                                 </tr>
                             @endforeach

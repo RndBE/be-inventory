@@ -91,6 +91,9 @@
                                             @elseif ($detail->dataProduk)
                                                 {{ $detail->dataProduk->nama_bahan }}
                                                 ({{ $detail->serial_number ?? 'N/A' }}) ({{ $detail->qty }})
+                                            @elseif ($detail->dataProdukJadi)
+                                                {{ $detail->dataProdukJadi->nama_produk }}
+                                                ({{ $detail->serial_number ?? 'N/A' }}) ({{ $detail->qty }})
                                             @else
                                                 Data tidak tersedia
                                             @endif
@@ -103,18 +106,18 @@
                                     {{-- @foreach($unitPrices as $priceDetail) --}}
                                         <tr class="flex">
                                             <td class="min-w-[44px]">{{ $detail->qty }} x</td>
-                                            <td class="flex-1">{{ number_format($detail->unit_price) }}</td>
+                                            <td class="flex-1">{{ number_format($detail->unit_price ?? 0, 2, ',', '.') }}</td>
                                             <td class="flex-1 pl-3">
 
                                             </td>
-                                            <td class="w-full text-right">{{ number_format(($detail->qty) * ($detail->unit_price)) }}</td>
+                                            <td class="w-full text-right">{{ number_format(($detail->qty) * ($detail->unit_price)?? 0, 2, ',', '.') }}</td>
                                         </tr>
                                     {{-- @endforeach --}}
                                 @endforeach
                                 <tr class="flex">
                                     <td class="flex-1 py-1"></td>
                                     <td class="min-w-[44px]"><strong>Estimasi Harga: </strong></td>
-                                    <td class="min-w-[44px]">Rp. {{ number_format($this->bahanReturDetails->sum('sub_total')) }}</td>
+                                    <td class="min-w-[44px]">Rp. {{ number_format($this->bahanReturDetails->sum('sub_total')?? 0, 2, ',', '.') }}</td>
                                 </tr>
                             @else
                                 <tr>

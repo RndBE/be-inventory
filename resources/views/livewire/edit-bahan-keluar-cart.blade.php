@@ -47,7 +47,7 @@
 
                         @if ($status !== 'Disetujui')
                             <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
-                                <span><strong>Rp.</strong> {{ number_format($subtotals[$detail['bahan']->id ?? $detail['bahan']->produk_id] ?? 0, 0, ',', '.') }}</span>
+                                <span><strong>Rp.</strong> {{ number_format($subtotals[$detail['bahan']->id ?? $detail['bahan']->produk_id] ?? 0, 2, ',', '.') }}</span>
                             </td>
                             @php $grandTotal1 += $subtotals[$detail['bahan']->id ?? $detail['bahan']->produk_id] ?? 0; @endphp
                         @endif

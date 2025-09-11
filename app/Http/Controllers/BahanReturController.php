@@ -21,6 +21,8 @@ use App\Models\ProdukSampleDetails;
 use App\Models\GaransiProjekDetails;
 use App\Models\PengambilanBahanDetails;
 use App\Models\BahanSetengahjadiDetails;
+use App\Models\ProdukJadiDetails;
+use App\Models\ProdukJadis;
 use App\Models\ProduksiProdukJadiDetails;
 
 class BahanReturController extends Controller
@@ -179,6 +181,7 @@ class BahanReturController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
         try {
             DB::beginTransaction();
             $validated = $request->validate([
@@ -187,13 +190,14 @@ class BahanReturController extends Controller
 
             $bahanRetur = BahanRetur::findOrFail($id);
             $bahanReturDetails = BahanReturDetails::where('bahan_retur_id', $id)->get();
+            // dd($bahanReturDetails);
 
             if ($validated['status'] === 'Disetujui') {
                 $groupedDetails = [];
 
                 // Langkah 1: Kelompokkan bahanReturDetails berdasarkan bahan_id dan unit_price
                 foreach ($bahanReturDetails as $returDetail) {
-                    $key = $returDetail->bahan_id ?? $returDetail->produk_id;
+                    $key = $returDetail->bahan_id ?? $returDetail->produk_id ?? $returDetail->produk_jadis_id;
                     $unitPrice = $returDetail->unit_price;
                     $serialNumber = $returDetail->serial_number ?? null;
 
@@ -201,6 +205,7 @@ class BahanReturController extends Controller
                         $groupedDetails[$key][$unitPrice] = [
                             'bahan_id' => $returDetail->bahan_id,
                             'produk_id' => $returDetail->produk_id,
+                            'produk_jadis_id' => $returDetail->produk_jadis_id,
                             'qty' => 0,
                             'unit_price' => $unitPrice,
                             'serial_number' => $serialNumber,
@@ -250,15 +255,19 @@ class BahanReturController extends Controller
                     $projekDetail = ProjekDetails::where('projek_id', $bahanRetur->projek_id)
                     ->where(function ($query) use ($bahanId) {
                         $query->where('bahan_id', $bahanId)
-                                ->orWhere('produk_id', $bahanId);
+                                ->orWhere('produk_id', $bahanId)
+                                ->orWhere('produk_jadis_id', $bahanId);
                     })
                     ->first();
 
+                    // dd($projekDetail);
+
                     if ($projekDetail) {
                         $currentDetails = json_decode($projekDetail->details, true) ?? [];
-
+                        // dd($currentDetails);
                         foreach ($detailsByPrice as $unitPrice => $qtyData) {
                             foreach ($currentDetails as $key => &$entry) {
+                                // dd($entry['unit_price']);
                                 if ($entry['unit_price'] == $unitPrice) {
                                     $entry['qty'] -= $qtyData['qty'];
                                     // Jika qty menjadi 0 atau negatif, hapus entry dari details
@@ -269,6 +278,7 @@ class BahanReturController extends Controller
                                 }
                             }
                         }
+                        // dd($currentDetails);
 
                         $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
                         $projekDetail->qty = max(0, $projekDetail->qty - $totalQtyReduction);
@@ -554,6 +564,7 @@ class BahanReturController extends Controller
 
                 foreach ($bahanReturDetails as $returDetail) {
                     // dd($bahanRetur->kode_transaksi);
+                    // dd($returDetail);
                     if ($returDetail->produk_id) { // Jika produk_id ada, kembalikan ke BahanSetengahjadi
                         $bahanSetengahJadi = BahanSetengahjadi::firstOrCreate([
                             'kode_transaksi' => $bahanRetur->kode_transaksi,
@@ -563,6 +574,21 @@ class BahanReturController extends Controller
                         BahanSetengahjadiDetails::create([
                             'bahan_setengahjadi_id' => $bahanSetengahJadi->id,
                             'nama_bahan' => $returDetail->dataProduk->nama_bahan,
+                            'serial_number' => $returDetail->serial_number,
+                            'qty' => $returDetail->qty,
+                            'sisa' => $returDetail->qty,
+                            'unit_price' => $returDetail->unit_price,
+                            'sub_total' => $returDetail->qty * $returDetail->unit_price,
+                        ]);
+                    }elseif ($returDetail->produk_jadis_id) {
+                        $produkJadi = ProdukJadis::firstOrCreate([
+                            'kode_transaksi' => $bahanRetur->kode_transaksi,
+                            'tgl_masuk' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+                        ]);
+
+                        ProdukJadiDetails::create([
+                            'produk_jadis_id' => $produkJadi->id,
+                            'nama_produk' => $returDetail->dataProdukJadi->nama_produk,
                             'serial_number' => $returDetail->serial_number,
                             'qty' => $returDetail->qty,
                             'sisa' => $returDetail->qty,

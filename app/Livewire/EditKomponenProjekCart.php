@@ -377,7 +377,7 @@ class EditKomponenProjekCart extends Component
 
     public function returnToProduction($type, $itemId, $unitPrice)
     {
-        dd($itemId);
+        // dd($itemId);
         foreach ($this->bahanRusak as $key => $rusak) {
             $isMatch = false;
 

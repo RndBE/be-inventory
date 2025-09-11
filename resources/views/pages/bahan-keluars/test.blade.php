@@ -100,18 +100,18 @@
                                             @foreach($unitPrices as $priceDetail)
                                                 <tr class="flex">
                                                     <td class="min-w-[44px]">{{ $priceDetail->qty }} x</td>
-                                                    <td class="flex-1">{{ number_format($priceDetail->unit_price) }}</td>
+                                                    <td class="flex-1">{{ number_format($priceDetail->unit_price ?? 0, 2, ',', '.') }}</td>
                                                     <td class="flex-1 pl-3">
 
                                                     </td>
-                                                    <td class="w-full text-right">{{ number_format(($priceDetail->qty) * ($priceDetail->unit_price)) }}</td>
+                                                    <td class="w-full text-right">{{ number_format(($priceDetail->qty) * ($priceDetail->unit_price)?? 0, 2, ',', '.') }}</td>
                                                 </tr>
                                             @endforeach
                                         @endforeach
                                         <tr class="flex">
                                             <td class="flex-1 py-1"></td>
                                             <td class="min-w-[44px]"><strong>Estimasi Harga: </strong></td>
-                                            <td class="min-w-[44px]">Rp. {{ number_format($this->bahanKeluarDetails->sum('sub_total')) }}</td>
+                                            <td class="min-w-[44px]">Rp. {{ number_format($this->bahanKeluarDetails->sum('sub_total')?? 0, 2, ',', '.') }}</td>
                                         </tr>
                                     @else
                                         <tr>

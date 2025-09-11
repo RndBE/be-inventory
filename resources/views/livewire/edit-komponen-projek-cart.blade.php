@@ -202,7 +202,7 @@
                             @foreach($detail['details'] as $d)
                                 <div class="flex flex-col space-y-2">
                                     <div class="flex justify-end items-center">
-                                        <p>{{ $d['qty'] }} x {{ number_format($d['unit_price'], 0, ',', '.') }}</p>
+                                        <p>{{ $d['qty'] }} x {{ number_format($d['unit_price'] ?? 0, 2, ',', '.') }}</p>
 
                                         @if($produksiStatus !== 'Selesai')
                                             <button wire:click="decreaseQuantityPerPrice('{{ $cartKey }}', {{ $d['unit_price'] }})" type="button" class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"><svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
@@ -220,7 +220,7 @@
                         </td>
 
                         <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
-                            <span><strong></strong> {{ number_format($detail['sub_total'], 0, ',', '.') }}</span>
+                            <span><strong></strong> {{ number_format($detail['sub_total'] ?? 0, 2, ',', '.') }}</span>
                         </td>
                         <td class="px-6 py-4 flex justify-center items-center">
                             @if(isset($detail['newly_added']) && $detail['newly_added'])
@@ -241,7 +241,7 @@
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                         <td class="px-6 py-4 text-right text-black"><strong>Total Harga</strong></td>
                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                            <span><strong>Rp.</strong> {{ number_format($produksiTotal, 0, ',', '.') }}</span>
+                            <span><strong>Rp.</strong> {{ number_format($produksiTotal ?? 0, 2, ',', '.') }}</span>
                         </td>
                     </tr>
                 </tbody>
@@ -262,14 +262,16 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <input type="hidden" name="bahanRusak" value="{{ json_encode($this->getCartItemsForBahanRusak()) }}">
                             @foreach($bahanRusak as $index => $rusak)
                             @php
                                 // dd($rusak);
                             @endphp
-                            <input type="hidden" name="bahanRusak" value="{{ json_encode($this->getCartItemsForBahanRusak()) }}">
                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                        @if (!empty($rusak['produk_id']))
+                                        @if (!empty($rusak['produk_jadis_id']))
+                                            {{ App\Models\ProdukJadiDetails::find($rusak['produk_jadis_id'])->nama_produk ?? 'Produk Jadi Tidak Ditemukan' }}
+                                        @elseif (!empty($rusak['produk_id']))
                                             {{ App\Models\BahanSetengahjadiDetails::find($rusak['produk_id'])->nama_bahan ?? 'Nama Produk Tidak Ditemukan' }}
                                         @elseif (!empty($rusak['bahan_id']))
                                             {{ App\Models\Bahan::find($rusak['bahan_id'])->nama_bahan ?? 'Nama Bahan Tidak Ditemukan' }}
@@ -287,15 +289,15 @@
                                             <input type="text" pattern="[0-9]+([,\.][0-9]+)?" inputmode="decimal"
                                                 class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                                 wire:model.defer="bahanRusak.{{ $index }}.qty"
-                                                wire:change="updateRusakQty({{ $rusak['bahan_id'] ?? $rusak['produk_id'] }}, {{ $rusak['unit_price'] }}, $event.target.value)">
+                                                wire:change="updateRusakQty({{ $rusak['bahan_id'] ?? $rusak['produk_id'] ?? $rusak['produk_jadis_id'] }}, {{ $rusak['unit_price'] }}, $event.target.value)">
 
                                             x {{ number_format($rusak['unit_price'] ?? 0, 0, ',', '.') }}
 
                                             {{-- Tombol hapus/cancel rusak --}}
                                             <button type="button"
                                                 wire:click="returnToProduction(
-                                                    '{{ !empty($rusak['bahan_id']) ? 'bahan' : 'produk' }}',
-                                                    {{ $rusak['bahan_id'] ?? $rusak['produk_id'] }},
+                                                    '{{ !empty($rusak['bahan_id']) ? 'bahan' : (!empty($rusak['produk_id']) ? 'produk' : 'produk_jadi') }}',
+                                                    {{ $rusak['bahan_id'] ?? $rusak['produk_id'] ?? $rusak['produk_jadis_id'] ?? 0 }},
                                                     {{ $rusak['unit_price'] ?? 0 }}
                                                 )"
                                                 class="text-blue-600 hover:underline">
@@ -334,11 +336,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($bahanRetur as $index => $retur)
                             <input type="hidden" name="bahanRetur" value="{{ json_encode($this->getCartItemsForBahanRetur()) }}">
+                            @foreach($bahanRetur as $index => $retur)
                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                        @if (!empty($retur['produk_id']))
+                                        @if (!empty($retur['produk_jadis_id']))
+                                            {{ App\Models\ProdukJadiDetails::find($retur['produk_jadis_id'])->nama_produk ?? 'Produk Jadi Tidak Ditemukan' }}
+                                        @elseif (!empty($retur['produk_id']))
                                             {{ App\Models\BahanSetengahjadiDetails::find($retur['produk_id'])->nama_bahan ?? 'Nama Produk Tidak Ditemukan' }}
                                         @elseif (!empty($retur['bahan_id']))
                                             {{ App\Models\Bahan::find($retur['bahan_id'])->nama_bahan ?? 'Nama Bahan Tidak Ditemukan' }}
@@ -350,38 +354,21 @@
                                             ({{ $retur['serial_number'] }})
                                         @endif
                                     </td>
-                                    {{-- <td class="px-6 py-4">
-                                        <div class="flex justify-end items-center">
-                                            {{ $retur['qty'] }} x {{ number_format($retur['unit_price'], 0, ',', '.') }}
-                                            <button type="button" wire:click="returnReturToProduction(
-                                                    '{{ !empty($retur['bahan_id']) ? 'bahan' : 'produk' }}',
-                                                    {{ $retur['bahan_id'] ?? $retur['produk_id'] }},
-                                                    {{ $retur['unit_price'] }}
-                                                )" class="text-blue-600 hover:underline">
-                                                <svg class="w-6 h-6 text-red-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 10 3-3m0 0-3-3m3 3H5v3m3 4-3 3m0 0 3 3m-3-3h14v-3"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        {{ number_format($retur['unit_price'] * $retur['qty'], 0, ',', '.') }}
-                                    </td> --}}
                                     <td class="px-6 py-4">
                                         <div class="flex justify-end items-center gap-2">
                                             {{-- Input manual qty --}}
                                             <input type="text" pattern="[0-9]+([,\.][0-9]+)?" inputmode="decimal"
                                                 class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                                 wire:model.defer="bahanRetur.{{ $index }}.qty"
-                                                wire:change="updateReturQty({{ $retur['bahan_id'] ?? $retur['produk_id'] }}, {{ $retur['unit_price'] }}, $event.target.value)">
+                                                wire:change="updateReturQty({{ $retur['bahan_id'] ?? $retur['produk_id'] ?? $retur['produk_jadis_id'] }}, {{ $retur['unit_price'] }}, $event.target.value)">
 
-                                            x {{ number_format($retur['unit_price'] ?? 0, 0, ',', '.') }}
+                                            x {{ number_format($retur['unit_price'] ?? 0, 2, ',', '.') }}
 
                                             {{-- Tombol hapus/cancel retur --}}
                                             <button type="button"
                                                 wire:click="returnReturToProduction(
-                                                    '{{ !empty($retur['bahan_id']) ? 'bahan' : 'produk' }}',
-                                                    {{ $retur['bahan_id'] ?? $retur['produk_id'] }},
+                                                    '{{ !empty($retur['bahan_id']) ? 'bahan' : (!empty($retur['produk_id']) ? 'produk' : 'produk_jadi') }}',
+                                                    {{ $retur['bahan_id'] ?? $retur['produk_id'] ?? $retur['produk_jadis_id'] ?? 0 }},
                                                     {{ $retur['unit_price'] ?? 0 }}
                                                 )"
                                                 class="text-blue-600 hover:underline">
@@ -395,9 +382,10 @@
                                     </td>
 
                                     <td class="px-6 py-4 text-right">
-                                        {{ number_format(round(
-                                            (floatval($retur['unit_price'] ?? 0) * floatval(str_replace(',', '.', $retur['qty'] ?? 0)))
-                                        ), 0, ',', '.') }}
+                                        {{ number_format(
+                                            (floatval($retur['unit_price'] ?? 0) * floatval(str_replace(',', '.', $retur['qty'] ?? 0))),
+                                            2, ',', '.'
+                                        ) }}
                                     </td>
                                 </tr>
                             @endforeach

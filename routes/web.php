@@ -177,6 +177,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('projeks', ProjekController::class);
     Route::put('projeks/{projek}/selesai', [ProjekController::class, 'updateStatus'])->name('projeks.updateStatus');
     Route::get('projeks-export/{projek_id}', [ProjekController::class, 'export'])->name('projeks.export');
+    Route::get('projeks/{projek}/info', [ProjekController::class, 'info'])->name('projeks.info');
 
     Route::resource('produk-sample', ProdukSampleController::class);
     Route::put('produk-sample/{produk}/selesai', [ProdukSampleController::class, 'updateStatus'])->name('produk-sample.updateStatus');

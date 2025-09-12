@@ -53,7 +53,29 @@ class ProjekController extends Controller
         return Excel::download(new ProjekExport($projek_id), $fileName);
     }
 
+    public function info($id)
+    {
+        $projek = Projek::with([
+            'dataBahan',
+            'bahanKeluar',
+            'bahanKeluar.dataUser',
+            'bahanKeluar.bahanKeluarDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk', 'dataProdukJadi', 'purchase']);
+            },
+            'dataBahanRetur.bahanReturDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk', 'dataProdukJadi']);
+            },
+            'dataBahanRusak.bahanRusakDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk', 'dataProdukJadi']);
+            }
+        ])->findOrFail($id);
+        // dd($projek->bahanKeluar);
 
+        return view('pages.projek.info', compact('projek'));
+    }
 
     public function index()
     {

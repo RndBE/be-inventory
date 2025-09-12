@@ -167,43 +167,37 @@
                                                                     <tr>
                                                                         <td>
                                                                             @php
-                                                                                $purchase = \App\Models\Purchase::where('kode_transaksi', $item['kode_transaksi'])->first();
-                                                                                $produkSetengahJadi = \App\Models\BahanSetengahJadi::where('kode_transaksi', $item['kode_transaksi'])->first();
-                                                                                $produkJadi = \App\Models\ProdukJadis::where('kode_transaksi', $item['kode_transaksi'])->first();
+                                                                                $trx = $lookupTransaksi[$item['kode_transaksi']] ?? null;
                                                                             @endphp
 
-                                                                            @if($purchase && $purchase->qcBahanMasuk)
-                                                                                {{-- Jika ada Purchase + QC Bahan Masuk --}}
-                                                                                <a href="{{ route('quality-page.qc-bahan-masuk.view', $purchase->qcBahanMasuk->id_qc_bahan_masuk) }}"
-                                                                                    class="text-blue-600 hover:underline" target="_blank">
-                                                                                    {{ $purchase->qcBahanMasuk->kode_qc }}
+                                                                            @if($trx && $trx['purchase'] && $trx['purchase']->qcBahanMasuk)
+                                                                                <a href="{{ route('quality-page.qc-bahan-masuk.view', $trx['purchase']->qcBahanMasuk->id_qc_bahan_masuk) }}"
+                                                                                class="text-blue-600 hover:underline" target="_blank">
+                                                                                {{ $trx['purchase']->qcBahanMasuk->kode_qc }}
                                                                                 </a>
 
-                                                                            @elseif(!$purchase && $produkSetengahJadi && $produkSetengahJadi->qcProdukSetengaJadi)
-                                                                                {{-- Jika TIDAK ada Purchase, cek Produk Setengah Jadi + QC --}}
-                                                                                <a href="{{ route('quality-page.qc-produk-setengah-jadi.view', $produkSetengahJadi->qcProdukSetengaJadi->id) }}"
-                                                                                    class="text-blue-600 hover:underline" target="_blank">
-                                                                                    {{ $produkSetengahJadi->qcProdukSetengaJadi->kode_list }}
+                                                                            @elseif($trx && $trx['produkSetengahJadi'] && $trx['produkSetengahJadi']->qcProdukSetengaJadi)
+                                                                                <a href="{{ route('quality-page.qc-produk-setengah-jadi.view', $trx['produkSetengahJadi']->qcProdukSetengaJadi->id) }}"
+                                                                                class="text-blue-600 hover:underline" target="_blank">
+                                                                                {{ $trx['produkSetengahJadi']->qcProdukSetengaJadi->kode_list }}
                                                                                 </a>
 
-                                                                            @elseif(!$purchase && !$produkSetengahJadi && $produkJadi && $produkJadi->qcProdukJadi)
-                                                                                {{-- Jika bukan Purchase / Produk Setengah Jadi, cek Produk Jadi + QC --}}
-                                                                                <a href="{{ route('quality-page.qc-produk-jadi.view', $produkJadi->qcProdukJadi->id) }}"
-                                                                                    class="text-blue-600 hover:underline" target="_blank">
-                                                                                    {{ $produkJadi->qcProdukJadi->kode_list }}
+                                                                            @elseif($trx && $trx['produkJadi'] && $trx['produkJadi']->qcProdukJadi)
+                                                                                <a href="{{ route('quality-page.qc-produk-jadi.view', $trx['produkJadi']->qcProdukJadi->id) }}"
+                                                                                class="text-blue-600 hover:underline" target="_blank">
+                                                                                {{ $trx['produkJadi']->qcProdukJadi->kode_list }}
                                                                                 </a>
 
-                                                                            @elseif($purchase)
-                                                                                {{-- Kalau hanya ada Purchase tanpa QC --}}
-                                                                                <a href="{{ route('purchases.show', $purchase->id) }}"
-                                                                                    class="text-blue-600 hover:underline" target="_blank">
-                                                                                    {{ $item['kode_transaksi'] }}
+                                                                            @elseif($trx && $trx['purchase'])
+                                                                                <a href="{{ route('purchases.show', $trx['purchase']->id) }}"
+                                                                                class="text-blue-600 hover:underline" target="_blank">
+                                                                                {{ $item['kode_transaksi'] }}
                                                                                 </a>
 
                                                                             @else
-                                                                                {{-- Fallback terakhir --}}
                                                                                 {{ $item['kode_transaksi'] ?? '-' }}
                                                                             @endif
+
                                                                         </td>
 
                                                                         {{-- <td class="px-2 py-1 border">{{ $item['serial_number'] ?? '-' }}</td> --}}

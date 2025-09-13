@@ -31,7 +31,7 @@ class LaporanProyekExport implements FromArray, WithHeadings, ShouldAutoSize, Wi
         $data = [];
         $totalQty = 0;
         $totalSubTotal = 0;
-        $projek = Projek::with('projekDetails.dataBahan', 'projekDetails.dataBahan.dataUnit', 'projekDetails.dataProduk',)->findOrFail($this->projek_id);
+        $projek = Projek::with('projekDetails.dataBahan', 'projekDetails.dataBahan.dataUnit', 'projekDetails.dataProduk', 'projekDetails.dataProdukJadi')->findOrFail($this->projek_id);
 
         $formattedStartDate = Carbon::parse($projek->mulai_projek)->format('d F Y');
         $formattedEndDate = Carbon::parse($projek->selesai_projek)->format('d F Y');
@@ -54,16 +54,26 @@ class LaporanProyekExport implements FromArray, WithHeadings, ShouldAutoSize, Wi
 
             foreach ($detailsArray as $item) {
                 $detailsFormattedQty[] = $item['qty'];
-                $detailsFormattedHarga[] = $item['unit_price'];
+                $detailsFormattedHarga[] = number_format((float) $item['unit_price'], 2, ',', '.');
             }
 
             // Contoh gabung string dari qty dan harga
             $formattedQtyString = implode(', ', $detailsFormattedQty);
             $formattedHargaString = implode(', ', $detailsFormattedHarga);
 
+            if ($detail->dataProduk) {
+                $namaItem = $detail->dataProduk->nama_bahan . ' (' . ($detail->serial_number ?? '-') . ')';
+            } elseif ($detail->dataProdukJadi) {
+                $namaItem = $detail->dataProdukJadi->nama_produk . ' (' . ($detail->serial_number ?? '-') . ')';
+            } elseif ($detail->dataBahan) {
+                $namaItem = $detail->dataBahan->nama_bahan;
+            } else {
+                $namaItem = '-';
+            }
+
             $data[] = [
                 $index + 1,
-                ($detail->dataProduk ? $detail->dataProduk->nama_bahan . ' (' . ($detail->serial_number ?? '-') . ')' : $detail->dataBahan->nama_bahan ?? null),
+                $namaItem,
                 $formattedQtyString,
                 $detail->dataBahan->dataUnit->nama ?? 'Pcs',
                 $formattedHargaString,
@@ -125,7 +135,7 @@ class LaporanProyekExport implements FromArray, WithHeadings, ShouldAutoSize, Wi
         // Tambahkan Data Bahan Rusak di Bawah Laporan Proyek
         $data[] = [''];
         $data[] = ['No', 'Kode Transaksi', 'Nama Barang/Bahan', 'Qty', 'Satuan', 'Harga Satuan', 'Total', 'Tanggal Keluar'];
-        $bahanRusak = BahanRusak::with('bahanRusakDetails.dataBahan', 'bahanRusakDetails.dataProduk')->where('projek_id', $this->projek_id)->get();
+        $bahanRusak = BahanRusak::with('bahanRusakDetails.dataBahan', 'bahanRusakDetails.dataProduk', 'bahanRusakDetails.dataProdukJadi')->where('projek_id', $this->projek_id)->get();
         $totalQtyRusak = 0;
         $totalSubTotalRusak = 0;
 
@@ -138,6 +148,11 @@ class LaporanProyekExport implements FromArray, WithHeadings, ShouldAutoSize, Wi
                     $namaBarang = $detail->dataBahan->nama_bahan;
                 } elseif ($detail->dataProduk) {
                     $namaBarang = $detail->dataProduk->nama_bahan;
+                    if (!empty($detail->serial_number)) {
+                        $namaBarang .= ' (' . $detail->serial_number . ')';
+                    }
+                }elseif ($detail->dataProdukJadi) {
+                    $namaBarang = $detail->dataProdukJadi->nama_produk;
                     if (!empty($detail->serial_number)) {
                         $namaBarang .= ' (' . $detail->serial_number . ')';
                     }
@@ -183,7 +198,7 @@ class LaporanProyekExport implements FromArray, WithHeadings, ShouldAutoSize, Wi
 
     public function styles(Worksheet $sheet)
     {
-        $projek = Projek::with('projekDetails.dataBahan', 'projekDetails.dataBahan.dataUnit', 'projekDetails.dataProduk')->findOrFail($this->projek_id);
+        $projek = Projek::with('projekDetails.dataBahan', 'projekDetails.dataBahan.dataUnit', 'projekDetails.dataProduk', 'projekDetails.dataProdukJadi')->findOrFail($this->projek_id);
         $rowAwalBahan = 8;
         $jumlahBahan = count($projek->projekDetails);
         $lastRowBahan = $rowAwalBahan + $jumlahBahan + 1; // Simpan posisi terakhir bagian bahan (termasuk total bahan)

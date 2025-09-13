@@ -24,11 +24,13 @@
     @endif
 
     <div class="intro-y col-span-12 flex flex-wrap sm:flex-no-wrap items-center mt-2">
+        @can('tambah-qc-bahan-masuk')
         <a href="{{ route('quality-page.qc-bahan-masuk.wizard') }}">
             <button class="button text-white bg-theme-primary shadow-md mr-2">
                 Tambah QC
             </button>
         </a>
+        @endcan
         <a href="{{ route('purchases.index') }}">
             <button class="button text-white bg-indigo-600 hover:bg-indigo-500 shadow-md mr-2">
                 Bahan Masuk
@@ -75,18 +77,20 @@
                                 href="{{ route('quality-page.qc-bahan-masuk.view', $item->id_qc_bahan_masuk) }}">
                                     <i data-feather="check-square" class="w-4 h-4 mr-1"></i> View
                                 </a>
-
-                                @if(!$item->tanggal_masuk_gudang)
-                                    <button wire:ignore wire:click="prosesKeGudang({{ $item->id_qc_bahan_masuk }})"
-                                            class="flex items-center text-green-600">
-                                        <i data-feather="box" class="w-4 h-4 mr-1"></i> Add to Gudang
-                                    </button>
-                                @endif
-
-                                <a wire:ignore class="flex items-center text-theme-6 cursor-pointer"
-                                wire:click="confirmDelete({{ $item->id_qc_bahan_masuk }})">
-                                    <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Hapus
-                                </a>
+                                @can('addgudang-qc-bahan-masuk')
+                                    @if(!$item->tanggal_masuk_gudang)
+                                        <button wire:ignore wire:click="prosesKeGudang({{ $item->id_qc_bahan_masuk }})"
+                                                class="flex items-center text-green-600">
+                                            <i data-feather="box" class="w-4 h-4 mr-1"></i> Add to Gudang
+                                        </button>
+                                    @endif
+                                @endcan
+                                @can('hapus-qc-bahan-masuk')
+                                    <a wire:ignore class="flex items-center text-theme-6 cursor-pointer"
+                                    wire:click="confirmDelete({{ $item->id_qc_bahan_masuk }})">
+                                        <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Hapus
+                                    </a>
+                                @endcan
                             </div>
                         </td>
                     </tr>

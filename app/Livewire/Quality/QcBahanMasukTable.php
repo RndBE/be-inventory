@@ -15,6 +15,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 #[Layout('layouts.quality', ['title' => 'QC Bahan Masuk'])]
@@ -27,8 +29,15 @@ class QcBahanMasukTable extends Component
     public $deleteId;
     public $pdfData;
     public $qc;
+    public $canAddGudangQCBahanMasuk, $canHapusQCBahanMasuk;
 
     protected $paginationTheme = 'tailwind';
+
+    public function mount(Request $request)
+    {
+        $this->canAddGudangQCBahanMasuk = Gate::allows('addgudang-qc-bahan-masuk');
+        $this->canHapusQCBahanMasuk = Gate::allows('hapus-qc-bahan-masuk');
+    }
 
     public function render(): View
     {

@@ -402,7 +402,7 @@ class PembelianBahanTable extends Component
                 // Untuk Aset, hanya tampil kalau sudah disetujui GA
                 $query->orWhere(function ($q) {
                     $q->where('jenis_pengajuan', 'Pembelian Aset')
-                    ->where('status_leader', 'Disetujui');
+                    ->where('status_leader', 'Belum disetujui');
                 });
             });
 

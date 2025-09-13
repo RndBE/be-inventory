@@ -137,7 +137,9 @@
                                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                                         @if (!empty($detail['produk_id']))
-                                                            {{ App\Models\BahanSetengahjadiDetails::find($detail['produk_id'])->nama_bahan ?? 'Nama Produk Tidak Ditemukan' }}
+                                                            {{ App\Models\BahanSetengahjadiDetails::find($detail['produk_id'])->nama_bahan ?? 'Nama bahan Tidak Ditemukan' }}
+                                                        @elseif (!empty($detail['produk_jadis_id']))
+                                                            {{ App\Models\ProdukJadiDetails::find($detail['produk_jadis_id'])->nama_produk ?? 'Nama produk Tidak Ditemukan' }}
                                                         @elseif (!empty($detail['bahan_id']))
                                                             {{ App\Models\Bahan::find($detail['bahan_id'])->nama_bahan ?? 'Nama Bahan Tidak Ditemukan' }}
                                                         @else
@@ -169,7 +171,7 @@
                                                             @foreach ($detailsArray as $d)
                                                                 <div class="flex flex-col space-y-2">
                                                                     <div class="flex justify-end items-center">
-                                                                        <p>{{ number_format($d['unit_price'], 0, ',', '.') }}</p>
+                                                                        <p>{{ number_format($d['unit_price'], 2, ',', '.') }}</p>
                                                                     </div>
                                                                 </div>
                                                             @endforeach
@@ -177,7 +179,7 @@
                                                     </td>
 
                                                     <td class="px-6 py-4 font-semibold text-right text-gray-900 dark:text-white">
-                                                        <span><strong></strong> {{ number_format($detail['sub_total'], 0, ',', '.') }}</span>
+                                                        <span><strong></strong> {{ number_format($detail['sub_total'], 2, ',', '.') }}</span>
                                                     </td>
                                                 </tr>
                                                 @endforeach
@@ -186,7 +188,7 @@
                                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right"></td>
                                                     <td class="px-6 py-4 text-right text-black"><strong>Total Harga</strong></td>
                                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                                        <span><strong>Rp.</strong> {{ number_format($produksiTotal, 0, ',', '.') }}</span>
+                                                        <span><strong>Rp.</strong> {{ number_format($produksiTotal, 2, ',', '.') }}</span>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -389,12 +391,14 @@
                                                                             {{ $dataBahan[$detailItem['bahan_id']] }}
                                                                         @elseif (!empty($detailItem['produk_id']) && isset($dataProduk[$detailItem['produk_id']]))
                                                                             {{ $dataProduk[$detailItem['produk_id']] }} ({{ $detailItem['serial_number'] ?? 'N/A' }})
+                                                                        @elseif (!empty($detailItem['produk_jadis_id']) && isset($dataProdukJadi[$detailItem['produk_jadis_id']]))
+                                                                            {{ $dataProdukJadi[$detailItem['produk_jadis_id']] }} ({{ $detailItem['serial_number'] ?? 'N/A' }})
                                                                         @else
                                                                             Data tidak tersedia
                                                                         @endif
                                                                     </td>
                                                                     <td class="px-6 py-4 text-center">{{ is_array($detailItem) ? ($detailItem['qty'] ?? '-') : ($detailItem->qty ?? '-') }}</td>
-                                                                    <td class="px-6 py-4 text-right">{{ number_format($detailItem['unit_price'] ?? 2, 0, ',', '.') }}</td>
+                                                                    <td class="px-6 py-4 text-right">{{ number_format($detailItem['unit_price'] ?? 0, 2, ',', '.') }}</td>
                                                                     <td class="px-6 py-4 text-right">{{ number_format($currentSubTotal, 2, ',', '.') }}</td>
                                                                 </tr>
                                                             @endforeach

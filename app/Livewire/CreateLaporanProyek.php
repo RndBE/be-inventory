@@ -12,6 +12,7 @@ use App\Models\LaporanProyek;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Models\BahanSetengahjadiDetails;
+use App\Models\ProdukJadiDetails;
 use Illuminate\Support\Facades\Validator;
 
 class CreateLaporanProyek extends Component
@@ -21,6 +22,7 @@ class CreateLaporanProyek extends Component
     public $dataBahanRusak = [];
     public $dataBahan = [];
     public $dataProduk = [];
+    public $dataProdukJadi = [];
     public $produksiStatus;
     public $itemsAset = [];
     public $proyek_id;
@@ -46,8 +48,11 @@ class CreateLaporanProyek extends Component
             'bahanKeluar',
             'dataKontrak',
             'dataBahanRusak.bahanRusakDetails.dataBahan',
-            'dataBahanRusak.bahanRusakDetails.dataProduk'
+            'dataBahanRusak.bahanRusakDetails.dataProduk',
+            'dataBahanRusak.bahanRusakDetails.dataProdukJadi'
         ])->find($proyek_id);
+
+        // dd($this->proyek);
 
         // Ambil data laporan proyek yang sudah tersimpan
         $this->savedItemsAset = LaporanProyek::where('projek_id', $proyek_id)->get()->toArray();
@@ -60,6 +65,7 @@ class CreateLaporanProyek extends Component
 
         $this->dataBahan = Bahan::pluck('nama_bahan', 'id')->toArray();
         $this->dataProduk = BahanSetengahjadiDetails::pluck('nama_bahan', 'id')->toArray();
+        $this->dataProdukJadi = ProdukJadiDetails::pluck('nama_produk', 'id')->toArray();
 
         foreach ($this->savedItemsAset as &$item) {
             $item['tanggal'] = Carbon::parse($item['tanggal'])->format('Y-m-d');

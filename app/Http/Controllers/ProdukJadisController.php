@@ -19,9 +19,9 @@ class ProdukJadisController extends Controller
 
     public function __construct()
     {
-        $this->middleware('permission:lihat-bahan-setengahjadi', ['only' => ['index']]);
-        $this->middleware('permission:tambah-bahan-setengahjadi', ['only' => ['create','store']]);
-        $this->middleware('permission:detail-bahan-setengahjadi', ['only' => ['show']]);
+        $this->middleware('permission:lihat-produk-jadi', ['only' => ['index']]);
+        $this->middleware('permission:tambah-produk-jadi', ['only' => ['create','store']]);
+        $this->middleware('permission:detail-produk-jadi', ['only' => ['show']]);
     }
 
     public function export(Request $request)

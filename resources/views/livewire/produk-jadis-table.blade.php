@@ -105,7 +105,7 @@
                         <td class="px-6 py-3">Rp {{ number_format($produkJadi->ProdukJadiDetails->sum('sub_total'), 2, ',', '.') }}</td>
                         <td class="px-6 py-4">
                             <div class="row flex space-x-2">
-                                @can('detail-bahan-setengahjadi')
+                                @can('detail-produk-jadi')
                                     <a href="{{ route('produk-jadi.show', $produkJadi->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600 focus:text-white focus:bg-blue-600 focus:border-blue-600">
                                         <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/><path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
                                     </a>

@@ -233,11 +233,11 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
         Route::get('qc-bahan-masuk/view/{id}', QcBahanMasukView::class)->name('qc-bahan-masuk.view');
 
         Route::get('qc-produk-setengah-jadi', QcProdukSetengahJadiTable::class)->name('qc-produk-setengah-jadi.index');
-        Route::get('qc-produk-setengah-jadi/create', QcProdukSetengahJadiWizard::class)->name('qc-produk-setengah-jadi.wizard');
+        Route::get('qc-produk-setengah-jadi/create', QcProdukSetengahJadiWizard::class)->middleware('permission:tambah-qc-produk-setengahjadi')->name('qc-produk-setengah-jadi.wizard');
         Route::get('qc-produk-setengah-jadi/view/{id}', QcProdukSetengahJadiView::class)->name('qc-produk-setengah-jadi.view');
 
         Route::get('qc-produk-jadi', QcProdukJadiTable::class)->name('qc-produk-jadi.index');
-        Route::get('qc-produk-jadi/create', QcProdukJadiWizard::class)->name('qc-produk-jadi.wizard');
+        Route::get('qc-produk-jadi/create', QcProdukJadiWizard::class)->middleware('permission:tambah-qc-produk-jadi')->name('qc-produk-jadi.wizard');
         Route::get('qc-produk-jadi/view/{id}', QcProdukJadiView::class)->name('qc-produk-jadi.view');
     });
 

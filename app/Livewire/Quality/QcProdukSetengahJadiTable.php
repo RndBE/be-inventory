@@ -18,6 +18,8 @@ use App\Models\Qc2ProdukSetengahJadi;
 use Illuminate\Support\Facades\Storage;
 use App\Models\BahanSetengahjadiDetails;
 use App\Models\QcProdukSetengahJadiList;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Http\Request;
 use App\Models\QcDokumentasiProdukSetengahJadi;
 
 #[Layout('layouts.quality', ['title' => 'QC Produk Setengah Jadi'])]
@@ -34,6 +36,15 @@ class QcProdukSetengahJadiTable extends Component
     public $laporan_qc_old, $dokumentasi_lama = [];
     public $serial_number;
     public $deleteId = null;
+    public $qc1ProdukSetengahjadi, $qc2ProdukSetengahjadi,$canAddGudangQCProdukSetengahjadi, $canHapusQCProdukSetengahjadi;
+
+    public function mount(Request $request)
+    {
+        $this->qc1ProdukSetengahjadi = Gate::allows('qc1-produk-setengahjadi');
+        $this->qc2ProdukSetengahjadi = Gate::allows('qc2-produk-setengahjadi');
+        $this->canAddGudangQCProdukSetengahjadi = Gate::allows('addgudang-qc-produk-setengahjadi');
+        $this->canHapusQCProdukSetengahjadi = Gate::allows('hapus-qc-produk-setengahjadi');
+    }
 
     public function removeDokumentasi($index)
     {

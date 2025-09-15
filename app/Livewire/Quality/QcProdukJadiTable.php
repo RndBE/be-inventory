@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\QcDokumentasiProdukJadi;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Http\Request;
 
 #[Layout('layouts.quality', ['title' => 'QC Produk Jadi'])]
 class QcProdukJadiTable extends Component
@@ -32,6 +34,15 @@ class QcProdukJadiTable extends Component
     public $laporan_qc_old, $dokumentasi_lama = [];
     public $serial_number;
     public $deleteId = null;
+    public $qc1ProdukJadi, $qc2ProdukJadi,$canAddGudangQCProdukJadi, $canHapusQCProdukJadi;
+
+    public function mount(Request $request)
+    {
+        $this->qc1ProdukJadi = Gate::allows('qc1-produk-jadi');
+        $this->qc2ProdukJadi = Gate::allows('qc2-produk-jadi');
+        $this->canAddGudangQCProdukJadi = Gate::allows('addgudang-qc-produk-jadi');
+        $this->canHapusQCProdukJadi = Gate::allows('hapus-qc-produk-jadi');
+    }
 
     public function removeDokumentasi($index)
     {

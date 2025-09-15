@@ -50,11 +50,13 @@
     </script>
 
     <div class="intro-y col-span-12 flex flex-wrap sm:flex-no-wrap items-center mt-2">
+        @can('tambah-qc-produk-setengahjadi')
         <a href="{{ route('quality-page.qc-produk-setengah-jadi.wizard') }}">
             <button class="button text-white bg-theme-primary shadow-md mr-2">
                 Selesaikan Produksi
             </button>
         </a>
+        @endcan
         <a href="{{ route('produksis.index') }}">
             <button class="button text-white bg-indigo-600 hover:bg-indigo-500 shadow-md mr-2">
                 Produksi Produk Setengah Jadi
@@ -182,40 +184,44 @@
                                 href="{{ route('quality-page.qc-produk-setengah-jadi.view', $item->id) }}">
                                     <i data-feather="check-square" class="w-4 h-4 mr-1"></i> View
                                 </a> --}}
-
-                                @if(!$item->qc1)
-                                    <button wire:ignore
-                                        wire:click="$dispatch('open-qc-modal', { id: {{ $item->id }}, qc: 1 })"
-                                        class="flex items-center text-blue-600 cursor-pointer">
-                                        <i data-feather="check-circle" class="w-4 h-4 mr-1"></i> QC 1
-                                    </button>
-                                @endif
-
-                                {{-- Tombol QC 2 (hanya muncul jika QC1 sudah ada & QC2 belum ada) --}}
-                                @if($item->qc1 && !$item->qc2 && empty($item->serial_number))
-                                    <button wire:ignore
-                                        wire:click="$dispatch('open-qc-modal', { id: {{ $item->id }}, qc: 2 })"
-                                        class="flex items-center text-green-600 cursor-pointer">
-                                        <i data-feather="check-circle" class="w-4 h-4 mr-1"></i> QC 2
-                                    </button>
-                                @endif
-
-                                @if(!$item->tanggal_masuk_gudang && $item->qc1)
-                                    <button
-                                        x-data wire:ignore
-                                        x-on:click="$dispatch('open-gudang-modal', { id: {{ $item->id }} })"
-                                        class="flex items-center text-green-600">
-                                        <i data-feather="box" class="w-4 h-4 mr-1"></i> Add to Gudang
-                                    </button>
-                                @endif
-
-                                <!-- Tombol Hapus -->
-                                @if(empty($item->serial_number))
-                                    <a wire:ignore wire:click="confirmDelete({{ $item->id }})"
-                                    class="flex items-center text-red-600 cursor-pointer">
-                                        <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Hapus
-                                    </a>
-                                @endif
+                                @can('qc1-produk-setengahjadi')
+                                    @if(!$item->qc1)
+                                        <button wire:ignore
+                                            wire:click="$dispatch('open-qc-modal', { id: {{ $item->id }}, qc: 1 })"
+                                            class="flex items-center text-blue-600 cursor-pointer">
+                                            <i data-feather="check-circle" class="w-4 h-4 mr-1"></i> QC 1
+                                        </button>
+                                    @endif
+                                @endcan
+                                @can('qc2-produk-setengahjadi')
+                                    {{-- Tombol QC 2 (hanya muncul jika QC1 sudah ada & QC2 belum ada) --}}
+                                    @if($item->qc1 && !$item->qc2 && empty($item->serial_number))
+                                        <button wire:ignore
+                                            wire:click="$dispatch('open-qc-modal', { id: {{ $item->id }}, qc: 2 })"
+                                            class="flex items-center text-green-600 cursor-pointer">
+                                            <i data-feather="check-circle" class="w-4 h-4 mr-1"></i> QC 2
+                                        </button>
+                                    @endif
+                                @endcan
+                                @can('addgudang-qc-produk-setengahjadi')
+                                    @if(!$item->tanggal_masuk_gudang && $item->qc1)
+                                        <button
+                                            x-data wire:ignore
+                                            x-on:click="$dispatch('open-gudang-modal', { id: {{ $item->id }} })"
+                                            class="flex items-center text-green-600">
+                                            <i data-feather="box" class="w-4 h-4 mr-1"></i> Add to Gudang
+                                        </button>
+                                    @endif
+                                @endcan
+                                @can('hapus-qc-produk-setengahjadi')
+                                    <!-- Tombol Hapus -->
+                                    @if(empty($item->serial_number))
+                                        <a wire:ignore wire:click="confirmDelete({{ $item->id }})"
+                                        class="flex items-center text-red-600 cursor-pointer">
+                                            <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Hapus
+                                        </a>
+                                    @endif
+                                @endcan
                             </div>
                         </td>
                     </tr>

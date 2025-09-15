@@ -18,6 +18,7 @@
         @php
             $isGudangActive = request()->routeIs('quality-page.qc-bahan-masuk.*');
         @endphp
+        {{-- @if(Gate::allows('lihat-menu-qc-gudang')) --}}
         <a href="javascript:;" class="side-menu {{ $isGudangActive ? 'side-menu--active' : '' }}">
             <div class="side-menu__icon"> <i data-feather="box"></i> </div>
             <div class="side-menu__title">
@@ -25,6 +26,7 @@
                 <i data-feather="chevron-down" class="side-menu__sub-icon"></i>
             </div>
         </a>
+        {{-- @endif --}}
         <ul class="{{ $isGudangActive ? 'side-menu__sub-open' : '' }}">
             <li>
                 <a href="{{ route('quality-page.qc-bahan-masuk.index') }}"

@@ -134,10 +134,10 @@ class BahanReturController extends Controller
                 'namaManager',
                 'hasProduk'
             ))->setPaper('letter', 'portrait');
-            return $pdf->stream("bahan_keluar_{$id}.pdf");
+            return $pdf->stream("bahan_retur_{$id}.pdf");
 
             LogHelper::success('Berhasil generating PDF for BahanRetur ID {$id}!');
-            return $pdf->download("bahan_keluar_{$id}.pdf");
+            return $pdf->download("bahan_retur_{$id}.pdf");
 
         } catch (\Exception $e) {
             LogHelper::error("Error generating PDF for BahanRetur ID {$id}: " . $e->getMessage());

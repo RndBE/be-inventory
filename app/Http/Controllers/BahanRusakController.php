@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use Throwable;
+use App\Models\User;
 use App\Helpers\LogHelper;
 use App\Models\BahanRusak;
 use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
 use App\Models\ProduksiDetails;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\PengajuanDetails;
 use App\Models\ProjekRndDetails;
 use App\Models\BahanRusakDetails;
@@ -26,6 +28,118 @@ class BahanRusakController extends Controller
         $this->middleware('permission:detail-bahan-rusak', ['only' => ['show']]);
         $this->middleware('permission:edit-bahan-rusak', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-bahan-rusak', ['only' => ['destroy']]);
+    }
+
+    public function downloadPdf(int $id)
+    {
+        try {
+            $bahanRusak = BahanRusak::with([
+                'produksiS','projek','garansiProjek','projekRnd','pengajuan','pengambilanBahan','produkSample',
+                'bahanRusakDetails.dataBahan.dataUnit',
+                'bahanRusakDetails.dataProduk', 'produksiProdukJadi',
+            ])->findOrFail($id);
+
+            $hasProduk = $bahanRusak->bahanRusakDetails->filter(function ($detail) {
+                return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
+            })->isNotEmpty();
+
+            $tandaTanganPengaju = $bahanRusak->dataUser->tanda_tangan ?? null;
+
+            $tandaTanganLeader = null;
+            $tandaTanganManager = $bahanRusak->dataUser->atasanLevel2->tanda_tangan ?? null;
+            $tandaTanganDirektur = $bahanRusak->dataUser->atasanLevel1->tanda_tangan ?? null;
+
+            // Default null
+            $pengaju = null;
+            $divisi = null;
+            $tujuan = null;
+
+            if ($bahanRusak->produksiS) {
+                $pengaju = $bahanRusak->produksiS->pengaju ?? null;
+                $tujuan = 'Produksi '. $bahanRusak->produksiS->dataBahan->nama_bahan .'/'.$bahanRusak->produksiS->keterangan ?? null;
+            } elseif ($bahanRusak->projek) {
+                $pengaju = $bahanRusak->projek->pengaju ?? null;
+                $tujuan = $bahanRusak->projek->dataKontrak->nama_kontrak .'/'. $bahanRusak->projek->keterangan ?? null;
+            }elseif ($bahanRusak->produksiProdukJadi) {
+                $pengaju = $bahanRusak->produksiProdukJadi->pengaju ?? null;
+                $tujuan = 'Produksi '. $bahanRusak->produksiProdukJadi->dataProdukJadi->nama_produk .'/'. $bahanRusak->produksiProdukJadi->keterangan ?? null;
+            }elseif ($bahanRusak->garansiProjek) {
+                $pengaju = $bahanRusak->garansiProjek->pengaju ?? null;
+                $tujuan = $bahanRusak->garansiProjek->dataKontrak->nama_kontrak .'/'. $bahanRusak->garansiProjek->keterangan ?? null;
+            }elseif ($bahanRusak->projekRnd) {
+                $pengaju = $bahanRusak->projekRnd->pengaju ?? null;
+                $tujuan = $bahanRusak->projekRnd->nama_projek_rnd.'/'.$bahanRusak->projekRnd->keterangan ?? null;
+            }elseif ($bahanRusak->pengajuan) {
+                $pengaju = $bahanRusak->pengajuan->pengaju ?? null;
+                $tujuan = $bahanRusak->pengajuan->tujuan ?? null;
+            }elseif ($bahanRusak->pengambilanBahan) {
+                $pengaju = $bahanRusak->pengambilanBahan->pengaju ?? null;
+                $tujuan = $bahanRusak->pengambilanBahan->project.'/'.$bahanRusak->pengambilanBahan->keterangan ?? null;
+            }elseif ($bahanRusak->produkSample) {
+                $pengaju = $bahanRusak->produkSample->pengaju ?? null;
+                $tujuan = $bahanRusak->produkSample->nama_produk_sample.'/'.$bahanRusak->produkSample->keterangan ?? null;
+            }
+
+            if ($pengaju) {
+                // Cari user berdasarkan nama
+                $user = User::where('name', $pengaju)->first();
+
+                if ($user && $user->atasanLevel2) {
+                    $atasanLevel2 = $user->atasanLevel2->name;
+                    $divisi = $user->dataJobPosition->nama ?? $user->divisi ?? null;
+                }
+            }
+
+            $purchasingUser = cache()->remember('purchasing_user', 60, function () {
+                return User::where('job_level', 3)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Purchasing');
+                    })->first();
+            });
+
+            $hardwareManager = cache()->remember('hardware_manager', 60, function () {
+                return User::where('job_level', 2)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Engineer Manager');
+                    })->first();
+            });
+
+            $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+            $namaManager = $hardwareManager->name ?? null;
+
+            $financeUser = cache()->remember('finance_user', 60, function () {
+                return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+            });
+            $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
+
+            $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
+                return User::where('job_level', 2)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Admin Manager');
+                    })->first();
+            });
+            $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
+
+            $pdf = Pdf::loadView('pages.bahan-rusaks.pdf', compact(
+                'bahanRusak',
+                'purchasingUser',
+                'pengaju',
+                'divisi',
+                'tujuan',
+                'adminManagerceUser',
+                'atasanLevel2',
+                'namaManager',
+                'hasProduk'
+            ))->setPaper('letter', 'portrait');
+            return $pdf->stream("bahan_rusak_{$id}.pdf");
+
+            LogHelper::success('Berhasil generating PDF for bahan rusak ID {$id}!');
+            return $pdf->download("bahan_rusak_{$id}.pdf");
+
+        } catch (\Exception $e) {
+            LogHelper::error("Error generating PDF for bahan rusak ID {$id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
+        }
     }
 
     public function index()

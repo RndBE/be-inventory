@@ -40,4 +40,19 @@ class BahanRusak extends Model
     {
         return $this->hasOne(ProjekRnd::class, 'id', 'projek_rnd_id');
     }
+
+    public function garansiProjek()
+    {
+        return $this->hasOne(GaransiProjek::class, 'id', 'garansi_projek_id');
+    }
+
+    public function pengajuan()
+    {
+        return $this->hasOne(Pengajuan::class, 'id', 'pengajuan_id');
+    }
+
+    public function pengambilanBahan()
+    {
+        return $this->hasOne(PengambilanBahan::class, 'id', 'pengambilan_bahan_id');
+    }
 }

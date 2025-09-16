@@ -190,6 +190,8 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('garansi-projeks/{projek}/info', [GaransiProjekController::class, 'info'])->name('garansi-projeks.info');
 
     Route::resource('bahan-rusaks', BahanRusakController::class);
+    Route::get('/bahan-rusaks/pdf/{id}', [BahanRusakController::class, 'downloadPdf'])->name('bahan-rusaks.downloadPdf');
+
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
     Route::get('bahan-setengahjadis-export', [BahanSetengahjadiController::class, 'export'])->name('bahan-setengahjadis-export.export');
     Route::resource('produk-jadi', ProdukJadisController::class);

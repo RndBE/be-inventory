@@ -490,7 +490,7 @@ class GaransiProjekController extends Controller
                 }
                 $new_transaction_number = $last_transaction_number + 1;
                 $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-                $kode_transaksi = 'BRS - ' . $formatted_number. ' PJPro';
+                $kode_transaksi = 'BRS - ' . $formatted_number. ' GP';
 
                 $bahanRusakRecord = BahanRusak::create([
                     'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
@@ -542,7 +542,7 @@ class GaransiProjekController extends Controller
                 }
                 $new_transaction_number = $last_transaction_number + 1;
                 $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-                $kode_transaksi = 'BRT - ' . $formatted_number. ' PJPro';
+                $kode_transaksi = 'BRT - ' . $formatted_number. ' GP';
 
                 $bahanReturRecord = BahanRetur::create([
                     'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),

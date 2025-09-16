@@ -165,16 +165,19 @@ class ProdukSampleController extends Controller
             foreach ($cartItems as $item) {
                 $bahan_id = $item['bahan_id'] ?? null;
                 $produk_id = $item['produk_id'] ?? null;
+                $produk_jadis_id = $item['produk_jadis_id'] ?? null;
                 $serial_number = $item['serial_number'] ?? null;
 
-                $final_bahan_id = $bahan_id ?? $produk_id;
+                $final_bahan_id = $bahan_id ?? $produk_id ?? $produk_jadis_id;
                 // Gunakan kunci unik berdasarkan bahan_id dan serial_number
-                $key = $final_bahan_id . ($serial_number ?? '');
+                // $key = $final_bahan_id . ($serial_number ?? '');
+                $key = ($item['type'] ?? 'unknown') . '_' . ($final_bahan_id ?? '0') . '_' . ($serial_number ?? 'nosn');
 
                 if (!isset($groupedItems[$key])) {
                     $groupedItems[$key] = [
                         'bahan_id' => $bahan_id,
                         'produk_id' => $produk_id,
+                        'produk_jadis_id' => $produk_jadis_id,
                         'serial_number' => $serial_number,
                         'qty' => 0,
                         'jml_bahan' => 0,
@@ -195,6 +198,7 @@ class ProdukSampleController extends Controller
                     'bahan_id' => $details['bahan_id'],
                     'produk_id' => $details['produk_id'],
                     'serial_number' => $details['serial_number'],
+                    'produk_jadis_id' => $details['produk_jadis_id'],
                     'qty' => $details['qty'],
                     'jml_bahan' => $details['jml_bahan'],
                     'used_materials' => 0,
@@ -234,9 +238,10 @@ class ProdukSampleController extends Controller
         $produkSample = ProdukSample::with([
             'produkSampleDetails.dataBahan',
             'produkSampleDetails.dataProduk', // Tambahkan ini untuk memuat produk
+            'produkSampleDetails.dataProdukJadi',
             'bahanKeluar'
         ])->findOrFail($id);
-        // dd($produkSample->produkSampleDetails);
+        // dd($produkSample->bahanKeluar->);
 
 
         // Ambil bahan yang ada di produkSampleDetails
@@ -340,16 +345,19 @@ class ProdukSampleController extends Controller
             foreach ($produkSampleDetails as $item) {
                 $bahan_id = $item['bahan_id'] ?? null;
                 $produk_id = $item['produk_id'] ?? null;
+                $produk_jadis_id = $item['produk_jadis_id'] ?? null;
                 $serial_number = $item['serial_number'] ?? null;
 
-                $final_bahan_id = $bahan_id ?? $produk_id;
+                $final_bahan_id = $bahan_id ?? $produk_id ?? $produk_jadis_id;
                 // Gunakan kunci unik berdasarkan bahan_id dan serial_number
-                $key = $final_bahan_id . ($serial_number ?? '');
+                // $key = $final_bahan_id . ($serial_number ?? '');
+                $key = ($item['type'] ?? 'unknown') . '_' . ($final_bahan_id ?? '0') . '_' . ($serial_number ?? 'nosn');
 
                 if (!isset($groupedItems[$key])) {
                     $groupedItems[$key] = [
                         'bahan_id' => $bahan_id,
                         'produk_id' => $produk_id,
+                        'produk_jadis_id' => $produk_jadis_id,
                         'serial_number' => $serial_number,
                         'qty' => 0,
                         'jml_bahan' => 0,
@@ -385,6 +393,7 @@ class ProdukSampleController extends Controller
                         'bahan_keluar_id' => $bahan_keluar->id,
                         'bahan_id' => $details['bahan_id'],
                         'produk_id' => $details['produk_id'],
+                        'produk_jadis_id' => $details['produk_jadis_id'],
                         'serial_number' => $details['serial_number'],
                         'qty' => $details['qty'],
                         'jml_bahan' => $details['jml_bahan'],
@@ -429,6 +438,7 @@ class ProdukSampleController extends Controller
                 foreach ($bahanRusak as $item) {
                     $bahan_id = $item['bahan_id'] ?? null; // Ambil bahan_id jika ada
                     $produk_id = $item['produk_id'] ?? null; // Ambil produk_id jika ada
+                    $produk_jadis_id = $item['produk_jadis_id'] ?? null;
                     $serial_number = $item['serial_number'] ?? null; // Ambil serial number jika ada
                     $qtyRusak = $item['qty'] ?? 0;
                     $unit_price = $item['unit_price'] ?? 0;
@@ -438,6 +448,7 @@ class ProdukSampleController extends Controller
                         'bahan_rusak_id' => $bahanRusakRecord->id,
                         'bahan_id' => $bahan_id, // Bisa null jika produk
                         'produk_id' => $produk_id, // Bisa null jika bahan
+                        'produk_jadis_id' => $produk_jadis_id,
                         'serial_number' => $serial_number, // Tambahkan serial number untuk produk
                         'qty' => $qtyRusak,
                         'unit_price' => $unit_price,
@@ -483,6 +494,7 @@ class ProdukSampleController extends Controller
                 foreach ($bahanRetur as $item) {
                     $bahan_id = $item['bahan_id'] ?? null; // Ambil bahan_id jika ada
                     $produk_id = $item['produk_id'] ?? null; // Ambil produk_id jika ada
+                    $produk_jadis_id = $item['produk_jadis_id'] ?? null;
                     $serial_number = $item['serial_number'] ?? null; // Ambil serial number jika ada
                     $qtyRetur = $item['qty'] ?? 0;
                     $unit_price = $item['unit_price'] ?? 0;
@@ -492,6 +504,7 @@ class ProdukSampleController extends Controller
                         'bahan_retur_id' => $bahanReturRecord->id,
                         'bahan_id' => $bahan_id, // Bisa null jika produk
                         'produk_id' => $produk_id, // Bisa null jika bahan
+                        'produk_jadis_id' => $produk_jadis_id,
                         'serial_number' => $serial_number, // Tambahkan serial number untuk produk
                         'qty' => $qtyRetur,
                         'unit_price' => $unit_price,

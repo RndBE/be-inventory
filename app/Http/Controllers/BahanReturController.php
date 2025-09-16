@@ -113,7 +113,7 @@ class BahanReturController extends Controller
             $namaManager = $hardwareManager->name ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
-                return User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
+                return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
             });
             $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
@@ -521,7 +521,8 @@ class BahanReturController extends Controller
                     $produkSampleDetail = ProdukSampleDetails::where('produk_sample_id', $bahanRetur->produk_sample_id)
                     ->where(function ($query) use ($bahanId) {
                         $query->where('bahan_id', $bahanId)
-                                ->orWhere('produk_id', $bahanId);
+                                ->orWhere('produk_id', $bahanId)
+                                ->orWhere('produk_jadis_id', $bahanId);
                     })
                     ->first();
 

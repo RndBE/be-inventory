@@ -108,7 +108,7 @@ class BahanKeluarController extends Controller
     //         $namaManager = $hardwareManager->name ?? null;
 
     //         $financeUser = cache()->remember('finance_user', 60, function () {
-    //             return User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
+    //             return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
     //         });
     //         $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
@@ -199,7 +199,7 @@ public function downloadPdf(int $id)
         $namaManager           = $hardwareManager->name ?? null;
 
         $financeUser = cache()->remember('finance_user', 60, function () {
-            return User::where('name', 'REVIDYA CHRISDWIMAYA PUTRI')->first();
+            return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
         });
         $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
@@ -501,7 +501,8 @@ public function downloadPdf(int $id)
                         $existingDetail = ProdukSampleDetails::where('produk_sample_id', $bahanKeluar->produk_sample_id)
                         ->where(function ($query) use ($detail) {
                             $query->where('bahan_id', $detail->bahan_id)
-                                ->orWhere('produk_id', $detail->produk_id);
+                                ->orWhere('produk_id', $detail->produk_id)
+                                ->orWhere('produk_jadis_id', $detail->produk_jadis_id);
                         })
                         ->first();
                         // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel produk_sample_details dengan data default
@@ -510,6 +511,7 @@ public function downloadPdf(int $id)
                                 'produk_sample_id' => $bahanKeluar->produk_sample_id,
                                 'bahan_id' => $detail->bahan_id ?? null,
                                 'produk_id' => $detail->produk_id ?? null,
+                                'produk_jadis_id' => $detail->produk_jadis_id ?? null,
                                 'qty' => 0,
                                 'jml_bahan' => $detail->jml_bahan,
                                 'used_materials' => 0,
@@ -1065,6 +1067,10 @@ public function downloadPdf(int $id)
                                 // Jika bahan setengah jadi (menggunakan produk_id)
                                 $produkSampleDetailQuery = ProdukSampleDetails::where('produk_sample_id', $bahanKeluar->produk_sample_id)
                                     ->where('produk_id', $detail->produk_id);
+                            }elseif ($detail->produk_jadis_id) {
+                                // Jika produk jadi (menggunakan produk_jadis_id)
+                                $produkSampleDetailQuery = ProdukSampleDetails::where('produk_sample_id', $bahanKeluar->produk_sample_id)
+                                    ->where('produk_jadis_id', $detail->produk_jadis_id);
                             } elseif ($detail->bahan_id) {
                                 // Jika bahan dari pembelian (menggunakan bahan_id)
                                 $produkSampleDetailQuery = ProdukSampleDetails::where('produk_sample_id', $bahanKeluar->produk_sample_id)
@@ -1109,11 +1115,13 @@ public function downloadPdf(int $id)
 
                                 $produkSampleDetail->details = json_encode(array_values($mergedDetails));
                                 $produkSampleDetail->save();
+
                             } else {
                                 // Buat entri baru jika produk_id / bahan_id sama tapi serial_number berbeda atau tidak ada
                                 ProdukSampleDetails::create([
                                     'produk_sample_id' => $bahanKeluar->produk_sample_id,
                                     'produk_id' => $detail->produk_id ?? null,
+                                    'produk_jadis_id' => $detail->produk_jadis_id ?? null,
                                     'bahan_id' => $detail->bahan_id ?? null,
                                     'serial_number' => $group['serial_number'] ?? null, // Tambahkan serial number jika ada
                                     'qty' => $group['qty'],

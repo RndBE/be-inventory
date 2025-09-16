@@ -24,7 +24,7 @@ class ProdukSample extends Model
 
     public function bahanKeluar()
     {
-        return $this->belongsTo(BahanKeluar::class, 'bahan_keluar_id');
+        return $this->hasMany(BahanKeluar::class, 'produk_sample_id', 'id');
     }
 
     public function dataProdukProduksi()
@@ -45,6 +45,11 @@ class ProdukSample extends Model
     public function dataBahanRusak()
     {
         return $this->hasMany(BahanRusak::class, 'produk_sample_id', 'id');
+    }
+
+    public function dataBahanRetur()
+    {
+        return $this->hasMany(BahanRetur::class, 'produk_sample_id', 'id');
     }
 
     public function laporanProyek()

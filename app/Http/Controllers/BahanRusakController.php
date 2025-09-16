@@ -402,7 +402,8 @@ class BahanRusakController extends Controller
                     $produkSampleDetail = ProdukSampleDetails::where('produk_sample_id', $bahanRusak->produk_sample_id)
                         ->where(function ($query) use ($bahanId) {
                             $query->where('bahan_id', $bahanId)
-                                    ->orWhere('produk_id', $bahanId);
+                                    ->orWhere('produk_id', $bahanId)
+                                    ->orWhere('produk_jadis_id', $bahanId);
                         })
                         ->first();
 

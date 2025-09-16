@@ -159,9 +159,9 @@
             </td>
             <td colspan="2" style="text-align: center;">
                 {{ $purchasingUser->name }}
-                @if($hasProduk)
+                {{-- @if($hasProduk)
                     RHOMADONI
-                @endif
+                @endif --}}
             </td>
             <td style="text-align: center;">
                 {{ $atasanLevel2 }}

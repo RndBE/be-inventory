@@ -97,7 +97,8 @@
                 <div class="w-full bg-white border rounded-lg p-6 shadow">
                     <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
                     @if ($produkSample->status !== 'Selesai')
-                        <livewire:search-bahan-produk-sample/>
+                        {{-- <livewire:search-bahan-produk-sample/> --}}
+                        <livewire:search-bahan-dan-produk/>
                     @endif
                 </div>
 
@@ -155,7 +156,8 @@
 
                                     </div>
                                 </div>
-                                <livewire:edit-bahan-produk-sample-cart :produkSampleId="$produkSampleId" />
+                                {{-- <livewire:edit-bahan-produk-sample-cart :produkSampleId="$produkSampleId" /> --}}
+                                <livewire:edit-komponen-sample-cart :produkSampleId="$produkSampleId" />
                             </div>
                         </div>
                     </form>

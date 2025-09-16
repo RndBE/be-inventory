@@ -55,7 +55,6 @@
                     <span class="font-medium">{{ session('success') }}</span>
                 </div>
             </div>
-
         @endif
 
         @if ($errors->any())
@@ -82,7 +81,8 @@
                 {{-- Left: Product List + Search --}}
                 <div class="w-full bg-white border rounded-lg p-6 shadow">
                     <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
-                    <livewire:search-bahan-produk-sample/>
+                    {{-- <livewire:search-bahan-produk-sample/> --}}
+                    <livewire:search-bahan-dan-produk/>
                 </div>
 
                 {{-- Right: Cart --}}
@@ -137,7 +137,8 @@
 
                                     </div>
                                 </div>
-                                <livewire:bahan-projek-cart/>
+                                {{-- <livewire:bahan-projek-cart/> --}}
+                                <livewire:komponen-projek-cart/>
                             </div>
                         </div>
                     </form>

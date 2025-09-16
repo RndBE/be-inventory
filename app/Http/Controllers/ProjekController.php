@@ -74,7 +74,7 @@ class ProjekController extends Controller
                     ->with(['dataBahan', 'dataProduk', 'dataProdukJadi']);
             }
         ])->findOrFail($id);
-        // 🔹 Kumpulkan semua kode_transaksi dari details JSON
+        // Kumpulkan semua kode_transaksi dari details JSON
         $allKode = [];
         foreach ($projek->bahanKeluar as $bk) {
             foreach ($bk->bahanKeluarDetails as $detail) {
@@ -88,12 +88,12 @@ class ProjekController extends Controller
         }
         $allKode = array_unique($allKode);
 
-        // 🔹 Query sekaligus
+        // Query sekaligus
         $purchases = Purchase::whereIn('kode_transaksi', $allKode)->with('qcBahanMasuk')->get()->keyBy('kode_transaksi');
         $produkSetengahJadi = BahanSetengahJadi::whereIn('kode_transaksi', $allKode)->with('qcProdukSetengaJadi')->get()->keyBy('kode_transaksi');
         $produkJadi = ProdukJadis::whereIn('kode_transaksi', $allKode)->with('qcProdukJadi')->get()->keyBy('kode_transaksi');
 
-        // 🔹 Gabungkan ke dalam lookup array
+        // Gabungkan ke dalam lookup array
         $lookupTransaksi = [];
         foreach ($allKode as $kode) {
             $lookupTransaksi[$kode] = [

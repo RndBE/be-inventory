@@ -211,6 +211,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('projek-rnd', ProjekRndController::class);
     Route::put('projek-rnd/{projek}/selesai', [ProjekRndController::class, 'updateStatus'])->name('projek-rnd.updateStatus');
     Route::get('projek-rnd-export/{projek_rnd_id}', [ProjekRndController::class, 'export'])->name('projek-rnd.export');
+    Route::get('projek-rnd/{projek}/info', [ProjekRndController::class, 'info'])->name('projek-rnd.info');
 
 
     Route::resource('pengambilan-bahan', PengambilanBahanController::class);

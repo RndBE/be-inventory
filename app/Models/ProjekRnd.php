@@ -19,7 +19,7 @@ class ProjekRnd extends Model
 
     public function bahanKeluar()
     {
-        return $this->belongsTo(BahanKeluar::class, 'bahan_keluar_id');
+        return $this->hasMany(BahanKeluar::class, 'projek_rnd_id', 'id');
     }
 
     public function dataProdukProduksi()
@@ -30,6 +30,16 @@ class ProjekRnd extends Model
     public function dataBahan()
     {
         return $this->belongsTo(Bahan::class, 'bahan_id');
+    }
+
+    public function dataBahanRusak()
+    {
+        return $this->hasMany(BahanRusak::class, 'projek_rnd_id', 'id');
+    }
+
+    public function dataBahanRetur()
+    {
+        return $this->hasMany(BahanRetur::class, 'projek_rnd_id', 'id');
     }
 
     public function dataUnit()

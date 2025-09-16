@@ -35,7 +35,7 @@
                         <div class="flex">
                             <span class="w-40 font-semibold">Garansi</span>
                             <span class="pr-1">:</span>
-                            <span>{{ $garansiProjek->nama_garansi }}</span>
+                            <span>{{ $garansiProjek->dataKontrak->nama_kontrak }}</span>
                         </div>
                         <div class="flex">
                             <span class="w-40 font-semibold">Keterangan</span>

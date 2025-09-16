@@ -43,7 +43,7 @@
                             <span>{{ $garansiProjek->keterangan }}</span>
                         </div>
                         <div class="flex">
-                            <span class="w-40 font-semibold">Petugas QC</span>
+                            <span class="w-40 font-semibold">Pengaju</span>
                             <span class="pr-1">:</span>
                             <span>{{ $garansiProjek->pengaju }}</span>
                         </div>

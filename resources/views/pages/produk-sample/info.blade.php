@@ -43,7 +43,7 @@
                             <span>{{ $produkSample->keterangan }}</span>
                         </div>
                         <div class="flex">
-                            <span class="w-40 font-semibold">Petugas QC</span>
+                            <span class="w-40 font-semibold">Petugas</span>
                             <span class="pr-1">:</span>
                             <span>{{ $produkSample->pengaju }}</span>
                         </div>

@@ -51,7 +51,9 @@
                 {{-- Left: Product List + Search --}}
                 <div class="w-full bg-white border rounded-lg p-6 shadow">
                     <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
+                    @if($stockOpname->status_selesai !== 'Selesai')
                     <livewire:search-bahan-produk-sample/>
+                    @endif
                 </div>
                 <div class="w-full bg-white border rounded-lg p-6 shadow">
                     <form action="{{ route('stock-opname.update', $stockOpname->id) }}" method="POST" enctype="multipart/form-data">

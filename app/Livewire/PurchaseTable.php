@@ -13,10 +13,16 @@ class PurchaseTable extends Component
     public $perPage = 25;
     public $id_purchases;
     public $isDeleteModalOpen = false;
+    public $selectedTab = 'bahanMasuk';
 
     public function updatedSearch()
     {
         $this->resetPage();
+    }
+
+    public function setTab($tab)
+    {
+        $this->selectedTab = $tab;
     }
 
     public function deletePurchases(int $id)
@@ -40,6 +46,14 @@ class PurchaseTable extends Component
                 ->orWhereHas('purchaseDetails.dataBahan', function ($query) {
                     $query->where('nama_bahan', 'like', '%' . $this->search . '%');
                 });
+        })
+        ->when($this->selectedTab === 'bahanMasuk', function ($query) {
+            // Hanya ambil kode transaksi bukan retur
+            $query->where('kode_transaksi', 'not like', 'BRT%');
+        })
+        ->when($this->selectedTab === 'bahanRetur', function ($query) {
+            // Hanya ambil kode transaksi retur
+            $query->where('kode_transaksi', 'like', 'BRT%');
         })
         ->paginate($this->perPage);
 

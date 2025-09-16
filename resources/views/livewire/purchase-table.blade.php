@@ -24,13 +24,25 @@
             </div>
         </div>
     @endif
+    <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+        <ul class="flex overflow-x-auto whitespace-nowrap bg-gray-100 rounded-lg scrollbar-hide" role="tablist">
+            <li class="me-2" role="presentation">
+                <button wire:click="setTab('bahanMasuk')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'bahanMasuk' ? 'text-purple-600 border-purple-600' : '' }}">
+                    Bahan Masuk
+                </button>
+            </li>
+            <li class="me-2" role="presentation">
+                <button wire:click="setTab('bahanRetur')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'bahanRetur' ? 'text-purple-600 border-purple-600' : '' }}">
+                    Bahan Retur
+                </button>
+            </li>
+        </ul>
+    </div>
     <div class="sm:flex sm:justify-between sm:items-center mb-2">
 
         <div class="mb-4 sm:mb-0">
             <h6 class="text-2xl text-gray-800 dark:text-gray-100 font-bold">Bahan Masuk</h6>
         </div>
-
-
 
         <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
             <ul class="flex flex-wrap -m-1">

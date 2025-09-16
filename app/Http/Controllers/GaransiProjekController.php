@@ -9,11 +9,13 @@ use App\Models\Bahan;
 use App\Models\Produk;
 use App\Models\Projek;
 use App\Models\Kontrak;
+use App\Models\Purchase;
 use App\Models\BahanJadi;
 use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
+use App\Models\ProdukJadis;
 use Illuminate\Http\Request;
 use App\Exports\ProjekExport;
 use App\Models\GaransiProjek;
@@ -46,6 +48,58 @@ class GaransiProjekController extends Controller
         $this->middleware('permission:tambah-garansi-projek', ['only' => ['create','store']]);
         $this->middleware('permission:edit-garansi-projek', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-garansi-projek', ['only' => ['destroy']]);
+    }
+
+    public function info($id)
+    {
+        $garansiProjek = GaransiProjek::with([
+            'dataBahan',
+            'bahanKeluar',
+            'bahanKeluar.dataUser',
+            'bahanKeluar.bahanKeluarDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk', 'dataProdukJadi', 'purchase']);
+            },
+            'dataBahanRetur.bahanReturDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk', 'dataProdukJadi']);
+            },
+            'dataBahanRusak.bahanRusakDetails' => function ($query) {
+                $query->where('qty', '>', 0)
+                    ->with(['dataBahan', 'dataProduk', 'dataProdukJadi']);
+            }
+        ])->findOrFail($id);
+        // dd($garansiProjek);
+        // Kumpulkan semua kode_transaksi dari details JSON
+        $allKode = [];
+        foreach ($garansiProjek->bahanKeluar as $bk) {
+            foreach ($bk->bahanKeluarDetails as $detail) {
+                $items = json_decode($detail->details, true) ?? [];
+                foreach ($items as $item) {
+                    if (!empty($item['kode_transaksi'])) {
+                        $allKode[] = $item['kode_transaksi'];
+                    }
+                }
+            }
+        }
+        $allKode = array_unique($allKode);
+
+        // Query sekaligus
+        $purchases = Purchase::whereIn('kode_transaksi', $allKode)->with('qcBahanMasuk')->get()->keyBy('kode_transaksi');
+        $produkSetengahJadi = BahanSetengahJadi::whereIn('kode_transaksi', $allKode)->with('qcProdukSetengaJadi')->get()->keyBy('kode_transaksi');
+        $produkJadi = ProdukJadis::whereIn('kode_transaksi', $allKode)->with('qcProdukJadi')->get()->keyBy('kode_transaksi');
+
+        // Gabungkan ke dalam lookup array
+        $lookupTransaksi = [];
+        foreach ($allKode as $kode) {
+            $lookupTransaksi[$kode] = [
+                'purchase' => $purchases[$kode] ?? null,
+                'produkSetengahJadi' => $produkSetengahJadi[$kode] ?? null,
+                'produkJadi' => $produkJadi[$kode] ?? null,
+            ];
+        }
+
+        return view('pages.garansi-projek.info', compact('garansiProjek', 'lookupTransaksi'));
     }
 
     public function export($projek_id)

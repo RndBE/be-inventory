@@ -29,7 +29,7 @@ class GaransiProjek extends Model
 
     public function bahanKeluar()
     {
-        return $this->belongsTo(BahanKeluar::class, 'bahan_keluar_id');
+        return $this->hasMany(BahanKeluar::class, 'garansi_projek_id', 'id');
     }
 
     public function dataProdukProduksi()
@@ -50,6 +50,11 @@ class GaransiProjek extends Model
     public function dataBahanRusak()
     {
         return $this->hasMany(BahanRusak::class, 'garansi_projek_id', 'id');
+    }
+
+    public function dataBahanRetur()
+    {
+        return $this->hasMany(BahanRetur::class, 'garansi_projek_id', 'id');
     }
 
     public function laporanGaransiProyek()

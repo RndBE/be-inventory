@@ -187,6 +187,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('garansi-projeks', GaransiProjekController::class);
     Route::put('garansi-projeks/{projek}/selesai', [GaransiProjekController::class, 'updateStatus'])->name('garansi-projeks.updateStatus');
     Route::get('garansi-projeks-export/{projek_id}', [GaransiProjekController::class, 'export'])->name('garansi-projeks.export');
+    Route::get('garansi-projeks/{projek}/info', [GaransiProjekController::class, 'info'])->name('garansi-projeks.info');
 
     Route::resource('bahan-rusaks', BahanRusakController::class);
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);

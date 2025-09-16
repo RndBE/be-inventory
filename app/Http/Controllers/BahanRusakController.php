@@ -39,9 +39,16 @@ class BahanRusakController extends Controller
                 'bahanRusakDetails.dataProduk', 'produksiProdukJadi',
             ])->findOrFail($id);
 
+            // $hasProduk = $bahanRusak->bahanRusakDetails->filter(function ($detail) {
+            //     return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
+            // })->isNotEmpty();
             $hasProduk = $bahanRusak->bahanRusakDetails->filter(function ($detail) {
-                return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
+                return (
+                    (!empty($detail->dataProduk) && !empty($detail->dataProduk->id)) ||
+                    (!empty($detail->dataProdukJadi) && !empty($detail->dataProdukJadi->id))
+                );
             })->isNotEmpty();
+
 
             $tandaTanganPengaju = $bahanRusak->dataUser->tanda_tangan ?? null;
 

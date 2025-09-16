@@ -51,9 +51,16 @@ class BahanReturController extends Controller
                 'bahanReturDetails.dataProduk', 'produksiProdukJadi',
             ])->findOrFail($id);
 
+            // $hasProduk = $bahanRetur->bahanReturDetails->filter(function ($detail) {
+            //     return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
+            // })->isNotEmpty();
             $hasProduk = $bahanRetur->bahanReturDetails->filter(function ($detail) {
-                return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
+                return (
+                    (!empty($detail->dataProduk) && !empty($detail->dataProduk->id)) ||
+                    (!empty($detail->dataProdukJadi) && !empty($detail->dataProdukJadi->id))
+                );
             })->isNotEmpty();
+
 
             $tandaTanganPengaju = $bahanRetur->dataUser->tanda_tangan ?? null;
 

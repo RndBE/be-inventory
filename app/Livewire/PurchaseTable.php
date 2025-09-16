@@ -45,6 +45,9 @@ class PurchaseTable extends Component
                 ->orWhere('no_invoice', 'like', '%' . $this->search . '%')
                 ->orWhereHas('purchaseDetails.dataBahan', function ($query) {
                     $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                })
+                ->orWhereHas('qcBahanMasuk', function ($query) {
+                    $query->where('kode_qc', 'like', '%' . $this->search . '%');
                 });
         })
         ->when($this->selectedTab === 'bahanMasuk', function ($query) {

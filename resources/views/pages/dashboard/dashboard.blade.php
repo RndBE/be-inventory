@@ -608,7 +608,7 @@
                 toolbar: { show: false }
             },
             series: [{
-                name: 'Jumlah Sisa',
+                name: 'Jumlah',
                 data: @json($sortedData) // sudah terurut
             }],
             xaxis: {

@@ -5,21 +5,25 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Unit;
 use App\Models\Bahan;
+use App\Models\Projek;
 use App\Models\DataFeed;
+use App\Models\Produksi;
 use App\Models\Purchase;
+use App\Models\Supplier;
+use App\Models\ProjekRnd;
 use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\JenisBahan;
+use App\Models\ProdukJadi;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
+use App\Models\PembelianBahan;
 use App\Models\ProdukProduksi;
 use App\Models\PurchaseDetail;
+use App\Models\BahanRusakDetails;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
 use App\Models\BahanSetengahjadiDetails;
-use App\Models\Produksi;
-use App\Models\Projek;
-use App\Models\ProjekRnd;
 
 class DashboardController extends Controller
 {
@@ -31,10 +35,13 @@ class DashboardController extends Controller
         $totalJenisBahan = JenisBahan::where('nama', '!=', 'Produksi')->count();
         $totalSatuanUnit = Unit::count();
         $totalProdukProduksi = ProdukProduksi::count();
+        $totalProdukJadi = ProdukJadi::count();
+        $totalSupplier = Supplier::count();
 
         $totalPengajuanBahanKeluar = BahanKeluar::where('status', '=', 'Belum disetujui')->count();
         $totalPengajuanBahanRetur = BahanRetur::where('status', '=', 'Belum disetujui')->count();
         $totalPengajuanBahanRusak = BahanRusak::where('status', '=', 'Belum disetujui')->count();
+        $totalPembelianBahan = PembelianBahan::where('status', 'Belum disetujui')->count();
 
         $bahanSisaTerbanyak = PurchaseDetail::with('dataBahan')
             ->select('bahan_id')
@@ -174,9 +181,41 @@ class DashboardController extends Controller
             }
         }
 
+        // Ambil semua detail bahan rusak dari pengajuan yang belum disetujui
+        $bahanRusakDetails = BahanRusakDetails::whereHas('bahanRusak', function($q) {
+            $q->where('status', 'Disetujui');
+        })
+        ->with(['dataBahan', 'dataProduk', 'dataProdukJadi']) // relasi ke model
+        ->get();
+
+        // dd($details);
+
+        $result = [];
+
+        foreach ($bahanRusakDetails as $d) {
+            if ($d->bahan_id) {
+                // Group by nama bahan
+                $key = $d->dataBahan->nama_bahan ?? 'Tidak diketahui';
+                $result[$key] = ($result[$key] ?? 0) + $d->sisa;
+            } elseif ($d->produk_jadis_id) {
+                // Group by nama produk jadi + serial
+                $key = ($d->dataProdukJadi->nama_produk ?? 'Produk Jadi') . ' - ' . $d->serial_number;
+                $result[$key] = ($result[$key] ?? 0) + $d->sisa;
+            } elseif ($d->produk_id) {
+                // Group by nama produk (bahan) + serial
+                $key = ($d->dataProduk->nama_bahan ?? 'Produk') . ' - ' . $d->serial_number;
+                $result[$key] = ($result[$key] ?? 0) + $d->sisa;
+            }
+        }
+
+        // Siapkan data untuk Chart.js
+        $bahanRusakLabels = array_keys($result);
+        $bahanRusakData = array_values($result);
 
 
-        return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalSatuanUnit', 'dates', 'chartDataMasuk', 'chartDataKeluar','availableYears', 'year', 'period', 'totalPengajuanBahanKeluar','totalPengajuanBahanRetur','totalPengajuanBahanRusak', 'chartLabels', 'chartData','prosesProduksi','projeks','projeks_rnd', 'bahanSisaTerbanyak','bahanSisaPalingSedikit', 'chartTotalQty'));
+
+        return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalProdukJadi', 'totalSupplier', 'totalSatuanUnit', 'totalPembelianBahan', 'dates', 'chartDataMasuk', 'chartDataKeluar','availableYears', 'year', 'period', 'totalPengajuanBahanKeluar','totalPengajuanBahanRetur','totalPengajuanBahanRusak', 'chartLabels', 'chartData','prosesProduksi','projeks','projeks_rnd', 'bahanSisaTerbanyak','bahanSisaPalingSedikit', 'chartTotalQty',
+    'bahanRusakLabels', 'bahanRusakData'));
     }
 
     /**

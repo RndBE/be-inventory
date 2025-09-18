@@ -20,72 +20,145 @@
         <!-- Cards -->
         <div class="grid grid-cols-12 gap-6">
 
-            {{-- Card Data Master --}}
-            <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-                <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-archive"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 3m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z" /><path d="M19 9c.513 0 .936 .463 .993 1.06l.007 .14v7.2c0 1.917 -1.249 3.484 -2.824 3.594l-.176 .006h-10c-1.598 0 -2.904 -1.499 -2.995 -3.388l-.005 -.212v-7.2c0 -.663 .448 -1.2 1 -1.2h14zm-5 2h-4l-.117 .007a1 1 0 0 0 0 1.986l.117 .007h4l.117 -.007a1 1 0 0 0 0 -1.986l-.117 -.007z" /></svg>
-                </div>
-                <div class="p-4 text-right">
-                    <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Total Bahan</p>
-                    <h4 class="block antialiased tracking-normal font-sans text-2xl font-semibold leading-snug text-blue-gray-900">{{ $totalBahan }}</h4>
-                </div>
-                <!-- Chart built with Chart.js 3 -->
-                <!-- Check out src/js/components/dashboard-card-01.js for config -->
-                <div class="border-t border-blue-gray-50 p-4">
-                    <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-                        <strong class="text-green-500"></strong>&nbsp;
-                    </p>
+            {{-- Jumlah Pengajuan --}}
+            <div class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+                <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
+                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Pengajuan</h2>
+                </header>
+                <div class="flex justify-center items-center h-full">
+                    <div class="group my-3 inline-flex flex-wrap justify-center items-center gap-12">
+                        <div class="flex flex-col items-center">
+                            {{-- <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center"> --}}
+                                <h2 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">{{ $totalPengajuanBahanKeluar }}</h2>
+                            {{-- </header> --}}
+                            <button class="rounded-full pointer-events-none border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                                <svg  xmlns="http://www.w3.org/2000/svg"  width="32"  height="32"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-door-exit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 12v.01" /><path d="M3 21h18" /><path d="M5 21v-16a2 2 0 0 1 2 -2h7.5m2.5 10.5v7.5" /><path d="M14 7h7m-3 -3l3 3l-3 3" /></svg>
+                            </button>
+                            <span>Bahan Keluar</span>
+                        </div>
+
+                        <div class="flex flex-col items-center">
+                            {{-- <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center"> --}}
+                                <h2 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">{{ $totalPembelianBahan }}</h2>
+                            {{-- </header> --}}
+                            <button class="rounded-full pointer-events-none border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-basket-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 10l-2 -6" /><path d="M7 10l2 -6" /><path d="M13 20h-5.756a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304h13.999a2 2 0 0 1 1.977 2.304" /><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 15h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5" /><path d="M19 21v1m0 -8v1" /></svg>
+                            </button>
+                            <span>Pembelian Bahan</span>
+                        </div>
+
+                        <div class="flex flex-col items-center">
+                            {{-- <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center"> --}}
+                                <h2 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">{{ $totalPengajuanBahanRusak }}</h2>
+                            {{-- </header> --}}
+                            <button class="rounded-full pointer-events-none border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                                <svg class="shrink-0 fill-current" xmlns="http://www.w3.org/2000/svg" width="32"  height="32" viewBox="0 0 24 24">
+                                    <path d="M18 17h-.09c.058-.33.088-.665.09-1v-1h1a1 1 0 0 0 0-2h-1.09a5.97 5.97 0 0 0-.26-1H17a2 2 0 0 0 2-2V8a1 1 0 1 0-2 0v2h-.54a6.239 6.239 0 0 0-.46-.46V8a3.963 3.963 0 0 0-.986-2.6l.693-.693A1 1 0 0 0 16 4V3a1 1 0 1 0-2 0v.586l-.661.661a3.753 3.753 0 0 0-2.678 0L10 3.586V3a1 1 0 1 0-2 0v1a1 1 0 0 0 .293.707l.693.693A3.963 3.963 0 0 0 8 8v1.54a6.239 6.239 0 0 0-.46.46H7V8a1 1 0 0 0-2 0v2a2 2 0 0 0 2 2h-.65a5.97 5.97 0 0 0-.26 1H5a1 1 0 0 0 0 2h1v1a6 6 0 0 0 .09 1H6a2 2 0 0 0-2 2v2a1 1 0 1 0 2 0v-2h.812A6.012 6.012 0 0 0 11 21.907V12a1 1 0 0 1 2 0v9.907A6.011 6.011 0 0 0 17.188 19H18v2a1 1 0 0 0 2 0v-2a2 2 0 0 0-2-2Zm-4-8.65a5.922 5.922 0 0 0-.941-.251l-.111-.017a5.52 5.52 0 0 0-1.9 0l-.111.017A5.925 5.925 0 0 0 10 8.35V8a2 2 0 1 1 4 0v.35Z"/>
+                                </svg>
+                            </button>
+                            <span>Bahan Rusak</span>
+                        </div>
+
+                        <div class="flex flex-col items-center">
+                            {{-- <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center"> --}}
+                                <h2 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">{{ $totalPengajuanBahanRetur }}</h2>
+                            {{-- </header> --}}
+                            <button class="rounded-full pointer-events-none border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                                <svg  xmlns="http://www.w3.org/2000/svg"  width="32"  height="32"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler shrink-0 icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                            </button>
+                            <span>Bahan Retur</span>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
-            <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+            <!-- Bagian kanan (6 card kecil) -->
+            <div class="col-span-full lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="relative flex flex-col bg-white dark:bg-gray-800 shadow-sm rounded-xl h-40">
                 <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-archive"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 3m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z" /><path d="M19 9c.513 0 .936 .463 .993 1.06l.007 .14v7.2c0 1.917 -1.249 3.484 -2.824 3.594l-.176 .006h-10c-1.598 0 -2.904 -1.499 -2.995 -3.388l-.005 -.212v-7.2c0 -.663 .448 -1.2 1 -1.2h14zm-5 2h-4l-.117 .007a1 1 0 0 0 0 1.986l.117 .007h4l.117 -.007a1 1 0 0 0 0 -1.986l-.117 -.007z" /></svg>
+                    <!-- Icon -->
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-cpu"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 5m0 1a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1z" /><path d="M9 9h6v6h-6z" /><path d="M3 10h2" /><path d="M3 14h2" /><path d="M10 3v2" /><path d="M14 3v2" /><path d="M21 10h-2" /><path d="M21 14h-2" /><path d="M14 21v-2" /><path d="M10 21v-2" /></svg>
                 </div>
-                <div class="p-4 text-right">
-                    <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Total Jenis Bahan</p>
-                    <h4 class="block antialiased tracking-normal font-sans text-2xl font-semibold leading-snug text-blue-gray-900">{{ $totalJenisBahan }}</h4>
+                <div class="flex-1 flex items-end justify-end p-4 text-right">
+                    <div>
+                        <h4 class="text-2xl font-semibold text-blue-gray-900">{{ $totalBahan }}</h4>
+                        <p class="text-sm text-blue-gray-600">Total Bahan</p>
+                    </div>
                 </div>
-                <!-- Chart built with Chart.js 3 -->
-                <!-- Check out src/js/components/dashboard-card-01.js for config -->
-                <div class="border-t border-blue-gray-50 p-4">
-                    <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-                        <strong class="text-green-500"></strong>&nbsp;
-                    </p>
                 </div>
-            </div>
 
-            <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-                <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-archive"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 3m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z" /><path d="M19 9c.513 0 .936 .463 .993 1.06l.007 .14v7.2c0 1.917 -1.249 3.484 -2.824 3.594l-.176 .006h-10c-1.598 0 -2.904 -1.499 -2.995 -3.388l-.005 -.212v-7.2c0 -.663 .448 -1.2 1 -1.2h14zm-5 2h-4l-.117 .007a1 1 0 0 0 0 1.986l.117 .007h4l.117 -.007a1 1 0 0 0 0 -1.986l-.117 -.007z" /></svg>
+                <!-- Card 2 -->
+                <div class="relative flex flex-col bg-white dark:bg-gray-800 shadow-sm rounded-xl h-40">
+                <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-green-600 to-green-400 text-white shadow-green-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
+                    <!-- Icon -->
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-box-multiple-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 3m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z" /><path d="M17 17v2a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h2" /><path d="M14 14v-8l-2 2" /></svg>
                 </div>
-                <div class="p-4 text-right">
-                    <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Total Satuan Unit</p>
-                    <h4 class="block antialiased tracking-normal font-sans text-2xl font-semibold leading-snug text-blue-gray-900">{{ $totalSatuanUnit }}</h4>
+                <div class="flex-1 flex items-end justify-end p-4 text-right">
+                    <div>
+                        <h4 class="text-2xl font-semibold text-blue-gray-900">{{ $totalJenisBahan }}</h4>
+                        <p class="text-sm text-blue-gray-600">Total Jenis Bahan</p>
+                    </div>
                 </div>
-                <!-- Chart built with Chart.js 3 -->
-                <!-- Check out src/js/components/dashboard-card-01.js for config -->
-                <div class="border-t border-blue-gray-50 p-4">
-                    <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-                        <strong class="text-green-500"></strong>&nbsp;
-                    </p>
                 </div>
-            </div>
 
-            <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-                <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-archive"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 3m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z" /><path d="M19 9c.513 0 .936 .463 .993 1.06l.007 .14v7.2c0 1.917 -1.249 3.484 -2.824 3.594l-.176 .006h-10c-1.598 0 -2.904 -1.499 -2.995 -3.388l-.005 -.212v-7.2c0 -.663 .448 -1.2 1 -1.2h14zm-5 2h-4l-.117 .007a1 1 0 0 0 0 1.986l.117 .007h4l.117 -.007a1 1 0 0 0 0 -1.986l-.117 -.007z" /></svg>
+                <!-- Card 3 -->
+                <div class="relative flex flex-col bg-white dark:bg-gray-800 shadow-sm rounded-xl h-40">
+                <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-purple-600 to-purple-400 text-white shadow-purple-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
+                    <!-- Icon -->
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-packages"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 16.5l-5 -3l5 -3l5 3v5.5l-5 3z" /><path d="M2 13.5v5.5l5 3" /><path d="M7 16.545l5 -3.03" /><path d="M17 16.5l-5 -3l5 -3l5 3v5.5l-5 3z" /><path d="M12 19l5 3" /><path d="M17 16.5l5 -3" /><path d="M12 13.5v-5.5l-5 -3l5 -3l5 3v5.5" /><path d="M7 5.03v5.455" /><path d="M12 8l5 -3" /></svg>
                 </div>
-                <div class="p-4 text-right">
-                    <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Total Produk Produksi</p>
-                    <h4 class="block antialiased tracking-normal font-sans text-2xl font-semibold leading-snug text-blue-gray-900">{{ $totalProdukProduksi }}</h4>
+                <div class="flex-1 flex items-end justify-end p-4 text-right">
+                    <div>
+                        <h4 class="text-2xl font-semibold text-blue-gray-900">{{ $totalSatuanUnit }}</h4>
+                        <p class="text-sm text-blue-gray-600">Total Satuan Unit</p>
+                    </div>
                 </div>
-                <!-- Chart built with Chart.js 3 -->
-                <!-- Check out src/js/components/dashboard-card-01.js for config -->
-                <div class="border-t border-blue-gray-50 p-4">
-                    <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-                        <strong class="text-green-500"></strong>&nbsp;
-                    </p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="relative flex flex-col bg-white dark:bg-gray-800 shadow-sm rounded-xl h-40">
+                    <!-- Icon -->
+                    <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-red-600 to-red-400 text-white shadow-red-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
+                        <svg class="shrink-0 fill-current" xmlns="http://www.w3.org/2000/svg" width="22"  height="22" viewBox="0 0 512 512"><path fill="currentColor" d="m0 379.652l72.276-3.87v33.816L0 405.064zm0-71.95l72.276 4.534V278.42L0 282.29zM456.2 87.566l-72.275-3.871v33.817l72.276-4.534zm-80.232-17.684h-39.066v61.442h39.066zM0 210.34l72.276 4.534v-33.817L0 184.927zm192.955 161.353l135.282-143.114V56.572c0-10.719-8.689-19.408-19.407-19.408H151.324c-10.718 0-19.407 8.69-19.407 19.408v382.963c0 10.719 8.689 19.408 19.407 19.408h125.547zM80.896 228.686h43.58v-61.441h-43.58zm0-97.362h43.581V69.882h-43.58zm0 194.724h43.58v-61.441h-43.58zM0 112.978l72.276 4.534V83.694L0 87.566zM80.896 423.41h43.58v-61.44h-43.58zM359.603 297.1l-75.427 74.593l75.427 71.777l-31.365 31.366l-99.143-103.143l99.143-105.96zm53.254-31.366L512 371.694l-99.143 103.142l-31.365-31.366l75.426-71.777l-75.426-74.594zm-75.955-37.048h39.065v-61.441h-39.065zm47.023-13.812l72.276-4.534v-25.412l-72.276-3.871z"/></svg>
+                    </div>
+                    <!-- Text di pojok kanan bawah -->
+                    <div class="flex-1 flex items-end justify-end p-4 text-right">
+                        <div>
+                            <h4 class="text-2xl font-semibold text-blue-gray-900">{{ $totalProdukProduksi }}</h4>
+                            <p class="text-sm text-blue-gray-600">Total Produk Setengah Jadi</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Card 5 -->
+                <div class="relative flex flex-col bg-white dark:bg-gray-800 shadow-sm rounded-xl h-40">
+                    <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-yellow-600 to-yellow-400 text-white shadow-yellow-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
+                        <!-- Icon -->
+                        <svg class="shrink-0 fill-current" xmlns="http://www.w3.org/2000/svg" width="22"  height="22" viewBox="0 0 2048 2048"><path fill="currentColor" d="m960 120l832 416v1040l-832 415l-832-415V536zm625 456L960 264L719 384l621 314zM960 888l238-118l-622-314l-241 120zM256 680v816l640 320v-816zm768 1136l640-320V680l-640 320z"/></svg>
+                    </div>
+                    <div class="flex-1 flex items-end justify-end p-4 text-right">
+                        <div>
+                            <h4 class="text-2xl font-semibold text-blue-gray-900">{{ $totalProdukJadi }}</h4>
+                            <p class="text-sm text-blue-gray-600">Total Produk Jadi</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="relative flex flex-col bg-white dark:bg-gray-800 shadow-sm rounded-xl h-40">
+                    <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-teal-600 to-teal-400 text-white shadow-teal-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
+                        <!-- Icon -->
+                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-truck"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M5 17h-2v-11a1 1 0 0 1 1 -1h9v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5" /></svg>
+                    </div>
+                    <div class="flex-1 flex items-end justify-end p-4 text-right">
+                        <div>
+                            <h4 class="text-2xl font-semibold text-blue-gray-900">{{ $totalSupplier }}</h4>
+                            <p class="text-sm text-blue-gray-600">Total Supplier</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -120,45 +193,27 @@
 
                 </div>
             </div>
+            @php
+                $bahanRusak = collect($bahanRusakLabels)
+                    ->zip($bahanRusakData) // gabungkan label + data
+                    ->sortByDesc(fn($item) => $item[1]) // urutkan berdasarkan jumlah (index 1)
+                    ->values();
 
-            {{-- Jumlah Pengajuan --}}
+                $sortedLabels = $bahanRusak->pluck(0);
+                $sortedData   = $bahanRusak->pluck(1);
+            @endphp
+
+            {{-- Jumlah Bahan Rusak --}}
             <div class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+                <!-- Header -->
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex justify-between items-center">
-                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Pengajuan Bahan</h2>
+                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Grafik Bahan Rusak</h2>
                 </header>
-                <div class="flex justify-center items-center h-full">
-                    <div class="group my-3 inline-flex flex-wrap justify-center items-center gap-12">
-                        <div class="flex flex-col items-center">
-                            {{-- <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center"> --}}
-                                <h2 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">{{ $totalPengajuanBahanKeluar }}</h2>
-                            {{-- </header> --}}
-                            <button class="rounded-full pointer-events-none border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="32"  height="32"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-door-exit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 12v.01" /><path d="M3 21h18" /><path d="M5 21v-16a2 2 0 0 1 2 -2h7.5m2.5 10.5v7.5" /><path d="M14 7h7m-3 -3l3 3l-3 3" /></svg>
-                            </button>
-                            <span>Bahan Keluar</span>
-                        </div>
 
-                        <div class="flex flex-col items-center">
-                            {{-- <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center"> --}}
-                                <h2 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">{{ $totalPengajuanBahanRusak }}</h2>
-                            {{-- </header> --}}
-                            <button class="rounded-full pointer-events-none border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
-                                <svg class="shrink-0 fill-current" xmlns="http://www.w3.org/2000/svg" width="32"  height="32" viewBox="0 0 24 24">
-                                    <path d="M18 17h-.09c.058-.33.088-.665.09-1v-1h1a1 1 0 0 0 0-2h-1.09a5.97 5.97 0 0 0-.26-1H17a2 2 0 0 0 2-2V8a1 1 0 1 0-2 0v2h-.54a6.239 6.239 0 0 0-.46-.46V8a3.963 3.963 0 0 0-.986-2.6l.693-.693A1 1 0 0 0 16 4V3a1 1 0 1 0-2 0v.586l-.661.661a3.753 3.753 0 0 0-2.678 0L10 3.586V3a1 1 0 1 0-2 0v1a1 1 0 0 0 .293.707l.693.693A3.963 3.963 0 0 0 8 8v1.54a6.239 6.239 0 0 0-.46.46H7V8a1 1 0 0 0-2 0v2a2 2 0 0 0 2 2h-.65a5.97 5.97 0 0 0-.26 1H5a1 1 0 0 0 0 2h1v1a6 6 0 0 0 .09 1H6a2 2 0 0 0-2 2v2a1 1 0 1 0 2 0v-2h.812A6.012 6.012 0 0 0 11 21.907V12a1 1 0 0 1 2 0v9.907A6.011 6.011 0 0 0 17.188 19H18v2a1 1 0 0 0 2 0v-2a2 2 0 0 0-2-2Zm-4-8.65a5.922 5.922 0 0 0-.941-.251l-.111-.017a5.52 5.52 0 0 0-1.9 0l-.111.017A5.925 5.925 0 0 0 10 8.35V8a2 2 0 1 1 4 0v.35Z"/>
-                                </svg>
-                            </button>
-                            <span>Bahan Rusak</span>
-                        </div>
-
-                        <div class="flex flex-col items-center">
-                            {{-- <header class="px-5 py-4 border-gray-100 dark:border-gray-700/60 flex justify-between items-center"> --}}
-                                <h2 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">{{ $totalPengajuanBahanRetur }}</h2>
-                            {{-- </header> --}}
-                            <button class="rounded-full pointer-events-none border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="32"  height="32"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler shrink-0 icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
-                            </button>
-                            <span>Bahan Retur</span>
-                        </div>
+                <!-- Body -->
+                <div class="p-4">
+                    <div class="w-full h-[350px]">
+                        <div id="grafikBahanRusak" class="w-full h-full"></div>
                     </div>
                 </div>
             </div>
@@ -543,6 +598,64 @@
         };
 
         var chart = new ApexCharts(document.querySelector("#bahan-pie-chart"), options);
+        chart.render();
+    </script>
+    <script>
+        var options = {
+            chart: {
+                type: 'bar',
+                height: 350,
+                toolbar: { show: false }
+            },
+            series: [{
+                name: 'Jumlah Sisa',
+                data: @json($sortedData) // sudah terurut
+            }],
+            xaxis: {
+                categories: @json($sortedLabels),
+                labels: {
+                    rotate: -45,
+                    style: {
+                        fontSize: '12px',
+                        colors: '#6B7280'
+                    }
+                }
+            },
+            // warna berbeda untuk setiap bar
+            colors: [
+                '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899',
+                '#14B8A6', '#F97316', '#84CC16', '#6366F1', '#D946EF', '#0EA5E9'
+            ],
+            plotOptions: {
+                bar: {
+                    borderRadius: 6,
+                    columnWidth: '50%',
+                    distributed: true // biar tiap bar ambil warna dari array colors
+                }
+            },
+            dataLabels: {
+                enabled: true
+            },
+            legend: {
+                show: true,
+                position: 'bottom',
+                horizontalAlign: 'center',
+                markers: {
+                    width: 12,
+                    height: 12,
+                    radius: 12
+                },
+                itemMargin: {
+                    horizontal: 8,
+                    vertical: 0
+                }
+            },
+            tooltip: {
+                theme: 'dark'
+            }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#grafikBahanRusak"), options);
         chart.render();
     </script>
 </x-app-layout>

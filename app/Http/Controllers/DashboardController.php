@@ -212,10 +212,77 @@ class DashboardController extends Controller
         $bahanRusakLabels = array_keys($result);
         $bahanRusakData = array_values($result);
 
+        $startDate = \Carbon\Carbon::now()->subMonths(12)->startOfDay();
 
+        $pembelians = PembelianBahan::with('pembelianBahanDetails')
+            ->where('status', 'Disetujui')
+            ->whereDate('tgl_pengajuan', '>=', $startDate)
+            ->get()
+            ->groupBy(function ($item) {
+                return \Carbon\Carbon::parse($item->tgl_pengajuan)->format('Y-m-d');
+            })
+            ->map(function ($group) {
+                $totals = [
+                    'Pembelian Bahan/Barang/Alat Lokal' => 0,
+                    'Pembelian Bahan/Barang/Alat Impor' => 0,
+                    'Pembelian Aset' => 0,
+                ];
+
+                foreach ($group as $pembelian) {
+                    $subTotal = $pembelian->pembelianBahanDetails->sum('sub_total');
+                    $totals[$pembelian->jenis_pengajuan] += $subTotal;
+                }
+
+                return $totals;
+            });
+
+        // Format untuk ApexCharts (series per jenis, data pasangan [tanggal, nilai])
+        $labels = $pembelians->keys();
+
+        $lokal = [];
+        $impor = [];
+        $aset  = [];
+
+        foreach ($labels as $tgl) {
+            $lokal[] = [$tgl, $pembelians[$tgl]['Pembelian Bahan/Barang/Alat Lokal']];
+            $impor[] = [$tgl, $pembelians[$tgl]['Pembelian Bahan/Barang/Alat Impor']];
+            $aset[]  = [$tgl, $pembelians[$tgl]['Pembelian Aset']];
+        }
+
+    $pembelianDivisi = PembelianBahan::with('pembelianBahanDetails')
+        ->where('status', 'Disetujui')
+        ->whereDate('tgl_pengajuan', '>=', $startDate)
+        ->get()
+        ->groupBy('divisi')
+        ->map(function ($group) {
+            // group lagi berdasarkan tanggal (daily basis dulu)
+            $byDate = $group->groupBy(function ($item) {
+                return Carbon::parse($item->tgl_pengajuan)->format('Y-m-d');
+            });
+
+            return $byDate->map(function ($items) {
+                $totals = [
+                    'Pembelian Bahan/Barang/Alat Lokal' => 0,
+                    'Pembelian Bahan/Barang/Alat Impor' => 0,
+                    'Pembelian Aset' => 0,
+                ];
+
+                foreach ($items as $p) {
+                    $subTotal = $p->pembelianBahanDetails->sum('sub_total');
+                    if (isset($totals[$p->jenis_pengajuan])) {
+                        $totals[$p->jenis_pengajuan] += $subTotal;
+                    }
+                }
+
+                return $totals;
+            });
+        });
+
+        // Tampilkan hasil
+        // dd($pembelianDivisi);
 
         return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalProdukJadi', 'totalSupplier', 'totalSatuanUnit', 'totalPembelianBahan', 'dates', 'chartDataMasuk', 'chartDataKeluar','availableYears', 'year', 'period', 'totalPengajuanBahanKeluar','totalPengajuanBahanRetur','totalPengajuanBahanRusak', 'chartLabels', 'chartData','prosesProduksi','projeks','projeks_rnd', 'bahanSisaTerbanyak','bahanSisaPalingSedikit', 'chartTotalQty',
-    'bahanRusakLabels', 'bahanRusakData'));
+        'bahanRusakLabels', 'bahanRusakData', 'lokal', 'impor', 'aset', 'pembelianDivisi'));
     }
 
     /**

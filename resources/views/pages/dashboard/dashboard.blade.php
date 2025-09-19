@@ -228,6 +228,21 @@
                 </div>
             </div>
 
+            <div class="col-span-full xl:col-span-12 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+                <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Sub Total Pengajuan Pembelian</h2>
+                </header>
+                <div id="grafikPembelian"></div>
+            </div>
+
+            <div class="col-span-full xl:col-span-12 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+                <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Divisi Yang Pengajuan Pembelian</h2>
+                </header>
+                <div id="grafikPembelianTiapDivisi"></div>
+            </div>
+
+
             {{-- Proses Produksi --}}
             <div class="col-span-full xl:col-span-12 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
                 <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
@@ -514,11 +529,170 @@
                 </div>
             </div>
     </div>
+
+    <script>
+        // data nested dari backend: { divisi: { '2025-09-01': { 'Pembelian Bahan/Barang/Alat Lokal': 0, ... }, ... }, ... }
+        let pembelianDivisi = @json($pembelianDivisi);
+
+        // Ambil daftar divisi
+        const divisis = Object.keys(pembelianDivisi);
+
+        // Siapkan array untuk tiap jenis
+        const lokalData = [];
+        const imporData = [];
+        const asetData  = [];
+        const totalData = [];
+
+        divisis.forEach(divisi => {
+            const byDate = pembelianDivisi[divisi];
+
+            // akumulasi semua tanggal untuk divisi ini -> total per jenis
+            let sumLokal = 0;
+            let sumImpor = 0;
+            let sumAset  = 0;
+
+            Object.keys(byDate).forEach(tgl => {
+            const row = byDate[tgl] || {};
+            // pastikan key ada dan default 0 jika undefined
+            sumLokal += Number(row['Pembelian Bahan/Barang/Alat Lokal'] || 0);
+            sumImpor  += Number(row['Pembelian Bahan/Barang/Alat Impor'] || 0);
+            sumAset   += Number(row['Pembelian Aset'] || 0);
+            });
+
+            lokalData.push(sumLokal);
+            imporData.push(sumImpor);
+            asetData.push(sumAset);
+            totalData.push(sumLokal + sumImpor + sumAset);
+        });
+
+        // Hapus isi kontainer dulu (jika ada)
+        const container = document.querySelector('#grafikPembelianTiapDivisi');
+        container.innerHTML = '<div id="chart-combined" class="w-full" style="min-height:420px;"></div>';
+
+        // Helper format Rupiah (2 desimal)
+        function formatRupiah(num) {
+            // num mungkin besar, pakai toLocaleString
+            return 'Rp ' + Number(num).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        const options = {
+            chart: {
+            height: 420,
+            type: 'line',
+            stacked: false,
+            zoom: {
+                enabled: true,
+                type: 'x',
+                autoScaleYaxis: true
+            },
+            toolbar: {
+                show: true,
+                tools: {
+                zoom: true,
+                zoomin: true,
+                zoomout: true,
+                pan: true,
+                reset: true
+                }
+            }
+            },
+            stroke: {
+            width: [0, 0, 0, 3], // garis hanya untuk series ke-4 (total)
+            curve: 'smooth'
+            },
+            plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: '40%',
+                endingShape: 'rounded'
+            }
+            },
+            series: [
+            { name: 'Lokal', type: 'column', data: lokalData },
+            { name: 'Impor', type: 'column', data: imporData },
+            { name: 'Aset',  type: 'column', data: asetData  },
+            { name: 'Total', type: 'line',   data: totalData  } // line overlay
+            ],
+            xaxis: {
+            categories: divisis,
+            labels: { rotate: -30, style: { fontSize: '12px', colors: '#6B7280' } }
+            },
+            yaxis: {
+            labels: {
+                formatter: function (val) {
+                return formatRupiah(val);
+                }
+            },
+            title: { text: 'Jumlah (Rupiah)' }
+            },
+            tooltip: {
+            shared: true,
+            intersect: false,
+            y: {
+                formatter: function (val) {
+                return formatRupiah(val);
+                }
+            }
+            },
+            colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'],
+            legend: {
+            position: 'top',
+            horizontalAlign: 'center'
+            },
+            responsive: [
+            {
+                breakpoint: 768,
+                options: {
+                plotOptions: { bar: { columnWidth: '60%' } },
+                chart: { height: 520 },
+                xaxis: { labels: { rotate: -45 } }
+                }
+            }
+            ]
+        };
+
+        const chartPembelianDivisi = new ApexCharts(document.querySelector("#chart-combined"), options);
+        chartPembelianDivisi.render();
+    </script>
+
+    <script>
+        var optionsPembelian = {
+            chart: { type: 'line', height: 400 },
+            series: [
+                { name: 'Lokal', data: @json($lokal) },
+                { name: 'Impor', data: @json($impor) },
+                { name: 'Aset',  data: @json($aset) }
+            ],
+            xaxis: {
+                type: 'datetime'
+            },
+            yaxis: {
+                labels: {
+                    formatter: function (val) {
+                        return 'Rp ' + val.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }
+                }
+            },
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return 'Rp ' + val.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }
+                },
+                x: { format: 'dd MMM yyyy' }
+            }
+        };
+
+
+        var chartPembelian = new ApexCharts(document.querySelector("#grafikPembelian"), optionsPembelian);
+        chartPembelian.render();
+    </script>
+
     <script>
         function formatRupiah(value) {
             return value === 0 ? '' : 'Rp ' + value.toLocaleString('id-ID'); // Format as Rupiah
         }
-        var options = {
+        var optionsBahanMasukKeluar = {
             chart: {
                 type: 'bar',
                 height: '350',
@@ -567,12 +741,12 @@
                 }
             }
         };
-        var chart = new ApexCharts(document.querySelector("#dashboard-bar-chart"), options);
-        chart.render();
+        var chartBahanMasukKeluar = new ApexCharts(document.querySelector("#dashboard-bar-chart"), optionsBahanMasukKeluar);
+        chartBahanMasukKeluar.render();
     </script>
 
     <script>
-        var options = {
+        var optionsPie = {
             chart: {
                 type: 'pie',
                 height: '350'
@@ -597,11 +771,12 @@
             }
         };
 
-        var chart = new ApexCharts(document.querySelector("#bahan-pie-chart"), options);
-        chart.render();
+        var chartPie = new ApexCharts(document.querySelector("#bahan-pie-chart"), optionsPie);
+        chartPie.render();
     </script>
+
     <script>
-        var options = {
+        var optionsBahanRusak = {
             chart: {
                 type: 'bar',
                 height: 350,
@@ -655,7 +830,9 @@
             }
         };
 
-        var chart = new ApexCharts(document.querySelector("#grafikBahanRusak"), options);
-        chart.render();
+        var chartBahanRusak = new ApexCharts(document.querySelector("#grafikBahanRusak"), optionsBahanRusak);
+        chartBahanRusak.render();
     </script>
+
+
 </x-app-layout>

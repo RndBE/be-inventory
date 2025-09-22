@@ -105,6 +105,7 @@
                         <th scope="col" class="px-6 py-3">Total Item</th>
                         <th scope="col" class="px-6 py-3">Total Harga</th>
                         <th scope="col" class="px-6 py-3">Status Pengambilan</th>
+                        <th scope="col" class="px-6 py-3">Status Leader</th>
                         <th scope="col" class="px-6 py-3">Status Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
@@ -141,6 +142,15 @@
                                     <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-green-400 border border-green-100">{{ $bahan_keluar->status_pengambilan }}</span>
                                 @else
                                     <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $bahan_keluar->status_pengambilan ?? 'Null' }}</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if ($bahan_keluar->status_leader == 'Belum disetujui')
+                                    <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status_leader }}</span>
+                                @elseif($bahan_keluar->status_leader == 'Disetujui')
+                                    <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-green-400 border border-green-100">{{ $bahan_keluar->status_leader }}</span>
+                                @else
+                                    <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $bahan_keluar->status_leader }}</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">

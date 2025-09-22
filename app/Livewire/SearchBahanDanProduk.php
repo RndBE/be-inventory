@@ -9,7 +9,9 @@ use App\Models\ProdukJadiDetails;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\Paginator;
 use App\Models\BahanSetengahjadiDetails;
+use App\Models\ProdukJadis;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\ProdukJadi;
 
 class SearchBahanDanProduk extends Component
 {
@@ -48,6 +50,8 @@ class SearchBahanDanProduk extends Component
                     'type' => 'setengahjadi',
                     'bahan_setengahjadi_details_id' => $bahanSetengahJadiDetail->id,
                 ];
+
+                // dd($bahanSetengahJadiDetail);
 
                 $this->dispatch('bahanSetengahJadiSelected', $bahanSetengahJadiData);
             }
@@ -118,16 +122,26 @@ class SearchBahanDanProduk extends Component
             ->where('sisa', '>', 0)
             ->when($this->query, function ($query) {
                 $query->where('nama_bahan', 'like', '%' . $this->query . '%')
-                    ->orWhere('serial_number', 'like', '%' . $this->query . '%');
+                    ->orWhere('serial_number', 'like', '%' . $this->query . '%')
+                    ->orWhereIn('nama_bahan', function ($sub) {
+                        $sub->select('nama_bahan')
+                            ->from('bahan')
+                            ->where('kode_bahan', 'like', '%' . $this->query . '%');
+                    });
             })
             ->get()
             ->map(function ($bahanSetengahJadiDetail) {
+
+                $kodeBahan = Bahan::where('nama_bahan', $bahanSetengahJadiDetail->nama_bahan)
+                    ->value('kode_bahan');
+
                 return [
                     'type' => 'setengahjadi',
                     'id' => $bahanSetengahJadiDetail->id,
                     'nama' => $bahanSetengahJadiDetail->nama_bahan,
                     'gambar' => $bahanSetengahJadiDetail->gambar,
-                    'kode' => $bahanSetengahJadiDetail->serial_number ?? '-',
+                    'serial_number' => $bahanSetengahJadiDetail->serial_number ?? '-',
+                    'kode' => $kodeBahan ?? '-',
                     'stok' => $bahanSetengahJadiDetail->sisa,
                     'unit' => 'Pcs',
                 ];
@@ -138,16 +152,26 @@ class SearchBahanDanProduk extends Component
             ->where('sisa', '>', 0)
             ->when($this->query, function ($query) {
                 $query->where('nama_produk', 'like', '%' . $this->query . '%')
-                    ->orWhere('serial_number', 'like', '%' . $this->query . '%');
+                    ->orWhere('serial_number', 'like', '%' . $this->query . '%')
+                    ->orWhereIn('nama_produk', function ($sub) {
+                        $sub->select('nama_produk')
+                            ->from('produk_jadi')
+                            ->where('kode_bahan', 'like', '%' . $this->query . '%');
+                    });
             })
             ->get()
             ->map(function ($produkJadiDetail) {
+
+                $kodeBahan = ProdukJadi::where('nama_produk', $produkJadiDetail->nama_produk)
+                    ->value('kode_bahan');
+
                 return [
                     'type' => 'jadi',
                     'id' => $produkJadiDetail->id,
                     'nama' => $produkJadiDetail->nama_produk,
                     'gambar' => $produkJadiDetail->ProdukJadis->qcProdukJadi->produkJadi->gambar ?? null,
-                    'kode' => $produkJadiDetail->serial_number ?? '-',
+                    'serial_number' => $produkJadiDetail->serial_number ?? '-',
+                    'kode' => $kodeBahan ?? '-',
                     'stok' => $produkJadiDetail->sisa,
                     'unit' => 'Pcs',
                 ];

@@ -105,16 +105,24 @@ class SearchBahanProdukSample extends Component
             ->where('sisa', '>', 0)
             ->where(function ($query) {
                 $query->where('nama_bahan', 'like', '%' . $this->query . '%')
-                    ->orWhere('serial_number', 'like', '%' . $this->query . '%');
+                    ->orWhere('serial_number', 'like', '%' . $this->query . '%')
+                    ->orWhereIn('nama_bahan', function ($sub) {
+                        $sub->select('nama_bahan')
+                            ->from('bahan')
+                            ->where('kode_bahan', 'like', '%' . $this->query . '%');
+                    });
             })
             ->get()
             ->map(function ($bahanSetengahJadiDetail) {
+                $kodeBahan = Bahan::where('nama_bahan', $bahanSetengahJadiDetail->nama_bahan)
+                    ->value('kode_bahan');
                 return [
                     'type' => 'setengahjadi',
                     'id' => $bahanSetengahJadiDetail->id,
                     'nama' => $bahanSetengahJadiDetail->nama_bahan,
                     'gambar' => $bahanSetengahJadiDetail->gambar,
-                    'kode' => $bahanSetengahJadiDetail->serial_number ?? '-',
+                    'serial_number' => $bahanSetengahJadiDetail->serial_number ?? '-',
+                    'kode' => $kodeBahan ?? '-',
                     'stok' => $bahanSetengahJadiDetail->sisa,
                     'unit' => 'Pcs',
                 ];

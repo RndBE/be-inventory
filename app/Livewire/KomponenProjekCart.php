@@ -38,6 +38,8 @@ class KomponenProjekCart extends Component
             $itemKey .= '-' . $bahan->serial_number;
         }
 
+        // dd($bahan);
+
         // Jika item sudah ada di cart, update qty
         if (isset($this->cart[$itemKey])) {
             $this->updateQuantity($itemKey);

@@ -36,9 +36,10 @@
                     <h4 class="font-bold text-sm">{{ $bahan['nama'] }}</h4>
                     {{-- Jika tipe setengahjadi, tampilkan serial number --}}
                     @if($bahan['type'] === 'setengahjadi')
-                        <p class="text-sm text-gray-600">Serial: {{ $bahan['kode'] }}</p>
+                        <p class="text-sm text-gray-600">PN: {{ $bahan['kode'] }}</p>
+                        <p class="text-sm text-gray-600">SN: {{ $bahan['serial_number'] }}</p>
                     @else
-                        <p class="text-sm text-gray-600">{{ $bahan['kode'] }}</p>
+                        <p class="text-sm text-gray-600">PN: {{ $bahan['kode'] }}</p>
                     @endif
                     <div class="flex justify-between items-start mt-4">
                         <div>

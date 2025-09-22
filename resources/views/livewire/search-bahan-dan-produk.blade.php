@@ -25,13 +25,13 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
     @foreach($bahanList as $bahan)
         <div class="bg-white border rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-             wire:click="selectBahan({{ $bahan['id'] }}, '{{ $bahan['type'] }}')">
+            wire:click="selectBahan({{ $bahan['id'] }}, '{{ $bahan['type'] }}')">
 
             {{-- Gambar bahan --}}
             @if($bahan['gambar'])
                 <img src="{{ asset('storage/' . $bahan['gambar']) }}"
-                     alt="{{ $bahan['nama'] }}"
-                     class="w-full h-40 object-cover rounded mb-4">
+                    alt="{{ $bahan['nama'] }}"
+                    class="w-full h-40 object-cover rounded mb-4">
             @else
                 <div class="w-full h-40 bg-gray-200 flex items-center justify-center rounded mb-4">
                     <span class="text-gray-500 text-sm">Tidak ada gambar</span>
@@ -41,11 +41,13 @@
             {{-- Nama & kode --}}
             <h4 class="font-bold text-sm">{{ $bahan['nama'] }}</h4>
             @if($bahan['type'] === 'setengahjadi')
-                <p class="text-sm text-gray-600">SN: {{ $bahan['kode'] }}</p>
+                <p class="text-sm text-gray-600">PN: {{ $bahan['kode'] }}</p>
+                <p class="text-sm text-gray-600">SN: {{ $bahan['serial_number'] }}</p>
             @elseif($bahan['type'] === 'jadi')
-                <p class="text-sm text-gray-600">SN: {{ $bahan['kode'] }}</p>
+                <p class="text-sm text-gray-600">PN: {{ $bahan['kode'] }}</p>
+                <p class="text-sm text-gray-600">SN: {{ $bahan['serial_number'] }}</p>
             @else
-                <p class="text-sm text-gray-600">{{ $bahan['kode'] }}</p>
+                <p class="text-sm text-gray-600">PN: {{ $bahan['kode'] }}</p>
             @endif
 
             {{-- Stok & info tambahan --}}

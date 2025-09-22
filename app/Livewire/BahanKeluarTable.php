@@ -108,22 +108,22 @@ class BahanKeluarTable extends Component
 
         }
         elseif ($user->hasRole(['hardware manager'])) {
-            $bahan_keluars->whereIn('divisi', ['RnD', 'Purchasing', 'Helper','Teknisi','OP','Produksi','Engineer']);
-        }elseif ($user->hasRole(['rnd','rnd level 3'])) {
+            $bahan_keluars->whereIn('divisi', ['RnD', 'Helper','Teknisi','OP','Produksi','Engineer']);
+        }elseif ($user->hasRole(['rnd level 3'])) {
             $bahan_keluars->whereIn('divisi', ['RnD']);
         }elseif ($user->hasRole(['purchasing level 3','helper'])) {
             $bahan_keluars->whereIn('divisi', ['Purchasing','Helper']);
-        }elseif ($user->hasRole(['teknisi level 3','teknisi','op','produksi'])) {
+        }elseif ($user->hasRole(['teknisi level 3','produksi level 3'])) {
             $bahan_keluars->whereIn('divisi', ['Teknisi','OP','Produksi','Engineer']);
         }
-        elseif ($user->hasRole(['marketing manager','marketing','marketing level 3'])) {
+        elseif ($user->hasRole(['marketing manager','marketing level 3'])) {
             $bahan_keluars->whereIn('divisi', ['Marketing']);
         }
-        elseif ($user->hasRole(['software manager','software','publikasi'])) {
+        elseif ($user->hasRole(['software manager'])) {
             $bahan_keluars->whereIn('divisi', ['Software','Publikasi']);
         }
-        elseif ($user->hasRole(['hse'])) {
-            $bahan_keluars->where('divisi', 'HSE');
+        elseif ($user->hasRole(['hrd level 3'])) {
+            $bahan_keluars->where('divisi', ['HSE','Helper', 'HRD']);
         }
         elseif ($user->hasRole(['sekretaris'])) {
             $bahan_keluars->where('divisi', 'Sekretaris');

@@ -70,6 +70,14 @@
                     </div>
 
                     <div>
+                        <label for="kode_bahan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Produk Nomor</label>
+                        <input autofocus wire:model="kode_bahan" type="text" name="kode_bahan" id="kode_bahan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Masukkan Nama Produk">
+                        @error('kode_bahan')
+                            <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
                         <label class="block mb-2 mt-2 text-sm font-medium text-gray-900 dark:text-white" for="file_input">
                             Upload file
                         </label>

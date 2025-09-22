@@ -15,7 +15,7 @@ class ProdukJadiTable extends Component
 
     public $search = '';
     public $perPage = 15;
-    public $id_produkjadi, $nama_produk, $sub_solusi, $gambar;
+    public $id_produkjadi, $nama_produk, $sub_solusi, $gambar, $kode_bahan;
     public $filter = 'semua';
     public $isDeleteModalOpen = false;
     public $isEditModalOpen = false;
@@ -31,6 +31,7 @@ class ProdukJadiTable extends Component
         $this->id_produkjadi = $id;
         $this->nama_produk = $data->nama_produk;
         $this->sub_solusi = $data->sub_solusi;
+        $this->kode_bahan = $data->kode_bahan;
         $this->gambar = $data->gambar;
         $this->isEditModalOpen = true;
     }
@@ -51,7 +52,8 @@ class ProdukJadiTable extends Component
     {
         $produkjadis = ProdukJadi::where(function ($query) {
                 $query->where('nama_produk', 'like', '%' . $this->search . '%')
-                    ->orWhere('sub_solusi', 'like', '%' . $this->search . '%');
+                    ->orWhere('sub_solusi', 'like', '%' . $this->search . '%')
+                    ->orWhere('kode_bahan', 'like', '%' . $this->search . '%');
             })
             ->orderBy('sub_solusi', 'asc') // urut per sub_solusi A-Z
             ->orderBy('id', 'desc')        // dalam sub_solusi, urutkan id terbaru

@@ -21,6 +21,7 @@ class ProdukJadiController extends Controller
             $validated = $request->validate([
                 'nama_produk' => 'required|string|max:255',
                 'sub_solusi' => 'required|string|max:255',
+                'kode_bahan' => 'nullable|string|max:255',
                 'gambar'     => 'nullable|image|mimes:jpg,jpeg,png,gif,svg|max:2048',
             ], [
                 'gambar.image'        => 'File harus berupa gambar.',
@@ -39,6 +40,7 @@ class ProdukJadiController extends Controller
             $produkjadi = ProdukJadi::create([
                 'nama_produk' => $validated['nama_produk'],
                 'sub_solusi' => $validated['sub_solusi'] ?? null,
+                'kode_bahan' => $validated['kode_bahan'] ?? null,
                 'gambar'     => $path,
             ]);
 
@@ -58,6 +60,7 @@ class ProdukJadiController extends Controller
             $validated = $request->validate([
                 'nama_produk' => 'required|string|max:255',
                 'sub_solusi'  => 'nullable|string|max:255',
+                'kode_bahan'  => 'nullable|string|max:255',
                 'gambar'      => 'nullable|image|mimes:jpg,jpeg,png,gif,svg|max:2048',
             ], [
                 'nama_produk.required' => 'Nama produk wajib diisi.',
@@ -92,6 +95,7 @@ class ProdukJadiController extends Controller
             $produk->update([
                 'nama_produk' => $validated['nama_produk'],
                 'sub_solusi'  => $validated['sub_solusi'] ?? null,
+                'kode_bahan'  => $validated['kode_bahan'] ?? null,
                 'gambar'      => $path,
             ]);
 

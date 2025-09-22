@@ -98,18 +98,39 @@
                             focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                     </div>
                     <div class="mb-3">
-                        <label for="roles">Roles</label>
-                        <select id="roles" name="roles[]" multiple
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm
-                            ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2
-                            focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                        <label class="block mb-1 text-sm font-medium text-gray-700">Status</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="status" value="Aktif"
+                                    {{ old('status', $user->status) === 'Aktif' ? 'checked' : '' }}
+                                    class="text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-2">Aktif</span>
+                            </label>
+
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="status" value="Non-Aktif"
+                                    {{ old('status', $user->status) === 'Non-Aktif' ? 'checked' : '' }}
+                                    class="text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-2">Non-Aktif</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="roles" class="block mb-2 font-medium text-sm text-gray-700">Roles</label>
+                        <div class="grid grid-cols-2 gap-2">
                             @foreach($roles as $role)
-                                <option value="{{ $role }}"
-                                    {{ in_array($role, old('roles', $userRoles)) ? 'selected' : '' }}>
-                                    {{ $role }}
-                                </option>
+                                <label class="inline-flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        name="roles[]"
+                                        value="{{ $role }}"
+                                        {{ in_array($role, old('roles', $userRoles)) ? 'checked' : '' }}
+                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                    >
+                                    <span class="text-sm text-gray-700">{{ $role }}</span>
+                                </label>
                             @endforeach
-                        </select>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="atasan_level1_id">Atasan Level 1</label>

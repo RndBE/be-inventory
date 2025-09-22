@@ -70,7 +70,7 @@ class UserController extends Controller
                 if (!$file->isValid()) {
                     throw new \Exception('File upload failed.');
                 }
-  
+
                 $fileName = time() . '_' . $file->getClientOriginalName();
                 $filePath = $file->storeAs('public/tanda_tangan', $fileName);
                 $validated['tanda_tangan'] = 'tanda_tangan/' . $fileName;
@@ -138,6 +138,7 @@ class UserController extends Controller
                 'atasan_level2_id' => 'nullable|exists:users,id',
                 'atasan_level3_id' => 'nullable|exists:users,id',
                 'tanda_tangan' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'status' => 'required|in:Aktif,Non-Aktif',
             ]);
 
             // Handle file upload for tanda_tangan
@@ -169,6 +170,7 @@ class UserController extends Controller
                 'atasan_level2_id' => $validated['atasan_level2_id'] ?? $user->atasan_level2_id,
                 'atasan_level3_id' => $validated['atasan_level3_id'] ?? $user->atasan_level3_id,
                 'tanda_tangan' => $validated['tanda_tangan'] ?? $user->tanda_tangan,
+                'status' => $validated['status'],
             ]);
 
             if (!empty($validated['password'])) {

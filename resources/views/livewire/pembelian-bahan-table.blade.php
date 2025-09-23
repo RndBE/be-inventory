@@ -271,7 +271,7 @@
                                                 </button>
                                             @endif
 
-                                            @can('edit-approve-purchasing')
+                                            @can('edit-pengajuan-purchasing')
                                                 {{-- @if($pembelian_bahan->status_finance !== 'Disetujui' && $pembelian_bahan->status_finance !== 'Ditolak') --}}
                                                     <a @click.stop
                                                     {{-- href="{{ route('pengajuan-pembelian-bahan.edit', ['id' => $pembelian_bahan->id, 'page' => $pembelian_bahans->currentPage()]) }}" --}}

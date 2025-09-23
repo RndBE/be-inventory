@@ -46,7 +46,8 @@ class PembelianBahanController extends Controller
         $this->middleware('permission:edit-pengambilan', ['only' => ['updatepengambilan']]);
         $this->middleware('permission:edit-approvepembelian-leader', ['only' => ['updateApprovalLeader']]);
         $this->middleware('permission:edit-approvepembelian-gm', ['only' => ['updateApprovalGM']]);
-        $this->middleware('permission:edit-approve-purchasing', ['only' => ['update','edit','updateApprovalPurchasing']]);
+        $this->middleware('permission:edit-approve-purchasing', ['only' => ['updateApprovalPurchasing']]);
+        $this->middleware('permission:edit-pengajuan-purchasing', ['only' => ['update','edit']]);
         $this->middleware('permission:edit-approve-manager', ['only' => ['updateApprovalManager']]);
         $this->middleware('permission:update-harga-pembelian-bahan', ['only' => ['editHarga','updateHarga']]);
         $this->middleware('permission:upload-link-invoice', ['only' => ['uploadInvoice']]);

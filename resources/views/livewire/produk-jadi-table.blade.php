@@ -59,9 +59,9 @@
                     <tr>
                         <th scope="col" class="p-4">No</th>
                         <th scope="col" class="px-6 py-3">Gambar</th>
-                        <th scope="col" class="px-6 py-3">Nama Produk</th>
+                        <th scope="col" class="px-6 py-3">Product Number</th>
                         <th scope="col" class="px-6 py-3">Sub Solusi</th>
-                        <th scope="col" class="px-6 py-3">Produk Nomor</th>
+                        {{-- <th scope="col" class="px-6 py-3">Produk Nomor</th> --}}
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -72,7 +72,7 @@
                             <td class="px-6 py-4"><img src="{{ $produkjadi->gambar ? asset('storage/' . $produkjadi->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $produkjadi->nama_produk }}" class="h-auto w-64 rounded-lg"></td>
                             <td class="px-6 py-4">{{ $produkjadi->nama_produk }}</td>
                             <td class="px-6 py-4">{{ $produkjadi->sub_solusi }}</td>
-                            <td class="px-6 py-4">{{ $produkjadi->kode_bahan }}</td>
+                            {{-- <td class="px-6 py-4">{{ $produkjadi->kode_bahan }}</td> --}}
                             <td class="px-6 py-4">
                                 <div class="produkproduksi flex space-x-2">
 

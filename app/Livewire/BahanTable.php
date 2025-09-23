@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Bahan;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Models\BahanSetengahjadiDetails;
 
 class BahanTable extends Component
 {
@@ -91,9 +92,24 @@ class BahanTable extends Component
             ->paginate($this->perPage);
 
 
-        // Calculate total stock
+        // Ambil daftar nama_bahan yang ada pada page hasil paginate saat ini
+        $names = $bahans->pluck('nama_bahan')->filter()->unique()->values()->all();
+
+        // Ambil aggregate sisa dari BahanSetengahjadiDetails berdasarkan nama_bahan
+        $sisaSums = BahanSetengahjadiDetails::whereIn('nama_bahan', $names)
+            ->where('sisa', '>', 0)
+            ->selectRaw('nama_bahan, SUM(sisa) as total_sisa')
+            ->groupBy('nama_bahan')
+            ->pluck('total_sisa', 'nama_bahan'); // returns [ 'nama_bahan' => total_sisa, ... ]
+
+        // Hitung total_stok tiap bahan: jika jenis PRODUKSI pakai sisa dari setengahjadi (berdasarkan nama),
+        // selain itu pakai sisa dari purchaseDetails
         foreach ($bahans as $bahan) {
-            $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
+            if ($bahan->jenisBahan && strtoupper($bahan->jenisBahan->nama) === 'PRODUKSI') {
+                $bahan->total_stok = isset($sisaSums[$bahan->nama_bahan]) ? (float) $sisaSums[$bahan->nama_bahan] : 0;
+            } else {
+                $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
+            }
         }
 
         return view('livewire.bahan-table', [

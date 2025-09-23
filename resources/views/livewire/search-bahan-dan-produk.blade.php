@@ -44,7 +44,7 @@
                 <p class="text-sm text-gray-600">PN: {{ $bahan['kode'] }}</p>
                 <p class="text-sm text-gray-600">SN: {{ $bahan['serial_number'] }}</p>
             @elseif($bahan['type'] === 'jadi')
-                <p class="text-sm text-gray-600">PN: {{ $bahan['kode'] }}</p>
+                {{-- <p class="text-sm text-gray-600">PN: {{ $bahan['kode'] }}</p> --}}
                 <p class="text-sm text-gray-600">SN: {{ $bahan['serial_number'] }}</p>
             @else
                 <p class="text-sm text-gray-600">PN: {{ $bahan['kode'] }}</p>

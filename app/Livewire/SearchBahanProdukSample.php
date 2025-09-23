@@ -116,11 +116,14 @@ class SearchBahanProdukSample extends Component
             ->map(function ($bahanSetengahJadiDetail) {
                 $kodeBahan = Bahan::where('nama_bahan', $bahanSetengahJadiDetail->nama_bahan)
                     ->value('kode_bahan');
+
+                $gambarBahan = Bahan::where('nama_bahan', $bahanSetengahJadiDetail->nama_bahan)
+                    ->value('gambar');
                 return [
                     'type' => 'setengahjadi',
                     'id' => $bahanSetengahJadiDetail->id,
                     'nama' => $bahanSetengahJadiDetail->nama_bahan,
-                    'gambar' => $bahanSetengahJadiDetail->gambar,
+                    'gambar' => $gambarBahan ?? null,
                     'serial_number' => $bahanSetengahJadiDetail->serial_number ?? '-',
                     'kode' => $kodeBahan ?? '-',
                     'stok' => $bahanSetengahJadiDetail->sisa,

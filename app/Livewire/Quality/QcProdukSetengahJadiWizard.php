@@ -90,7 +90,7 @@ class QcProdukSetengahJadiWizard extends Component
                             'unit_price'    => $unitPrice,
                             'sub_total'     => $unitPrice,
                             'is_selected'   => false,
-                            'is_disabled'     => false,
+                            'is_disabled'     => in_array($kodeList, $existingKodeList),
 
                             'id_bluetooth_option' => '000',   // default radio
                             'id_bluetooth'        => '000',   // default value
@@ -146,26 +146,26 @@ class QcProdukSetengahJadiWizard extends Component
             $existingKodeList = QcProdukSetengahJadiList::pluck('kode_list')->toArray();
 
             foreach ($produkDipilih as $index => $produk) {
-                if (empty($produk['kode_list'])) {
-                    DB::rollBack();
-                    $this->addError("selectedProdukList.$index.kode_list", "Kode List tidak boleh kosong.");
-                    $this->dispatch('swal:error', [
-                        'title' => 'Error',
-                        'text'  => "Kode List pada produk {$produk['nama_bahan']} belum diisi!",
-                    ]);
-                    return;
-                }
+                // if (empty($produk['kode_list'])) {
+                //     DB::rollBack();
+                //     $this->addError("selectedProdukList.$index.kode_list", "Kode List tidak boleh kosong.");
+                //     $this->dispatch('swal:error', [
+                //         'title' => 'Error',
+                //         'text'  => "Kode List pada produk {$produk['nama_bahan']} belum diisi!",
+                //     ]);
+                //     return;
+                // }
 
                 // Validasi: kode_list harus unik
-                if (in_array($produk['kode_list'], $existingKodeList)) {
-                    DB::rollBack();
-                    $this->addError("selectedProdukList.$index.kode_list", "Kode List sudah dipakai.");
-                    $this->dispatch('swal:error', [
-                        'title' => 'Error',
-                        'text'  => "Kode List {$produk['kode_list']} sudah digunakan!",
-                    ]);
-                    return;
-                }
+                // if (in_array($produk['kode_list'], $existingKodeList)) {
+                //     DB::rollBack();
+                //     $this->addError("selectedProdukList.$index.kode_list", "Kode List sudah dipakai.");
+                //     $this->dispatch('swal:error', [
+                //         'title' => 'Error',
+                //         'text'  => "Kode List {$produk['kode_list']} sudah digunakan!",
+                //     ]);
+                //     return;
+                // }
 
                 //  dd($produk);
                 QcProdukSetengahJadiList::create([

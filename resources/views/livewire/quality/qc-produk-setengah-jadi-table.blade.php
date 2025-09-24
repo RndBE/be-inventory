@@ -73,7 +73,7 @@
         <table class="table table-report -mt-2">
             <thead>
                 <tr>
-                    <th rowspan="2">Kode Produksi/Serial Product</th>
+                    <th rowspan="2">Kode Produksi</th>
                     <th rowspan="2" class="text-center">Waktu Produksi</th>
                     <th rowspan="2" class="text-center">PN/SN</th>
                     <th colspan="2" class="text-center">Hasil QC</th>
@@ -95,12 +95,15 @@
                     <tr class="intro-x">
                         <!-- Kode Produksi/List -->
                         <td>
-                            <a href="{{ route('quality-page.qc-produk-setengah-jadi.view', $item->id) }}" class="font-medium">
+                            {{-- <a href="{{ route('quality-page.qc-produk-setengah-jadi.view', $item->id) }}" class="font-medium">
                                 {{ $item->produksi->kode_produksi ?? '-' }}
-                            </a>
-                            <div class="text-gray-600 text-xs">
+                            </a> --}}
+                            <a href="{{ route('quality-page.qc-produk-setengah-jadi.view', $item->id) }}" class="font-medium">
                                 {{ $item->kode_list }}
-                            </div>
+                            </a>
+                            {{-- <div class="text-gray-600 text-xs">
+                                {{ $item->kode_list }}
+                            </div> --}}
                         </td>
 
                         <!-- Waktu Produksi -->

@@ -81,7 +81,7 @@
                             wire:click="$set('selected_produksi_id', {{ $produksi->id }})" @click="open = false"
                             x-effect="if (activeIndex === {{ $index }}) $refs['item{{ $index }}']?.scrollIntoView({ block: 'nearest' })"
                         >
-                            {{ $produksi->kode_produksi }}
+                            {{ $produksi->kode_produksi }} ({{ $produksi->dataBahan->nama_bahan ?? '-' }})
                         </li>
                     @empty
                         <li style="padding: 10px 12px; color: #999; font-size: 1.1rem;">Tidak ditemukan</li>
@@ -91,13 +91,14 @@
         </div>
 
         <div class="col-span-12 relative">
-            <label class="text-black">Diproduksi Oleh</label>
-            <select wire:model="selected_petugas_id" class="input border w-full mt-1 text-sm">
-                <option value="">Pilih Tim Produksi</option>
-                <option value="RASYID PRIYO NUGROHO">RASYID PRIYO NUGROHO</option>
-                <option value="ENDARTO NUGROHO">ENDARTO NUGROHO</option>
+            <label class="text-black">Jenis Serial Nomor (SN) produksi produk</label>
+            <select wire:model="selected_jenis_sn" class="input border w-full mt-1 text-sm">
+                <option value="">Pilih Jenis Serial Nomor (SN) produksi produk</option>
+                <option value="Wiring">Wiring</option>
+                <option value="Non-Wiring">Non-Wiring</option>
+                <option value="Vendor">Vendor</option>
             </select>
-            @error('selected_petugas_id')
+            @error('selected_jenis_sn')
                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
             @enderror
         </div>

@@ -25,6 +25,7 @@ class QcProdukSetengahJadiWizard extends Component
 
     public $selected_produksi_id = null;
     public $selected_petugas_id;
+    public $selected_jenis_sn;
     public $produksiList;
     public $searchProduksi = '';
 
@@ -48,15 +49,15 @@ class QcProdukSetengahJadiWizard extends Component
         if ($this->step === 1) {
             $this->validate([
                 'selected_produksi_id' => 'required',
-                'selected_petugas_id' => 'required',
+                'selected_jenis_sn' => 'required',
             ], [
                 'selected_produksi_id.required' => 'Silakan pilih kode produksi.',
-                'selected_petugas_id.required' => 'Silakan pilih tim produksi',
+                'selected_jenis_sn.required' => 'Silakan pilih jenis SN',
             ]);
 
             // Simpan input step 1 ke session
             session()->put('selected_produksi_id', $this->selected_produksi_id);
-            session()->put('selected_petugas_id', $this->selected_petugas_id);
+            session()->put('selected_jenis_sn', $this->selected_jenis_sn);
         }
 
         if ($this->step < 2) {
@@ -76,20 +77,26 @@ class QcProdukSetengahJadiWizard extends Component
                     // Harga per 1 produk (dibagi jumlah produksi)
                     $unitPrice = $produksi->jml_produksi > 0 ? $totalSubTotal / $produksi->jml_produksi : 0;
                     foreach (range(1, $produksi->jml_produksi) as $i) {
-                        // $kodeList = ($produksi->kode_produksi ?? '') . '-' . ($i . '/' . $produksi->jml_produksi);
+                        $kodeList = ($produksi->kode_produksi ?? '') . '-' . ($i . '/' . $produksi->jml_produksi);
 
                         $this->selectedProdukList[] = [
                             'bahan_id'      => $produksi->dataBahan->id,
                             'nama_bahan'    => $produksi->dataBahan->nama_bahan ?? '',
                             'nomor'         => $i . '/' . $produksi->jml_produksi,
-                            'kode_produksi' => $produksi->kode_produksi ?? '',
-                            'kode_list'       => '',
+                            // 'kode_produksi' => $produksi->kode_produksi ?? '',
+                            'kode_list'       => $kodeList,
                             'mulai_produksi' => $produksi->mulai_produksi ?? '',
                             'qty'           => 1,
                             'unit_price'    => $unitPrice,
                             'sub_total'     => $unitPrice,
                             'is_selected'   => false,
                             'is_disabled'     => false,
+
+                            'id_bluetooth_option' => '000',   // default radio
+                            'id_bluetooth'        => '000',   // default value
+
+                            'kode_jenis_unit'   => null,
+                            'kode_wiring_unit'  => null,
                         ];
                     }
                 }
@@ -106,7 +113,7 @@ class QcProdukSetengahJadiWizard extends Component
 
         // Simpan juga agar jika user mundur ke step 1, datanya masih ada
         session()->put('selected_produksi_id', $this->selected_produksi_id);
-        session()->put('selected_petugas_id', $this->selected_petugas_id);
+        session()->put('selected_jenis_sn', $this->selected_jenis_sn);
     }
 
     public function goToStep($step)
@@ -115,36 +122,6 @@ class QcProdukSetengahJadiWizard extends Component
             $this->step = $step;
         }
     }
-
-    // public function simpanQcProduk()
-    // {
-    //     // Filter hanya yang dipilih
-    //     $produkDipilih = collect($this->selectedProdukList)->where('is_selected', true);
-
-    //     if ($produkDipilih->isEmpty()) {
-    //         $this->dispatch('notify', ['type' => 'error', 'message' => 'Tidak ada produk yang dipilih!']);
-    //         return;
-    //     }
-
-    //     foreach ($produkDipilih as $produk) {
-    //         QcProdukSetengahJadiList::create([
-    //             'kode_produksi' => $produk['kode_produksi'],
-    //             'bahan_id'      => $produk['bahan_id'],
-    //             'qty'           => $produk['qty'],
-    //             'unit_price'    => $produk['unit_price'],
-    //             'sub_total'     => $produk['sub_total'],
-    //             'mulai_produksi'=> $produk['mulai_produksi'],
-    //             'selesai_produksi'=> now('Asia/Jakarta'),
-    //             'petugas_produksi'    => $this->selected_petugas_id ?? session('selected_petugas_id'),
-    //         ]);
-    //     }
-
-    //     $this->dispatch('notify', ['type' => 'success', 'message' => 'QC Produk berhasil disimpan!']);
-
-    //     // Reset session dan data list
-    //     $this->selectedProdukList = [];
-    //     session()->forget('selected_produk_list');
-    // }
 
     public function simpanQcProduk()
     {
@@ -200,7 +177,10 @@ class QcProdukSetengahJadiWizard extends Component
                     'sub_total'     => $produk['sub_total'],
                     'mulai_produksi'=> $produk['mulai_produksi'],
                     'selesai_produksi'=> now('Asia/Jakarta'),
-                    'petugas_produksi'    => $this->selected_petugas_id ?? session('selected_petugas_id'),
+                    'jenis_sn'    => $this->selected_jenis_sn ?? session('selected_jenis_sn'),
+                    'id_bluetooth'=> $produk['id_bluetooth'],
+                    'kode_jenis_unit'   => $produk['kode_jenis_unit'] ?? null,
+                    'kode_wiring_unit'  => $produk['kode_wiring_unit'] ?? null,
                 ]);
 
                 $existingKodeList[] = $produk['kode_list'];

@@ -315,39 +315,64 @@ class QcProdukSetengahJadiTable extends Component
             ? Carbon::parse($qc->selesai_produksi)->timezone('Asia/Jakarta')
             : Carbon::now('Asia/Jakarta');
 
-        // Hitung jumlah produksi harian yang SUDAH memiliki serial number
-        $jumlahHarian = QcProdukSetengahJadiList::whereDate('selesai_produksi', $tanggalSelesai->toDateString())
-            ->count();
+        $jenisSn = strtolower($qc->jenis_sn);
 
-        // Tentukan ID tim produksi
-        $petugas = strtoupper(trim($qc->petugas_produksi));
-        $idTim = match ($petugas) {
-            'RASYID PRIYO NUGROHO' => '01',
-            'ENDARTO NUGROHO'      => '02',
-            default => '99', // fallback kalau ada nama lain
-        };
+        // Jika vendor → tidak generate
+        if ($jenisSn === 'vendor') {
+            return null;
+        }
 
-        // Hitung urutan logger tahunan berdasarkan tanggal selesai_produksi
+        // Hitung urutan tahunan (reset tiap tahun, dan per bahan_id)
         $lastTahunan = QcProdukSetengahJadiList::whereYear('selesai_produksi', $tanggalSelesai->year)
+            ->where('bahan_id', $qc->bahan_id) // hanya produk dengan bahan yang sama
             ->whereNotNull('serial_number')
-            ->selectRaw("MAX(CAST(SUBSTRING_INDEX(serial_number, '-', -1) AS UNSIGNED)) as last_no")
+            ->selectRaw("MAX(CAST(RIGHT(serial_number, 3) AS UNSIGNED)) as last_no")
             ->value('last_no');
 
         $urutanTahunan = ($lastTahunan ?? 0) + 1;
 
-        // Format serial number (YYYY-MM-DD-Harian-IDTim-Tahunan)
-        return sprintf(
-            "%04d-%02d-%02d-%03d-%s-%05d",
-            $tanggalSelesai->year,
-            $tanggalSelesai->month,
-            $tanggalSelesai->day,
-            $jumlahHarian,
-            $idTim,
-            $urutanTahunan
-        );
+
+        // Jumlah unit batch produksi (UT)
+        $jumlahUnitBatch = Produksi::find($qc->produksi_id)?->jml_produksi ?? 0;
+
+        // Default bluetooth 000 jika kosong
+        $idBluetooth = $qc->id_bluetooth ?: '000';
+
+        // Format tanggal
+        $yy = $tanggalSelesai->format('y');
+        $mm = $tanggalSelesai->format('m');
+        $dd = $tanggalSelesai->format('d');
+
+        // --- NON-WIRING ---
+        if ($jenisSn === 'non-wiring') {
+            return sprintf(
+                "%s%s%s%02d%02s%03s%03d",
+                $yy,                  // Tahun 2 digit
+                $mm,                  // Bulan 2 digit
+                $dd,                  // Hari 2 digit
+                $jumlahUnitBatch,     // UT (2 digit)
+                $qc->kode_jenis_unit, // PR (2 digit)
+                str_pad($idBluetooth, 3, '0', STR_PAD_LEFT), // BLT (3 digit)
+                $urutanTahunan        // SEQ (3 digit)
+            );
+        }
+
+        // --- WIRING ---
+        if ($jenisSn === 'wiring') {
+            return sprintf(
+                "%s%s%s%02d%02s%03s%03d",
+                $yy,                       // Tahun 2 digit
+                $mm,                       // Bulan 2 digit
+                $dd,                       // Hari 2 digit
+                $jumlahUnitBatch,          // UT (2 digit)
+                $qc->kode_jenis_unit,      // PR (2 digit)
+                str_pad($qc->kode_wiring_unit, 3, '0', STR_PAD_LEFT), // PRO (3 digit)
+                $urutanTahunan             // SEQ (3 digit)
+            );
+        }
+
+        return null;
     }
-
-
 
 
     public function generateSerialNumberLive($id)

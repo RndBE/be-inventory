@@ -41,7 +41,7 @@
                                     <div>
                                         <label class="block text-gray-600 font-medium">Kode Produksi</label>
                                         <div class="mt-1 text-gray-900 font-semibold">
-                                            {{ $produk['kode_produksi'] }}
+                                            {{ $produk['kode_list'] }}
                                         </div>
                                     </div>
 
@@ -80,26 +80,125 @@
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label class="block text-gray-600 font-medium">Serial Product</label>
-                                        <input
-                                            type="text"
-                                            wire:model.defer="selectedProdukList.{{ $index }}.kode_list"
-                                            placeholder="Masukkan Serial Number"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-1 focus:ring focus:ring-theme-1 focus:ring-opacity-50"
-                                            {{ $produk['is_disabled'] ? 'disabled' : '' }}
-                                        >
-                                        @error("selectedProdukList.$index.kode_list")
-                                            <span class="text-red-600 text-sm">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+                                    {{-- ID Bluetooth hanya tampil jika bukan Wiring & bukan Vendor --}}
+                                    @if($selected_jenis_sn !== 'Wiring' && $selected_jenis_sn !== 'Vendor')
+                                        <div>
+                                            <label class="block text-gray-600 font-medium">ID Bluetooth</label>
+                                            <div class="space-y-2">
+                                                {{-- Opsi Tidak Ada --}}
+                                                <label class="inline-flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        wire:model.lazy="selectedProdukList.{{ $index }}.id_bluetooth_option"
+                                                        value="000"
+                                                        class="text-theme-1 focus:ring-theme-1"
+                                                        {{ $produk['is_disabled'] ? 'disabled' : '' }}
+                                                    >
+                                                    <span class="ml-2">Tidak Ada</span>
+                                                </label>
 
-                                    <div class="col-span-2">
-                                        <label class="text-gray-600">Diproduksi Oleh</label>
-                                        <div class="mt-1 font-semibold text-black">
-                                            {{ $selected_petugas_id ?? session('selected_petugas_id') }}
+                                                {{-- Opsi Ada --}}
+                                                <label class="inline-flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        wire:model.lazy="selectedProdukList.{{ $index }}.id_bluetooth_option"
+                                                        value="custom"
+                                                        class="text-theme-1 focus:ring-theme-1"
+                                                        {{ $produk['is_disabled'] ? 'disabled' : '' }}
+                                                    >
+                                                    <span class="ml-2">Ada</span>
+                                                </label>
+
+                                                {{-- Jika pilih "Ada" → tampilkan input --}}
+                                                @if(($selectedProdukList[$index]['id_bluetooth_option'] ?? null) === 'custom')
+                                                    <input
+                                                        type="text"
+                                                        wire:model.lazy="selectedProdukList.{{ $index }}.id_bluetooth"
+                                                        placeholder="Masukkan ID Bluetooth"
+                                                        maxlength="3"
+                                                        pattern="[0-9]{1,3}"
+                                                        class="mt-2 block w-full rounded-md border-gray-300 shadow-sm
+                                                            focus:border-theme-1 focus:ring focus:ring-theme-1 focus:ring-opacity-50"
+                                                        {{ $produk['is_disabled'] ? 'disabled' : '' }}
+                                                    >
+                                                @else
+                                                    <input type="hidden" wire:model.lazy="selectedProdukList.{{ $index }}.id_bluetooth" value="000">
+                                                @endif
+                                            </div>
+
+                                            @error("selectedProdukList.$index.id_bluetooth")
+                                                <span class="text-red-600 text-sm">{{ $message }}</span>
+                                            @enderror
                                         </div>
-                                    </div>
+                                    @endif
+
+
+                                    {{-- Kode Jenis Unit Produk tampil hanya jika Non-Wiring --}}
+                                    @if($selected_jenis_sn === 'Non-Wiring' || $selected_jenis_sn === 'Wiring')
+                                        <div>
+                                            <label class="block text-gray-600 font-medium">Kode Jenis Unit Produk</label>
+                                            <select
+                                                wire:model.defer="selectedProdukList.{{ $index }}.kode_jenis_unit"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-1 focus:ring focus:ring-theme-1 focus:ring-opacity-50"
+                                                {{ $produk['is_disabled'] ? 'disabled' : '' }}
+                                            >
+                                                <option value="">-- Pilih Kode --</option>
+                                                <option value="01">01 - BL 1100 V2</option>
+                                                <option value="02">02 - BL110 V2</option>
+                                                <option value="03">03 - BL 1100</option>
+                                                <option value="04">04 - BL 110</option>
+                                                <option value="05">05 - BL11</option>
+                                                <option value="06">06 - BL 1</option>
+                                                <option value="07">07 - GCM Master</option>
+                                                <option value="08">08 - EWS Master</option>
+                                                <option value="09">09 - Multiplexer 8 channel</option>
+                                                <option value="10">10 - Serial 8 channel</option>
+                                                <option value="11">11 - Serial 4 channel</option>
+                                                <option value="12">12 - Multiconverter</option>
+                                                <option value="13">13 - Serial Converter RS 232 to RS 485</option>
+                                                <option value="14">14 - Watchdog</option>
+                                                <option value="15">15 - Modul sensor tipping bucket pronamik</option>
+                                                <option value="16">16 - Filter sensor tipping bucket pronamik</option>
+                                            </select>
+
+                                            @error("selectedProdukList.$index.kode_jenis_unit")
+                                                <span class="text-red-600 text-sm">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    @endif
+
+
+                                    {{-- Kode Jenis Unit Produk Wiring tampil hanya jika Wiring --}}
+                                    @if($selected_jenis_sn === 'Wiring')
+                                        <div>
+                                            <label class="block text-gray-600 font-medium">Kode Jenis Unit Produk Wiring</label>
+                                            <select
+                                                wire:model.defer="selectedProdukList.{{ $index }}.kode_wiring_unit"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-1 focus:ring focus:ring-theme-1 focus:ring-opacity-50"
+                                                {{ $produk['is_disabled'] ? 'disabled' : '' }}
+                                            >
+                                                <option value="">-- Pilih Kode Wiring --</option>
+                                                <option value="001">001 - Wiring ARR</option>
+                                                <option value="002">002 - Wiring AWR</option>
+                                                <option value="003">003 - Wiring AQR</option>
+                                                <option value="004">004 - Wiring AWLR</option>
+                                                <option value="005">005 - Wiring AWQR</option>
+                                                <option value="006">006 - Wiring AFMR</option>
+                                                <option value="007">007 - Wiring AWGC</option>
+                                                <option value="008">008 - Wiring GCM</option>
+                                                <option value="009">009 - Wiring AVWR</option>
+                                                <option value="010">010 - Wiring VWR</option>
+                                                <option value="011">011 - Wiring ASQR</option>
+                                                <option value="012">012 - Wiring ADR</option>
+                                                <option value="013">013 - Wiring APS</option>
+                                                <option value="014">014 - Wiring EWS</option>
+                                            </select>
+
+                                            @error("selectedProdukList.$index.kode_wiring_unit")
+                                                <span class="text-red-600 text-sm">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>

@@ -210,7 +210,7 @@
                                     @if(!$item->tanggal_masuk_gudang && $item->qc1)
                                         <button
                                             x-data wire:ignore
-                                            x-on:click="$dispatch('open-gudang-modal', { id: {{ $item->id }} })"
+                                            x-on:click="$dispatch('open-gudang-modal', { id: {{ $item->id }}, jenis_sn: '{{ strtolower($item->jenis_sn) }}' })"
                                             class="flex items-center text-green-600">
                                             <i data-feather="box" class="w-4 h-4 mr-1"></i> Add to Gudang
                                         </button>
@@ -481,8 +481,8 @@
     </div>
 
     {{-- Modal Konfirmasi + Input Serial Number --}}
-    <div x-data="{ open: false, id: null, serial: '' }"
-        x-on:open-gudang-modal.window="open = true; id = $event.detail.id;"
+    <div x-data="{ open: false, id: null, serial: '', jenis_sn: '' }"
+        x-on:open-gudang-modal.window="open = true; id = $event.detail.id; jenis_sn = $event.detail.jenis_sn;"
         x-show="open"
         class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
         style="display: none;"
@@ -504,7 +504,8 @@
                     x-model="serial"
                     x-init="$watch('id', value => { $wire.call('generateSerialNumberLive', value).then(s => serial = s) })"
                     placeholder="Masukkan Serial Number"
-                    class="w-full border rounded-lg p-2 focus:ring focus:ring-green-300">
+                    class="w-full border rounded-lg p-2 focus:ring focus:ring-green-300"
+                    :readonly="jenis_sn !== 'vendor'">
             </div>
 
             <div class="flex justify-end space-x-3">

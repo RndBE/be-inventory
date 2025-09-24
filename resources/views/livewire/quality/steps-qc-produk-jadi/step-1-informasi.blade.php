@@ -90,7 +90,7 @@
             </div>
         </div>
 
-        <div class="col-span-12 relative">
+        {{-- <div class="col-span-12 relative">
             <label class="text-black">Diproduksi Oleh</label>
             <select wire:model="selected_petugas_id" class="input border w-full mt-1 text-sm">
                 <option value="">Pilih Tim Produksi</option>
@@ -100,7 +100,7 @@
             @error('selected_petugas_id')
                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
             @enderror
-        </div>
+        </div> --}}
 
     </div>
 </div>

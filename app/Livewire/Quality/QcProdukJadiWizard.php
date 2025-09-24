@@ -23,7 +23,7 @@ class QcProdukJadiWizard extends Component
     public $perPage = 12;
 
     public $selected_produksi_produk_jadi_id = null;
-    public $selected_petugas_id;
+    // public $selected_petugas_id;
     public $produksiProdukjadiList;
     public $searchProduksi = '';
 
@@ -47,15 +47,15 @@ class QcProdukJadiWizard extends Component
         if ($this->step === 1) {
             $this->validate([
                 'selected_produksi_produk_jadi_id' => 'required',
-                'selected_petugas_id' => 'required',
+                // 'selected_petugas_id' => 'required',
             ], [
                 'selected_produksi_produk_jadi_id.required' => 'Silakan pilih kode produksi.',
-                'selected_petugas_id.required' => 'Silakan pilih tim produksi',
+                // 'selected_petugas_id.required' => 'Silakan pilih tim produksi',
             ]);
 
             // Simpan input step 1 ke session
             session()->put('selected_produksi_produk_jadi_id', $this->selected_produksi_produk_jadi_id);
-            session()->put('selected_petugas_id', $this->selected_petugas_id);
+            // session()->put('selected_petugas_id', $this->selected_petugas_id);
         }
 
         if ($this->step < 2) {
@@ -89,10 +89,11 @@ class QcProdukJadiWizard extends Component
                             'sub_total'     => $unitPrice,
                             'is_selected'   => false,
                             'is_disabled'     => in_array($kodeList, $existingKodeList),
+
+                            'id_logger'        => null,
                         ];
                     }
                 }
-                // dd($this->selectedProdukJadiList);
             }
         }
     }
@@ -105,7 +106,7 @@ class QcProdukJadiWizard extends Component
 
         // Simpan juga agar jika user mundur ke step 1, datanya masih ada
         session()->put('selected_produksi_produk_jadi_id', $this->selected_produksi_produk_jadi_id);
-        session()->put('selected_petugas_id', $this->selected_petugas_id);
+        // session()->put('selected_petugas_id', $this->selected_petugas_id);
     }
 
     public function goToStep($step)
@@ -135,7 +136,16 @@ class QcProdukJadiWizard extends Component
                 return;
             }
 
-            foreach ($produkDipilih as $produk) {
+            foreach ($produkDipilih as $index => $produk) {
+                if (empty($produk['id_logger'])) {
+                    DB::rollBack();
+                    $this->addError("selectedProdukJadiList.$index.id_logger", "Kode List tidak boleh kosong.");
+                    $this->dispatch('swal:error', [
+                        'title' => 'Error',
+                        'text'  => "Kode List pada produk {$produk['nama_bahan']} belum diisi!",
+                    ]);
+                    return;
+                }
                 //  dd($produk);
                 QcProdukJadiList::create([
                     'produksi_produk_jadi_id' => $produksi->id,
@@ -146,7 +156,9 @@ class QcProdukJadiWizard extends Component
                     'sub_total'     => $produk['sub_total'],
                     'mulai_produksi'=> $produk['mulai_produksi'],
                     'selesai_produksi'=> now('Asia/Jakarta'),
-                    'petugas_produksi'    => $this->selected_petugas_id ?? session('selected_petugas_id'),
+                    // 'petugas_produksi'    => $this->selected_petugas_id ?? session('selected_petugas_id'),
+
+                    'id_logger'=> $produk['id_logger'],
                 ]);
             }
 

@@ -5,12 +5,12 @@
         </h2>
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <p class="text-gray-600">Kode List</p>
+                <p class="text-gray-600">Kode Produksi</p>
                 <p class="font-semibold">{{ $list->kode_list }}</p>
             </div>
             <div>
-                <p class="text-gray-600">Kode Produksi</p>
-                <p class="font-semibold">{{ $list->produksi->kode_produksi ?? '-' }}</p>
+                <p class="text-gray-600">Product Number</p>
+                <p class="font-semibold">{{ $list->produkJadi->nama_produk ?? '-' }}</p>
             </div>
             <div>
                 <p class="text-gray-600">Tanggal Masuk Gudang</p>
@@ -40,13 +40,13 @@
                     @endif
                 </div>
                 <div>
-                    <p class="text-gray-600">Petugas</p>
-                    <p class="font-semibold">{{ $list->petugas_produksi ?? '-' }}</p>
+                    <p class="text-gray-600">Keterangan</p>
+                    <p class="font-semibold">{{ $list->qc1->catatan ?? '-' }}</p>
                 </div>
-                <div class="col-span-2">
+                {{-- <div class="col-span-2">
                     <p class="text-gray-600">Keterangan</p>
                     <p class="font-semibold">{{ $list->qc1->keterangan ?? '-' }}</p>
-                </div>
+                </div> --}}
                 <div class="col-span-2">
                     <p class="text-gray-600">Laporan QC</p>
                     @if($list->qc1 && $list->qc1->laporan_qc)
@@ -100,13 +100,13 @@
                     @endif
                 </div>
                 <div>
-                    <p class="text-gray-600">Petugas</p>
-                    <p class="font-semibold">{{ $list->qc2->petugas->name ?? '-' }}</p>
+                    <p class="text-gray-600">Keterangan</p>
+                    <p class="font-semibold">{{ $list->qc2->catatan ?? '-' }}</p>
                 </div>
-                <div class="col-span-2">
+                {{-- <div class="col-span-2">
                     <p class="text-gray-600">Keterangan</p>
                     <p class="font-semibold">{{ $list->qc2->keterangan ?? '-' }}</p>
-                </div>
+                </div> --}}
                 <div class="col-span-2">
                     <p class="text-gray-600">Laporan QC</p>
                     {{-- @if($list->qc2->laporan_qc)

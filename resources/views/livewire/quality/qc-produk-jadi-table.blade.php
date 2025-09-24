@@ -73,7 +73,7 @@
         <table class="table table-report -mt-2">
             <thead>
                 <tr>
-                    <th rowspan="2">Kode Produksi/List</th>
+                    <th rowspan="2">Kode Produksi</th>
                     <th rowspan="2" class="text-center">Waktu Produksi</th>
                     <th rowspan="2" class="text-center">PN/SN</th>
                     <th colspan="2" class="text-center">Hasil QC</th>
@@ -95,12 +95,15 @@
                     <tr class="intro-x">
                         <!-- Kode Produksi/List -->
                         <td>
-                            <a href="{{ route('quality-page.qc-produk-jadi.view', $item->id) }}" class="font-medium">
+                            {{-- <a href="{{ route('quality-page.qc-produk-jadi.view', $item->id) }}" class="font-medium">
                                 {{ $item->produksiProdukJadi->kode_produksi ?? '-' }}
-                            </a>
-                            <div class="text-gray-600 text-xs">
+                            </a> --}}
+                            <a href="{{ route('quality-page.qc-produk-jadi.view', $item->id) }}" class="font-medium">
                                 {{ $item->kode_list }}
-                            </div>
+                            </a>
+                            {{-- <div class="text-gray-600 text-xs">
+                                {{ $item->kode_list }}
+                            </div> --}}
                         </td>
 
                         <!-- Waktu Produksi -->
@@ -481,7 +484,7 @@
                     x-model="serial"
                     x-init="$watch('id', value => { $wire.call('generateSerialNumberLive', value).then(s => serial = s) })"
                     placeholder="Masukkan Serial Number"
-                    class="w-full border rounded-lg p-2 focus:ring focus:ring-green-300">
+                    class="w-full border rounded-lg p-2 focus:ring focus:ring-green-300" readonly>
             </div>
 
             <div class="flex justify-end space-x-3">

@@ -13,6 +13,7 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use App\Models\QcProdukJadiList;
 use App\Models\ProdukJadiDetails;
+use App\Models\ProduksiProdukJadi;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\QcDokumentasiProdukJadi;
@@ -267,34 +268,36 @@ class QcProdukJadiTable extends Component
             ? Carbon::parse($qc->selesai_produksi)->timezone('Asia/Jakarta')
             : Carbon::now('Asia/Jakarta');
 
-        // Hitung jumlah produksi harian yang SUDAH memiliki serial number
-        $jumlahHarian = QcProdukJadiList::whereDate('selesai_produksi', $tanggalSelesai->toDateString())
-            ->count();
-
-        // Tentukan ID tim produksi
-        $petugas = strtoupper(trim($qc->petugas_produksi));
-        $idTim = match ($petugas) {
-            'RASYID PRIYO NUGROHO' => '01',
-            'ENDARTO NUGROHO'      => '02',
-            default => '99', // fallback kalau ada nama lain
-        };
-
-        // Hitung urutan logger tahunan berdasarkan tanggal selesai_produksi
+        // Hitung urutan tahunan (reset tiap tahun, dan per produk_jadi_id)
         $lastTahunan = QcProdukJadiList::whereYear('selesai_produksi', $tanggalSelesai->year)
+            ->where('produk_jadi_id', $qc->produk_jadi_id) // hanya produk dengan bahan yang sama
             ->whereNotNull('serial_number')
-            ->selectRaw("MAX(CAST(SUBSTRING_INDEX(serial_number, '-', -1) AS UNSIGNED)) as last_no")
+            ->selectRaw("MAX(CAST(RIGHT(serial_number, 3) AS UNSIGNED)) as last_no")
             ->value('last_no');
 
         $urutanTahunan = ($lastTahunan ?? 0) + 1;
 
+
+        // Jumlah unit batch produksi produk jadi (UT)
+        $jumlahUnitBatch = ProduksiProdukJadi::find($qc->produksi_produk_jadi_id)?->jml_produksi ?? 0;
+
+        // Default bluetooth 000 jika kosong
+        $idLogger = $qc->id_logger ?: '';
+
+        // Format tanggal
+        $yy = $tanggalSelesai->format('y');
+        $mm = $tanggalSelesai->format('m');
+        $dd = $tanggalSelesai->format('d');
+
         // Format serial number (YYYY-MM-DD-Harian-IDTim-Tahunan)
         return sprintf(
-            "%04d-%02d-%02d-%03d-%s-%05d",
-            $tanggalSelesai->year,
-            $tanggalSelesai->month,
-            $tanggalSelesai->day,
-            $jumlahHarian,
-            $idTim,
+            "%s%s%s%02d%02s%03s%03d",
+            $yy,                       // Tahun 2 digit
+            $mm,                       // Bulan 2 digit
+            $dd,                          // Hari 2 digit
+            $jumlahUnitBatch,          // UT (2 digit)
+            $qc->produkJadi->kode_bahan,      // PR (2 digit)
+            str_pad($qc->id_logger, 5, '0', STR_PAD_LEFT), // PRO (5 digit)
             $urutanTahunan
         );
     }

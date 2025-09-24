@@ -55,8 +55,7 @@ class ProdukJadiTable extends Component
                     ->orWhere('sub_solusi', 'like', '%' . $this->search . '%')
                     ->orWhere('kode_bahan', 'like', '%' . $this->search . '%');
             })
-            ->orderBy('sub_solusi', 'asc') // urut per sub_solusi A-Z
-            ->orderBy('id', 'desc')        // dalam sub_solusi, urutkan id terbaru
+            ->orderBy('kode_bahan', 'asc') // urut per sub_solusi A-Z
             ->paginate($this->perPage);
 
         return view('livewire.produk-jadi-table', [

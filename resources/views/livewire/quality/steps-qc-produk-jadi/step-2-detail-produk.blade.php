@@ -41,7 +41,8 @@
                                     <div>
                                         <label class="block text-gray-600 font-medium">Kode Produksi</label>
                                         <div class="mt-1 text-gray-900 font-semibold">
-                                            {{ $produk['kode_produksi'] }}
+                                            {{-- {{ $produk['kode_produksi'] }} --}}
+                                            {{ $produk['kode_list'] }}
                                         </div>
                                     </div>
 
@@ -80,12 +81,28 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-span-2">
-                                        <label class="text-gray-600">Diproduksi Oleh</label>
-                                        <div class="mt-1 font-semibold text-black">
-                                            {{ $selected_petugas_id ?? session('selected_petugas_id') }}
+                                    <div>
+                                        <label for="id_logger" class="text-gray-600">ID Logger Produk</label>
+                                        <div class="mt-1">
+                                            <input
+                                                type="number"
+                                                id="id_logger_{{ $index }}"
+                                                name="id_logger"
+                                                wire:model.lazy="selectedProdukJadiList.{{ $index }}.id_logger"
+                                                min="0"
+                                                max="99999"
+                                                class="mt-2 block w-full rounded-md border-gray-300 shadow-sm
+                                                    focus:border-theme-1 focus:ring focus:ring-theme-1 focus:ring-opacity-50
+                                                    [appearance:textfield]"
+                                                placeholder="Masukkan ID Logger"
+                                                oninput="if(this.value.length > 5) this.value = this.value.slice(0,5)"
+                                            >
                                         </div>
+                                        @error("selectedProdukJadiList.$index.id_logger")
+                                            <span class="text-red-600 text-sm">{{ $message }}</span>
+                                        @enderror
                                     </div>
+
                                 </div>
                             </div>
                         </div>

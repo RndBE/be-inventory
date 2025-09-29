@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\BahanMasukController;
 use App\Http\Controllers\Api\JenisBahanController;
 use App\Http\Controllers\Api\BahanSearchController;
 use App\Http\Controllers\API\DashboardApiController;
+use App\Http\Controllers\Api\QcProdukJadiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,12 @@ use App\Http\Controllers\API\DashboardApiController;
 */
 
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware(['inventory_api_token'])->group(function () {
+    Route::get('/qc-produk-jadi', [QcProdukJadiController::class, 'index']);
+    Route::get('/qc-produk-jadi/{id}', [QcProdukJadiController::class, 'show']);
+});
+
 
 Route::middleware('auth:sanctum')->group(function () {
 

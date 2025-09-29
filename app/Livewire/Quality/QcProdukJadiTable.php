@@ -420,9 +420,4 @@ class QcProdukJadiTable extends Component
             'qcList' => $qcList,
         ]);
     }
-
-    // public function render()
-    // {
-    //     return view('livewire.quality.qc-produk-jadi-table');
-    // }
 }

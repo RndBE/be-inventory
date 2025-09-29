@@ -57,10 +57,12 @@ use App\Http\Controllers\QCBahanMasukController;
 use App\Http\Controllers\StokProduksiController;
 use App\Http\Controllers\GaransiProjekController;
 use App\Http\Controllers\LaporanProyekController;
+use App\Http\Controllers\InventoryTokenController;
 use App\Http\Controllers\PembelianBahanController;
 use App\Http\Controllers\ProdukProduksiController;
 use App\Livewire\Quality\QcProdukSetengahJadiView;
 use App\Livewire\Quality\QcProdukSetengahJadiTable;
+use App\Http\Controllers\Api\QcProdukJadiController;
 use App\Http\Controllers\PengambilanBahanController;
 use App\Livewire\Quality\QcProdukSetengahJadiWizard;
 use App\Http\Controllers\BahanSetengahjadiController;
@@ -245,6 +247,11 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
         Route::get('qc-produk-jadi/create', QcProdukJadiWizard::class)->middleware('permission:tambah-qc-produk-jadi')->name('qc-produk-jadi.wizard');
         Route::get('qc-produk-jadi/view/{id}', QcProdukJadiView::class)->name('qc-produk-jadi.view');
     });
+
+    Route::get('/qc-produk-jadi', [QcProdukJadiController::class, 'index']);
+    Route::get('/qc-produk-jadi/{id}', [QcProdukJadiController::class, 'show']);
+
+    Route::post('/inventory-token/generate/{user}', [InventoryTokenController::class, 'generate'])->name('admin.inventory-token.generate');
 
     Route::fallback(function() {
         return view('pages/utility/404');

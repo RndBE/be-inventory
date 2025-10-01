@@ -27,6 +27,11 @@ class PembelianBahan extends Model
         return $this->hasOne(Produksi::class, 'bahan_keluar_id');
     }
 
+    public function dataPengajuan()
+    {
+        return $this->hasOne(Pengajuan::class,'id');
+    }
+
     public function projek()
     {
         return $this->hasOne(Projek::class, 'bahan_keluar_id');

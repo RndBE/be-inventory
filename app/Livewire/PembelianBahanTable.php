@@ -513,6 +513,9 @@ class PembelianBahanTable extends Component
                 ->orWhereHas('dataUser', function ($query) {
                     $query->where('name', 'like', '%' . $this->search . '%');
                 })
+                ->orWhereHas('dataPengajuan', function ($query) {
+                    $query->where('kode_pengajuan', 'like', '%' . $this->search . '%');
+                })
                 ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%');
         })
             ->when($this->selectedTab  === 'pengajuan', function ($query) {

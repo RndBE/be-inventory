@@ -29,7 +29,7 @@ class PembelianBahan extends Model
 
     public function dataPengajuan()
     {
-        return $this->hasOne(Pengajuan::class,'id');
+        return $this->hasOne(Pengajuan::class, 'id', 'pengajuan_id');
     }
 
     public function projek()

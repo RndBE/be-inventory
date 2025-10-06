@@ -252,7 +252,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('/qc-produk-jadi', [QcProdukJadiController::class, 'index']);
     Route::get('/qc-produk-jadi/{id}', [QcProdukJadiController::class, 'show']);
 
-    Route::post('/inventory-token/generate/{user}', [InventoryTokenController::class, 'generate'])->name('admin.inventory-token.generate');
+    // Route::post('/inventory-token/generate/{user}', [InventoryTokenController::class, 'generate'])->name('admin.inventory-token.generate');
 
     Route::fallback(function() {
         return view('pages/utility/404');

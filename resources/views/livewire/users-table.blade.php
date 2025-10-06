@@ -77,7 +77,7 @@
                             <th scope="col" class="px-6 py-3">Atasan Lv3</th>
                             <th scope="col" class="px-6 py-3">Atasan Lv2</th>
                             <th scope="col" class="px-6 py-3">Atasan Lv1</th>
-                            <th scope="col" class="px-6 py-3">Token</th>
+                            {{-- <th scope="col" class="px-6 py-3">Token</th> --}}
                             <th scope="col" class="px-6 py-3">Action</th>
                         </tr>
                     </thead>
@@ -107,7 +107,7 @@
                                 <td class="px-6 py-3">{{ $row->atasanLevel3?->name ?? '-' }}</td>
                                 <td class="px-6 py-3">{{ $row->atasanLevel2?->name ?? '-' }}</td>
                                 <td class="px-6 py-3">{{ $row->atasanLevel1?->name ?? '-' }}</td>
-                                <td class="px-6 py-3">{{ $row->auto_login_token ?? '-' }}</td>
+                                {{-- <td class="px-6 py-3">{{ $row->auto_login_token ?? '-' }}</td> --}}
                                 <td class="px-6 py-4">
                                     <div class="row flex space-x-2">
                                         <a href="{{ route('users.edit', $row->id) }}" class="flex items-center justify-center rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
@@ -124,13 +124,13 @@
 
 
                                         <!-- Tombol Generate Token -->
-                                        <form action="{{ route('admin.inventory-token.generate', $row->id) }}" method="POST" class="inline">
+                                        {{-- <form action="{{ route('admin.inventory-token.generate', $row->id) }}" method="POST" class="inline">
                                             @csrf
                                             <button type="submit"
                                                 class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600 focus:text-white focus:bg-blue-600 focus:border-blue-600 active:border-blue-600 active:text-white active:bg-blue-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
                                                 Generate Token
                                             </button>
-                                        </form>
+                                        </form> --}}
                                     </div>
                                 </td>
                             </tr>

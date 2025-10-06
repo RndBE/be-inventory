@@ -17,8 +17,17 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($request->only('email', 'password'))) {
-            $userName = Auth::user()->name;
-            LogHelper::success('Login: ' . $userName);
+            $user = Auth::user();
+
+            // Cek status user
+            if ($user->status !== 'Aktif') {
+                Auth::logout(); // langsung logout jika status bukan Aktif
+                return back()->withErrors([
+                    'email' => 'Akun Anda tidak aktif. Silakan hubungi administrator.',
+                ]);
+            }
+
+            LogHelper::success('Login: ' . $user->name);
             return redirect('/dashboard');
         }
 
@@ -32,6 +41,10 @@ class AuthController extends Controller
         $user = User::where('auto_login_token', $token)->first();
 
         if ($user) {
+            if ($user->status !== 'Aktif') {
+                abort(403, 'Akun Anda tidak aktif.');
+            }
+
             Auth::login($user);
             return redirect('/dashboard');
         }

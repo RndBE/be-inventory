@@ -16,7 +16,7 @@ class PembelianBahanTable extends Component
     public $search = "";
     public $perPage = 25;
     public $id_pembelian_bahan, $status, $gambar, $nama_bahan, $kode_bahan, $jenis_bahan_id, $stok_awal,  $unit_id, $total_stok,  $penempatan, $supplier,
-    $kode_transaksi, $tgl_keluar, $divisi,$link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $ppn, $new_value_today_fee, $status_general_manager, $catatan;
+    $kode_transaksi, $tgl_keluar, $divisi,$link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $ppn, $new_value_today_fee, $status_general_manager, $catatan, $dokumen;
 
     public $filter = 'semua';
     public $totalHarga;
@@ -31,6 +31,7 @@ class PembelianBahanTable extends Component
     public $isApproveDirekturModalOpen = false;
     public $isShowInvoiceModalOpen = false;
     public $isUploadInvoiceModalOpen = false;
+    public $isUploadDokumenModalOpen = false;
     public $pembelian_bahan;
     public $selectedStatus = [];
     public $selectedTab = 'semua';
@@ -150,6 +151,7 @@ class PembelianBahanTable extends Component
         $this->isApproveGMModalOpen = false;
         $this->isShowInvoiceModalOpen = false;
         $this->isUploadInvoiceModalOpen = false;
+        $this->isUploadDokumenModalOpen = false;
     }
 
     public function updatedSearch()
@@ -318,6 +320,15 @@ class PembelianBahanTable extends Component
         $this->isUploadInvoiceModalOpen = true;
     }
 
+    public function uploadDokumen(int $id, $page)
+    {
+        $Data = PembelianBahan::findOrFail($id);
+        $this->id_pembelian_bahan = $id;
+        $this->dokumen = $Data->dokumen;
+        $this->currentPage = $page;
+        $this->isUploadDokumenModalOpen = true;
+    }
+
     public function deletePembelianBahan(int $id, $page)
     {
         $this->id_pembelian_bahan = $id;
@@ -338,6 +349,7 @@ class PembelianBahanTable extends Component
         $this->isApproveGMModalOpen = false;
         $this->isShowInvoiceModalOpen = false;
         $this->isUploadInvoiceModalOpen = false;
+        $this->isUploadDokumenModalOpen = false;
     }
 
     public function render()

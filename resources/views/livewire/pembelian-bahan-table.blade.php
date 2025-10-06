@@ -211,15 +211,28 @@
                                                             Catatan: {{ $pembelian_bahan->catatan }}
                                                         </div>
                                                     @endif
+
+                                                    {{-- Tambahkan icon PDF khusus Direktur --}}
+                                                    @if ($role === 'Direktur' && $pembelian_bahan->dokumen)
+                                                        <a href="{{ asset('storage/' . $pembelian_bahan->dokumen) }}" target="_blank"
+                                                        class="ml-2 inline-flex items-center text-red-600 hover:text-red-800"
+                                                        title="Lihat dokumen PDF">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                                                <path d="M6 2a2 2 0 0 0-2 2v16c0
+                                                                        1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7
+                                                                        7V3.5L18.5 9H13z"/>
+                                                            </svg>
+                                                        </a>
+                                                    @endif
                                                 </td>
 
-                                                {{-- <td class="py-2 px-3 text-gray-500 text-xs">
+                                                <td class="py-2 px-3 text-gray-500 text-xs">
                                                     @if (!empty($timeDiffs[$role]))
                                                         +{{ $timeDiffs[$role] }}
                                                     @else
                                                         -
                                                     @endif
-                                                </td> --}}
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -237,7 +250,6 @@
                                     <option value="Selesai">Selesai</option>
                                 </select>
                             </td>
-
 
                             <td class="px-6 py-4">
                                 <div class="row flex space-x-2">
@@ -422,6 +434,12 @@
                                                     Upload Invoice
                                                 </button>
                                             @endcan
+
+                                            <button @click.stop wire:click="uploadDokumen({{ $pembelian_bahan->id }}, {{ $pembelian_bahans->currentPage() }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center" type="button">
+                                                <svg class="w-6 h-5 me-2 -ms-1" xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M14 11h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5" /><path d="M12 17v1m0 -8v1" /></svg>
+                                                Upload Dokumen
+                                            </button>
+
                                             @can('hapus-pembelian-bahan')
                                                 @if($pembelian_bahan->status !== 'Disetujui')
                                                     <button @click.stop wire:click="deletePembelianBahan({{ $pembelian_bahan->id }}, {{ $pembelian_bahans->currentPage() }})" class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-red-600 hover:text-white flex items-center" type="button">
@@ -493,6 +511,9 @@
         @endif
         @if ($isUploadInvoiceModalOpen)
                 @include('pages.pembelian-bahan.upload-invoice')
+        @endif
+        @if ($isUploadDokumenModalOpen)
+                @include('pages.pembelian-bahan.upload-dokumen')
         @endif
     </div>
 </div>

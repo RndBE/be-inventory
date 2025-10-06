@@ -31,6 +31,7 @@ use App\Exports\PembelianBahanExport;
 use App\Models\PembelianBahanDetails;
 use App\Jobs\SendWhatsAppNotification;
 use App\Models\PengambilanBahanDetails;
+use Illuminate\Support\Facades\Storage;
 use App\Models\BahanSetengahjadiDetails;
 use Illuminate\Support\Facades\Validator;
 
@@ -51,6 +52,7 @@ class PembelianBahanController extends Controller
         $this->middleware('permission:edit-approve-manager', ['only' => ['updateApprovalManager']]);
         $this->middleware('permission:update-harga-pembelian-bahan', ['only' => ['editHarga','updateHarga']]);
         $this->middleware('permission:upload-link-invoice', ['only' => ['uploadInvoice']]);
+        // $this->middleware('permission:upload-dokumen', ['only' => ['uploadDokumen']]);
         $this->middleware('permission:hapus-pembelian-bahan', ['only' => ['destroy']]);
     }
 
@@ -1177,6 +1179,52 @@ class PembelianBahanController extends Controller
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
     }
+
+    public function uploadDokumen(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'dokumen' => 'required|file|mimes:pdf|max:2048', // hanya PDF max 2MB
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $data = PembelianBahan::findOrFail($id);
+
+            if ($request->hasFile('dokumen')) {
+                // Hapus dokumen lama kalau ada
+                if ($data->dokumen && Storage::disk('public')->exists($data->dokumen)) {
+                    Storage::disk('public')->delete($data->dokumen);
+                }
+
+                // Simpan dokumen baru
+                $file = $request->file('dokumen');
+                $fileName = 'dokumen_' . time() . '.' . $file->getClientOriginalExtension();
+                $filePath = $file->storeAs('dokumen-pembatalan', $fileName, 'public');
+
+                // Simpan path ke DB
+                $data->dokumen = $filePath;
+            }
+
+            $data->save();
+
+            DB::commit();
+            LogHelper::success('Upload dokumen berhasil.');
+
+            $page = $request->input('page', 1);
+            return redirect()
+                ->route('pengajuan-pembelian-bahan.index', ['page' => $page])
+                ->with('success', 'Upload dokumen berhasil.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $errorMessage = $e->getMessage();
+            LogHelper::error($errorMessage);
+            return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
+        }
+    }
+
+
     //Approve Direktur
     public function updateApprovalDirektur(Request $request, int $id)
     {

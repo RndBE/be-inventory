@@ -160,6 +160,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     ->name('pengajuan-pembelian-bahan.editHarga');
     Route::put('/pengajuan-pembelian-bahan/{id}/updateHarga', [PembelianBahanController::class, 'updateHarga'])->name('pengajuan-pembelian-bahan.updateHarga');
     Route::put('/pengajuan-pembelian-bahan/uploadInvoicePembelian/{id}', [PembelianBahanController::class, 'uploadInvoice'])->name('pengajuan-pembelian-bahan.uploadInvoicePembelian');
+    Route::put('/pengajuan-pembelian-bahan/uploadDokumenPembelian/{id}', [PembelianBahanController::class, 'uploadDokumen'])->name('pengajuan-pembelian-bahan.uploadDokumenPembelian');
     // Route::put('pengajuan-pembelian-bahan/{id}/updatepengambilan', [PembelianBahanController::class, 'updatepengambilan'])->name('pengajuan-pembelian-bahan.updatepengambilan');
     // Route::post('/siap-ambil/{id}', [BahanKeluarController::class, 'sendWhatsApp'])->name('send.siap-ambil');
     Route::get('pembelian-bahan-export', [PembelianBahanController::class, 'export'])->name('pembelian-bahan-export.export');

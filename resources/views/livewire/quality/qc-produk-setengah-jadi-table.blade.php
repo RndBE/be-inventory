@@ -1,4 +1,4 @@
-<div>
+<div class="grid grid-cols-12 gap-6">
     @if(session('success'))
         <script>
             Swal.fire({
@@ -52,7 +52,7 @@
     <div class="intro-y col-span-12 flex flex-wrap sm:flex-no-wrap items-center mt-2">
         @can('tambah-qc-produk-setengahjadi')
         <a href="{{ route('quality-page.qc-produk-setengah-jadi.wizard') }}">
-            <button class="button text-white bg-theme-primary shadow-md mr-2">
+            <button class="button text-white bg-theme-1 shadow-md mr-2">
                 Selesaikan Produksi
             </button>
         </a>
@@ -69,7 +69,7 @@
         </div>
     </div>
 
-    <div>
+    <div class="intro-y col-span-12 overflow-auto lg:overflow-visible mt-5">
         <table class="table table-report -mt-2">
             <thead>
                 <tr>

@@ -72,62 +72,71 @@
                 </div>
             </div>
         @endif
-        <div class="w-full bg-white border border-gray-200 rounded-lg shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
-            <form action="{{ route('produk-produksis.store') }}" method="POST" enctype="multipart/form-data" id="produksiForm">
-                @csrf
-                <div class="space-y-12">
-                    <div class="border-gray-900/10 pb-12">
-                        <div class="p-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-2">
-                            {{-- <div class="col-span-1 col-start-1">
-                                <label for="nama_produk" class="block text-sm font-medium leading-6 text-gray-900">Nama Produk</label>
-                                <div class="mt-2">
-                                    <input value="{{ old('nama_produk') }}" type="text" name="nama_produk" id="nama_produk" autocomplete="address-level1" class="border-b lock w-full border-0 py-1 text-gray-900 text-4xl leading-6" required autofocus>
-                                    @error('nama_produk')
-                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                            </div> --}}
-                            <div class="mt-2">
-                                <label for="bahan_id" class="block text-sm font-medium text-gray-700">Pilih Produk</label>
-                                <select name="bahan_id" id="bahan_id" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
-                                    <option value="" disabled selected>Pilih Produk</option>
-                                    @foreach ($bahans as $bahan)
-                                        <option value="{{ $bahan->id }}">{{ $bahan->nama_bahan }} ({{ $bahan->kode_bahan }})</option>
-                                    @endforeach
-                                </select>
-                                @error('bahan_id')
-                                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            {{-- <div class="sm:col-span-1 flex justify-end">
-                                <div class="flex flex-col justify-center items-center rounded-lg border border-dashed border-gray-900/25 px-1 py-1 cursor-pointer" onclick="triggerFileInput()">
-                                    <div class="text-center">
-                                        <svg id="iconInstructions" class="mx-auto h-12 w-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
-                                        </svg>
-                                        <div id="uploadInstructions" class="mt-4 flex text-sm leading-6 text-gray-600">
-                                            <span>Click anywhere to upload</span>
-                                        </div>
-                                        <p id="fileInstructions" class="text-xs leading-5 text-gray-600">PNG, JPG, JPEG up to 2MB</p>
-                                    </div>
-                                    <div id="imagePreview" class="w-full max-w-[200px] hidden">
-                                        <img id="previewImg" class="w-full h-auto rounded-lg" alt="Image preview">
-                                    </div>
-                                    <p id="fileName" class="mt-0 text-sm text-gray-600 text-center">No file selected</p>
-                                    <input id="gambar" name="gambar" type="file" class="sr-only" accept=".png, .jpg, .jpeg" onchange="previewImage()">
-                                    @error('gambar')
-                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            </div> --}}
-                        </div>
-                    </div>
+        <div class="w-full max-w-9xl mx-auto">
+            <div class="flex flex-col lg:flex-row items-start gap-6">
+                <div class="w-full lg:w-3/4 bg-white border rounded-lg p-6 shadow">
+                    <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
+                    <livewire:search-bahan-pengambilan/>
                 </div>
-                <livewire:search-bahan/>
-                <livewire:bahan-cart/>
-            </form>
+
+                <div class="w-full lg:w-2/4 bg-white border rounded-lg p-6 shadow">
+                    <form action="{{ route('produk-produksis.store') }}" method="POST" enctype="multipart/form-data" id="produksiForm">
+                        @csrf
+                        <div class="space-y-12">
+                            <div class="border-gray-900/10 pb-12">
+                                <div class="p-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-1">
+                                    {{-- <div class="col-span-1 col-start-1">
+                                        <label for="nama_produk" class="block text-sm font-medium leading-6 text-gray-900">Nama Produk</label>
+                                        <div class="mt-2">
+                                            <input value="{{ old('nama_produk') }}" type="text" name="nama_produk" id="nama_produk" autocomplete="address-level1" class="border-b lock w-full border-0 py-1 text-gray-900 text-4xl leading-6" required autofocus>
+                                            @error('nama_produk')
+                                                <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                    </div> --}}
+                                    <div class="mt-2">
+                                        <label for="bahan_id" class="block text-sm font-medium text-gray-700">Pilih Produk</label>
+                                        <select name="bahan_id" id="bahan_id" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                                            <option value="" disabled selected>Pilih Produk</option>
+                                            @foreach ($bahans as $bahan)
+                                                <option value="{{ $bahan->id }}">{{ $bahan->nama_bahan }} ({{ $bahan->kode_bahan }})</option>
+                                            @endforeach
+                                        </select>
+                                        @error('bahan_id')
+                                            <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    {{-- <div class="sm:col-span-1 flex justify-end">
+                                        <div class="flex flex-col justify-center items-center rounded-lg border border-dashed border-gray-900/25 px-1 py-1 cursor-pointer" onclick="triggerFileInput()">
+                                            <div class="text-center">
+                                                <svg id="iconInstructions" class="mx-auto h-12 w-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                    <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+                                                </svg>
+                                                <div id="uploadInstructions" class="mt-4 flex text-sm leading-6 text-gray-600">
+                                                    <span>Click anywhere to upload</span>
+                                                </div>
+                                                <p id="fileInstructions" class="text-xs leading-5 text-gray-600">PNG, JPG, JPEG up to 2MB</p>
+                                            </div>
+                                            <div id="imagePreview" class="w-full max-w-[200px] hidden">
+                                                <img id="previewImg" class="w-full h-auto rounded-lg" alt="Image preview">
+                                            </div>
+                                            <p id="fileName" class="mt-0 text-sm text-gray-600 text-center">No file selected</p>
+                                            <input id="gambar" name="gambar" type="file" class="sr-only" accept=".png, .jpg, .jpeg" onchange="previewImage()">
+                                            @error('gambar')
+                                                <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div> --}}
+                                </div>
+                            </div>
+                        </div>
+                        {{-- <livewire:search-bahan/> --}}
+                        <livewire:bahan-cart/>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     <script>

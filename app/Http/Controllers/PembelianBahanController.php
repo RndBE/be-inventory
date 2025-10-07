@@ -583,9 +583,15 @@ class PembelianBahanController extends Controller
             if ($data->status_leader === 'Disetujui') {
                 if ($data->jenis_pengajuan === 'Pembelian Aset') {
                     // Kirim notifikasi ke General Affair
-                    $targetUser = User::whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'General Affair'); // Posisi General Affair
-                    })->where('job_level', 3)->first();
+                    // $targetUser = User::whereHas('dataJobPosition', function ($query) {
+                    //     $query->where('nama', 'General Affair'); // Posisi General Affair
+                    // })->where('job_level', 3)->first();
+                    // $targetRole = "General Affair";
+
+                    $targetUser = User::whereHas('roles', function ($query) {
+                        $query->where('name', 'general_affair');
+                    })->first();
+
                     $targetRole = "General Affair";
                 } else {
                     // Kirim notifikasi ke Purchasing
@@ -597,6 +603,8 @@ class PembelianBahanController extends Controller
 
                 $targetPhone = $targetUser->telephone ?? null;
                 $recipientName = $targetUser->name;
+
+                // dd($targetPhone);
                 //dd($targetPhone);
                 if ($targetPhone) {
                     $message = "Halo {$recipientName},\n\n";

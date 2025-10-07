@@ -438,11 +438,27 @@ class PembelianBahanTable extends Component
             });
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
-        elseif ($user->hasRole(['hrd level 3'])) {
-            $pembelian_bahan->whereIn('divisi', ['HSE','HRD','Helper']);
-            $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset']);
+        elseif ($user->hasAnyRole(['hrd level 3', 'general_affair'])) {
+            $pembelian_bahan->where(function ($query) use ($user) {
+
+                // Jika user punya role HRD level 3
+                if ($user->hasRole('hrd level 3')) {
+                    $query->whereIn('divisi', ['HSE', 'HRD', 'Helper']);
+                    $query->whereIn('jenis_pengajuan', [
+                        'Pembelian Bahan/Barang/Alat Lokal',
+                        'Pembelian Bahan/Barang/Alat Impor',
+                        'Pembelian Aset',
+                    ]);
+                }
+
+                // Jika user punya role General Affair
+                if ($user->hasRole('general_affair')) {
+                    // General Affair bisa lihat SEMUA divisi untuk jenis "Pembelian Aset"
+                    $query->orWhere('jenis_pengajuan', 'Pembelian Aset');
+                }
             });
+
+            // Urutkan agar pengajuan yang belum disetujui tampil duluan
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
         elseif ($user->hasRole(['purchasing level 3'])) {
@@ -470,28 +486,6 @@ class PembelianBahanTable extends Component
                     'Pembelian Aset'
                 ]);
             })->orderBy('tgl_pengajuan', 'desc');
-        }
-
-        elseif ($user->hasRole(['general_affair'])) {
-            // 1. Cari semua user yang memiliki job position "Secretary"
-            $sekretarisIds = User::whereHas('dataJobPosition', function ($query) {
-                $query->where('nama', 'General Affair');
-            })->pluck('id')->toArray();
-
-            // 2. Cari user yang memiliki atasan_level3_id sama dengan user Secretary (hanya ID)
-            $usersWithSekretarisAtasan = User::whereIn('atasan_level3_id', $sekretarisIds)->pluck('id')->toArray();
-
-            // 3. Ambil data pembelian bahan dengan filter jenis pengajuan dan status leader
-            $pembelian_bahan->where('jenis_pengajuan', 'Pembelian Aset')
-                ->where(function ($query) use ($usersWithSekretarisAtasan) {
-                    $query->where('status_leader', 'Disetujui') // Semua pengajuan aset yang disetujui leader
-                        ->orWhereHas('dataUser', function ($query) use ($usersWithSekretarisAtasan) {
-                            $query->whereIn('id', $usersWithSekretarisAtasan) // Perbaikan
-                                ->where('status_leader', 'Belum disetujui'); // Jika atasan sekretaris, hanya yg belum disetujui leader
-                        });
-                });
-
-            $pembelian_bahan->orderByRaw("CASE WHEN status_general_manager = 'Belum disetujui' THEN 0 ELSE 1 END")->orderBy('tgl_pengajuan', 'desc');
         }
 
         elseif ($user->hasRole(['administrasi'])) {

@@ -11,7 +11,7 @@ class BahanCart extends Component
     public $cart = [];
     public $produkProduksisId;
 
-    protected $listeners = ['bahanSelected' => 'addToCart'];
+    protected $listeners = ['bahanSelected' => 'addToCart']; // hapus removeItem dari sini
 
     public function mount($produkProduksisId = null)
     {
@@ -19,25 +19,8 @@ class BahanCart extends Component
 
         if ($this->produkProduksisId) {
             $this->loadCartItems();
-        } else {
-            $this->cart = [];
         }
     }
-
-    // public function loadCartItems()
-    // {
-    //     $details = ProdukProduksiDetail::where('produk_produksis_id', $this->produkProduksisId)
-    //         ->with('dataBahan')
-    //         ->get();
-
-    //     foreach ($details as $detail) {
-    //         $this->cart[] = [
-    //             'id' => $detail->dataBahan->id,
-    //             'nama_bahan' => $detail->dataBahan->nama_bahan,
-    //             'jml_bahan' => $detail->jml_bahan ?? 0,
-    //         ];
-    //     }
-    // }
 
     public function loadCartItems()
     {
@@ -45,41 +28,45 @@ class BahanCart extends Component
             ->with('dataBahan')
             ->get();
 
-        $cart = [];
-
-        foreach ($details as $detail) {
-            $cart[] = [
-                'id' => $detail->dataBahan->id,
-                'nama_bahan' => $detail->dataBahan->nama_bahan,
-                'jml_bahan' => $detail->jml_bahan ?? 0,
-            ];
-        }
-
-        // Urutkan berdasarkan nama_bahan
-        usort($cart, function ($a, $b) {
-            return strcmp($a['nama_bahan'], $b['nama_bahan']);
-        });
-
-        $this->cart = $cart;
+        $this->cart = $details->map(fn($d) => [
+            'id' => $d->dataBahan->id,
+            'nama_bahan' => $d->dataBahan->nama_bahan,
+            'jml_bahan' => $d->jml_bahan ?? 0,
+        ])->sortBy('nama_bahan')->values()->toArray();
     }
 
+    // public function addToCart($bahan)
+    // {
+    //     $bahan = (array) $bahan;
 
+    //     if (!collect($this->cart)->contains('id', $bahan['id'])) {
+    //         $this->cart[] = $bahan;
+    //         session()->put('cart', $this->cart);
+    //     }
+    // }
     public function addToCart($bahan)
     {
         $bahan = (array) $bahan;
+        $id = $bahan['id'] ?? $bahan['bahan_id']; // ✅ fallback ke bahan_id
 
-        if (!collect($this->cart)->contains('id', $bahan['id'])) {
-            $this->cart[] = $bahan;
+        if (!collect($this->cart)->contains('id', $id)) {
+            $this->cart[] = [
+                'id' => $id,
+                'nama_bahan' => $bahan['nama'] ?? $bahan['nama_bahan'] ?? '-',
+                'jml_bahan' => 0,
+            ];
 
             session()->put('cart', $this->cart);
         }
     }
 
+
     public function removeItem($bahanId)
     {
-        $this->cart = collect($this->cart)->reject(function ($item) use ($bahanId) {
-            return isset($item['id']) && $item['id'] == $bahanId;
-        })->toArray();
+        $this->cart = collect($this->cart)
+            ->reject(fn($item) => $item['id'] == $bahanId)
+            ->values()
+            ->toArray();
 
         session()->put('cart', $this->cart);
     }
@@ -91,5 +78,6 @@ class BahanCart extends Component
         ]);
     }
 }
+
 
 

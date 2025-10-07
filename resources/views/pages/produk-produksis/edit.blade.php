@@ -71,41 +71,56 @@
                 </div>
             </div>
         @endif
-        <div class="w-full bg-white border border-gray-200 rounded-lg shadow sm:p-8">
-            <form action="{{ route('produk-produksis.update', $produkProduksis->id) }}" method="POST" enctype="multipart/form-data" id="produksiForm">
-                @csrf
-                @method('PUT')
+        <div class="w-full max-w-9xl mx-auto">
+            <div class="flex flex-col lg:flex-row items-start gap-6">
+                <div class="w-full lg:w-3/4 bg-white border rounded-lg p-6 shadow">
+                    <h2 class="text-xl font-bold mb-4">Daftar Bahan</h2>
+                    <livewire:search-bahan-pengambilan/>
+                </div>
 
-                <div class="space-y-12">
-                    <div class="border-gray-900/10 pb-12">
-                        <div class="p-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-2">
-                            <div class="mt-2">
-                                <label for="bahan_id" class="block text-sm font-medium text-gray-700">Pilih Produk</label>
-                                <div class="mt-2">
-                                    <select name="bahan_id" id="bahan_id" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
-                                        <option value="" disabled {{ !$produkProduksis->bahan_id ? 'selected' : '' }}>Pilih Produk</option>
-                                        @foreach ($bahans as $bahan)
-                                            <option value="{{ $bahan->id }}" {{ $produkProduksis->bahan_id == $bahan->id ? 'selected' : '' }}>
-                                                {{ $bahan->nama_bahan }} ({{ $bahan->kode_bahan }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('bahan_id')
-                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                                    @enderror
+                <div class="w-full lg:w-2/4 bg-white border rounded-lg p-6 shadow">
+                    <form action="{{ route('produk-produksis.update', $produkProduksis->id) }}" method="POST" enctype="multipart/form-data" id="produksiForm">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="space-y-12">
+                            <div class="border-gray-900/10 pb-12">
+                                <div class="p-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-1">
+                                    <div class="mt-2">
+                                        <label for="bahan_id" class="block text-sm font-medium text-gray-700">Pilih Produk</label>
+                                        <div class="mt-2">
+                                            <select name="bahan_id" id="bahan_id" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                                                <option value="" disabled {{ !$produkProduksis->bahan_id ? 'selected' : '' }}>Pilih Produk</option>
+                                                @foreach ($bahans as $bahan)
+                                                    <option value="{{ $bahan->id }}" {{ $produkProduksis->bahan_id == $bahan->id ? 'selected' : '' }}>
+                                                        {{ $bahan->nama_bahan }} ({{ $bahan->kode_bahan }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('bahan_id')
+                                                <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        @error('bahan_id')
+                                            <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                        @enderror
+                                    </div>
                                 </div>
-                                @error('bahan_id')
-                                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
-                    </div>
-                </div>
-                <livewire:search-bahan/>
-                <livewire:bahan-cart :produkProduksisId="$produkProduksisId" />
-            </form>
+                        {{-- <livewire:search-bahan/> --}}
 
+                        {{-- <livewire:search-bahan-pengambilan/> --}}
+                        {{-- <div class="w-full lg:w-2/4 bg-white border rounded-lg p-6 shadow"> --}}
+                        <livewire:bahan-cart :produkProduksisId="$produkProduksisId" />
+                        {{-- </div> --}}
+                    </form>
+                </div>
+            </div>
         </div>
+
+
+
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {

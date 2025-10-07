@@ -144,10 +144,12 @@ class PembelianBahanController extends Controller
 
             $generalUser = cache()->remember('general_user', 60, function () {
                 return User::where('job_level', 3)
-                    ->whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'General Affair');
-                    })->first();
+                    ->whereHas('roles', function ($query) {
+                        $query->where('name', 'general_affair');
+                    })
+                    ->first();
             });
+
 
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
 

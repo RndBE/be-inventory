@@ -472,11 +472,11 @@ class PembelianBahanTable extends Component
                 // Untuk Aset, hanya tampil kalau sudah disetujui GA
                 $query->orWhere(function ($q) {
                     $q->where('jenis_pengajuan', 'Pembelian Aset')
-                    ->where('status_leader', 'Belum disetujui');
+                    ->where('status_general_manager', 'Disetujui');
                 });
             });
 
-            $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
+            $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END")->orderBy('tgl_pengajuan', 'desc');
         }
         elseif ($user->hasRole(['purchasing'])) {
             $pembelian_bahan->where(function ($query) {

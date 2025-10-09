@@ -66,6 +66,7 @@ use App\Http\Controllers\Api\QcProdukJadiController;
 use App\Http\Controllers\PengambilanBahanController;
 use App\Livewire\Quality\QcProdukSetengahJadiWizard;
 use App\Http\Controllers\BahanSetengahjadiController;
+use App\Http\Controllers\PengajuanPembelianController;
 use App\Http\Controllers\ProduksiProdukJadiController;
 use App\Http\Controllers\LaporanGaransiProyekController;
 
@@ -146,7 +147,6 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::put('bahan-keluars/{id}/updatepengambilan', [BahanKeluarController::class, 'updatepengambilan'])->name('bahan-keluars.updatepengambilan');
     Route::post('/siap-ambil/{id}', [BahanKeluarController::class, 'sendWhatsApp'])->name('send.siap-ambil');
 
-
     Route::get('/pengajuan-pembelian-bahan/pdf/{id}', [PembelianBahanController::class, 'downloadPdf'])->name('pengajuan-pembelian-bahan.downloadPdf');
     Route::resource('pengajuan-pembelian-bahan', PembelianBahanController::class);
     Route::put('/pengajuan-pembelian-bahan/updateApprovalLeader/{id}', [PembelianBahanController::class, 'updateApprovalLeader'])->name('pengajuan-pembelian-bahan.updateApprovalLeader');
@@ -164,6 +164,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     // Route::put('pengajuan-pembelian-bahan/{id}/updatepengambilan', [PembelianBahanController::class, 'updatepengambilan'])->name('pengajuan-pembelian-bahan.updatepengambilan');
     // Route::post('/siap-ambil/{id}', [BahanKeluarController::class, 'sendWhatsApp'])->name('send.siap-ambil');
     Route::get('pembelian-bahan-export', [PembelianBahanController::class, 'export'])->name('pembelian-bahan-export.export');
+
+    Route::get('/pengajuan-pembelian/pdf/{id}', [PengajuanPembelianController::class, 'downloadPdf'])->name('pengajuan-pembelian.downloadPdf');
+    Route::resource('pengajuan-pembelian', PengajuanPembelianController::class);
 
     Route::resource('pengajuans', PengajuanController::class);
     Route::put('pengajuans/{pengajuan}/selesai', [PengajuanController::class, 'updateStatus'])->name('pengajuans.updateStatus');

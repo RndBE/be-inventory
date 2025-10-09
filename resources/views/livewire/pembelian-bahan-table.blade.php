@@ -77,8 +77,8 @@
                 <thead class="text-sm text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="p-4">No</th>
-                        <th scope="col" class="px-6 py-3">Kode Pembelian</th>
                         <th scope="col" class="px-6 py-3">Kode Pengajuan</th>
+                        {{-- <th scope="col" class="px-6 py-3">Kode Pengajuan</th> --}}
                         <th scope="col" class="px-6 py-3">Tanggal Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Tanggal Selesai</th>
                         <th scope="col" class="px-6 py-3">Tujuan</th>
@@ -102,9 +102,9 @@
                                     {{ $pembelian_bahan->kode_transaksi }}
                                 {{-- </button> --}}
                             </th>
-                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{-- <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ $pembelian_bahan->dataPengajuan->kode_pengajuan ?? null }}
-                            </th>
+                            </th> --}}
                             <td class="px-6 py-4">{{ $pembelian_bahan->tgl_pengajuan }}</td>
                             <td class="px-6 py-4">{{ $pembelian_bahan->tgl_keluar }}</td>
                             <td class="px-6 py-4">

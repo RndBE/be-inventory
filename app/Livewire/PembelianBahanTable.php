@@ -466,14 +466,15 @@ class PembelianBahanTable extends Component
             $pembelian_bahan->where(function ($query) {
                 $query->whereIn('jenis_pengajuan', [
                     'Pembelian Bahan/Barang/Alat Lokal',
-                    'Pembelian Bahan/Barang/Alat Impor'
+                    'Pembelian Bahan/Barang/Alat Impor',
+                    'Pembelian Aset'
                 ]);
 
                 // Untuk Aset, hanya tampil kalau sudah disetujui GA
-                $query->orWhere(function ($q) {
-                    $q->where('jenis_pengajuan', 'Pembelian Aset')
-                    ->where('status_general_manager', 'Disetujui');
-                });
+                // $query->orWhere(function ($q) {
+                //     $q->where('jenis_pengajuan', 'Pembelian Aset')
+                //     ->where('status_general_manager', 'Disetujui');
+                // });
             });
 
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END")->orderBy('tgl_pengajuan', 'desc');

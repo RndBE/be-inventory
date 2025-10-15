@@ -119,15 +119,19 @@ class EditBahanKeluarCart extends Component
                 $bahanId = $detail->bahan_id;
                 $produkId = $detail->produk_id;
                 $produkJadisId = $detail->produk_jadis_id;
+                $stok = 0;
                 if (!empty($detail->bahan_id)) {
                     // Jika bahan_id tersedia, cari di tabel Bahan
                     $bahan = Bahan::find($detail->bahan_id);
+                    $stok = PurchaseDetail::where('bahan_id', $detail->bahan_id)->sum('sisa');
                 } elseif (!empty($detail->produk_id)) {
                     // Jika produk_id tersedia, cari di bahanSetengahjadiDetails
                     $bahan = BahanSetengahjadiDetails::find($detail->produk_id);
+                    $stok = BahanSetengahjadiDetails::where('id', $detail->produk_id)->sum('sisa');
                 }elseif (!empty($detail->produk_jadis_id)) {
                     // Jika produk_id tersedia, cari di bahanSetengahjadiDetails
                     $bahan = ProdukJadiDetails::find($detail->produk_jadis_id);
+                    $stok = ProdukJadiDetails::where('id', $detail->produk_jadis_id)->sum('sisa');
                 }
 
                 $this->bahanKeluarDetails[] = [
@@ -136,6 +140,7 @@ class EditBahanKeluarCart extends Component
                     'produk_id' => $produkId, // Simpan produk_id agar tidak hilang
                     'produk_jadis_id' => $produkJadisId,
                     'qty' => $detail->qty,
+                    'stok' => $stok,
                     'jml_bahan' => $detail->jml_bahan,
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,

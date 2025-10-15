@@ -27,6 +27,7 @@ class QcProdukJadiTable extends Component
     use WithPagination, WithFileUploads;
 
     public $grade;
+    public $search = '';
     public $laporan_qc;
     public $catatan;
     public $dokumentasi = [];
@@ -412,9 +413,20 @@ class QcProdukJadiTable extends Component
 
     public function render()
     {
-        $qcList = QcProdukJadiList::with('produksiProdukJadi')
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(10);
+        $qcList = QcProdukJadiList::with(['produksiProdukJadi','produksiProdukJadi.dataProdukJadi','qc1','qc2'])
+            ->where(function ($query) {
+                $query->where('kode_list', 'like', '%' . $this->search . '%')
+                    ->orWhere('mulai_produksi', 'like', '%' . $this->search . '%')
+                    ->orWhere('selesai_produksi', 'like', '%' . $this->search . '%')
+                    ->orWhere('serial_number', 'like', '%' . $this->search . '%')
+                    ->orWhere('id_logger', 'like', '%' . $this->search . '%')
+                    ->orWhere('tanggal_masuk_gudang', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('produksiProdukJadi.dataProdukJadi', fn($q) => $q->where('nama_produk', 'like', '%' . $this->search . '%'))
+                    ->orWhereHas('qc1', fn($q) => $q->where('kode_qc', 'like', '%' . $this->search . '%'))
+                    ->orWhereHas('qc2', fn($q) => $q->where('kode_qc', 'like', '%' . $this->search . '%'));
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
         return view('livewire.quality.qc-produk-jadi-table', [
             'qcList' => $qcList,

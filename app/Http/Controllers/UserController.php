@@ -30,30 +30,37 @@ class UserController extends Controller
 
     public function create()
     {
-        $users = User::all();
-        $jobpositions = JobPosition::all();
-        $organizations = Organization::all();
-        $roles = Role::pluck('name','name')->all();
+        // Data untuk dropdown
+        $jobpositions = JobPosition::orderBy('nama', 'asc')->get();
+        $organizations = Organization::orderBy('nama', 'asc')->get();
+        $roles = Role::pluck('name', 'name')->all();
+        $users = User::orderBy('name', 'asc')->get(); // <-- FIX di sini
+
+        // Buat instance kosong agar form tidak error saat old() dipanggil
+        $user = new User();
+
         return view('pages.user.create', [
-            'users' => $users,
+            'user' => $user,
             'jobpositions' => $jobpositions,
             'organizations' => $organizations,
-            'roles' => $roles
+            'roles' => $roles,
+            'userRoles' => [], // karena ini halaman create
+            'users' => $users, // <-- kirim daftar user ke view
         ]);
     }
 
+
     public function store(Request $request)
     {
-        //dd($request->all());
         try {
-            // Validate the request inputs
+            // ✅ Validasi input
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'organization_id' => 'nullable|exists:organization,id',
                 'job_position_id' => 'nullable|exists:job_position,id',
-                'job_level' => 'nullable',
+                'job_level' => 'nullable|string|max:100',
                 'email' => 'required|email|max:255|unique:users,email',
-                'telephone' => 'nullable',
+                'telephone' => 'nullable|string|max:20',
                 'password' => 'required|string|min:8|max:20',
                 'roles' => 'required|array',
                 'atasan_level1_id' => 'nullable|exists:users,id',
@@ -62,21 +69,20 @@ class UserController extends Controller
                 'tanda_tangan' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             ]);
 
-            // Handle file upload for tanda_tangan
+            // ✅ Proses upload file tanda tangan (jika ada)
             if ($request->hasFile('tanda_tangan')) {
                 $file = $request->file('tanda_tangan');
 
-                // Debugging: Ensure file upload works
                 if (!$file->isValid()) {
-                    throw new \Exception('File upload failed.');
+                    throw new \Exception('Gagal mengunggah tanda tangan.');
                 }
 
-                $fileName = time() . '_' . $file->getClientOriginalName();
+                $fileName = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
                 $filePath = $file->storeAs('public/tanda_tangan', $fileName);
                 $validated['tanda_tangan'] = 'tanda_tangan/' . $fileName;
             }
 
-            // Create a new user
+            // ✅ Simpan user baru
             $user = User::create([
                 'name' => $validated['name'],
                 'organization_id' => $validated['organization_id'] ?? null,
@@ -91,25 +97,25 @@ class UserController extends Controller
                 'tanda_tangan' => $validated['tanda_tangan'] ?? null,
             ]);
 
-            // Assign roles to the user
+            // ✅ Assign role ke user
             $user->syncRoles($validated['roles']);
 
-            // Log success
-            LogHelper::success('Berhasil Menambahkan User!');
-            return redirect()->route('users.index')->with('success', 'Berhasil Menambahkan User!');
+            // ✅ Log sukses dan redirect
+            LogHelper::success("User {$user->name} berhasil ditambahkan.");
+            return redirect()->route('users.index')->with('success', 'Berhasil menambahkan user baru!');
         } catch (\Throwable $e) {
-            LogHelper::error($e->getMessage());
-            return view('pages.utility.404');
+            // ✅ Log error dan tampilkan error page
+            LogHelper::error('Gagal menyimpan user: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
 
-
     public function edit(User $user)
     {
-        $users = User::all();
-        $jobpositions = JobPosition::all();
-        $organizations = Organization::all();
+        $users = User::orderBy('name', 'asc')->get();
+        $jobpositions = JobPosition::orderBy('nama', 'asc')->get();
+        $organizations = Organization::orderBy('nama', 'asc')->get();
         $roles = Role::pluck('name','name')->all();
         $userRoles = $user->roles->pluck('name','name')->all();
         return view('pages.user.edit', [

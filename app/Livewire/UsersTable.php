@@ -27,6 +27,24 @@ class UsersTable extends Component
             ->where(function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%')
                     ->orWhere('email', 'like', '%' . $this->search . '%')
+                    ->orWhere('job_level', 'like', '%' . $this->search . '%')
+                    ->orWhere('telephone', 'like', '%' . $this->search . '%')
+                    ->orWhere('status', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('dataOrganization', function ($query) {
+                        $query->where('nama', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('atasanLevel1', function ($query) {
+                        $query->where('name', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('atasanLevel2', function ($query) {
+                        $query->where('name', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('atasanLevel3', function ($query) {
+                        $query->where('name', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'like', '%' . $this->search . '%');
+                    })
                     ->orWhereHas('roles', function ($query) {
                         $query->where('name', 'like', '%' . $this->search . '%');
                     });
@@ -37,6 +55,7 @@ class UsersTable extends Component
             ->when($this->selectedTab === 'non-aktif', function ($query) {
                 return $query->where('status', 'Non-Aktif');
             })
+            ->orderBy('name', 'asc')
             ->paginate($this->perPage);
 
 

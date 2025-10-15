@@ -66,50 +66,107 @@
                         <input type="text" name="password" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                     </div>
                     <div class="mb-3">
-                        <label for="">Roles</label>
-                        <select id="roles" name="roles[]" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" multiple>
-                            <option value="" disabled selected>Pilih Role</option>
+                        <label class="block mb-1 text-sm font-medium text-gray-700">Status</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="status" value="Aktif"
+                                    {{ old('status', $user->status) === 'Aktif' ? 'checked' : '' }}
+                                    class="text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-2">Aktif</span>
+                            </label>
+
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="status" value="Non-Aktif"
+                                    {{ old('status', $user->status) === 'Non-Aktif' ? 'checked' : '' }}
+                                    class="text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-2">Non-Aktif</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="roles" class="block mb-2 font-medium text-sm text-gray-700">Roles</label>
+                        <div class="grid grid-cols-2 gap-2">
                             @foreach($roles as $role)
-                                <option value="{{ $role }}">{{ $role }}</option>
+                                <label class="inline-flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        name="roles[]"
+                                        value="{{ $role }}"
+                                        {{ in_array($role, old('roles', $userRoles)) ? 'checked' : '' }}
+                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                    >
+                                    <span class="text-sm text-gray-700">{{ $role }}</span>
+                                </label>
                             @endforeach
-                        </select>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="atasan_level1_id">Atasan Level 1</label>
-                        <select name="atasan_level1_id" id="atasan_level1_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-full text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus >
-                            <option value="" selected>-- Pilih Atasan Level 1 --</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('atasan_level1_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('atasan_level1_id')
-                            <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="atasan_level2_id">Atasan Level 2</label>
-                        <select name="atasan_level2_id" id="atasan_level2_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-full text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus >
-                            <option value="" selected>-- Pilih Atasan Level 2 --</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('atasan_level2_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('atasan_level2_id')
-                            <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="atasan_level3_id">Atasan Level 3</label>
-                        <select name="atasan_level3_id" id="atasan_level3_id" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-full text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus>
-                            <option value="" selected>-- Pilih Atasan Level 3 --</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('atasan_level3_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('atasan_level3_id')
-                            <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                        @enderror
-                    </div>
+
+                    {{-- Atasan Level 1 --}}
+<div class="mb-3">
+    <label for="atasan_level1_id" class="block mb-1 text-sm font-medium text-gray-700">Atasan Level 1</label>
+    <select
+        name="atasan_level1_id"
+        id="atasan_level1_id"
+        class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+               block rounded-md border-0 py-1.5 w-full text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+               placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+    >
+        <option value="">-- Pilih Atasan Level 1 --</option>
+        @foreach($users as $u)
+            <option value="{{ $u->id }}" {{ old('atasan_level1_id') == $u->id ? 'selected' : '' }}>
+                {{ $u->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('atasan_level1_id')
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
+{{-- Atasan Level 2 --}}
+<div class="mb-3">
+    <label for="atasan_level2_id" class="block mb-1 text-sm font-medium text-gray-700">Atasan Level 2</label>
+    <select
+        name="atasan_level2_id"
+        id="atasan_level2_id"
+        class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+               block rounded-md border-0 py-1.5 w-full text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+               placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+    >
+        <option value="">-- Pilih Atasan Level 2 --</option>
+        @foreach($users as $u)
+            <option value="{{ $u->id }}" {{ old('atasan_level2_id') == $u->id ? 'selected' : '' }}>
+                {{ $u->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('atasan_level2_id')
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
+{{-- Atasan Level 3 --}}
+<div class="mb-3">
+    <label for="atasan_level3_id" class="block mb-1 text-sm font-medium text-gray-700">Atasan Level 3</label>
+    <select
+        name="atasan_level3_id"
+        id="atasan_level3_id"
+        class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+               block rounded-md border-0 py-1.5 w-full text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+               placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+    >
+        <option value="">-- Pilih Atasan Level 3 --</option>
+        @foreach($users as $u)
+            <option value="{{ $u->id }}" {{ old('atasan_level3_id') == $u->id ? 'selected' : '' }}>
+                {{ $u->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('atasan_level3_id')
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
                     <div class="mb-3">
                         <label for="tanda_tangan" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Tanda Tangan</label>
                         <div class="mt-2">

@@ -18,6 +18,12 @@ class BahanTable extends Component
     public $isDeleteModalOpen = false;
     public $isShowModalOpen = false;
     public $currentPage;
+    public $selectedTab = 'digunakan';
+
+    public function setTab($tab)
+    {
+        $this->selectedTab = strtolower($tab); // biar selalu konsisten
+    }
 
     public function mount()
     {
@@ -73,6 +79,39 @@ class BahanTable extends Component
         $this->isShowModalOpen = false;
     }
 
+    public function bahanDigunakan($id, $page)
+    {
+        try {
+            $bahan = Bahan::findOrFail($id);
+            $bahan->status = 'Digunakan';
+            $bahan->save();
+
+            // Simpan halaman saat ini agar pagination tidak reset
+            $this->setPage($page);
+
+            // Opsional: kirim notifikasi ke browser
+            session()->flash('success', "Status bahan '{$bahan->nama_bahan}' berhasil diubah menjadi 'Digunakan'.");
+        } catch (\Throwable $e) {
+            session()->flash('error', "Gagal mengubah status bahan: " . $e->getMessage());
+        }
+    }
+
+    public function bahanTidakDigunakan($id, $page)
+    {
+        try {
+            $bahan = Bahan::findOrFail($id);
+            $bahan->status = 'Tidak digunakan';
+            $bahan->save();
+
+            // Tetap di halaman yang sama
+            $this->setPage($page);
+
+            session()->flash('success', "Status bahan '{$bahan->nama_bahan}' berhasil diubah menjadi 'Tidak digunakan'.");
+        } catch (\Throwable $e) {
+            session()->flash('error', "Gagal mengubah status bahan: " . $e->getMessage());
+        }
+    }
+
     public function render()
     {
         $bahans = Bahan::with('jenisBahan', 'dataUnit', 'purchaseDetails')
@@ -88,6 +127,12 @@ class BahanTable extends Component
                     ->orWhereHas('dataSupplier', function ($query) {
                         $query->where('nama', 'like', '%' . $this->search . '%');
                     });
+            })
+            ->when($this->selectedTab === 'digunakan', function ($query) {
+                return $query->where('status', 'Digunakan');
+            })
+            ->when($this->selectedTab === 'tidak digunakan', function ($query) {
+                return $query->where('status', 'Tidak digunakan');
             })
             ->paginate($this->perPage);
 

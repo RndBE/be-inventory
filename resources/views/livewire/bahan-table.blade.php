@@ -25,9 +25,30 @@
         </div>
     @endif
     <div class="sm:flex sm:justify-between sm:items-center mb-2">
-
         <div class="mb-4 sm:mb-0">
             <h6 class="text-4xl text-gray-800 dark:text-gray-100 font-bold">Bahan</h6>
+        </div>
+
+        <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
+
+        </div>
+    </div>
+
+    <div class="sm:flex sm:justify-between mb-2">
+
+        <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+            <ul class="flex overflow-x-auto whitespace-nowrap bg-gray-100 rounded-lg scrollbar-hide" role="tablist">
+                <li class="me-2" role="presentation">
+                    <button wire:click="setTab('digunakan')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'digunakan' ? 'text-purple-600 border-purple-600' : '' }}">
+                        Digunakan
+                    </button>
+                </li>
+                <li class="me-2" role="presentation">
+                    <button wire:click="setTab('tidak digunakan')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'tidak digunakan' ? 'text-purple-600 border-purple-600' : '' }}">
+                        Tidak digunakan
+                    </button>
+                </li>
+            </ul>
         </div>
 
         <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
@@ -71,103 +92,6 @@
 
     </ul>
     <div class="relative overflow-x-auto pt-2">
-        {{-- <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                    <tr>
-                        <th scope="col" class="p-4">
-                            No
-                        </th>
-                        <th scope="col" class="p-4">
-                            <div class="flex items-center">
-
-                            </div>
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Gambar
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Kode Bahan
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Nama Bahan
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Jenis Bahan
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Supplier
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Total Stok
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Action
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($bahans as $index => $row)
-                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4"><div class="text-slate-800 dark:text-slate-100">{{ $bahans->firstItem() + $index }}</div></td>
-                            <td class="w-4 p-4">
-                                <div class="flex items-center">
-                                    <input type="checkbox" wire:model="selectedIds" value="{{ $row->id }}" class="checkbox-row w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded">
-
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <img src="{{ $row->gambar ? asset('storage/' . $row->gambar) : asset('images/image-4@2x.jpg') }}" alt="Gambar {{ $row->nama_bahan }}" class="h-auto w-24 rounded-lg">
-                            </td>
-                            <td class="px-6 py-3">{{ $row->kode_bahan }}</td>
-                            <td class="px-6 py-3">{{ $row->nama_bahan }}</td>
-                            <td class="px-6 py-3">{{ $row->jenisBahan->nama ?? 'N/A' }}</td>
-                            <td class="px-6 py-4">{{ $row->dataSupplier->nama ?? 'N/A' }}</td>
-                            <td class="px-6 py-4">
-                                <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">
-                                    {{ $row->total_stok }} {{ $row->dataUnit->nama ?? 'N/A' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="row flex space-x-2">
-                                    @can('detail-bahan')
-                                        <button wire:click="showBahan({{$row->id}})" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-blue-600 hover:border-blue-600 focus:text-white focus:bg-blue-600 focus:border-blue-600" type="button">
-                                            <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/><path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                                        </button>
-                                    @endcan
-
-                                    @can('edit-bahan')
-                                        <a href="{{ route('bahan.edit', $row->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
-                                            <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                            <path stroke="currentColor" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
-                                            </svg>
-                                        </a>
-                                    @endcan
-
-                                    @can('hapus-bahan')
-                                        <button wire:click="deleteBahan({{$row->id}})" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 active:border-red-600 active:text-white active:bg-red-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
-                                            <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
-                                            </svg>
-                                        </button>
-                                    @endcan
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td colspan="9" class="px-6 py-4 text-center">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-                                </svg>
-                                <h3 class="mt-2 text-sm font-semibold text-gray-900">Data Tidak Ditemukan!</h3>
-                                <p class="mt-1 text-sm text-gray-500">Maaf, data yang Anda cari tidak ada</p>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div> --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
             @forelse($bahans as $row)
                 <div
@@ -191,18 +115,58 @@
                                 x-show="open"
                                 x-transition.origin.top.right.duration.150ms
                                 @click.away="open = false"
-                                class="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow text-sm z-20"
+                                class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg text-sm z-20 overflow-hidden"
                             >
                                 @can('edit-bahan')
-                                    <a href="{{ route('bahan.edit', ['id' => $row->id, 'page' => $bahans->currentPage()]) }}" @click.stop class="block px-4 py-2 hover:bg-gray-100 text-gray-700" >Edit</a>
+                                    <a href="{{ route('bahan.edit', ['id' => $row->id, 'page' => $bahans->currentPage()]) }}"
+                                        @click.stop
+                                        class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg> <span>Edit</span>
+                                    </a>
+                                    <hr class="border-gray-100 my-1">
                                 @endcan
+
                                 @can('hapus-bahan')
                                     <button
                                         wire:click.stop="deleteBahan({{ $row->id }}, {{ $bahans->currentPage() }})"
-                                        class="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600"
-                                    >Hapus</button>
+                                        class="flex items-center gap-2 w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors duration-150"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg> <span>Hapus</span>
+                                    </button>
+                                    <hr class="border-gray-100 my-1">
                                 @endcan
+
+                                @if ($selectedTab === 'digunakan')
+                                    <button
+                                        wire:click.stop="bahanTidakDigunakan({{ $row->id }}, {{ $bahans->currentPage() }})"
+                                        class="flex items-center gap-2 w-full text-left px-4 py-2 text-orange-600 hover:bg-orange-50 transition-colors duration-150"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-ban"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M5.7 5.7l12.6 12.6" /></svg> <span>Tidak digunakan</span>
+                                    </button>
+                                @elseif ($selectedTab === 'tidak digunakan')
+                                    <button
+                                        wire:click.stop="bahanDigunakan({{ $row->id }}, {{ $bahans->currentPage() }})"
+                                        class="flex items-center gap-2 w-full text-left px-4 py-2 text-green-600 hover:bg-green-50 transition-colors duration-150"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-checks"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 12l5 5l10 -10" /><path d="M2 12l5 5m5 -5l5 -5" /></svg> <span>Digunakan</span>
+                                    </button>
+                                @else
+                                    <button
+                                        wire:click.stop="bahanDigunakan({{ $row->id }}, {{ $bahans->currentPage() }})"
+                                        class="flex items-center gap-2 w-full text-left px-4 py-2 text-green-600 hover:bg-green-50 transition-colors duration-150"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-checks"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 12l5 5l10 -10" /><path d="M2 12l5 5m5 -5l5 -5" /></svg> <span>Digunakan</span>
+                                    </button>
+                                    <button
+                                        wire:click.stop="bahanTidakDigunakan({{ $row->id }}, {{ $bahans->currentPage() }})"
+                                        class="flex items-center gap-2 w-full text-left px-4 py-2 text-orange-600 hover:bg-orange-50 transition-colors duration-150"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-ban"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M5.7 5.7l12.6 12.6" /></svg> <span>Tidak digunakan</span>
+                                    </button>
+                                @endif
                             </div>
+
                         </div>
                     </div>
 

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Bahan;
 use Livewire\Component;
+use App\Helpers\LogHelper;
 use Livewire\WithPagination;
 use App\Models\BahanSetengahjadiDetails;
 
@@ -88,10 +89,11 @@ class BahanTable extends Component
 
             // Simpan halaman saat ini agar pagination tidak reset
             $this->setPage($page);
-
+            LogHelper::success("Status bahan '{$bahan->nama_bahan}' berhasil diubah menjadi 'Digunakan'.");
             // Opsional: kirim notifikasi ke browser
             session()->flash('success', "Status bahan '{$bahan->nama_bahan}' berhasil diubah menjadi 'Digunakan'.");
         } catch (\Throwable $e) {
+            LogHelper::error($e->getMessage());
             session()->flash('error', "Gagal mengubah status bahan: " . $e->getMessage());
         }
     }
@@ -105,9 +107,10 @@ class BahanTable extends Component
 
             // Tetap di halaman yang sama
             $this->setPage($page);
-
+            LogHelper::success("Status bahan '{$bahan->nama_bahan}' berhasil diubah menjadi 'Tidak digunakan'.");
             session()->flash('success', "Status bahan '{$bahan->nama_bahan}' berhasil diubah menjadi 'Tidak digunakan'.");
         } catch (\Throwable $e) {
+            LogHelper::error($e->getMessage());
             session()->flash('error', "Gagal mengubah status bahan: " . $e->getMessage());
         }
     }

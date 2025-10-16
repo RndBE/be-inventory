@@ -173,7 +173,7 @@
                                             </svg>
                                         </a>
                                     @endif
-                                    @if($bahan_keluar->status !== 'Disetujui' && $bahan_keluar->status !== 'Ditolak' && $bahan_keluar->status_leader === 'Disetujui')
+                                    @if($bahan_keluar->status !== 'Disetujui' && $bahan_keluar->status !== 'Ditolak' && $bahan_keluar->status !== 'Pengajuan Ulang' && $bahan_keluar->status_leader === 'Disetujui')
                                         @can('edit-bahan-keluar')
                                             <a href="{{ route('bahan-keluars.edit', $bahan_keluar->id) }}"
                                                 class="flex items-center justify-center rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">

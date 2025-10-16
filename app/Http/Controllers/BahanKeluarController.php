@@ -294,30 +294,36 @@ public function downloadPdf(int $id)
             }
 
             // Jika ada bahan dengan stok kosong, batalkan transaksi
-            // if (!empty($invalidBahan)) {
-            //     $bahanList = implode(', ', $invalidBahan);
-            //     LogHelper::error("Transaksi dibatalkan: Stok kosong atau tidak valid untuk bahan berikut: $bahanList.");
-            //     $bahanKeluar  = BahanKeluar::find($id);
-            //     $targetPhone = $bahanKeluar->dataUser->telephone;
-            //     $recipientName = $bahanKeluar->dataUser->name;
-            //     if ($targetPhone) {
-            //         // Kirim pesan WhatsApp ke pengaju tentang bahan yang stoknya kosong
-            //         try {
-            //             $message = "Halo {$bahanKeluar->dataUser->name},\n\n";
-            //             $message .= "Kode Transaksi {$bahanKeluar->kode_transaksi} dibatalkan karena stok kosong atau tidak valid untuk bahan berikut: $bahanList.\n\n";
-            //             $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+            if (!empty($invalidBahan)) {
+                $bahanList = implode(', ', $invalidBahan);
+                LogHelper::error("Transaksi dibatalkan: Stok kosong atau tidak valid untuk bahan berikut: $bahanList.");
+                $bahanKeluar  = BahanKeluar::find($id);
 
-            //             SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
-            //         } catch (\Exception $e) {
-            //             LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
-            //         }
-            //     }
+                if ($bahanKeluar) {
+                    $bahanKeluar->status = 'Pengajuan Ulang';
+                    $bahanKeluar->save();
+                }
 
-            //     return redirect()->route('bahan-keluars.index')->with(
-            //         'error',
-            //         "Transaksi dibatalkan: Stok kosong atau tidak valid untuk bahan berikut: $bahanList."
-            //     );
-            // }
+                $targetPhone = $bahanKeluar->dataUser->telephone;
+                $recipientName = $bahanKeluar->dataUser->name;
+                if ($targetPhone) {
+                    // Kirim pesan WhatsApp ke pengaju tentang bahan yang stoknya kosong
+                    try {
+                        $message = "Halo {$bahanKeluar->dataUser->name},\n\n";
+                        $message .= "Kode Transaksi {$bahanKeluar->kode_transaksi} dibatalkan karena stok kosong atau tidak valid untuk bahan berikut: $bahanList.\n\n";
+                        $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+
+                        SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
+                    } catch (\Exception $e) {
+                        LogHelper::error('Error sending WhatsApp message: ' . $e->getMessage());
+                    }
+                }
+
+                return redirect()->route('bahan-keluars.index')->with(
+                    'error',
+                    "Transaksi dibatalkan: Stok kosong atau tidak valid untuk bahan berikut: $bahanList."
+                );
+            }
 
             DB::beginTransaction(); // Mulai transaksi
             // Menyimpan/Update bahan atau produk yang tersedia di gudang ke tabel bahan_keluar_details

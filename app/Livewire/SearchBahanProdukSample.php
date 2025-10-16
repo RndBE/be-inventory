@@ -76,6 +76,7 @@ class SearchBahanProdukSample extends Component
     {
         // Ambil data dari tabel Bahan
         $bahanResults = Bahan::with('dataUnit', 'purchaseDetails')
+            ->where('status', 'Digunakan')
             ->whereHas('jenisBahan', function ($query) {
                 $query->where('nama', '!=', 'Produksi');
             })

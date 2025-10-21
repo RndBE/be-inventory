@@ -123,6 +123,10 @@ class PengajuanPembelianController extends Controller
                     })->first();
             });
 
+            $pengisiHargaUser = cache()->remember('pengisi_harga_user_' . $pembelianBahan->pengisi_harga, 60, function () use ($pembelianBahan) {
+                return User::where('name', $pembelianBahan->pengisi_harga)->first();
+            });
+
             $generalUser = cache()->remember('general_user', 60, function () {
                 return User::where('job_level', 3)
                     ->whereHas('roles', function ($query) {
@@ -133,6 +137,8 @@ class PengajuanPembelianController extends Controller
 
 
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+
+            $tandaTanganPengisiHarga = $pengisiHargaUser->tanda_tangan ?? null;
 
             $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
 
@@ -162,7 +168,7 @@ class PengajuanPembelianController extends Controller
                 'tandaTanganAdminManager','shipping_cost_usd','full_amount_fee_usd','value_today_fee_usd',
                 'adminManagerceUser','shipping_cost','full_amount_fee','value_today_fee', 'ppn',
                 'leaderName','status','jenis_pengajuan',
-                'managerName','ongkir','layanan','jasa_aplikasi','asuransi'
+                'managerName','ongkir','layanan','jasa_aplikasi','asuransi', 'pengisiHargaUser', 'tandaTanganPengisiHarga'
             ));
             return $pdf->stream("pembelian_bahan_{$id}.pdf");
 

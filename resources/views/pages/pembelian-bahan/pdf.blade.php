@@ -606,17 +606,29 @@
     @if($jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Lokal' || $jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor')
         <table style="width: 100%;border-collapse: collapse;padding-top:10;">
             <tr style="text-align: left; vertical-align: top;">
-                <td colspan="4" style=" text-align: center;"><strong>Pengaju</strong></td>
-                {{-- <td colspan="2" style=" text-align: center;"><strong>Leader</strong></td> --}}
+                <td colspan="2" style=" text-align: center;"><strong>Pengaju</strong></td>
+                <td colspan="2" style=" text-align: center;"><strong>Leader Purchasing</strong></td>
                 {{-- <td style=" text-align: center;"><strong>Purchasing</strong></td> --}}
                 {{-- <td colspan="2" style=" text-align: center;"><strong>Manager</strong></td> --}}
             </tr>
             <tr>
-                <td colspan="4" style="text-align: center; width: 25%;">
+                <td colspan="2" style="text-align: center; width: 25%;">
                     {{-- @if($tandaTanganPengaju)
                         <img src="{{ public_path('storage/' . $tandaTanganPengaju) }}" alt="Tanda Tangan Pengaju" style="height: 80px; width: 150px; object-fit: contain;">
                     @else
                     <div style="height: 80px; width: 150px;"></div>
+                    @endif --}}
+                    @if($tandaTanganPengisiHarga)
+                        <img src="{{ public_path('storage/' . $tandaTanganPengisiHarga) }}" alt="Tanda Tangan Pengisi Harga" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
+                    @endif
+                </td>
+                <td colspan="2" style="text-align: center; width: 25%;">
+                    {{-- @if($status_leader === 'Disetujui' && $tandaTanganLeader)
+                        <img src="{{ public_path('storage/' . $tandaTanganLeader) }}" alt="Tanda Tangan Leader" style="height: 80px; width: 150px; object-fit: contain;">
+                    @else
+                        <div style="height: 80px; width: 150px;"></div>
                     @endif --}}
                     @if($status_purchasing === 'Disetujui' && $tandaTanganPurchasing)
                         <img src="{{ public_path('storage/' . $tandaTanganPurchasing) }}" alt="Tanda Tangan Purchasing" style="height: 80px; width: 150px; object-fit: contain;">
@@ -624,13 +636,6 @@
                         <div style="height: 80px; width: 150px;"></div>
                     @endif
                 </td>
-                {{-- <td colspan="2" style="text-align: center; width: 25%;">
-                    @if($status_leader === 'Disetujui' && $tandaTanganLeader)
-                        <img src="{{ public_path('storage/' . $tandaTanganLeader) }}" alt="Tanda Tangan Leader" style="height: 80px; width: 150px; object-fit: contain;">
-                    @else
-                        <div style="height: 80px; width: 150px;"></div>
-                    @endif
-                </td> --}}
                 {{-- <td style="text-align: center; width: 25%;">
                     @if($status_purchasing === 'Disetujui' && $tandaTanganPurchasing)
                         <img src="{{ public_path('storage/' . $tandaTanganPurchasing) }}" alt="Tanda Tangan Purchasing" style="height: 80px; width: 150px; object-fit: contain;">
@@ -648,13 +653,14 @@
             </tr>
 
             <tr style="text-align: left; vertical-align: top;">
-                <td colspan="4" style="text-align: center;">
+                <td colspan="2" style="text-align: center;">
                     {{-- {{ $pembelianBahan->dataUser->name ?? null }} --}}
+                    {{ $pengisiHargaUser->name ?? null }}
+                </td>
+                <td colspan="2" style="text-align: center;">
+                    {{-- {{ $leaderName ?? '' }} --}}
                     {{ $purchasingUser->name ?? null }}
                 </td>
-                {{-- <td colspan="2" style="text-align: center;">
-                    {{ $leaderName ?? '' }}
-                </td> --}}
                 {{-- <td style="text-align: center;">
                     {{ $purchasingUser->name ?? null }}
                 </td> --}}
@@ -664,15 +670,15 @@
             </tr>
 
             <tr style="text-align: left; vertical-align: top;">
-                <td colspan="4" style="text-align: center;">
-                    {{ $pembelianBahan->tgl_approve_purchasing ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_purchasing)->translatedFormat('d F Y') . ')' : '' }}
+                <td colspan="2" style="text-align: center;">
+                    {{ $pembelianBahan->tgl_isi_harga ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_isi_harga)->translatedFormat('d F Y') . ')' : '' }}
                 </td>
                 {{-- <td style="text-align: center;">
                     {{ $pembelianBahan->tgl_pengajuan ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_pengajuan)->translatedFormat('d F Y') . ')' : '' }}
                 </td> --}}
-                {{-- <td colspan="2" style="text-align: center;">
-                    {{ $pembelianBahan->tgl_approve_leader ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_leader)->translatedFormat('d F Y') . ')' : '' }}
-                </td> --}}
+                <td colspan="2" style="text-align: center;">
+                    {{ $pembelianBahan->tgl_approve_purchasing ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_purchasing)->translatedFormat('d F Y') . ')' : '' }}
+                </td>
                 {{-- <td colspan="2" style="text-align: center;">
                     {{ $pembelianBahan->tgl_approve_manager ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_manager)->translatedFormat('d F Y') . ')' : '' }}
                 </td> --}}

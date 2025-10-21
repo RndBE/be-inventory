@@ -25,6 +25,7 @@ use App\Models\ProjekRndDetails;
 use App\Jobs\SendWhatsAppMessage;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PembelianBahanExport;
@@ -142,6 +143,10 @@ class PembelianBahanController extends Controller
                     })->first();
             });
 
+            $pengisiHargaUser = cache()->remember('pengisi_harga_user_' . $pembelianBahan->pengisi_harga, 60, function () use ($pembelianBahan) {
+                return User::where('name', $pembelianBahan->pengisi_harga)->first();
+            });
+
             $generalUser = cache()->remember('general_user', 60, function () {
                 return User::where('job_level', 3)
                     ->whereHas('roles', function ($query) {
@@ -152,6 +157,8 @@ class PembelianBahanController extends Controller
 
 
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+
+            $tandaTanganPengisiHarga = $pengisiHargaUser->tanda_tangan ?? null;
 
             $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
 
@@ -181,7 +188,7 @@ class PembelianBahanController extends Controller
                 'tandaTanganAdminManager','shipping_cost_usd','full_amount_fee_usd','value_today_fee_usd',
                 'adminManagerceUser','shipping_cost','full_amount_fee','value_today_fee', 'ppn',
                 'leaderName','status','jenis_pengajuan',
-                'managerName','ongkir','layanan','jasa_aplikasi','asuransi'
+                'managerName','ongkir','layanan','jasa_aplikasi','asuransi', 'pengisiHargaUser', 'tandaTanganPengisiHarga'
             ));
             return $pdf->stream("pembelian_bahan_{$id}.pdf");
 
@@ -621,6 +628,8 @@ class PembelianBahanController extends Controller
                 'shipping_cost_usd' => $biaya['shipping_cost_usd'] ?? 0,
                 'full_amount_fee_usd' => $biaya['full_amount_fee_usd'] ?? 0,
                 'value_today_fee_usd' => $biaya['value_today_fee_usd'] ?? 0,
+                'pengisi_harga' => Auth::user()->name,
+                'tgl_isi_harga' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
             ]);
 
             DB::commit();

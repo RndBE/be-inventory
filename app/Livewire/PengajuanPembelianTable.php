@@ -101,7 +101,7 @@ class PengajuanPembelianTable extends Component
                 'Manager Admin' => $Data->tgl_approve_admin_manager,
                 'Direktur' => $Data->tgl_approve_direktur,
             ];
-        } else {
+        }else {
             $this->statusList = [
                 'Leader' => $Data->status_leader ?? 'Belum disetujui',
                 'Purchasing' => $Data->status_purchasing ?? 'Belum disetujui',

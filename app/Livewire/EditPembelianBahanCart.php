@@ -7,6 +7,7 @@ use App\Models\Bahan;
 use Livewire\Component;
 use App\Models\Produksi;
 use App\Models\Pengajuan;
+use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
@@ -20,11 +21,14 @@ class EditPembelianBahanCart extends Component
     public $cart = [];
     public $qty = [];
     public $jml_bahan = [];
+    public $qty_pengajaun = [];
     public $details = [];
     public $details_raw = [];
     public $unit_price = [];
     public $unit_price_aset = [];
     public $unit_price_raw = [];
+    public $editingJmlId = null;
+    public $jml_bahan_raw = [];
     public $unit_price_usd = [];
     public $unit_price_usd_raw = [];
     public $ongkir = [];
@@ -70,7 +74,7 @@ class EditPembelianBahanCart extends Component
     public $jenis_pengajuan, $editingCurrency ;
     public $statusPembelianBahan = [];
     public $checkedItems = [];
-    public $bukti_pembelian;
+    public $bukti_pembelian, $pembelianId;
 
 
 
@@ -82,6 +86,58 @@ class EditPembelianBahanCart extends Component
         $this->jenis_pengajuan = $pembelianBahan->jenis_pengajuan;
 
         $this->loadProduksi();
+    }
+
+    // Saat user klik untuk edit jumlah bahan
+    public function editItemJmlBahan($id)
+    {
+        $this->editingJmlId = $id;
+        $this->jml_bahan_raw[$id] = $this->jml_bahan[$id] ?? 0;
+    }
+
+    public function updateJmlBahan($pembelianId, $bahanId)
+    {
+        $this->validate([
+            "jml_bahan_raw.$bahanId" => 'nullable|numeric|min:0'
+        ]);
+
+        $newValue = floatval($this->jml_bahan_raw[$bahanId] ?? 0);
+
+        // Ambil detail pembelian
+        $detail = PembelianBahanDetails::where('pembelian_bahan_id', $pembelianId)
+            ->where('bahan_id', $bahanId)
+            ->first();
+
+        if (!$detail) {
+            return session()->flash('error', 'Detail pembelian tidak ditemukan.');
+        }
+
+        // Update jumlah bahan di pembelian details
+        $detail->jml_bahan = $newValue;
+        $detail->save();
+
+        // Update data lokal (agar langsung tampil di UI)
+        $this->jml_bahan[$bahanId] = $newValue;
+
+        // Update juga di tabel pengajuan_details yang terkait
+        $pembelian = PembelianBahan::find($pembelianId);
+        if ($pembelian && $pembelian->pengajuan_id) {
+            PengajuanDetails::where('pengajuan_id', $pembelian->pengajuan_id)
+                ->where(function ($q) use ($detail) {
+                    if ($detail->bahan_id) {
+                        $q->where('bahan_id', $detail->bahan_id);
+                    } else {
+                        $q->where('nama_bahan', $detail->nama_bahan);
+                    }
+                })
+                ->update(['jml_bahan' => $newValue]);
+        }
+
+        // Tutup mode edit
+        $this->editingJmlId = null;
+
+        // Notifikasi sukses
+        session()->flash('success', 'Jumlah bahan berhasil diperbarui.');
     }
 
 
@@ -196,6 +252,7 @@ class EditPembelianBahanCart extends Component
                     'nama_bahan' => $detail->nama_bahan,
                     'pembelian_bahan_id' => $detail->pembelian_bahan_id,
                     'jml_bahan' => $detail->jml_bahan,
+                    'qty_pengajuan' => $detail->qty_pengajuan,
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,
                     'details' => $decodedDetails,
@@ -222,11 +279,14 @@ class EditPembelianBahanCart extends Component
     {
         $detail = collect($this->pembelianBahanDetails)->firstWhere('id', $itemId);
 
-        $jml_bahan = isset($detail['jml_bahan']) ? intval($detail['jml_bahan']) : 0;
+        // $jml_bahan = isset($detail['jml_bahan']) ? intval($detail['jml_bahan']) : 0;
+        $jml_bahan = floatval($this->jml_bahan[$itemId] ?? 0);
+        // dd($jml_bahan);
         $unit_price = isset($this->unit_price[$itemId]) ? intval($this->unit_price[$itemId]) : 0;
         $unit_price_usd = isset($this->unit_price_usd[$itemId]) ? intval($this->unit_price_usd[$itemId]) : 0;
 
         $this->subtotals[$itemId] = $jml_bahan * $unit_price;
+        // dd($this->subtotals[$itemId]);
         $this->subtotals_usd[$itemId] = $jml_bahan * $unit_price_usd;
         $this->calculateTotalHarga();
     }
@@ -268,28 +328,6 @@ class EditPembelianBahanCart extends Component
         $this->editingItemId = null;
     }
 
-    // public function formatToRupiahPPN($item)
-    // {
-    //     // Pastikan nilai mentah tidak kosong
-    //     $rawValue = $this->{$item . '_raw'} ?? '0';
-
-    //     // Hapus titik ribuan, ubah koma menjadi titik
-    //     $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
-
-    //     // Simpan dengan presisi dua desimal menggunakan bcadd
-    //     $this->$item = is_numeric($cleanValue) ? bcadd($cleanValue, '0', 2) : '0.00';
-
-    //     // Format ulang tampilan dengan dua desimal tetap
-    //     $this->{$item . '_raw'} = number_format($this->$item, 2, ',', '.');
-
-    //     // Jika item adalah unit_price, hitung ulang subtotal
-    //     if ($item === 'unit_price') {
-    //         $this->calculateSubTotal($this->editingItemId);
-    //     }
-
-    //     // Tutup mode edit
-    //     $this->editingItemId = null;
-    // }
     public function formatToRupiahPPN($item)
     {
         // Ambil input mentah, misalnya dari 'ppn_raw'
@@ -361,26 +399,6 @@ class EditPembelianBahanCart extends Component
         $this->{$item . '_raw'} = $this->$item ?? null;
     }
 
-    // public function formatToRupiahPrice($itemId)
-    // {
-    //     // Ambil inputan dari user dan bersihkan dari karakter yang tidak diperlukan
-    //     $rawValue = $this->unit_price_raw[$itemId] ?? '0';
-
-    //     // Ubah format ke angka yang bisa diproses (contoh: "2.066.698,20" -> "2066698.20")
-    //     $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
-
-    //     // Pastikan hanya angka valid yang diproses
-    //     $this->unit_price[$itemId] = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
-
-    //     // Format ulang ke format Rupiah dengan 2 desimal
-    //     $this->unit_price_raw[$itemId] = number_format($this->unit_price[$itemId], 2, ',', '.');
-
-    //     // Hitung Sub Total Rupiah
-    //     $this->calculateSubTotal($itemId);
-
-    //     // Tutup mode edit
-    //     $this->editingItemId = null;
-    // }
 
     private function parseRupiahInput($input)
     {
@@ -419,32 +437,6 @@ class EditPembelianBahanCart extends Component
     }
 
 
-
-
-    // public function formatToRupiahPriceAset($itemBahan)
-    // {
-    //     if (!isset($this->unit_price_raw[$itemBahan])) {
-    //         return;
-    //     }
-
-    //     // Ambil nilai inputan mentah
-    //     $rawValue = $this->unit_price_raw[$itemBahan];
-
-    //     // Hapus titik sebagai pemisah ribuan dan ubah koma menjadi titik untuk parsing angka
-    //     $cleanValue = str_replace(['.', ','], ['', '.'], $rawValue);
-
-    //     // Konversi ke float agar nilai desimal tetap terjaga
-    //     $this->unit_price_aset[$itemBahan] = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
-
-    //     // Format kembali ke format Rupiah tanpa desimal
-    //     $this->unit_price_raw[$itemBahan] = number_format($this->unit_price_aset[$itemBahan], 0, ',', '.');
-
-    //     // Hitung Sub Total Rupiah
-    //     $this->calculateSubTotal($itemBahan);
-
-    //     // Tutup mode edit
-    //     $this->editingItemBahan = null;
-    // }
     public function formatToRupiahPriceAset($itemBahan)
     {
         if (!isset($this->unit_price_raw[$itemBahan])) {
@@ -517,23 +509,62 @@ class EditPembelianBahanCart extends Component
         $requestedQty = $this->keterangan_pembayaran[$itemBahan] ?? 0;
     }
 
+    // public function getCartItemsForStorage()
+    // {
+    //     $pembelianBahanDetails = [];
+    //     $ongkir = [];
+
+    //     // dd($this->keterangan_pembayaran);
+    //     foreach ($this->pembelianBahanDetails as $item) {
+    //         $bahanId = $item['bahan']->id ?? null;
+    //         $unitPrice = $this->unit_price[$bahanId] ?? 0;
+    //         $unitPriceUSD = $this->unit_price_usd[$bahanId] ?? 0;
+    //         $subTotal = $item['jml_bahan'] * $unitPrice;
+    //         $subTotalUSD = $item['jml_bahan'] * $unitPriceUSD;
+    //         $keteranganPembayaran = $this->keterangan_pembayaran[$bahanId] ?? '';
+    //         $pembelianBahanDetails[] = [
+    //             'id' => $bahanId,
+    //             'qty' => $this->qty[$bahanId] ?? 0,
+    //             'jml_bahan' => $item['jml_bahan'],
+    //             'qty_pengajuan' => $item['qty_pengajuan'],
+    //             'details' => [
+    //                 'unit_price' => $unitPrice,
+    //             ],
+    //             'details_usd' => [
+    //                 'unit_price_usd' => $unitPriceUSD,
+    //             ],
+    //             'sub_total' => $subTotal,
+    //             'sub_total_usd' => $subTotalUSD,
+    //             'keterangan_pembayaran' => $keteranganPembayaran,
+    //         ];
+    //     }
+    //     $ongkir = $this->ongkir;
+    //     return $pembelianBahanDetails;
+    //     return $ongkir;
+    // }
+
     public function getCartItemsForStorage()
     {
         $pembelianBahanDetails = [];
-        $ongkir = [];
 
-        // dd($this->keterangan_pembayaran);
         foreach ($this->pembelianBahanDetails as $item) {
             $bahanId = $item['bahan']->id ?? null;
-            $unitPrice = $this->unit_price[$bahanId] ?? 0;
-            $unitPriceUSD = $this->unit_price_usd[$bahanId] ?? 0;
-            $subTotal = $item['jml_bahan'] * $unitPrice;
-            $subTotalUSD = $item['jml_bahan'] * $unitPriceUSD;
-            $keteranganPembayaran = $this->keterangan_pembayaran[$bahanId] ?? '';
+
+            // Ambil data terkini dari Livewire state
+            $jmlBahan = $this->jml_bahan[$bahanId] ?? ($item['jml_bahan'] ?? 0);
+            $unitPrice = $this->unit_price[$bahanId] ?? ($item['details']['unit_price'] ?? 0);
+            $unitPriceUSD = $this->unit_price_usd[$bahanId] ?? ($item['details_usd']['unit_price_usd'] ?? 0);
+            $keteranganPembayaran = $this->keterangan_pembayaran[$bahanId] ?? ($item['keterangan_pembayaran'] ?? '');
+
+            // Hitung ulang subtotal dari data terkini
+            $subTotal = floatval($jmlBahan) * floatval($unitPrice);
+            $subTotalUSD = floatval($jmlBahan) * floatval($unitPriceUSD);
+
             $pembelianBahanDetails[] = [
                 'id' => $bahanId,
                 'qty' => $this->qty[$bahanId] ?? 0,
-                'jml_bahan' => $item['jml_bahan'],
+                'jml_bahan' => $jmlBahan,
+                'qty_pengajuan' => $item['qty_pengajuan'] ?? 0,
                 'details' => [
                     'unit_price' => $unitPrice,
                 ],
@@ -545,10 +576,10 @@ class EditPembelianBahanCart extends Component
                 'keterangan_pembayaran' => $keteranganPembayaran,
             ];
         }
-        $ongkir = $this->ongkir;
+
         return $pembelianBahanDetails;
-        return $ongkir;
     }
+
 
     public function getCartItemsForAset()
     {

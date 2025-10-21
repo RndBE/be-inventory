@@ -348,6 +348,7 @@ class PengajuanPembelianController extends Controller
                         'bahan_id' => $item['id'],
                         'qty' => $item['qty'],
                         'jml_bahan' => $item['jml_bahan'],
+                        'qty_pengajuan' => $item['qty_pengajuan'],
                         'used_materials' => 0,
                         'details' => json_encode($item['details']),
                         'sub_total' => $item['sub_total'],

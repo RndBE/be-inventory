@@ -20,19 +20,19 @@
                 </label>
                 <select name="divisi" id="divisi" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" required>
                     <option value="">-- Pilih Divisi --</option>
-                    <option value="Produksi" {{ old('divisi') == 'Produksi' ? 'selected' : '' }}>Produksi</option>
-                    <option value="Teknisi" {{ old('divisi') == 'Teknisi' ? 'selected' : '' }}>Teknisi</option>
-                    <option value="RnD" {{ old('divisi') == 'RnD' ? 'selected' : '' }}>RnD</option>
-                    <option value="Publikasi" {{ old('divisi') == 'Publikasi' ? 'selected' : '' }}>Publikasi</option>
-                    <option value="Software" {{ old('divisi') == 'Software' ? 'selected' : '' }}>Software</option>
-                    <option value="Marketing" {{ old('divisi') == 'Marketing' ? 'selected' : '' }}>Marketing</option>
-                    <option value="Purchasing" {{ old('divisi') == 'Purchasing' ? 'selected' : '' }}>Purchasing</option>
-                    <option value="HSE" {{ old('divisi') == 'HSE' ? 'selected' : '' }}>HSE</option>
-                    <option value="OP" {{ old('divisi') == 'OP' ? 'selected' : '' }}>OP</option>
                     <option value="Administrasi" {{ old('divisi') == 'Administrasi' ? 'selected' : '' }}>Administrasi</option>
-                    <option value="Sekretaris" {{ old('divisi') == 'Sekretaris' ? 'selected' : '' }}>Sekretaris</option>
-                    <option value="HRD" {{ old('divisi') == 'HRD' ? 'selected' : '' }}>HRD</option>
                     <option value="General Affair" {{ old('divisi') == 'General Affair' ? 'selected' : '' }}>General Affair</option>
+                    <option value="HRD" {{ old('divisi') == 'HRD' ? 'selected' : '' }}>HRD</option>
+                    <option value="HSE" {{ old('divisi') == 'HSE' ? 'selected' : '' }}>HSE</option>
+                    <option value="Marketing" {{ old('divisi') == 'Marketing' ? 'selected' : '' }}>Marketing</option>
+                    <option value="OP" {{ old('divisi') == 'OP' ? 'selected' : '' }}>OP</option>
+                    <option value="Produksi" {{ old('divisi') == 'Produksi' ? 'selected' : '' }}>Produksi</option>
+                    <option value="Publikasi" {{ old('divisi') == 'Publikasi' ? 'selected' : '' }}>Publikasi</option>
+                    <option value="Purchasing" {{ old('divisi') == 'Purchasing' ? 'selected' : '' }}>Purchasing</option>
+                    <option value="RnD" {{ old('divisi') == 'RnD' ? 'selected' : '' }}>RnD</option>
+                    <option value="Sekretaris" {{ old('divisi') == 'Sekretaris' ? 'selected' : '' }}>Sekretaris</option>
+                    <option value="Software" {{ old('divisi') == 'Software' ? 'selected' : '' }}>Software</option>
+                    <option value="Teknisi" {{ old('divisi') == 'Teknisi' ? 'selected' : '' }}>Teknisi</option>
                 </select>
             </div>
             {{-- <div class="flex items-center">
@@ -99,7 +99,8 @@
                                 <tr>
                                     <th scope="col" class="px-6 py-3">Nama</th>
                                     <th scope="col" class="px-6 py-3">Spesifikasi</th>
-                                    <th scope="col" class="px-6 py-3 text-center">Qty</th>
+                                    {{-- <th scope="col" class="px-6 py-3 text-center">Qty</th> --}}
+                                    <th scope="col" class="px-6 py-3 text-center">Qty Pengajuan</th>
                                     <th scope="col" class="px-6 py-3">Action</th>
                                 </tr>
                             </thead>
@@ -116,11 +117,21 @@
                                                     class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"></textarea>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4">
+                                        {{-- <td class="px-6 py-4">
                                             <div class="flex justify-center items-center">
                                                 <input value="{{ old('jml_bahan.'.$item->id, $jml_bahan[$item->id] ?? 0) }}"
                                                     type="number"
                                                     wire:model="jml_bahan.{{ $item->id }}"
+                                                    wire:keyup="updateQuantity({{ $item->id }})"
+                                                    class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                                    placeholder="0" min="0" required />
+                                            </div>
+                                        </td> --}}
+                                        <td class="px-6 py-4">
+                                            <div class="flex justify-center items-center">
+                                                <input value="{{ old('qty_pengajuan.'.$item->id, $qty_pengajuan[$item->id] ?? 0) }}"
+                                                    type="number"
+                                                    wire:model="qty_pengajuan.{{ $item->id }}"
                                                     wire:keyup="updateQuantity({{ $item->id }})"
                                                     class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                                     placeholder="0" min="0" required />
@@ -162,7 +173,8 @@
                             <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th scope="col" class="px-6 py-3">Nama</th>
-                                    <th scope="col" class="px-6 py-3 text-center">Qty</th>
+                                    {{-- <th scope="col" class="px-6 py-3 text-center">Qty</th> --}}
+                                    <th scope="col" class="px-6 py-3 text-center">Qty Pengajuan</th>
                                     <th scope="col" class="px-6 py-3">Action</th>
                                 </tr>
                             </thead>
@@ -172,11 +184,21 @@
 
                                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
-                                        <td class="px-6 py-4">
+                                        {{-- <td class="px-6 py-4">
                                             <div class="flex justify-center items-center">
                                                 <input value="{{ old('jml_bahan.'.$item->id, $jml_bahan[$item->id] ?? 0) }}"
                                                     type="number"
                                                     wire:model="jml_bahan.{{ $item->id }}"
+                                                    wire:keyup="updateQuantity({{ $item->id }})"
+                                                    class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                                    placeholder="0" min="0" required />
+                                            </div>
+                                        </td> --}}
+                                        <td class="px-6 py-4">
+                                            <div class="flex justify-center items-center">
+                                                <input value="{{ old('qty_pengajuan.'.$item->id, $qty_pengajuan[$item->id] ?? 0) }}"
+                                                    type="number"
+                                                    wire:model="qty_pengajuan.{{ $item->id }}"
                                                     wire:keyup="updateQuantity({{ $item->id }})"
                                                     class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                                     placeholder="0" min="0" required />

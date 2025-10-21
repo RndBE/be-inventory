@@ -57,6 +57,7 @@ use App\Http\Controllers\QCBahanMasukController;
 use App\Http\Controllers\StokProduksiController;
 use App\Http\Controllers\GaransiProjekController;
 use App\Http\Controllers\LaporanProyekController;
+use App\Http\Controllers\PerbaikanDataController;
 use App\Http\Controllers\InventoryTokenController;
 use App\Http\Controllers\PembelianBahanController;
 use App\Http\Controllers\ProdukProduksiController;
@@ -148,6 +149,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::post('/siap-ambil/{id}', [BahanKeluarController::class, 'sendWhatsApp'])->name('send.siap-ambil');
 
     Route::get('/pengajuan-pembelian-bahan/pdf/{id}', [PembelianBahanController::class, 'downloadPdf'])->name('pengajuan-pembelian-bahan.downloadPdf');
+    Route::get('/pengajuan-pembelian-bahan/pdf_po/{id}', [PembelianBahanController::class, 'downloadPdfPo'])->name('pengajuan-pembelian-bahan.downloadPdfPo');
     Route::resource('pengajuan-pembelian-bahan', PembelianBahanController::class);
     Route::put('/pengajuan-pembelian-bahan/updateApprovalLeader/{id}', [PembelianBahanController::class, 'updateApprovalLeader'])->name('pengajuan-pembelian-bahan.updateApprovalLeader');
     Route::put('/pengajuan-pembelian-bahan/updateApprovalGM/{id}', [PembelianBahanController::class, 'updateApprovalGM'])->name('pengajuan-pembelian-bahan.updateApprovalGM');
@@ -235,6 +237,8 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('/laporan-garansi-proyek/export/{garansi_proyek_id}', function ($garansi_proyek_id) {
         return Excel::download(new LaporanGaransiProyekExport($garansi_proyek_id), 'LaporanGaransiProyek.xlsx');
     })->name('laporan-garansi-proyek.export');
+
+    Route::resource('perbaikan-data', PerbaikanDataController::class);
 
     Route::prefix('quality-page')->name('quality-page.')->group(function () {
         Route::get('/', [QualityPageController::class, 'index'])->name('index');

@@ -83,12 +83,10 @@
                     <tr>
                         <th scope="col" class="p-4">No</th>
                         <th scope="col" class="px-6 py-3">Kode Pengajuan</th>
-                        {{-- <th scope="col" class="px-6 py-3">Kode Pengajuan</th> --}}
                         <th scope="col" class="px-6 py-3">Tanggal Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Tanggal Selesai</th>
                         <th scope="col" class="px-6 py-3">Tujuan</th>
                         <th scope="col" class="px-6 py-3">Pengaju</th>
-                        {{-- <th scope="col" class="px-6 py-3">Total Item</th> --}}
                         <th scope="col" class="px-6 py-3">Jenis Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Status Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Status Pembelian</th>
@@ -160,7 +158,7 @@
                                             'Manager Admin' => $pembelian_bahan->tgl_approve_admin_manager,
                                             'Direktur' => $pembelian_bahan->tgl_approve_direktur,
                                         ];
-                                    } else {
+                                    }else {
                                         $statusList = [
                                             'Leader' => $pembelian_bahan->status_leader ?? 'Belum disetujui',
                                             'Purchasing' => $pembelian_bahan->status_purchasing ?? 'Belum disetujui',

@@ -7,7 +7,8 @@
                         <tr>
                             <th scope="col" class="px-6 py-3 w-1/5">Nama</th>
                             <th scope="col" class="px-6 py-3 w-0.5">Spesifikasi</th>
-                            <th scope="col" class="px-6 py-3 text-center w-0.5">QTY</th>
+                            <th scope="col" class="px-6 py-3 text-center w-0.5">Qty Pengajuan</th>
+                            <th scope="col" class="px-6 py-3 text-center w-0.5">Qty Pembelian</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Ket Pembayaran</th>
@@ -18,19 +19,34 @@
                         @php
                             $grandTotal = 0;
                         @endphp
-
+                        <input type="hidden" name="pembelianBahanDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
+                        <input type="hidden" name="biaya" value="{{ json_encode($this->getCartItemsForStorageBiaya()) }}">
                         @foreach ($pembelianBahanDetails as $detail)
                             @php
-                                $unitPrice = $unit_price[$detail['bahan']->id] ?? 0;
-                                $jmlBahan = $detail['jml_bahan'] ?? 0;
+                                // $unitPrice = $unit_price[$detail['bahan']->id] ?? 0;
+                                // $jmlBahan = $detail['jml_bahan'] ?? 0;
+                                // // dd($unitPrice);
 
-                                $subTotal = $jmlBahan * $unitPrice;
+                                // $subTotal = $jmlBahan * $unitPrice;
 
+                                // $grandTotal += $subTotal;
+
+                                // Ambil harga satuan (prioritaskan dari Livewire, lalu dari detail database)
+                                $unitPrice = $unit_price[$detail['bahan']->id]
+                                    ?? ($detail['details']['unit_price'] ?? 0);
+
+                                // Ambil jumlah bahan (prioritaskan dari Livewire, lalu dari database)
+                                $jmlBahan = $jml_bahan[$detail['bahan']->id]
+                                    ?? ($detail['jml_bahan'] ?? 0);
+
+                                // Hitung subtotal dengan pembulatan dua desimal
+                                $subTotal = round(floatval($jmlBahan) * floatval($unitPrice), 2);
+
+                                // Tambahkan ke total keseluruhan
                                 $grandTotal += $subTotal;
                             @endphp
 
-                            <input type="hidden" name="pembelianBahanDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
-                            <input type="hidden" name="biaya" value="{{ json_encode($this->getCartItemsForStorageBiaya()) }}">
+
                             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                         {{ $detail['bahan']->nama_bahan }}
@@ -39,7 +55,32 @@
                                     <span>{!! nl2br(e($detail['spesifikasi'] ?? '')) !!}</span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                                    <span>{{ $detail['jml_bahan'] ?? 0 }}</span>
+                                    <span>{{ $detail['qty_pengajuan'] ?? 0 }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
+                                    @if($editingJmlId === $detail['bahan']->id)
+                                        <input
+                                            autofocus
+                                            wire:model="jml_bahan_raw.{{ $detail['bahan']->id }}"
+                                            type="number"
+                                            step="0.01"
+                                            class="w-20 text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+                                                focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1
+                                                dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                                                dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            placeholder="0"
+                                            wire:blur="updateJmlBahan({{ $detail['pembelian_bahan_id'] }}, {{ $detail['bahan']->id }})"
+                                            @if($status_finance === 'Disetujui') disabled @endif
+                                        />
+                                    @else
+                                        @if($status_finance !== 'Disetujui')
+                                            <span class="cursor-pointer" wire:click="editItemJmlBahan({{ $detail['bahan']->id }})">
+                                                {{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }}
+                                            </span>
+                                        @else
+                                            <span>{{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }}</span>
+                                        @endif
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                     @if($editingItemId === $detail['bahan']->id)
@@ -148,7 +189,8 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
                             <th scope="col" class="px-6 py-3 w-1/5">Nama</th>
-                            <th scope="col" class="px-6 py-3 text-center w-0.5">QTY</th>
+                            <th scope="col" class="px-6 py-3 text-center w-0.5">Qty Pengajuan</th>
+                            <th scope="col" class="px-6 py-3 text-center w-0.5">Qty Pembelian</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan (USD)</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga (USD)</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan (Rp)</th>
@@ -161,32 +203,70 @@
                         @php
                             $grandTotal = 0;
                             $grandTotalUSD = 0;
-                            $biayaTambahan = ($shipping_cost ?? 0) + ($full_amount_fee?? 0) + ($value_today_fee ?? 0);
-                            $biayaTambahanUSD = ($shipping_cost_usd ?? 0) + ($full_amount_fee_usd?? 0) + ($value_today_fee_usd ?? 0);
+                            $biayaTambahan = ($shipping_cost ?? 0) + ($full_amount_fee ?? 0) + ($value_today_fee ?? 0);
+                            $biayaTambahanUSD = ($shipping_cost_usd ?? 0) + ($full_amount_fee_usd ?? 0) + ($value_today_fee_usd ?? 0);
                         @endphp
-
+                        <input type="hidden" name="pembelianBahanDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
+                        <input type="hidden" name="biaya" value="{{ json_encode($this->getCartItemsForStorageBiaya()) }}">
                         @foreach ($pembelianBahanDetails as $detail)
                             @php
-                                $unitPrice = $unit_price[$detail['bahan']->id] ?? 0;
-                                $unitPriceUSD = $unit_price_usd[$detail['bahan']->id] ?? 0;
-                                $jmlBahan = $detail['jml_bahan'] ?? 0;
+                                // $unitPrice = $unit_price[$detail['bahan']->id] ?? 0;
+                                // $unitPriceUSD = $unit_price_usd[$detail['bahan']->id] ?? 0;
+                                // $jmlBahan = $detail['jml_bahan'] ?? 0;
 
-                                $subTotal = $jmlBahan * $unitPrice;
-                                $subTotalUSD = $jmlBahan * $unitPriceUSD;
+                                // $subTotal = $jmlBahan * $unitPrice;
+                                // $subTotalUSD = $jmlBahan * $unitPriceUSD;
 
-                                // Add the subTotal to the grand total
+                                // // Add the subTotal to the grand total
+                                // $grandTotal += $subTotal;
+                                // $grandTotalUSD += $subTotalUSD;
+
+                                $idBahan = $detail['bahan']->id ?? null;
+
+                                // Ambil harga & jumlah terbaru dari Livewire jika ada
+                                $unitPrice = $unit_price[$idBahan] ?? ($detail['details']['unit_price'] ?? 0);
+                                $unitPriceUSD = $unit_price_usd[$idBahan] ?? ($detail['details_usd']['unit_price_usd'] ?? 0);
+                                $jmlBahan = $jml_bahan[$idBahan] ?? ($detail['jml_bahan'] ?? 0);
+
+                                // Hitung ulang subtotal rupiah & USD
+                                $subTotal = round(floatval($jmlBahan) * floatval($unitPrice), 2);
+                                $subTotalUSD = round(floatval($jmlBahan) * floatval($unitPriceUSD), 2);
+
+                                // Tambahkan ke grand total
                                 $grandTotal += $subTotal;
                                 $grandTotalUSD += $subTotalUSD;
                             @endphp
-
-                            <input type="hidden" name="pembelianBahanDetails" value="{{ json_encode($this->getCartItemsForStorage()) }}">
-                            <input type="hidden" name="biaya" value="{{ json_encode($this->getCartItemsForStorageBiaya()) }}">
                             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                         {{ $detail['bahan']->nama_bahan }}
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                                    <span>{{ $detail['jml_bahan'] ?? 0 }}</span>
+                                    <span>{{ $detail['qty_pengajuan'] ?? 0 }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
+                                    @if($editingJmlId === $detail['bahan']->id)
+                                        <input
+                                            autofocus
+                                            wire:model="jml_bahan_raw.{{ $detail['bahan']->id }}"
+                                            type="number"
+                                            step="0.01"
+                                            class="w-20 text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+                                                focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1
+                                                dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                                                dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            placeholder="0"
+                                            wire:blur="updateJmlBahan({{ $detail['pembelian_bahan_id'] }}, {{ $detail['bahan']->id }})"
+                                            @if($status_finance === 'Disetujui') disabled @endif
+                                        />
+                                    @else
+                                        @if($status_finance !== 'Disetujui')
+                                            <span class="cursor-pointer" wire:click="editItemJmlBahan({{ $detail['bahan']->id }})">
+                                                {{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }}
+                                            </span>
+                                        @else
+                                            <span>{{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }}</span>
+                                        @endif
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                     @if($editingItemId === 'usd_' . $detail['bahan']->id)

@@ -198,7 +198,7 @@ class ProjekRndController extends Controller
                 'tgl_pengajuan' => $tgl_pengajuan,
                 'tujuan' => $tujuan,
                 'keterangan' => $request->keterangan,
-                'divisi' => 'RnD',
+                'divisi' => $user->dataJobPosition->nama,
                 'pengaju' => $user->id,
                 'status_pengambilan' => 'Belum Diambil',
                 'status' => 'Belum disetujui',
@@ -409,7 +409,7 @@ class ProjekRndController extends Controller
                     'tgl_pengajuan' => $tgl_pengajuan,
                     'tujuan' => $tujuan,
                     'keterangan' => $projek_rnd->keterangan,
-                    'divisi' => 'RnD',
+                    'divisi' => $user->dataJobPosition->nama,
                     'pengaju' => $user->id,
                     'status_pengambilan' => 'Belum Diambil',
                     'status' => 'Belum disetujui',
@@ -513,7 +513,7 @@ class ProjekRndController extends Controller
                     'kode_transaksi' => $kode_transaksi,
                     'projek_rnd_id' => $projek_rnd->id,
                     'tujuan' => 'Projek ' . $tujuan,
-                    'divisi' => 'RnD',
+                    'divisi' => $user->dataJobPosition->nama,
                     'status' => 'Belum disetujui',
                 ]);
 

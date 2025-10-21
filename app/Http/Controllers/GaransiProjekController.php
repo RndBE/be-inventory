@@ -445,7 +445,7 @@ class GaransiProjekController extends Controller
                     'tgl_pengajuan' => $tgl_pengajuan,
                     'tujuan' => $tujuan,
                     'keterangan' => $projek->keterangan,
-                    'divisi' => 'Teknisi',
+                    'divisi' => $user->dataJobPosition->nama,
                     'pengaju' => $user->id,
                     'status_pengambilan' => 'Belum Diambil',
                     'status' => 'Belum disetujui',
@@ -549,7 +549,7 @@ class GaransiProjekController extends Controller
                     'kode_transaksi' => $kode_transaksi,
                     'garansi_projek_id' => $projek->id,
                     'tujuan' => 'Projek ' . $tujuan,
-                    'divisi' => 'Teknisi',
+                    'divisi' => $user->dataJobPosition->nama,
                     'status' => 'Belum disetujui',
                 ]);
 

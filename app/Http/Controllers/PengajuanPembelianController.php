@@ -175,6 +175,129 @@ class PengajuanPembelianController extends Controller
         }
     }
 
+    public function downloadPdfPo(int $id)
+    {
+        try {
+            $pembelianBahan = PembelianBahan::with([
+                'dataUser.atasanLevel1',
+                'dataUser.atasanLevel2',
+                'dataUser.atasanLevel3',
+                'pembelianBahanDetails.dataBahan.dataUnit',
+            ])->findOrFail($id);
+
+            $ongkir = $pembelianBahan->ongkir ?? 0;
+            $asuransi = $pembelianBahan->asuransi ?? 0;
+            $layanan = $pembelianBahan->layanan ?? 0;
+            $jasa_aplikasi = $pembelianBahan->jasa_aplikasi ?? 0;
+            $ppn = $pembelianBahan->ppn ?? 0;
+            $status = $pembelianBahan->status ?? null;
+            $status_leader = $pembelianBahan->status_leader ?? null;
+            $status_purchasing = $pembelianBahan->status_purchasing ?? null;
+            $status_manager = $pembelianBahan->status_manager ?? null;
+            $status_finance = $pembelianBahan->status_finance ?? null;
+            $status_admin_manager = $pembelianBahan->status_admin_manager ?? null;
+            $status_general_manager = $pembelianBahan->status_general_manager ?? null;
+            $jenis_pengajuan = $pembelianBahan->jenis_pengajuan ?? null;
+            $shipping_cost = $pembelianBahan->shipping_cost ?? 0;
+            $full_amount_fee = $pembelianBahan->full_amount_fee ??  0;
+            $value_today_fee = $pembelianBahan->value_today_fee ??  0;
+
+            $new_shipping_cost = $pembelianBahan->new_shipping_cost ?? 0;
+            $new_full_amount_fee = $pembelianBahan->new_full_amount_fee ??  0;
+            $new_value_today_fee = $pembelianBahan->new_value_today_fee ??  0;
+
+            $shipping_cost_usd = $pembelianBahan->shipping_cost_usd ?? 0;
+            $full_amount_fee_usd = $pembelianBahan->full_amount_fee_usd ??  0;
+            $value_today_fee_usd = $pembelianBahan->value_today_fee_usd ??  0;
+
+            $new_shipping_cost_usd = $pembelianBahan->new_shipping_cost_usd ?? 0;
+            $new_full_amount_fee_usd = $pembelianBahan->new_full_amount_fee_usd ??  0;
+            $new_value_today_fee_usd = $pembelianBahan->new_value_today_fee_usd ??  0;
+
+            $tandaTanganPengaju = $pembelianBahan->dataUser->tanda_tangan ?? null;
+
+            $tandaTanganLeader = null;
+            $tandaTanganManager = $pembelianBahan->dataUser->atasanLevel2->tanda_tangan ?? null;
+            $tandaTanganDirektur = $pembelianBahan->dataUser->atasanLevel1->tanda_tangan ?? null;
+
+            if ($pembelianBahan->dataUser->atasanLevel3) {
+                $tandaTanganLeader = $pembelianBahan->dataUser->atasanLevel3->tanda_tangan ?? null;
+            } elseif ($pembelianBahan->dataUser->atasanLevel2) {
+                $tandaTanganLeader = $pembelianBahan->dataUser->atasanLevel2->tanda_tangan ?? null;
+            }
+
+            $leaderName = $pembelianBahan->dataUser->atasanLevel3 ? $pembelianBahan->dataUser->atasanLevel3->name : null;
+            $managerName = $pembelianBahan->dataUser->atasanLevel2 ? $pembelianBahan->dataUser->atasanLevel2->name : null;
+            $direkturName = $pembelianBahan->dataUser->atasanLevel1 ? $pembelianBahan->dataUser->atasanLevel1->name : null;
+
+            if (!$leaderName && $managerName) {
+                $leaderName = $managerName;
+            }
+
+            if ($pembelianBahan->dataUser->job_level == 3) {
+                $tandaTanganLeader = $tandaTanganPengaju;
+                $leaderName = $pembelianBahan->dataUser->name;
+            }
+
+            $purchasingUser = cache()->remember('purchasing_user', 60, function () {
+                return User::where('job_level', 3)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Purchasing');
+                    })->first();
+            });
+
+            $generalUser = cache()->remember('general_user', 60, function () {
+                return User::where('job_level', 3)
+                    ->whereHas('roles', function ($query) {
+                        $query->where('name', 'general_affair');
+                    })
+                    ->first();
+            });
+
+
+            $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+
+            $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
+
+            $financeUser = cache()->remember('finance_user', 60, function () {
+                return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+            });
+            $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
+
+            $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
+                return User::where('job_level', 2)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Admin Manager');
+                    })->first();
+            });
+            $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
+
+            $pdf = Pdf::loadView('pages.pembelian-bahan.pdfpo', compact(
+                'pembelianBahan','status_leader','status_purchasing','status_manager','status_finance','status_admin_manager','status_general_manager',
+                'tandaTanganPengaju',
+                'tandaTanganLeader',
+                'tandaTanganManager',
+                'tandaTanganDirektur',
+                'tandaTanganPurchasing','tandaTanganGeneral',
+                'purchasingUser','generalUser',
+                'tandaTanganFinance','new_shipping_cost','new_full_amount_fee','new_value_today_fee',
+                'financeUser','new_shipping_cost_usd','new_full_amount_fee_usd','new_value_today_fee_usd',
+                'tandaTanganAdminManager','shipping_cost_usd','full_amount_fee_usd','value_today_fee_usd',
+                'adminManagerceUser','shipping_cost','full_amount_fee','value_today_fee', 'ppn',
+                'leaderName','status','jenis_pengajuan',
+                'managerName','ongkir','layanan','jasa_aplikasi','asuransi'
+            ));
+            return $pdf->stream("pembelian_bahan_{$id}.pdf");
+
+            LogHelper::success('Berhasil generating PDF for pembelianBahan ID {$id}!');
+            return $pdf->download("pembelian_bahan_{$id}.pdf");
+
+        } catch (\Exception $e) {
+            LogHelper::error("Error generating PDF for pembelianBahan ID {$id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
+        }
+    }
+
     public function create()
     {
         $units = Unit::all();

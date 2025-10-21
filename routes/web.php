@@ -168,6 +168,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('pembelian-bahan-export', [PembelianBahanController::class, 'export'])->name('pembelian-bahan-export.export');
 
     Route::get('/pengajuan-pembelian/pdf/{id}', [PengajuanPembelianController::class, 'downloadPdf'])->name('pengajuan-pembelian.downloadPdf');
+    Route::get('/pengajuan-pembelian/pdf_po/{id}', [PengajuanPembelianController::class, 'downloadPdfPo'])->name('pengajuan-pembelian.downloadPdfPo');
     Route::resource('pengajuan-pembelian', PengajuanPembelianController::class);
 
     Route::resource('pengajuans', PengajuanController::class);

@@ -240,6 +240,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     })->name('laporan-garansi-proyek.export');
 
     Route::resource('perbaikan-data', PerbaikanDataController::class);
+    Route::put('/perbaikan-data/updateApproval/{id}', [PerbaikanDataController::class, 'updateApproval'])->name('perbaikan-data.updateApproval');
 
     Route::prefix('quality-page')->name('quality-page.')->group(function () {
         Route::get('/', [QualityPageController::class, 'index'])->name('index');

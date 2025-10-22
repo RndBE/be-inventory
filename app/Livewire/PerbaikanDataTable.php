@@ -48,12 +48,12 @@ class PerbaikanDataTable extends Component
 
     public function render()
     {
-        $perbaikanDatas = PerbaikanData::orderBy('id', 'desc')
-            ->paginate($this->perPage);
+        // $perbaikanDatas = PerbaikanData::orderBy('id', 'desc')
+        //     ->paginate($this->perPage);
 
-        return view('livewire.perbaikan-data-table', [
-            'perbaikanDatas' => $perbaikanDatas,
-        ]);
+        // return view('livewire.perbaikan-data-table', [
+        //     'perbaikanDatas' => $perbaikanDatas,
+        // ]);
 
         $userName = Auth::user()->name ?? null;
 

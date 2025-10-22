@@ -42,6 +42,13 @@
                     @include('livewire.dataperpage')
                 </li>
                 <li class="m-1">
+                    <a href="{{ asset('storage/format/SURAT PERMOHONAN PERUBAHAN DATA.docx') }}"
+                    download
+                    class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-green-600 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">
+                        Download Format Surat
+                    </a>
+                </li>
+                <li class="m-1">
                     @can('tambah-perbaikan-data')
                         <a href="{{ route('perbaikan-data.create') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                             Tambah

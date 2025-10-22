@@ -267,7 +267,7 @@
                                 <div x-show="open" @click.away="open = false" x-transition
                                     x-bind:class="dropUp ? 'bottom-full mb-2' : 'mt-2'"
                                     class="absolute right-0 w-48 bg-white border rounded-md shadow-lg z-50">
-                                    <a @click.stop href="{{ route('pengajuan-pembelian.downloadPdfPo', $pembelian_bahan->id) }}" target="__blank"
+                                            <a @click.stop href="{{ route('pengajuan-pembelian.downloadPdfPo', $pembelian_bahan->id) }}" target="__blank"
                                                 class="block px-4 py-2 text-sm text-slate-600 hover:bg-red-600 hover:text-white flex items-center">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-5 me-2 -ms-1 icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf">
                                                     <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" />

@@ -399,6 +399,12 @@ class EditPembelianBahanCart extends Component
         $this->{$item . '_raw'} = $this->$item ?? null;
     }
 
+    public function sanitizeKey($string)
+    {
+        return preg_replace('/[^A-Za-z0-9_]/', '_', $string);
+    }
+
+
 
     private function parseRupiahInput($input)
     {
@@ -589,15 +595,28 @@ class EditPembelianBahanCart extends Component
         // dd($this->keterangan_pembayaran);
         foreach ($this->pembelianBahanDetails as $item) {
             $bahanId = $item['nama_bahan'] ?? null;
-            $unitPrice = $this->unit_price_aset[$bahanId] ?? 0;
-            $unitPriceUSD = $this->unit_price_usd[$bahanId] ?? 0;
-            $subTotal = $item['jml_bahan'] * $unitPrice;
-            $subTotalUSD = $item['jml_bahan'] * $unitPriceUSD;
-            $keteranganPembayaran = $this->keterangan_pembayaran[$bahanId] ?? '';
+
+            $safeKey = $this->sanitizeKey($bahanId);
+
+            // $unitPrice = $this->unit_price_aset[$bahanId] ?? 0;
+            // $unitPriceUSD = $this->unit_price_usd[$bahanId] ?? 0;
+
+            $unitPrice = $this->unit_price_aset[$safeKey] ?? 0;
+            $unitPriceUSD = $this->unit_price_usd[$safeKey] ?? 0;
+            $qty = $this->qty[$safeKey] ?? ($item['jml_bahan'] ?? 0);
+            $keteranganPembayaran = $this->keterangan_pembayaran[$safeKey] ?? '';
+
+            // $subTotal = $item['jml_bahan'] * $unitPrice;
+            // $subTotalUSD = $item['jml_bahan'] * $unitPriceUSD;
+
+            $subTotal = $qty * $unitPrice;
+            $subTotalUSD = $qty * $unitPriceUSD;
+
+            // $keteranganPembayaran = $this->keterangan_pembayaran[$bahanId] ?? '';
             $pembelianBahanDetails[] = [
                 'nama_bahan' => $bahanId,
-                'qty' => $this->qty[$bahanId] ?? 0,
-                'jml_bahan' => $item['jml_bahan'],
+                'qty' => $qty,
+                'jml_bahan' => $qty,
                 'details' => [
                     'unit_price' => $unitPrice,
                 ],

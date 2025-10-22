@@ -452,9 +452,11 @@
 
                         @foreach ($pembelianBahanDetails as $detail)
                             @php
-                                $unitPrice = $unit_price_aset[$detail['nama_bahan']] ?? 0;
+                                $safeKey = $this->sanitizeKey($detail['nama_bahan']);
+                                // $unitPrice = $unit_price_aset[$safeKey] ?? 0;
+                                $unitPrice = $unit_price_aset[$safeKey] ?? ($detail['details']['unit_price'] ?? 0);
+
                                 $jmlBahan = $detail['jml_bahan'] ?? 0;
-                                // dd($unitPrice);
                                 $subTotal = $jmlBahan * $unitPrice;
 
                                 $grandTotal += $subTotal;
@@ -474,7 +476,9 @@
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                     @php
-                                        $namaBahan = $detail['nama_bahan'] ?? null;
+                                        // $namaBahan = $detail['nama_bahan'] ?? null;
+                                        $safeKey = $detail['nama_bahan'];
+                                        $namaBahan = $this->sanitizeKey($safeKey);
                                     @endphp
 
                                     @if($editingItemBahan === $namaBahan)

@@ -55,10 +55,11 @@ class PerbaikanDataTable extends Component
         //     'perbaikanDatas' => $perbaikanDatas,
         // ]);
 
-        $userName = Auth::user()->name ?? null;
+        $user = Auth::user();
+        $userName = $user->name ?? null;
 
         $perbaikanDatas = PerbaikanData::query()
-            ->when($userName, function ($query, $userName) {
+            ->when(!($user->hasRole('superadmin') || $user->hasRole('software')), function ($query) use ($userName) {
                 $query->where('pengaju', $userName);
             })
             ->orderBy('id', 'desc')

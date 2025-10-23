@@ -30,6 +30,7 @@ class QcBahanMasukTable extends Component
     public $pdfData;
     public $qc;
     public $canAddGudangQCBahanMasuk, $canHapusQCBahanMasuk;
+    public $selectedTab = 'SudahMasukGudang';
 
     protected $paginationTheme = 'tailwind';
 
@@ -37,6 +38,11 @@ class QcBahanMasukTable extends Component
     {
         $this->canAddGudangQCBahanMasuk = Gate::allows('addgudang-qc-bahan-masuk');
         $this->canHapusQCBahanMasuk = Gate::allows('hapus-qc-bahan-masuk');
+    }
+
+    public function setTab($tab)
+    {
+        $this->selectedTab = $tab;
     }
 
     public function render(): View
@@ -49,6 +55,18 @@ class QcBahanMasukTable extends Component
                     ->orWhereHas('petugasQc', fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
                     ->orWhereHas('petugasInputQc', fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
                     ->orWhereHas('pembelianBahan', fn($q) => $q->where('kode_transaksi', 'like', '%' . $this->search . '%'));
+            })
+            ->when($this->selectedTab === 'SudahMasukGudang', function ($query) {
+                // ✅ Hanya ambil data yang tanggal_masuk_gudang tidak null dan tidak 0
+                $query->whereNotNull('tanggal_masuk_gudang')
+                    ->where('tanggal_masuk_gudang', '!=', '0000-00-00');
+            })
+            ->when($this->selectedTab === 'BelumMasukGudang', function ($query) {
+                // ✅ Hanya ambil data yang tanggal_masuk_gudang masih null atau 0
+                $query->where(function ($q) {
+                    $q->whereNull('tanggal_masuk_gudang')
+                    ->orWhere('tanggal_masuk_gudang', '=', '0000-00-00');
+                });
             })
             ->orderBy('tanggal_qc', 'desc')
             ->paginate(10);

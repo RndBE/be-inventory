@@ -1,4 +1,4 @@
-<div class="grid grid-cols-12 gap-6">
+<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
     @if(session('success'))
         <script>
             Swal.fire({
@@ -22,6 +22,20 @@
             });
         </script>
     @endif
+    <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+        <ul class="flex overflow-x-auto whitespace-nowrap bg-gray-100 rounded-lg scrollbar-hide" role="tablist">
+            <li class="me-2" role="presentation">
+                <button wire:click="setTab('SudahMasukGudang')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'SudahMasukGudang' ? 'text-purple-600 border-purple-600' : '' }}">
+                    Sudah Masuk Gudang
+                </button>
+            </li>
+            <li class="me-2" role="presentation">
+                <button wire:click="setTab('BelumMasukGudang')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'BelumMasukGudang' ? 'text-purple-600 border-purple-600' : '' }}">
+                    Belum Masuk Gudang
+                </button>
+            </li>
+        </ul>
+    </div>
 
     <div class="intro-y col-span-12 flex flex-wrap sm:flex-no-wrap items-center mt-2">
         @can('tambah-qc-bahan-masuk')

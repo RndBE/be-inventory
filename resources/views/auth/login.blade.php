@@ -65,6 +65,9 @@
                             </button>
                         </div>
                     </div>
+
+                    <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
+
                     <div class="text-right">
                         <a href="{{ route('password.request') }}" class="text-sm text-[#2E2E4D] hover:underline">
                             {{ __('Lupa password?') }}
@@ -81,6 +84,15 @@
             </div>
         </div>
     </section>
+    {{-- Script Google reCAPTCHA v3 --}}
+<script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
+<script>
+grecaptcha.ready(function() {
+    grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', {action: 'submit'}).then(function(token) {
+        document.getElementById('recaptchaToken').value = token;
+    });
+});
+</script>
 
     <script>
         document.getElementById('togglePassword').addEventListener('click', function () {

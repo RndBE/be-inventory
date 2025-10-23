@@ -29,7 +29,7 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
         $data = [];
         $totalQty = 0;
         $totalSubTotal = 0;
-        $projek = Projek::with('projekDetails.dataBahan', 'projekDetails.dataBahan.dataUnit', 'projekDetails.dataProduk',)->findOrFail($this->projek_id);
+        $projek = Projek::with('projekDetails.dataBahan', 'projekDetails.dataBahan.dataUnit', 'projekDetails.dataProduk', 'projekDetails.dataProdukJadi')->findOrFail($this->projek_id);
 
         $formattedStartDate = Carbon::parse($projek->mulai_projek)->format('d F Y');
         $formattedEndDate = Carbon::parse($projek->selesai_projek)->format('d F Y');
@@ -54,10 +54,25 @@ class ProjekExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyle
             }
 
             $formattedDetailsString = implode(', ', $detailsFormatted);
+            $namaBarang = null;
+            if ($detail->dataProdukJadi) {
+                // Jika ada produk jadi
+                $namaBarang = $detail->dataProdukJadi->nama_produk . ' (' . ($detail->dataProdukJadi->serial_number ?? '-') . ')';
+            } elseif ($detail->dataProduk) {
+                // Jika ada produk biasa
+                $namaBarang = $detail->dataProduk->nama_bahan . ' (' . ($detail->serial_number ?? '-') . ')';
+            } elseif ($detail->dataBahan) {
+                // Jika hanya bahan
+                $namaBarang = $detail->dataBahan->nama_bahan;
+            } else {
+                $namaBarang = '-';
+            }
+
+            // dd($namaBarang);
 
             $data[] = [
                 $index + 1,
-                ($detail->dataProduk ? $detail->dataProduk->nama_bahan . ' (' . ($detail->serial_number ?? '-') . ')' : $detail->dataBahan->nama_bahan ?? null),
+                $namaBarang,
                 $detail->qty,
                 $detail->dataBahan->dataUnit->nama ?? 'Pcs',
                 $formattedDetailsString,

@@ -489,7 +489,8 @@ class EditKomponenSampleCart extends Component
                 'serial_number' => $rusak['serial_number'] ?? null,
                 'qty' => $rusak['qty'] ?? 0,
                 'unit_price' => $rusak['unit_price'] ?? 0,
-                'sub_total' => ($rusak['qty'] ?? 0) * ($rusak['unit_price'] ?? 0),
+                // 'sub_total' => ($rusak['qty'] ?? 0) * ($rusak['unit_price'] ?? 0),
+                'sub_total' => floatval(str_replace(',', '.', $rusak['qty'] ?? 0)) * floatval(str_replace(',', '.', $rusak['unit_price'] ?? 0)),
             ];
         }
 
@@ -518,7 +519,8 @@ class EditKomponenSampleCart extends Component
                 'serial_number' => $retur['serial_number'] ?? null,
                 'qty' => $retur['qty'] ?? 0,
                 'unit_price' => $retur['unit_price'] ?? 0,
-                'sub_total' => ($retur['qty'] ?? 0) * ($retur['unit_price'] ?? 0),
+                // 'sub_total' => ($retur['qty'] ?? 0) * ($retur['unit_price'] ?? 0),
+                'sub_total' => floatval(str_replace(',', '.', $retur['qty'] ?? 0)) * floatval(str_replace(',', '.', $retur['unit_price'] ?? 0)),
             ];
         }
 

@@ -217,8 +217,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($bahanRusak as $index => $rusak)
                             <input type="hidden" name="bahanRusak" value="{{ json_encode($this->getCartItemsForBahanRusak()) }}">
+                            @foreach($bahanRusak as $index => $rusak)
+                                @php
+                                    // Hitung maxQty langsung di Blade agar bisa dipakai untuk batas input
+                                    $maxQty = 0;
+                                    foreach ($pengambilanBahanDetails as $detail) {
+                                        $match = false;
+                                        if (isset($detail['bahan']->id) && $detail['bahan']->id == ($rusak['id'] ?? null)) $match = true;
+                                        if ($match) {
+                                            foreach ($detail['details'] as $d) {
+                                                if ($d['unit_price'] == ($rusak['unit_price'] ?? 0)) {
+                                                    $maxQty += $d['qty'];
+                                                }
+                                            }
+                                        }
+                                    }
+                                @endphp
                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ App\Models\Bahan::find($rusak['id'])->nama_bahan ?? 'Unknown' }}</td>
                                     {{-- <td class="px-6 py-4">
@@ -234,10 +249,28 @@
                                     <td class="px-6 py-4">
                                         <div class="flex justify-end items-center gap-2">
                                             {{-- Input manual qty --}}
-                                            <input type="text" pattern="[0-9]+([,\.][0-9]+)?" inputmode="decimal"
+                                            {{-- <input type="text" pattern="[0-9]+([,\.][0-9]+)?" inputmode="decimal"
                                                 class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                                 wire:model.defer="bahanRusak.{{ $index }}.qty"
-                                                wire:change="updateRusakQty({{ $rusak['id'] }}, {{ $rusak['unit_price'] }}, $event.target.value)">
+                                                wire:change="updateRusakQty({{ $rusak['id'] }}, {{ $rusak['unit_price'] }}, $event.target.value)"> --}}
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                max="{{ $maxQty }}"
+                                                oninput="if(parseFloat(this.value) > parseFloat(this.max)) this.value = this.max;"
+                                                inputmode="decimal"
+                                                class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg
+                                                    focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1
+                                                    dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                                                    dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                                wire:model.live="bahanRusak.{{ $index }}.qty"
+                                                wire:change="updateRusakQty(
+                                                    {{ $rusak['id'] }},
+                                                    {{ $rusak['unit_price'] }},
+                                                    $event.target.value
+                                                )"
+                                            />
 
                                             x {{ number_format($rusak['unit_price'] ?? 0, 0, ',', '.') }} <br>
 
@@ -279,8 +312,23 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <input type="hidden" name="bahanRetur" value="{{ json_encode($this->getCartItemsForBahanRetur()) }}">
                             @foreach($bahanRetur as $index => $retur)
-                                <input type="hidden" name="bahanRetur" value="{{ json_encode($this->getCartItemsForBahanRetur()) }}">
+                                @php
+                                    // Hitung maxQty langsung di Blade agar bisa dipakai untuk batas input
+                                    $maxQty = 0;
+                                    foreach ($pengambilanBahanDetails as $detail) {
+                                        $match = false;
+                                        if (isset($detail['bahan']->id) && $detail['bahan']->id == ($retur['id'] ?? null)) $match = true;
+                                        if ($match) {
+                                            foreach ($detail['details'] as $d) {
+                                                if ($d['unit_price'] == ($retur['unit_price'] ?? 0)) {
+                                                    $maxQty += $d['qty'];
+                                                }
+                                            }
+                                        }
+                                    }
+                                @endphp
                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                         {{ App\Models\Bahan::find($retur['id'])->nama_bahan ?? 'Unknown' }}
@@ -289,10 +337,28 @@
                                     <td class="px-6 py-4">
                                         <div class="flex justify-end items-center gap-2">
                                             {{-- Input manual qty --}}
-                                            <input type="text" pattern="[0-9]+([,\.][0-9]+)?" inputmode="decimal"
+                                            {{-- <input type="text" pattern="[0-9]+([,\.][0-9]+)?" inputmode="decimal"
                                                 class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                                 wire:model.defer="bahanRetur.{{ $index }}.qty"
-                                                wire:change="updateReturQty({{ $retur['id'] }}, {{ $retur['unit_price'] }}, $event.target.value)">
+                                                wire:change="updateReturQty({{ $retur['id'] }}, {{ $retur['unit_price'] }}, $event.target.value)"> --}}
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                max="{{ $maxQty }}"
+                                                oninput="if(parseFloat(this.value) > parseFloat(this.max)) this.value = this.max;"
+                                                inputmode="decimal"
+                                                class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg
+                                                    focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1
+                                                    dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                                                    dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                                wire:model.live="bahanRetur.{{ $index }}.qty"
+                                                wire:change="updateReturQty(
+                                                    {{ $retur['id'] }},
+                                                    {{ $retur['unit_price'] }},
+                                                    $event.target.value
+                                                )"
+                                            />
 
                                             x {{ number_format($retur['unit_price'] ?? 0, 0, ',', '.') }} <br>
 

@@ -58,7 +58,7 @@ class ProjekController extends Controller
     public function info($id)
     {
         $projek = Projek::with([
-            'dataBahan',
+            'dataBahan', 'dataKontrak',
             'bahanKeluar',
             'bahanKeluar.dataUser',
             'bahanKeluar.bahanKeluarDetails' => function ($query) {

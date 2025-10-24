@@ -35,7 +35,7 @@
                         <div class="flex">
                             <span class="w-40 font-semibold">Projek</span>
                             <span class="pr-1">:</span>
-                            <span>{{ $projek->nama_projek }}</span>
+                            <span>{{ $projek->dataKontrak->nama_kontrak }}</span>
                         </div>
                         <div class="flex">
                             <span class="w-40 font-semibold">Keterangan</span>

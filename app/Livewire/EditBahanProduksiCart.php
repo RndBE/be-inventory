@@ -605,70 +605,31 @@ class EditBahanProduksiCart extends Component
         return $bahanRetur;
     }
 
-    // public function updateReturQty($id, $unitPrice, $newQty)
-    // {
-    //     $parsedQty = floatval(str_replace(',', '.', $newQty));
-
-    //     // Hitung total qty pengambilan untuk bahan ini
-    //     $maxQty = 0;
-    //     foreach ($this->produksiDetails as $detail) {
-    //         if ($detail['bahan']->id == $id) {
-    //             foreach ($detail['details'] as $d) {
-    //                 $maxQty += $d['qty'];
-    //             }
-    //             break;
-    //         }
-    //     }
-
-    //     // Validasi agar tidak melebihi
-    //     if ($parsedQty > $maxQty) {
-    //         $parsedQty = $maxQty;
-    //         session()->flash('error', 'Qty retur tidak boleh melebihi jumlah pengambilan.');
-    //     }
-
-    //     // Update nilai qty bahan retur
-    //     foreach ($this->bahanRetur as &$retur) {
-    //         if ($retur['id'] == $id && $retur['unit_price'] == $unitPrice) {
-    //             $retur['qty'] = max(0, $parsedQty);
-    //             break;
-    //         }
-    //     }
-
-    //     $this->calculateTotalHarga();
-    // }
     public function updateReturQty($id, $unitPrice, $newQty)
     {
-        // Pastikan format numerik benar (ganti koma ke titik)
         $parsedQty = floatval(str_replace(',', '.', $newQty));
 
         // Hitung total qty pengambilan untuk bahan ini
         $maxQty = 0;
         foreach ($this->produksiDetails as $detail) {
-            if (isset($detail['bahan']) && $detail['bahan']->id == $id) {
+            if ($detail['bahan']->id == $id) {
                 foreach ($detail['details'] as $d) {
-                    if ($d['unit_price'] == $unitPrice) {
-                        $maxQty += floatval($d['qty']);
-                    }
+                    $maxQty += $d['qty'];
                 }
                 break;
             }
         }
 
-        // Validasi agar tidak melebihi jumlah pengambilan
+        // Validasi agar tidak melebihi
         if ($parsedQty > $maxQty) {
             $parsedQty = $maxQty;
             session()->flash('error', 'Qty retur tidak boleh melebihi jumlah pengambilan.');
         }
 
-        // Update qty di bahanRetur
+        // Update nilai qty bahan retur
         foreach ($this->bahanRetur as &$retur) {
-            if (
-                isset($retur['id']) &&
-                $retur['id'] == $id &&
-                isset($retur['unit_price']) &&
-                $retur['unit_price'] == $unitPrice
-            ) {
-                $retur['qty'] = round(max(0, $parsedQty), 2); // jaga tetap 2 angka di belakang koma
+            if ($retur['id'] == $id && $retur['unit_price'] == $unitPrice) {
+                $retur['qty'] = max(0, $parsedQty);
                 break;
             }
         }
@@ -678,44 +639,35 @@ class EditBahanProduksiCart extends Component
 
     public function updateRusakQty($id, $unitPrice, $newQty)
     {
-        // Pastikan format numerik benar (ganti koma ke titik)
         $parsedQty = floatval(str_replace(',', '.', $newQty));
 
         // Hitung total qty pengambilan untuk bahan ini
         $maxQty = 0;
         foreach ($this->produksiDetails as $detail) {
-            if (isset($detail['bahan']) && $detail['bahan']->id == $id) {
+            if ($detail['bahan']->id == $id) {
                 foreach ($detail['details'] as $d) {
-                    if ($d['unit_price'] == $unitPrice) {
-                        $maxQty += floatval($d['qty']);
-                    }
+                    $maxQty += $d['qty'];
                 }
                 break;
             }
         }
 
-        // Validasi agar tidak melebihi jumlah pengambilan
+        // Validasi agar tidak melebihi
         if ($parsedQty > $maxQty) {
             $parsedQty = $maxQty;
             session()->flash('error', 'Qty rusak tidak boleh melebihi jumlah pengambilan.');
         }
 
-        // Update qty di bahanRusak
+        // Update nilai qty bahan rusak
         foreach ($this->bahanRusak as &$rusak) {
-            if (
-                isset($rusak['id']) &&
-                $rusak['id'] == $id &&
-                isset($rusak['unit_price']) &&
-                $rusak['unit_price'] == $unitPrice
-            ) {
-                $rusak['qty'] = round(max(0, $parsedQty), 2); // jaga tetap 2 angka di belakang koma
+            if ($rusak['id'] == $id && $rusak['unit_price'] == $unitPrice) {
+                $rusak['qty'] = max(0, $parsedQty);
                 break;
             }
         }
 
         $this->calculateTotalHarga();
     }
-
 
 
     public function render()

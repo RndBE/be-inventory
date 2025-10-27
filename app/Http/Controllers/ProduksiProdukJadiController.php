@@ -389,7 +389,7 @@ class ProduksiProdukJadiController extends Controller
                     'tgl_pengajuan' => $tgl_pengajuan,
                     'tujuan' => $tujuan,
                     'keterangan' => $produksiProdukJadi->keterangan,
-                    'divisi' => 'Teknisi',
+                    'divisi' => $user->dataJobPosition->nama,
                     'pengaju' => $user->id,
                     'status_pengambilan' => 'Belum Diambil',
                     'status' => 'Belum disetujui',

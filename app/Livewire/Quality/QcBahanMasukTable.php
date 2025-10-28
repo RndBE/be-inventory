@@ -40,6 +40,11 @@ class QcBahanMasukTable extends Component
         $this->canHapusQCBahanMasuk = Gate::allows('hapus-qc-bahan-masuk');
     }
 
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
     public function setTab($tab)
     {
         $this->selectedTab = $tab;
@@ -56,18 +61,12 @@ class QcBahanMasukTable extends Component
                     ->orWhereHas('petugasInputQc', fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
                     ->orWhereHas('pembelianBahan', fn($q) => $q->where('kode_transaksi', 'like', '%' . $this->search . '%'));
             })
-//             ->when($this->selectedTab === 'SudahMasukGudang', function ($query) {
-//     // ✅ Data yang sudah masuk gudang = tanggal_masuk_gudang valid
-//     $query->whereNotNull('tanggal_masuk_gudang')
-//           ->whereDate('tanggal_masuk_gudang', '>', '2000-01-01');
-// })
-// ->when($this->selectedTab === 'BelumMasukGudang', function ($query) {
-//     // ✅ Data yang belum masuk gudang = tanggal_masuk_gudang null atau <= 2000
-//     $query->where(function ($q) {
-//         $q->whereNull('tanggal_masuk_gudang')
-//           ->orWhereDate('tanggal_masuk_gudang', '<=', '2000-01-01');
-//     });
-// })
+            ->when($this->selectedTab === 'SudahMasukGudang', function ($query) {
+                $query->whereNotNull('tanggal_masuk_gudang');
+            })
+            ->when($this->selectedTab === 'BelumMasukGudang', function ($query) {
+                $query->whereNull('tanggal_masuk_gudang');
+            })
 
             ->orderBy('tanggal_qc', 'desc')
             ->paginate(10);

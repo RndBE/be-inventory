@@ -22,7 +22,7 @@
             });
         </script>
     @endif
-    {{-- <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+    <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
         <ul class="flex overflow-x-auto whitespace-nowrap bg-gray-100 rounded-lg scrollbar-hide" role="tablist">
             <li class="me-2" role="presentation">
                 <button wire:click="setTab('SudahMasukGudang')" class="inline-block p-4 border-b-2 rounded-t-lg {{ $selectedTab == 'SudahMasukGudang' ? 'text-purple-600 border-purple-600' : '' }}">
@@ -35,7 +35,7 @@
                 </button>
             </li>
         </ul>
-    </div> --}}
+    </div>
 
     <div class="intro-y col-span-12 flex flex-wrap sm:flex-no-wrap items-center mt-2">
         @can('tambah-qc-bahan-masuk')
@@ -87,20 +87,20 @@
                         </td>
                         <td class="table-report__action w-72">
                             <div class="flex justify-start items-start space-x-4">
-                                <a wire:ignore class="flex items-center text-theme-1"
+                                <a class="flex items-center text-theme-1"
                                 href="{{ route('quality-page.qc-bahan-masuk.view', $item->id_qc_bahan_masuk) }}">
                                     <i data-feather="check-square" class="w-4 h-4 mr-1"></i> View
                                 </a>
                                 @can('addgudang-qc-bahan-masuk')
                                     @if(!$item->tanggal_masuk_gudang)
-                                        <button wire:ignore wire:click="prosesKeGudang({{ $item->id_qc_bahan_masuk }})"
+                                        <button wire:click="prosesKeGudang({{ $item->id_qc_bahan_masuk }})"
                                                 class="flex items-center text-green-600">
                                             <i data-feather="box" class="w-4 h-4 mr-1"></i> Add to Gudang
                                         </button>
                                     @endif
                                 @endcan
                                 @can('hapus-qc-bahan-masuk')
-                                    <a wire:ignore class="flex items-center text-theme-6 cursor-pointer"
+                                    <a class="flex items-center text-theme-6 cursor-pointer"
                                     wire:click="confirmDelete({{ $item->id_qc_bahan_masuk }})">
                                         <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Hapus
                                     </a>

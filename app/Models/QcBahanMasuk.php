@@ -11,6 +11,9 @@ class QcBahanMasuk extends Model
 
     protected $table = 'qc_bahan_masuk';
     protected $primaryKey = 'id_qc_bahan_masuk';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
 
     protected $casts = [
         'tanggal_qc' => 'datetime', // Ini yang penting!

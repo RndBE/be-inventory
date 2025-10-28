@@ -10,7 +10,7 @@ use Livewire\Attributes\Layout;
 #[Layout('layouts.quality', ['title' => 'Detail QC Bahan Masuk'])]
 class QcBahanMasukView extends Component
 {
-    public $id;
+    public $id_qc_bahan_masuk;
     public $qc;
     public $pdfData;
     public $selectedBahanList = [];
@@ -24,11 +24,11 @@ class QcBahanMasukView extends Component
     public $petugas_input_qc_ttd;
 
 
-    public function mount($id)
+    public function mount($id_qc_bahan_masuk)
     {
-        $this->id = $id;
+        $this->id = $id_qc_bahan_masuk;
         $this->qc = QcBahanMasuk::with(['petugasQc', 'petugasInputQc', 'pembelianBahan', 'details.bahan', 'details.dokumentasi'])
-            ->findOrFail($id);
+            ->findOrFail($id_qc_bahan_masuk);
 
         // Mapping data: bahan_id => array dokumentasi
         $this->gambarPerBahan = [];

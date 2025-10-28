@@ -243,7 +243,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
         Route::get('qc-bahan-masuk', QcBahanMasukTable::class)->name('qc-bahan-masuk.index');
         Route::get('qc-bahan-masuk/create', QcWizard::class)->middleware('permission:tambah-qc-bahan-masuk')->name('qc-bahan-masuk.wizard');
-        Route::get('qc-bahan-masuk/view/{id}', QcBahanMasukView::class)->name('qc-bahan-masuk.view');
+        Route::get('qc-bahan-masuk/view/{id_qc_bahan_masuk}', QcBahanMasukView::class)->name('qc-bahan-masuk.view');
 
         Route::get('qc-produk-setengah-jadi', QcProdukSetengahJadiTable::class)->name('qc-produk-setengah-jadi.index');
         Route::get('qc-produk-setengah-jadi/create', QcProdukSetengahJadiWizard::class)->middleware('permission:tambah-qc-produk-setengahjadi')->name('qc-produk-setengah-jadi.wizard');

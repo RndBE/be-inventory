@@ -76,10 +76,10 @@ class QcBahanMasukTable extends Component
         ]);
     }
 
-    public function prosesKeGudang($id)
+    public function prosesKeGudang($id_qc_bahan_masuk)
     {
         try {
-            $qc = QcBahanMasuk::with('details')->findOrFail($id);
+            $qc = QcBahanMasuk::with('details')->findOrFail($id_qc_bahan_masuk);
 
             // Ambil hanya bahan yang fisik_baik > 0
             $validDetails = $qc->details->filter(function ($detail) {
@@ -126,9 +126,9 @@ class QcBahanMasukTable extends Component
         return redirect()->route('quality-page.qc-bahan-masuk.index');
     }
 
-    public function confirmDelete($id)
+    public function confirmDelete($id_qc_bahan_masuk)
     {
-        $this->deleteId = $id;
+        $this->deleteId = $id_qc_bahan_masuk;
         $this->showDeleteModal = true;
     }
 

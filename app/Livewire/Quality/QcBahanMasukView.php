@@ -26,7 +26,7 @@ class QcBahanMasukView extends Component
 
     public function mount($id_qc_bahan_masuk)
     {
-        $this->id = $id_qc_bahan_masuk;
+        $this->id_qc_bahan_masuk = $id_qc_bahan_masuk;
         $this->qc = QcBahanMasuk::with(['petugasQc', 'petugasInputQc', 'pembelianBahan', 'details.bahan', 'details.dokumentasi'])
             ->findOrFail($id_qc_bahan_masuk);
 

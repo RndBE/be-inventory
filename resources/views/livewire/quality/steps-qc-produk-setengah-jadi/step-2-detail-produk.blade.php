@@ -192,6 +192,8 @@
                                                 <option value="012">012 - Wiring ADR</option>
                                                 <option value="013">013 - Wiring APS</option>
                                                 <option value="014">014 - Wiring EWS</option>
+                                                <option value="015">015 - Wiring Radio</option>
+                                                <option value="016">016 - Wiring Camera</option>
                                             </select>
 
                                             @error("selectedProdukList.$index.kode_wiring_unit")

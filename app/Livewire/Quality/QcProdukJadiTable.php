@@ -36,7 +36,7 @@ class QcProdukJadiTable extends Component
     public $laporan_qc_old, $dokumentasi_lama = [];
     public $serial_number;
     public $deleteId = null;
-    public $qc1ProdukJadi, $qc2ProdukJadi,$canAddGudangQCProdukJadi, $canHapusQCProdukJadi;
+    public $qc1ProdukJadi, $qc2ProdukJadi,$canAddGudangQCProdukJadi, $canHapusQCProdukJadi, $deleteKodeList;
 
     public function mount(Request $request)
     {
@@ -265,9 +265,7 @@ class QcProdukJadiTable extends Component
     private function generateSerialNumber($qc)
     {
         // Ambil tanggal selesai produksi (fallback ke now kalau null)
-        $tanggalSelesai = $qc->selesai_produksi
-            ? Carbon::parse($qc->selesai_produksi)->timezone('Asia/Jakarta')
-            : Carbon::now('Asia/Jakarta');
+        $tanggalSelesai = $qc->selesai_produksi ?: Carbon::now('Asia/Jakarta');
 
         // Hitung urutan tahunan (reset tiap tahun, dan per produk_jadi_id)
         $lastTahunan = QcProdukJadiList::whereYear('selesai_produksi', $tanggalSelesai->year)
@@ -357,8 +355,10 @@ class QcProdukJadiTable extends Component
 
     public function confirmDelete($id)
     {
+        $qc = QcProdukJadiList::find($id);
         $this->deleteId = $id;
-        $this->dispatch('open-delete-modal', id: $id);
+        $this->deleteKodeList = $qc ? $qc->kode_list : '-';
+        $this->dispatch('open-delete-modal', id: $id, kodeList: $this->deleteKodeList);
     }
 
     public function deleteItem($id)
@@ -398,6 +398,7 @@ class QcProdukJadiTable extends Component
             });
 
             LogHelper::success("Data dengan kode list [$kodeList] berhasil dihapus beserta file-file QC");
+            return redirect()->route('quality-page.qc-produk-jadi.index');
             $this->dispatch('swal:success', [
                 'title' => 'Berhasil',
                 'text'  => "Data dengan kode list [$kodeList] berhasil dihapus beserta file-file QC"

@@ -37,7 +37,7 @@ class QcProdukSetengahJadiTable extends Component
     public $laporan_qc_old, $dokumentasi_lama = [];
     public $serial_number;
     public $deleteId = null;
-    public $qc1ProdukSetengahjadi, $qc2ProdukSetengahjadi,$canAddGudangQCProdukSetengahjadi, $canHapusQCProdukSetengahjadi;
+    public $qc1ProdukSetengahjadi, $qc2ProdukSetengahjadi,$canAddGudangQCProdukSetengahjadi, $canHapusQCProdukSetengahjadi, $deleteKodeList;
 
     public function mount(Request $request)
     {
@@ -262,59 +262,10 @@ class QcProdukSetengahJadiTable extends Component
         }
     }
 
-    // private function generateSerialNumber($qc)
-    // {
-    //     // Ambil tanggal selesai produksi (fallback ke now kalau null)
-    //     $tanggalSelesai = $qc->selesai_produksi
-    //         ? Carbon::parse($qc->selesai_produksi)->timezone('Asia/Jakarta')
-    //         : Carbon::now('Asia/Jakarta');
-
-    //     // Tentukan ID tim produksi
-    //     $petugas = strtoupper(trim($qc->petugas_produksi));
-    //     $idTim = match ($petugas) {
-    //         'RASYID PRIYO NUGROHO' => '01',
-    //         'ENDARTO NUGROHO'      => '02',
-    //         default => '99',
-    //     };
-
-    //     // Ambil serial terakhir di hari itu
-    //     $lastSerial = QcProdukSetengahJadiList::whereDate('selesai_produksi', $tanggalSelesai->toDateString())
-    //         ->whereNotNull('serial_number')
-    //         ->orderByDesc('serial_number')
-    //         ->value('serial_number');
-
-    //     // Tentukan urutan harian
-    //     if ($lastSerial) {
-    //         // Pecah serial, ambil bagian harian (ke-4 setelah split '-')
-    //         $parts = explode('-', $lastSerial);
-    //         $lastHarian = (int)($parts[3] ?? 0);
-    //         $jumlahHarian = $lastHarian + 1;
-    //     } else {
-    //         $jumlahHarian = 1;
-    //     }
-
-    //     // Hitung urutan tahunan (reset setiap tahun)
-    //     $jumlahTahunan = QcProdukSetengahJadiList::whereYear('selesai_produksi', $tanggalSelesai->year)
-    //         ->whereNotNull('serial_number')
-    //         ->count() + 1;
-
-    //     // Format serial number (YYYY-MM-DD-Harian-IDTim-Tahunan)
-    //     return sprintf(
-    //         "%04d-%02d-%02d-%03d-%s-%05d",
-    //         $tanggalSelesai->year,
-    //         $tanggalSelesai->month,
-    //         $tanggalSelesai->day,
-    //         $jumlahHarian,
-    //         $idTim,
-    //         $jumlahTahunan
-    //     );
-    // }
     private function generateSerialNumber($qc)
     {
         // Ambil tanggal selesai produksi (fallback ke now kalau null)
-        $tanggalSelesai = $qc->selesai_produksi
-            ? Carbon::parse($qc->selesai_produksi)->timezone('Asia/Jakarta')
-            : Carbon::now('Asia/Jakarta');
+        $tanggalSelesai = $qc->selesai_produksi ?: Carbon::now('Asia/Jakarta');
 
         $jenisSn = strtolower($qc->jenis_sn);
 
@@ -429,19 +380,27 @@ class QcProdukSetengahJadiTable extends Component
 
     public function confirmDelete($id)
     {
+        $qc = QcProdukSetengahJadiList::find($id);
         $this->deleteId = $id;
-        $this->dispatch('open-delete-modal', id: $id);
+        $this->deleteKodeList = $qc ? $qc->kode_list : '-';
+        $this->dispatch('open-delete-modal', id: $id, kodeList: $this->deleteKodeList);
     }
 
     public function deleteItem($id)
     {
         try {
             $kodeList = null;
+
             DB::transaction(function () use ($id, &$kodeList) {
-                $qc = QcProdukSetengahJadiList::findOrFail($id);
+                $qc = QcProdukSetengahJadiList::find($id);
+
+                if (!$qc) {
+                    throw new \Exception("Data dengan ID $id tidak ditemukan");
+                }
+
                 $kodeList = $qc->kode_list;
 
-                // Hapus QC1 dan file-file terkait
+                // Hapus QC1
                 if ($qc->qc1) {
                     if ($qc->qc1->laporan_qc) {
                         Storage::disk('public')->delete($qc->qc1->laporan_qc);
@@ -453,7 +412,7 @@ class QcProdukSetengahJadiTable extends Component
                     $qc->qc1->delete();
                 }
 
-                // Hapus QC2 dan file-file terkait
+                // Hapus QC2
                 if ($qc->qc2) {
                     if ($qc->qc2->laporan_qc) {
                         Storage::disk('public')->delete($qc->qc2->laporan_qc);
@@ -465,11 +424,11 @@ class QcProdukSetengahJadiTable extends Component
                     $qc->qc2->delete();
                 }
 
-                // Terakhir hapus list utamanya
                 $qc->delete();
             });
 
             LogHelper::success("Data dengan kode list [$kodeList] berhasil dihapus beserta file-file QC");
+            return redirect()->route('quality-page.qc-produk-setengah-jadi.index');
             $this->dispatch('swal:success', [
                 'title' => 'Berhasil',
                 'text'  => "Data dengan kode list [$kodeList] berhasil dihapus beserta file-file QC"
@@ -478,10 +437,11 @@ class QcProdukSetengahJadiTable extends Component
             LogHelper::error("Gagal hapus data [$kodeList]: " . $e->getMessage());
             $this->dispatch('swal:error', [
                 'title' => 'Error',
-                'text'  => 'Gagal menghapus data'
+                'text'  => 'Gagal menghapus data: ' . $e->getMessage()
             ]);
         }
     }
+
 
 
     public function render()

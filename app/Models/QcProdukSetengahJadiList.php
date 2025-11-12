@@ -12,6 +12,7 @@ class QcProdukSetengahJadiList extends Model
     protected $table = 'qc_produk_setengah_jadi_list';
     protected $casts = [
         'tanggal_masuk_gudang' => 'datetime',
+        'selesai_produksi' => 'datetime',
         // 'created_at' => 'datetime',
         // 'updated_at' => 'datetime',
     ];

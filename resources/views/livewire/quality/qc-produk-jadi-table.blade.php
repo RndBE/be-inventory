@@ -210,7 +210,7 @@
                                     @if(!$item->tanggal_masuk_gudang && $item->qc1)
                                         <button
                                             x-data wire:ignore
-                                            x-on:click="$dispatch('open-gudang-modal', { id: {{ $item->id }} })"
+                                            x-on:click="$dispatch('open-gudang-modal', { id: {{ $item->id }}, kodeList: '{{ $item->kode_list }}' })"
                                             class="flex items-center text-green-600">
                                             <i data-feather="box" class="w-4 h-4 mr-1"></i> Add to Gudang
                                         </button>
@@ -463,8 +463,8 @@
     </div>
 
     {{-- Modal Konfirmasi + Input Serial Number --}}
-    <div x-data="{ open: false, id: null, serial: '' }"
-        x-on:open-gudang-modal.window="open = true; id = $event.detail.id;"
+    <div x-data="{ open: false, id: null, serial: '', kodeList: '' }"
+        x-on:open-gudang-modal.window="open = true; id = $event.detail.id; kodeList = $event.detail.kodeList;"
         x-show="open"
         class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
         style="display: none;"
@@ -474,7 +474,7 @@
 
             <h2 class="text-lg font-bold text-gray-700 mb-4">Konfirmasi</h2>
             <p class="text-gray-600 mb-4">
-                Apakah Anda yakin ingin memproses produk ini ke Gudang?
+                Apakah Anda yakin ingin memproses produk <span class="font-semibold text-red-600" x-text="kodeList"></span> ke Gudang?
             </p>
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-medium mb-1">
@@ -502,8 +502,8 @@
     </div>
 
     <div
-        x-data="{ open: false, id: null }"
-        x-on:open-delete-modal.window="open = true; id = $event.detail.id;"
+        x-data="{ open: false, id: null, kodeList: '' }"
+        x-on:open-delete-modal.window="open = true; id = $event.detail.id; kodeList = $event.detail.kodeList;"
         x-show="open"
         class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
         style="display: none;"
@@ -513,7 +513,9 @@
 
             <h2 class="text-lg font-bold text-gray-700 mb-4">Konfirmasi Hapus</h2>
             <p class="text-gray-600 mb-4">
-                Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak bisa dibatalkan.
+                Apakah Anda yakin ingin menghapus data
+                <span class="font-semibold text-red-600" x-text="kodeList"></span>?
+                Tindakan ini tidak bisa dibatalkan.
             </p>
 
             <div class="flex justify-end space-x-3">

@@ -84,7 +84,13 @@
         </tr>
         <tr style="text-align: left;vertical-align: top;">
             <td style="border: 1px solid black;width: 30%;"><strong>Divisi</strong></td>
-            <td style="border: 1px solid black">: {{ $pembelianBahan->divisi }}</td>
+            <td style="border: 1px solid black">:
+                @if($jenis_pengajuan != 'Pembelian Aset')
+                    Purchasing
+                @else
+                    {{ $pembelianBahan->divisi }}
+                @endif
+            </td>
         </tr>
         <tr>
             <td style="border: 1px solid black;"><strong>Project</strong></td>

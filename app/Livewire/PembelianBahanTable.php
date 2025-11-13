@@ -452,21 +452,29 @@ class PembelianBahanTable extends Component
             });
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
-        elseif ($user->hasRole('hrd level 3')) {
-            $pembelian_bahan->where(function ($query) use ($user) {
-                $query->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
+        elseif ($user->hasAnyRole(['hrd level 3', 'general_affair'])) {
+    $pembelian_bahan->where(function ($query) use ($user) {
+
+        if ($user->hasRole('hrd level 3')) {
+            $query->where(function ($sub) {
+                $sub->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
                     ->whereIn('jenis_pengajuan', [
                         'Pembelian Bahan/Barang/Alat Lokal',
                         'Pembelian Bahan/Barang/Alat Impor',
-                        'Pembelian Aset',
-                        'Purchase Order'
-                    ])
-                    ->orWhere('user_id', $user->id); // pastikan pengajuan sendiri muncul
-            });
+                        'Pembelian Aset', 'Purchase Order'
+                    ]);
+            })
+            // tampilkan juga pengajuan miliknya sendiri
+            ->orWhere('user_id', auth()->id());
         }
-        elseif ($user->hasRole('general_affair')) {
-            $pembelian_bahan->where('jenis_pengajuan', 'Pembelian Aset');
+
+        if ($user->hasRole('general_affair')) {
+            $query->orWhere('jenis_pengajuan', 'Pembelian Aset');
         }
+    });
+
+    $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
+}
 
         elseif ($user->hasRole(['purchasing level 3'])) {
             // $pembelian_bahan->whereIn('divisi', ['Purchasing']);

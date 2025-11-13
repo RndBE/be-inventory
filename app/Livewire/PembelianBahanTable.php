@@ -457,24 +457,39 @@ class PembelianBahanTable extends Component
 
                 // Jika user punya role HRD level 3
                 if ($user->hasRole('hrd level 3')) {
-                    $query->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair']);
-                    $query->whereIn('jenis_pengajuan', [
-                        'Pembelian Bahan/Barang/Alat Lokal',
-                        'Pembelian Bahan/Barang/Alat Impor',
-                        'Pembelian Aset','Purchase Order'
-                    ]);
+                    $query->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
+                        ->whereIn('jenis_pengajuan', [
+                            'Pembelian Bahan/Barang/Alat Lokal',
+                            'Pembelian Bahan/Barang/Alat Impor',
+                            'Pembelian Aset',
+                            'Purchase Order'
+                        ]);
                 }
 
                 // Jika user punya role General Affair
                 if ($user->hasRole('general_affair')) {
-                    // General Affair bisa lihat SEMUA divisi untuk jenis "Pembelian Aset"
-                    $query->orWhere('jenis_pengajuan', 'Pembelian Aset');
+                    $query->where(function ($q) {
+                        $q->where('status_leader', 'Disetujui') // Sudah disetujui leader
+                        ->where('status_general_manager', 'Belum disetujui'); // Belum disetujui GA
+                    })
+                    ->where(function ($q) {
+                        $q->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
+                        ->orWhere('jenis_pengajuan', 'Pembelian Aset');
+                    });
                 }
             });
 
             // Urutkan agar pengajuan yang belum disetujui tampil duluan
-            $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
+            // Catatan: GA akan tetap melihat urutan berdasar status_leader, tapi hanya untuk yang valid
+            $pembelian_bahan->orderByRaw("
+                CASE
+                    WHEN status_general_manager = 'Belum disetujui' THEN 0
+                    WHEN status_leader = 'Belum disetujui' THEN 1
+                    ELSE 2
+                END
+            ");
         }
+
         elseif ($user->hasRole(['purchasing level 3'])) {
             // $pembelian_bahan->whereIn('divisi', ['Purchasing']);
             $pembelian_bahan->where(function ($query) {

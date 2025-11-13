@@ -457,7 +457,7 @@ class PembelianBahanTable extends Component
 
                 // Jika user punya role HRD level 3
                 if ($user->hasRole('hrd level 3')) {
-                    $query->whereIn('divisi', ['HSE', 'HRD', 'Helper']);
+                    $query->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair']);
                     $query->whereIn('jenis_pengajuan', [
                         'Pembelian Bahan/Barang/Alat Lokal',
                         'Pembelian Bahan/Barang/Alat Impor',

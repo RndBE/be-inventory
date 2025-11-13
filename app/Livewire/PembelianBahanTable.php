@@ -452,29 +452,22 @@ class PembelianBahanTable extends Component
             });
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
-        elseif ($user->hasAnyRole(['hrd level 3', 'general_affair'])) {
+        elseif ($user->hasRole('hrd level 3')) {
             $pembelian_bahan->where(function ($query) use ($user) {
-
-                // Jika user punya role HRD level 3
-                if ($user->hasRole('hrd level 3')) {
-                    $query->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair']);
-                    $query->whereIn('jenis_pengajuan', [
+                $query->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
+                    ->whereIn('jenis_pengajuan', [
                         'Pembelian Bahan/Barang/Alat Lokal',
                         'Pembelian Bahan/Barang/Alat Impor',
-                        'Pembelian Aset','Purchase Order'
-                    ]);
-                }
-
-                // Jika user punya role General Affair
-                if ($user->hasRole('general_affair')) {
-                    // General Affair bisa lihat SEMUA divisi untuk jenis "Pembelian Aset"
-                    $query->orWhere('jenis_pengajuan', 'Pembelian Aset');
-                }
+                        'Pembelian Aset',
+                        'Purchase Order'
+                    ])
+                    ->orWhere('user_id', $user->id); // pastikan pengajuan sendiri muncul
             });
-
-            // Urutkan agar pengajuan yang belum disetujui tampil duluan
-            $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
+        elseif ($user->hasRole('general_affair')) {
+            $pembelian_bahan->where('jenis_pengajuan', 'Pembelian Aset');
+        }
+
         elseif ($user->hasRole(['purchasing level 3'])) {
             // $pembelian_bahan->whereIn('divisi', ['Purchasing']);
             $pembelian_bahan->where(function ($query) {

@@ -453,34 +453,34 @@ class PembelianBahanTable extends Component
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
         }
         elseif ($user->hasAnyRole(['hrd level 3', 'general_affair'])) {
+
             $pembelian_bahan->where(function ($query) use ($user) {
 
-                // Jika user punya role HRD level 3
+                // 1. HRD LEVEL 3 FILTER
                 if ($user->hasRole('hrd level 3')) {
-                    $query->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
-                        ->whereIn('jenis_pengajuan', [
-                            'Pembelian Bahan/Barang/Alat Lokal',
-                            'Pembelian Bahan/Barang/Alat Impor',
-                            'Pembelian Aset',
-                            'Purchase Order'
-                        ]);
-                }
-
-                // Jika user punya role General Affair
-                if ($user->hasRole('general_affair')) {
-                    $query->where(function ($q) {
-                        $q->where('status_leader', 'Disetujui') // Sudah disetujui leader
-                        ->where('status_general_manager', 'Belum disetujui'); // Belum disetujui GA
-                    })
-                    ->where(function ($q) {
+                    $query->orWhere(function ($q) {
                         $q->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
-                        ->orWhere('jenis_pengajuan', 'Pembelian Aset');
+                            ->whereIn('jenis_pengajuan', [
+                                'Pembelian Bahan/Barang/Alat Lokal',
+                                'Pembelian Bahan/Barang/Alat Impor',
+                                'Pembelian Aset',
+                                'Purchase Order'
+                            ]);
                     });
                 }
+
+                // 2. GENERAL AFFAIR FILTER → bisa lihat semua divisi
+                if ($user->hasRole('general_affair')) {
+                    $query->orWhere(function ($q) {
+                        $q->where('status_leader', 'Disetujui')
+                            ->where('status_general_manager', 'Belum disetujui'); // workflow GA
+                        // Tidak ada filter divisi = bisa lihat semua divisi
+                    });
+                }
+
             });
 
-            // Urutkan agar pengajuan yang belum disetujui tampil duluan
-            // Catatan: GA akan tetap melihat urutan berdasar status_leader, tapi hanya untuk yang valid
+            // Urutan tampilkan pengajuan yang belum disetujui duluan
             $pembelian_bahan->orderByRaw("
                 CASE
                     WHEN status_general_manager = 'Belum disetujui' THEN 0
@@ -489,6 +489,7 @@ class PembelianBahanTable extends Component
                 END
             ");
         }
+
 
         elseif ($user->hasRole(['purchasing level 3'])) {
             // $pembelian_bahan->whereIn('divisi', ['Purchasing']);

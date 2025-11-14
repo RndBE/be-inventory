@@ -454,41 +454,69 @@ class PembelianBahanTable extends Component
         }
         elseif ($user->hasAnyRole(['hrd level 3', 'general_affair'])) {
 
-            $pembelian_bahan->where(function ($query) use ($user) {
+    $pembelian_bahan->where(function ($query) use ($user) {
 
-                // 1. HRD LEVEL 3 FILTER
-                if ($user->hasRole('hrd level 3')) {
-                    $query->orWhere(function ($q) {
-                        $q->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
-                            ->whereIn('jenis_pengajuan', [
-                                'Pembelian Bahan/Barang/Alat Lokal',
-                                'Pembelian Bahan/Barang/Alat Impor',
-                                'Pembelian Aset',
-                                'Purchase Order'
-                            ]);
-                    });
-                }
-
-                // 2. GENERAL AFFAIR FILTER → bisa lihat semua divisi
-                if ($user->hasRole('general_affair')) {
-                    $query->orWhere(function ($q) {
-                        $q->where('status_leader', 'Disetujui')
-                            ->where('status_general_manager', 'Belum disetujui'); // workflow GA
-                        // Tidak ada filter divisi = bisa lihat semua divisi
-                    });
-                }
-
+        /*
+        |---------------------------------------------------------
+        | HRD LEVEL 3 FILTER
+        |---------------------------------------------------------
+        */
+        if ($user->hasRole('hrd level 3')) {
+            $query->orWhere(function ($q) {
+                $q->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
+                    ->whereIn('jenis_pengajuan', [
+                        'Pembelian Bahan/Barang/Alat Lokal',
+                        'Pembelian Bahan/Barang/Alat Impor',
+                        'Pembelian Aset',
+                        'Purchase Order'
+                    ]);
             });
-
-            // Urutan tampilkan pengajuan yang belum disetujui duluan
-            $pembelian_bahan->orderByRaw("
-                CASE
-                    WHEN status_general_manager = 'Belum disetujui' THEN 0
-                    WHEN status_leader = 'Belum disetujui' THEN 1
-                    ELSE 2
-                END
-            ");
         }
+
+        /*
+        |---------------------------------------------------------
+        | GENERAL AFFAIR FILTER
+        |---------------------------------------------------------
+        */
+        if ($user->hasRole('general_affair')) {
+            $query->orWhere(function ($q) {
+
+                // Workflow GA
+                $q->where('status_leader', 'Disetujui')
+                  ->where('status_general_manager', 'Belum disetujui');
+
+                // ====== RULE GENERAL AFFAIR ======
+                $q->where(function ($sub) {
+
+                    // 1. Pembelian Aset → tampilkan semua divisi
+                    $sub->orWhere('jenis_pengajuan', 'Pembelian Aset');
+
+                    // 2. Lokal & Impor → hanya divisi tertentu
+                    $sub->orWhere(function ($x) {
+                        $x->whereIn('jenis_pengajuan', [
+                            'Pembelian Bahan/Barang/Alat Lokal',
+                            'Pembelian Bahan/Barang/Alat Impor'
+                        ])->whereIn('divisi', [
+                            'HSE', 'HRD', 'Helper', 'General Affair'
+                        ]);
+                    });
+
+                });
+                // =================================
+            });
+        }
+
+    });
+
+    // Order prioritas
+    $pembelian_bahan->orderByRaw("
+        CASE
+            WHEN status_general_manager = 'Belum disetujui' THEN 0
+            WHEN status_leader = 'Belum disetujui' THEN 1
+            ELSE 2
+        END
+    ");
+}
 
 
         elseif ($user->hasRole(['purchasing level 3'])) {

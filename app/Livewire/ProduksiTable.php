@@ -13,7 +13,7 @@ class ProduksiTable extends Component
     public $perPage = 15;
     public $id_produksis;
     public $isDeleteModalOpen = false;
-    
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -39,6 +39,7 @@ class ProduksiTable extends Component
                 ->orWhere('jenis_produksi', 'like', '%' . $this->search . '%')
                 ->orWhere('status', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_produksi', 'like', '%' . $this->search . '%')
+                ->orWhere('keterangan', 'like', '%' . $this->search . '%')
                 ->orWhereHas('dataBahan', function ($query) {
                     $query->where('nama_bahan', 'like', '%' . $this->search . '%');
                 });

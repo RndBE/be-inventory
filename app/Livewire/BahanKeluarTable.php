@@ -137,8 +137,10 @@ class BahanKeluarTable extends Component
             $query->where('tgl_keluar', 'like', '%' . $this->search . '%')
                 ->orWhere('tgl_pengajuan', 'like', '%' . $this->search . '%')
                 ->orWhere('tujuan', 'like', '%' . $this->search . '%')
+                ->orWhere('keterangan', 'like', '%' . $this->search . '%')
                 ->orWhere('divisi', 'like', '%' . $this->search . '%')
                 ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhere('status_leader', 'like', '%' . $this->search . '%')
                 ->orWhere('status_pengambilan', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%')
                 ->orWhereHas('dataUser', function ($query) {

@@ -39,6 +39,7 @@ class ProjekTable extends Component
                 ->orWhere('selesai_projek', 'like', '%' . $this->search . '%')
                 ->orWhere('nama_projek', 'like', '%' . $this->search . '%')
                 ->orWhere('status', 'like', '%' . $this->search . '%')
+                ->orWhere('keterangan', 'like', '%' . $this->search . '%')
                 ->orWhere('kode_projek', 'like', '%' . $this->search . '%');
         })
             ->paginate($this->perPage);

@@ -72,6 +72,10 @@
                                         <div class="mt-1 text-lg">{{ $bahan['jumlah_pengajuan'] }}</div>
                                     </div>
                                     <div>
+                                        <label class="text-black">Jumlah Pembelian</label>
+                                        <div class="mt-1 text-lg">{{ $bahan['jumlah_pembelian'] }}</div>
+                                    </div>
+                                    <div>
                                         <label class="text-black">Stok Lama</label>
                                         <div class="mt-1 text-lg">{{ $bahan['stok_lama'] }}</div>
                                     </div>
@@ -230,7 +234,7 @@
                                         @enderror
                                     </div>
 
-                                    <div class="col-span-2">
+                                    <div class="col-span-1">
                                         <label class="text-black">Status QC</label>
                                         <select
                                             wire:model.lazy="selectedBahanList.{{ $index }}.statusQc"

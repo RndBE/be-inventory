@@ -56,6 +56,7 @@
                         <th class="border px-2 py-1">No Invoice</th>
                         <th class="border px-2 py-1">Stok Lama</th>
                         <th class="border px-2 py-1">Jml. Pengajuan</th>
+                        <th class="border px-2 py-1">Jml. Pembelian</th>
                         <th class="border px-2 py-1">Jml. Diterima</th>
                         <th class="border px-2 py-1">Baik</th>
                         <th class="border px-2 py-1">Rusak</th>
@@ -68,7 +69,7 @@
                 </thead>
                 @php
                     $totalPengajuan = collect($selectedBahanList)->where('is_selected', true)->sum(function ($bahan) {
-                        return (float) ($bahan['jumlah_pengajuan'] ?? 0) * (float) ($bahan['unit_price'] ?? 0);
+                        return (float) ($bahan['jumlah_pembelian'] ?? 0) * (float) ($bahan['unit_price'] ?? 0);
                     });
                     $totalDiterima = collect($selectedBahanList)->where('is_selected', true)->sum(function ($bahan) {
                         return (float) ($bahan['jumlah_diterima'] ?? 0) * (float) ($bahan['unit_price'] ?? 0);
@@ -94,6 +95,7 @@
                             <td class="border px-2 py-1">{{ $bahan['no_invoice'] }}</td>
                             <td class="border px-2 py-1 text-right">{{ number_format((float) ($bahan['stok_lama'] ?? 0), 2, ',', '.') }}</td>
                             <td class="border px-2 py-1 text-right">{{ number_format((float) ($bahan['jumlah_pengajuan'] ?? 0), 2, ',', '.') }}</td>
+                            <td class="border px-2 py-1 text-right">{{ number_format((float) ($bahan['jumlah_pembelian'] ?? 0), 2, ',', '.') }}</td>
                             <td class="border px-2 py-1 text-right">{{ number_format((float) ($bahan['jumlah_diterima'] ?? 0), 2, ',', '.') }}</td>
                             <td class="border px-2 py-1 text-right">{{ number_format((float) ($bahan['fisik_baik'] ?? 0), 2, ',', '.') }}</td>
                             <td class="border px-2 py-1 text-right">{{ number_format((float) ($bahan['fisik_rusak'] ?? 0), 2, ',', '.') }}</td>
@@ -117,7 +119,7 @@
 
                 <tfoot>
                     <tr class="font-semibold bg-gray-100">
-                        <td class="border px-2 py-1 text-center" colspan="5">Total Harga</td>
+                        <td class="border px-2 py-1 text-center" colspan="6">Total Harga</td>
                         <td class="border px-2 py-1 text-right">{{ number_format($totalPengajuan, 2, ',', '.') }}</td>
                         <td class="border px-2 py-1 text-right">{{ number_format($totalDiterima, 2, ',', '.') }}</td>
                         <td class="border px-2 py-1 text-right">{{ number_format($totalBaik, 2, ',', '.') }}</td>

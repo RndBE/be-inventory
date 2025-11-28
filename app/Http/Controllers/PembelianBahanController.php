@@ -148,12 +148,12 @@ class PembelianBahanController extends Controller
             });
 
             $generalUser = cache()->remember('general_user', 60, function () {
-                return User::where('job_level', 3)
-                    ->whereHas('roles', function ($query) {
+                return User::whereHas('roles', function ($query) {
                         $query->where('name', 'general_affair');
                     })
                     ->first();
             });
+
 
 
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
@@ -272,13 +272,11 @@ class PembelianBahanController extends Controller
             });
 
             $generalUser = cache()->remember('general_user', 60, function () {
-                return User::where('job_level', 3)
-                    ->whereHas('roles', function ($query) {
+                return User::whereHas('roles', function ($query) {
                         $query->where('name', 'general_affair');
                     })
                     ->first();
             });
-
 
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
 

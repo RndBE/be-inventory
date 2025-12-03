@@ -133,9 +133,9 @@ class BahanKeluarTable extends Component
         }
 
         // Pencarian dan filter tambahan
-        $bahan_keluars->where(function ($query) {
+$bahan_keluars->where(function ($query) {
 
-    // === Kolom langsung ===
+    // ==== Kolom langsung pada bahan_keluar ====
     $query->where('tgl_keluar', 'like', '%' . $this->search . '%')
         ->orWhere('tgl_pengajuan', 'like', '%' . $this->search . '%')
         ->orWhere('tujuan', 'like', '%' . $this->search . '%')
@@ -146,41 +146,45 @@ class BahanKeluarTable extends Component
         ->orWhere('status_pengambilan', 'like', '%' . $this->search . '%')
         ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%');
 
-    // === User ===
+    // ==== User ====
     $query->orWhereHas('dataUser', function ($q) {
         $q->where('name', 'like', '%' . $this->search . '%');
     });
 
-    // === Bahan Keluar: Bahan ===
-    $query->orWhereHas('bahanKeluarDetails', function ($q) {
-        $q->whereHas('dataBahan', function ($b) {
-            $b->where('nama_bahan', 'like', '%' . $this->search . '%');
+    // ==== Produk related search helper ====
+    $search = '%' . $this->search . '%';
+
+    // ==== Bahan Keluar: Bahan ====
+    $query->orWhereHas('bahanKeluarDetails', function ($q) use ($search) {
+        $q->whereHas('dataBahan', function ($b) use ($search) {
+            $b->where('nama_bahan', 'like', $search)
+              ->orWhere('serial_number', 'like', $search)
+              ->orWhereRaw("CONCAT(nama_bahan, ' (', serial_number, ')') LIKE ?", [$search]);
         });
     });
 
-    // === Bahan Keluar: Produk (produksi) ===
-    $query->orWhereHas('bahanKeluarDetails', function ($q) {
-        $q->whereHas('dataProduk', function ($p) {
-            $p->whereHas('dataBahan', function ($b) {
-                $b->where(function ($x) {
-                    $x->where('nama_bahan', 'like', '%' . $this->search . '%')
-                      ->orWhere('serial_number', 'like', '%' . $this->search . '%');
-                });
+    // ==== Bahan Keluar: Produk (produksi) ====
+    $query->orWhereHas('bahanKeluarDetails', function ($q) use ($search) {
+        $q->whereHas('dataProduk', function ($p) use ($search) {
+            $p->whereHas('dataBahan', function ($b) use ($search) {
+                $b->where('nama_bahan', 'like', $search)
+                  ->orWhere('serial_number', 'like', $search)
+                  ->orWhereRaw("CONCAT(nama_bahan, ' (', serial_number, ')') LIKE ?", [$search]);
             });
         });
     });
 
-    // === Produk Jadi ===
-    $query->orWhereHas('bahanKeluarDetails', function ($q) {
-        $q->whereHas('dataProdukJadi', function ($pj) {
-            $pj->where(function ($x) {
-                $x->where('nama_produk', 'like', '%' . $this->search . '%')
-                  ->orWhere('serial_number', 'like', '%' . $this->search . '%');
-            });
+    // ==== Produk Jadi ====
+    $query->orWhereHas('bahanKeluarDetails', function ($q) use ($search) {
+        $q->whereHas('dataProdukJadi', function ($pj) use ($search) {
+            $pj->where('nama_produk', 'like', $search)
+               ->orWhere('serial_number', 'like', $search)
+               ->orWhereRaw("CONCAT(nama_produk, ' (', serial_number, ')') LIKE ?", [$search]);
         });
     });
 
 })
+
 
             ->when($this->filter === 'Ditolak', function ($query) {
                 return $query->where('status', 'Ditolak');

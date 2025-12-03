@@ -31,4 +31,8 @@ class BahanKeluar extends Model
     {
         return $this->hasOne(Projek::class, 'bahan_keluar_id');
     }
+    public function produkJadiDetails()
+    {
+        return $this->hasOne(ProdukJadiDetails::class, 'id');
+    }
 }

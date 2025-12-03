@@ -134,56 +134,52 @@ class BahanKeluarTable extends Component
 
         // Pencarian dan filter tambahan
         $bahan_keluars->where(function ($query) {
-    $search = '%' . $this->search . '%';
 
-    $query->where('tgl_keluar', 'like', $search)
-        ->orWhere('tgl_pengajuan', 'like', $search)
-        ->orWhere('tujuan', 'like', $search)
-        ->orWhere('keterangan', 'like', $search)
-        ->orWhere('divisi', 'like', $search)
-        ->orWhere('status', 'like', $search)
-        ->orWhere('status_leader', 'like', $search)
-        ->orWhere('status_pengambilan', 'like', $search)
-        ->orWhere('kode_transaksi', 'like', $search)
+    // === Kolom langsung ===
+    $query->where('tgl_keluar', 'like', '%' . $this->search . '%')
+        ->orWhere('tgl_pengajuan', 'like', '%' . $this->search . '%')
+        ->orWhere('tujuan', 'like', '%' . $this->search . '%')
+        ->orWhere('keterangan', 'like', '%' . $this->search . '%')
+        ->orWhere('divisi', 'like', '%' . $this->search . '%')
+        ->orWhere('status', 'like', '%' . $this->search . '%')
+        ->orWhere('status_leader', 'like', '%' . $this->search . '%')
+        ->orWhere('status_pengambilan', 'like', '%' . $this->search . '%')
+        ->orWhere('kode_transaksi', 'like', '%' . $this->search . '%');
 
-        // ===============================
-        // USER
-        // ===============================
-        ->orWhereHas('dataUser', function ($q) use ($search) {
-            $q->where('name', 'like', $search);
-        })
+    // === User ===
+    $query->orWhereHas('dataUser', function ($q) {
+        $q->where('name', 'like', '%' . $this->search . '%');
+    });
 
-        // ===============================
-        // BAHAN KELUAR DETAIL → dataBahan
-        // ===============================
-        ->orWhereHas('bahanKeluarDetails', function ($q) use ($search) {
-            $q->whereHas('dataBahan', function ($x) use ($search) {
-                $x->where('nama_bahan', 'like', $search);
-            });
-        })
+    // === Bahan Keluar: Bahan ===
+    $query->orWhereHas('bahanKeluarDetails', function ($q) {
+        $q->whereHas('dataBahan', function ($b) {
+            $b->where('nama_bahan', 'like', '%' . $this->search . '%');
+        });
+    });
 
-        // ===============================
-        // BAHAN SETENGAH JADI (dataProduk → dataBahan)
-        // ===============================
-        ->orWhereHas('bahanKeluarDetails', function ($q) use ($search) {
-            $q->whereHas('dataProduk', function ($x) use ($search) {
-                $x->whereHas('dataBahan', function ($y) use ($search) {
-                    $y->where('nama_bahan', 'like', $search);
-                });
-            });
-        })
-
-        // ===============================
-        // PRODUK JADI (nama_produk ATAU serial_number)
-        // ===============================
-        ->orWhereHas('bahanKeluarDetails', function ($q) use ($search) {
-            $q->whereHas('dataProdukJadi', function ($p) use ($search) {
-                $p->where(function ($x) use ($search) {
-                    $x->where('nama_produk', 'like', $search)
-                      ->orWhere('serial_number', 'like', $search);
+    // === Bahan Keluar: Produk (produksi) ===
+    $query->orWhereHas('bahanKeluarDetails', function ($q) {
+        $q->whereHas('dataProduk', function ($p) {
+            $p->whereHas('dataBahan', function ($b) {
+                $b->where(function ($x) {
+                    $x->where('nama_bahan', 'like', '%' . $this->search . '%')
+                      ->orWhere('serial_number', 'like', '%' . $this->search . '%');
                 });
             });
         });
+    });
+
+    // === Produk Jadi ===
+    $query->orWhereHas('bahanKeluarDetails', function ($q) {
+        $q->whereHas('dataProdukJadi', function ($pj) {
+            $pj->where(function ($x) {
+                $x->where('nama_produk', 'like', '%' . $this->search . '%')
+                  ->orWhere('serial_number', 'like', '%' . $this->search . '%');
+            });
+        });
+    });
+
 })
 
             ->when($this->filter === 'Ditolak', function ($query) {

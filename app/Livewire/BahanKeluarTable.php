@@ -151,15 +151,21 @@ class BahanKeluarTable extends Component
                         $query->where('nama_bahan', 'like', '%' . $this->search . '%');
                     });
                 })
-                ->orWhereHas('produksiS', function ($query) {
-                    $query->whereHas('dataBahan', function ($query) {
-                        $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                ->orWhereHas('bahanKeluarDetails', function ($query) {
+                    $query->whereHas('dataProduk', function ($query) {
+                        $query->whereHas('dataBahan', function ($query) {
+                            $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                            $query->orWhere('serial_number', 'like', '%' . $this->search . '%');
+                        });
                     });
                 })
-                ->orWhereHas('produkJadiDetails', function ($query) {
-                    $query->where('nama_produk', 'like', '%' . $this->search . '%');
-                    $query->where('serial_number', 'like', '%' . $this->search . '%');
+                ->orWhereHas('bahanKeluarDetails', function ($query) {
+                    $query->whereHas('dataProdukJadi', function ($query) {
+                        $query->where('nama_produk', 'like', '%' . $this->search . '%');
+                        $query->orWhere('serial_number', 'like', '%' . $this->search . '%');
+                    });
                 });
+
         })
             ->when($this->filter === 'Ditolak', function ($query) {
                 return $query->where('status', 'Ditolak');

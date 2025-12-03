@@ -101,7 +101,7 @@ class BahanKeluarTable extends Component
     {
         $user = Auth::user();
 
-        $bahan_keluars = BahanKeluar::with('dataUser', 'bahanKeluarDetails')
+        $bahan_keluars = BahanKeluar::with('dataUser', 'bahanKeluarDetails', 'produksiS', 'produkJadiDetails')
             ->orderBy('id', 'desc');
 
         if ($user->hasRole(['superadmin','administrasi','purchasing'])) {
@@ -150,6 +150,15 @@ class BahanKeluarTable extends Component
                     $query->whereHas('dataBahan', function ($query) {
                         $query->where('nama_bahan', 'like', '%' . $this->search . '%');
                     });
+                })
+                ->orWhereHas('produksiS', function ($query) {
+                    $query->whereHas('dataBahan', function ($query) {
+                        $query->where('nama_bahan', 'like', '%' . $this->search . '%');
+                    });
+                })
+                ->orWhereHas('produkJadiDetails', function ($query) {
+                    $query->where('nama_produk', 'like', '%' . $this->search . '%');
+                    $query->where('serial_number', 'like', '%' . $this->search . '%');
                 });
         })
             ->when($this->filter === 'Ditolak', function ($query) {

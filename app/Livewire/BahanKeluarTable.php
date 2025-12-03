@@ -184,7 +184,7 @@ class BahanKeluarTable extends Component
                 });
             });
         });
-});
+})
 
             ->when($this->filter === 'Ditolak', function ($query) {
                 return $query->where('status', 'Ditolak');

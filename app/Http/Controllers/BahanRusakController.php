@@ -432,49 +432,49 @@ class BahanRusakController extends Controller
                         }
                     }
 
-                    // Update untuk PengajuanDetails
-                    $pengajuanDetail = PengajuanDetails::where('pengajuan_id', $bahanRusak->pengajuan_id)
-                        ->where('bahan_id', $bahanId)
-                        ->first();
+                    // // Update untuk PengajuanDetails
+                    // $pengajuanDetail = PengajuanDetails::where('pengajuan_id', $bahanRusak->pengajuan_id)
+                    //     ->where('bahan_id', $bahanId)
+                    //     ->first();
 
-                    if ($pengajuanDetail) {
-                        $currentDetails = json_decode($pengajuanDetail->details, true) ?? [];
+                    // if ($pengajuanDetail) {
+                    //     $currentDetails = json_decode($pengajuanDetail->details, true) ?? [];
 
-                        foreach ($detailsByPrice as $unitPrice => $qtyData) {
-                            foreach ($currentDetails as $key => &$entry) {
-                                if ($entry['unit_price'] == $unitPrice) {
-                                    $entry['qty'] -= $qtyData['qty'];
-                                    if ($entry['qty'] <= 0) {
-                                        unset($currentDetails[$key]);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
+                    //     foreach ($detailsByPrice as $unitPrice => $qtyData) {
+                    //         foreach ($currentDetails as $key => &$entry) {
+                    //             if ($entry['unit_price'] == $unitPrice) {
+                    //                 $entry['qty'] -= $qtyData['qty'];
+                    //                 if ($entry['qty'] <= 0) {
+                    //                     unset($currentDetails[$key]);
+                    //                 }
+                    //                 break;
+                    //             }
+                    //         }
+                    //     }
 
-                        $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
-                        $pengajuanDetail->qty -= $totalQtyReduction;
-                        $pengajuanDetail->used_materials -= $totalQtyReduction;
+                    //     $totalQtyReduction = array_sum(array_column($detailsByPrice, 'qty'));
+                    //     $pengajuanDetail->qty -= $totalQtyReduction;
+                    //     $pengajuanDetail->used_materials -= $totalQtyReduction;
 
-                        // Pastikan qty dan used_materials tidak negatif
-                        $pengajuanDetail->qty = max(0, $pengajuanDetail->qty);
-                        $pengajuanDetail->used_materials = max(0, $pengajuanDetail->used_materials);
+                    //     // Pastikan qty dan used_materials tidak negatif
+                    //     $pengajuanDetail->qty = max(0, $pengajuanDetail->qty);
+                    //     $pengajuanDetail->used_materials = max(0, $pengajuanDetail->used_materials);
 
-                        // Hitung ulang sub_total hanya jika masih ada entri di details
-                        if (!empty($currentDetails)) {
-                            $pengajuanDetail->sub_total = 0;
-                            foreach ($currentDetails as $detail) {
-                                $pengajuanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
-                            }
+                    //     // Hitung ulang sub_total hanya jika masih ada entri di details
+                    //     if (!empty($currentDetails)) {
+                    //         $pengajuanDetail->sub_total = 0;
+                    //         foreach ($currentDetails as $detail) {
+                    //             $pengajuanDetail->sub_total += $detail['qty'] * $detail['unit_price'];
+                    //         }
 
-                            // Simpan details yang sudah diperbarui
-                            $pengajuanDetail->details = json_encode(array_values($currentDetails));
-                            $pengajuanDetail->save();
-                        } else {
-                            // Jika tidak ada entry tersisa, hapus pengajuanDetails
-                            $pengajuanDetail->delete();
-                        }
-                    }
+                    //         // Simpan details yang sudah diperbarui
+                    //         $pengajuanDetail->details = json_encode(array_values($currentDetails));
+                    //         $pengajuanDetail->save();
+                    //     } else {
+                    //         // Jika tidak ada entry tersisa, hapus pengajuanDetails
+                    //         $pengajuanDetail->delete();
+                    //     }
+                    // }
 
                     // Update untuk PengambilanBahanDetails
                     $pengambilanBahanDetail = PengambilanBahanDetails::where('pengambilan_bahan_id', $bahanRusak->pengambilan_bahan_id)

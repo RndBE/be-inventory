@@ -199,7 +199,7 @@ public function downloadPdf(int $id)
         $namaManager           = $hardwareManager->name ?? null;
 
         $financeUser = cache()->remember('finance_user', 60, function () {
-            return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+            return User::where('name', 'LINA WIDIASTUTI')->first();
         });
         $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 

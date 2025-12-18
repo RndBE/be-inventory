@@ -163,7 +163,7 @@ class PembelianBahanController extends Controller
             $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
-                return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+                return User::where('name', 'LINA WIDIASTUTI')->first();
             });
             $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
@@ -283,7 +283,7 @@ class PembelianBahanController extends Controller
             $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
-                return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+                return User::where('name', 'LINA WIDIASTUTI')->first();
             });
             $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
@@ -942,7 +942,7 @@ class PembelianBahanController extends Controller
                 if ($data->dataUser->job_level == 4) {
                     if ($data->dataUser->atasan_level3_id === null && $data->dataUser->atasan_level2_id === null) {
                         // Job level 4 tanpa atasan level 3 dan 2, kirim notifikasi ke Finance
-                        $financeUser = User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+                        $financeUser = User::where('name', 'LINA WIDIASTUTI')->first();
                         $recipientName = $financeUser;
                         if ($financeUser && $financeUser->telephone) {
                             $targetPhone = $financeUser->telephone;
@@ -958,7 +958,7 @@ class PembelianBahanController extends Controller
                         }
                     }elseif ($data->dataUser->atasan_level3_id && $data->dataUser->atasan_level2_id === null) {
                         // Job level 4 tanpa atasan level 3 dan 2, kirim notifikasi ke Finance
-                        $financeUser = User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+                        $financeUser = User::where('name', 'LINA WIDIASTUTI')->first();
                         $recipientName = $financeUser;
                         if ($financeUser && $financeUser->telephone) {
                             $targetPhone = $financeUser->telephone;
@@ -1090,7 +1090,7 @@ class PembelianBahanController extends Controller
             $data->save();
 
             if ($data->status_manager === 'Disetujui') {
-                $financeUser = User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+                $financeUser = User::where('name', 'LINA WIDIASTUTI')->first();
                 $recipientName = $financeUser->name;
                 if ($financeUser && $financeUser->telephone) {
                     $targetPhone = $financeUser->telephone;

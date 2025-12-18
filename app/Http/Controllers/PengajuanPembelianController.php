@@ -143,7 +143,7 @@ class PengajuanPembelianController extends Controller
             $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
-                return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+                return User::where('name', 'LINA WIDIASTUTI')->first();
             });
             $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
@@ -266,7 +266,7 @@ class PengajuanPembelianController extends Controller
             $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
-                return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+                return User::where('name', 'LINA WIDIASTUTI')->first();
             });
             $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 

@@ -137,7 +137,8 @@
                             <td class="px-6 py-4">Rp {{ number_format($bahan_keluar->bahanKeluarDetails->sum('sub_total'), 2, ',', '.') }}</td>
                             <td class="px-6 py-4">
                                 @if ($bahan_keluar->status_pengambilan == 'Belum Diambil')
-                                    <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status_pengambilan }}</span>
+                                    {{-- <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status_pengambilan }}</span> --}}
+                                    <span class="inline-flex items-center whitespace-nowrap bg-blue-100 px-2.5 py-0.5 rounded-full  text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status_pengambilan }}</span>
                                 @elseif($bahan_keluar->status_pengambilan == 'Sudah Diambil')
                                     <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-green-400 border border-green-100">{{ $bahan_keluar->status_pengambilan }}</span>
                                 @else
@@ -146,7 +147,8 @@
                             </td>
                             <td class="px-6 py-4">
                                 @if ($bahan_keluar->status_leader == 'Belum disetujui')
-                                    <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status_leader }}</span>
+                                    {{-- <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status_leader }}</span> --}}
+                                    <span class="inline-flex items-center whitespace-nowrap bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status_leader }}</span>
                                 @elseif($bahan_keluar->status_leader == 'Disetujui')
                                     <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-green-400 border border-green-100">{{ $bahan_keluar->status_leader }}</span>
                                 @else
@@ -155,7 +157,8 @@
                             </td>
                             <td class="px-6 py-4">
                                 @if ($bahan_keluar->status == 'Belum disetujui')
-                                    <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status }}</span>
+                                    {{-- <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status }}</span> --}}
+                                    <span class="inline-flex items-center whitespace-nowrap bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status }}</span>
                                 @elseif($bahan_keluar->status == 'Disetujui')
                                     <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-green-400 border border-green-100">{{ $bahan_keluar->status }}</span>
                                 @else

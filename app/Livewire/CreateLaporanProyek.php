@@ -12,8 +12,10 @@ use App\Models\LaporanProyek;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Models\BahanSetengahjadiDetails;
+use Illuminate\Support\Facades\DB;
 use App\Models\ProdukJadiDetails;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class CreateLaporanProyek extends Component
 {
@@ -24,8 +26,14 @@ class CreateLaporanProyek extends Component
     public $dataProduk = [];
     public $dataProdukJadi = [];
     public $produksiStatus;
+
     public $itemsAset = [];
     public $proyek_id;
+    public $items = [];
+
+    public $editingId = null;
+    public $editForm = [];
+
 
     public $savedItemsAset = [];
     public $deletedItemsAset = [];
@@ -33,6 +41,88 @@ class CreateLaporanProyek extends Component
     public $originalData = [];
     public $canEditBiayaTambahan, $canDeleteBiayaTambahan, $canTambahBaris, $canSimpanLaporan;
 
+    public function mergeAndSortItems()
+    {
+        $merged = [];
+
+        // Data dari DB
+        foreach ($this->savedItemsAset as $row) {
+            $row['uuid'] = $row['uuid'] ?? null;
+            $row['source'] = 'db';
+            $row['tanggal'] = $row['tanggal'] ?? null;
+            $merged[] = $row;
+        }
+
+        // Data baru
+        foreach ($this->itemsAset as $row) {
+            $row['source'] = 'new';
+            $row['id'] = $row['id'] ?? null;
+            $row['tanggal'] = $row['tanggal'] ?? null;
+            $merged[] = $row;
+        }
+
+        // buang baris kosong
+        $merged = array_filter(
+            $merged,
+            fn($r) =>
+            !empty($r['tanggal']) || !empty($r['nama_biaya_tambahan'])
+        );
+
+        // sembunyikan data yang dihapus
+        if (!empty($this->deletedItemsAset)) {
+            $merged = array_filter(
+                $merged,
+                fn($r) =>
+                empty($r['id']) || !in_array($r['id'], $this->deletedItemsAset)
+            );
+        }
+
+        // sort tanggal ASC
+        usort(
+            $merged,
+            fn($a, $b) =>
+            strtotime($a['tanggal'] ?? '1970-01-01')
+                <=>
+                strtotime($b['tanggal'] ?? '1970-01-01')
+        );
+
+        $this->items = $merged;
+    }
+    // public function mergeAndSortItems()
+    // {
+    //     // $merged = array_merge(
+    //     //     $this->savedItemsAset ?? [],
+    //     //     $this->itemsAset ?? []
+    //     // );
+
+    //     // gabungkan TANPA reindex
+    //     $merged = ($this->savedItemsAset ?? []) + ($this->itemsAset ?? []);
+
+    //     $merged = array_filter($merged, function ($row) {
+    //         return !empty($row['tanggal']) || !empty($row['nama_biaya_tambahan']);
+    //     });
+
+    //     // if (!empty($this->deletedItemsAset)) {
+    //     //     $merged = array_filter($merged, function ($row) {
+    //     //         return empty($row['id']) || !in_array($row['id'], $this->deletedItemsAset);
+    //     //     });
+    //     // }
+    //     if (!empty($this->deletedItemsAset)) {
+    //         $merged = array_filter($merged, function ($row) {
+    //             $id = $row['id'] ?? null;
+    //             return !$id || !in_array($id, $this->deletedItemsAset);
+    //         });
+    //     }
+
+    //     usort($merged, function ($a, $b) {
+    //         $ta = is_array($a) ? ($a['tanggal'] ?? null) : ($a->tanggal ?? null);
+    //         $tb = is_array($b) ? ($b['tanggal'] ?? null) : ($b->tanggal ?? null);
+
+    //         return strtotime($ta ?? '1970-01-01') <=> strtotime($tb ?? '1970-01-01');
+    //     });
+
+    //     $this->items = $merged;
+    // }
 
 
     public function mount(Request $request)
@@ -52,10 +142,13 @@ class CreateLaporanProyek extends Component
             'dataBahanRusak.bahanRusakDetails.dataProdukJadi'
         ])->find($proyek_id);
 
-        // dd($this->proyek);
 
         // Ambil data laporan proyek yang sudah tersimpan
-        $this->savedItemsAset = LaporanProyek::where('projek_id', $proyek_id)->get()->toArray();
+        $this->savedItemsAset = LaporanProyek::where('projek_id', $proyek_id)
+            ->orderBy('tanggal', 'asc')
+            ->get()
+            ->keyBy('id')
+            ->toArray();
 
         // Pastikan projekDetails ada dan dalam bentuk array
         if ($this->proyek && $this->proyek->projekDetails) {
@@ -71,12 +164,18 @@ class CreateLaporanProyek extends Component
             $item['tanggal'] = Carbon::parse($item['tanggal'])->format('Y-m-d');
         }
 
+        $this->mergeAndSortItems();
     }
 
     public function addRow()
     {
-        $this->itemsAset[] = [
-            'tanggal' => '',
+        $uuid = (string) Str::uuid();
+
+        $this->itemsAset[$uuid] = [
+        // $this->savedItemsAset[$uuid] = [
+            'uuid' => $uuid,
+            'id' => null,
+            'tanggal' => null,
             'nama_biaya_tambahan' => '',
             'qty' => '',
             'satuan' => '',
@@ -84,40 +183,122 @@ class CreateLaporanProyek extends Component
             'total_biaya' => '',
             'keterangan' => '',
         ];
+
+        $this->mergeAndSortItems();
     }
 
-    public function saveRow($index)
+    // public function addRow()
+    // {
+    //     // $this->itemsAset[] = [
+    //     //     // 'tanggal' => '',
+    //     //     'tanggal' => null,
+    //     //     'nama_biaya_tambahan' => '',
+    //     //     'qty' => '',
+    //     //     'satuan' => '',
+    //     //     'unit_price' => '',
+    //     //     'total_biaya' => '',
+    //     //     'keterangan' => '',
+    //     // ];
+
+    //     $uuid = (string) Str::uuid();
+    //     $this->itemsAset[$uuid] = [
+    //         'uuid' => $uuid,
+    //         // 'tanggal' => '',
+    //         'tanggal' => null,
+    //         'nama_biaya_tambahan' => '',
+    //         'qty' => '',
+    //         'satuan' => '',
+    //         'unit_price' => '',
+    //         'total_biaya' => '',
+    //         'keterangan' => '',
+    //     ];
+
+    //     $this->mergeAndSortItems();
+    // }
+
+    public function saveRow($uuid)
     {
-        $this->itemsAset[$index]['editing'] = false;
+        $this->itemsAset[$uuid]['editing'] = false;
     }
 
-    public function removeRow($index)
+
+    public function removeRow($uuid)
     {
-        unset($this->itemsAset[$index]);
-        $this->itemsAset = array_values($this->itemsAset);
+        unset($this->itemsAset[$uuid]);
+
+        $this->mergeAndSortItems();
     }
+    // public function removeRow($uuid)
+    // {
+    //     unset($this->itemsAset[$uuid]);
+    //     // $this->itemsAset = array_values($this->itemsAset);
+
+    //     $this->mergeAndSortItems();
+    // }
 
     public function deleteSavedRow($id)
     {
-        // Tandai data untuk dihapus saat tombol Simpan ditekan
         $this->deletedItemsAset[] = $id;
 
-        // Hapus secara langsung dari tampilan (tanpa reload)
-        $this->savedItemsAset = array_filter($this->savedItemsAset, function ($item) use ($id) {
-            return $item['id'] != $id;
-        });
+        $this->savedItemsAset = collect($this->savedItemsAset)
+            ->reject(fn($row) => $row['id'] == $id)
+            ->all();
+
+        $this->mergeAndSortItems();
     }
 
-    public function editRow($index)
+    // public function deleteSavedRow($id)
+    // {
+    //     // Tandai data untuk dihapus saat tombol Simpan ditekan
+    //     $this->deletedItemsAset[] = $id;
+
+    //     // Hapus secara langsung dari tampilan (tanpa reload)
+    //     // $this->savedItemsAset = array_filter($this->savedItemsAset, function ($item) use ($id) {
+    //     //     return $item['id'] != $id;
+    //     // });
+
+    //     // $this->savedItemsAset = collect($this->savedItemsAset)
+    //     //     ->reject(fn($row) => isset($row['id']) && $row['id'] == $id)
+    //     //     // ->values()
+    //     //     ->all();
+    //     $this->savedItemsAset = collect($this->savedItemsAset)
+    //         ->reject(function ($row) use ($id) {
+    //             return isset($row['id']) && $row['id'] == $id;
+    //         })
+    //         ->all();
+    //     // if ($this->editingId === $id) {
+    //     //     $this->editingId = null;
+    //     //     $this->editForm = [];
+    //     // }
+
+    //     $this->mergeAndSortItems();
+    // }
+
+    public function editRow($key)
     {
-        $this->originalData[$index] = $this->savedItemsAset[$index];
-        $this->editingIndex = $index;
+        $this->editingIndex = $key;
     }
+
+    // public function editRow($index)
+    // {
+    //     if (!isset($this->items[$index])) {
+    //         return;
+    //     }
+
+    //     $this->originalData[$index] = $this->savedItemsAset[$index];
+    //     $this->editingIndex = $index;
+    // }
 
     // Fungsi untuk menyimpan perubahan
-    public function updateRow($index)
+    public function updateRow($key)
     {
-        $data = $this->savedItemsAset[$index];
+        // $data = $this->savedItemsAset[$id];
+
+        if (isset($this->savedItemsAset[$key])) {
+            $data = $this->savedItemsAset[$key];   // data lama dari DB
+        } else {
+            $data = $this->itemsAset[$key];       // data baru (uuid)
+        }
 
         // Validasi data yang diupdate
         $validator = Validator::make($data, [
@@ -128,7 +309,7 @@ class CreateLaporanProyek extends Component
             'unit_price' => 'required|numeric|min:0',
             'total_biaya' => 'nullable',
             'keterangan' => 'nullable|string|max:500',
-        ],[
+        ], [
             'tanggal.required' => 'Tanggal wajib diisi.',
             'tanggal.date' => 'Format tanggal tidak valid.',
             'nama_biaya_tambahan.required' => 'Nama biaya tambahan wajib diisi.',
@@ -155,19 +336,24 @@ class CreateLaporanProyek extends Component
         $tanggalFormatted = Carbon::parse($data['tanggal'])->format('Y-m-d H:i:s');
         $total_biaya = $data['qty'] * $data['unit_price'];
 
-        LaporanProyek::where('id', $data['id'])->update([
-            'tanggal' => $tanggalFormatted,
-            'nama_biaya_tambahan' => $data['nama_biaya_tambahan'],
-            'qty' => $data['qty'],
-            'satuan' => $data['satuan'],
-            'unit_price' => $data['unit_price'],
-            'total_biaya' => $total_biaya,
-            'keterangan' => $data['keterangan'],
-        ]);
-
-        $this->savedItemsAset[$index]['total_biaya'] = $total_biaya;
+        if (!empty($data['id'])) {
+            LaporanProyek::where('id', $data['id'])->update([
+                'tanggal' => $tanggalFormatted,
+                'nama_biaya_tambahan' => $data['nama_biaya_tambahan'],
+                'qty' => $data['qty'],
+                'satuan' => $data['satuan'],
+                'unit_price' => $data['unit_price'],
+                'total_biaya' => $total_biaya,
+                'keterangan' => $data['keterangan'],
+            ]);
+            $this->savedItemsAset[$key]['total_biaya'] = $total_biaya;
+        } else {
+            $this->itemsAset[$key]['total_biaya'] = $total_biaya;
+        }
 
         $this->editingIndex = null;
+
+        $this->mergeAndSortItems();
         LogHelper::success('Laporan proyek berhasil diperbarui.');
         $this->dispatch('show-toast', ['message' => 'Laporan proyek berhasil diperbarui.']);
     }
@@ -175,14 +361,21 @@ class CreateLaporanProyek extends Component
     // Fungsi untuk membatalkan mode edit
     public function cancelEdit()
     {
-        if ($this->editingIndex !== null) {
-            // Kembalikan data asli
-            $this->savedItemsAset[$this->editingIndex] = $this->originalData[$this->editingIndex];
+        // if ($this->editingIndex !== null) {
+        //     // Kembalikan data asli
+        //     $this->savedItemsAset[$this->editingIndex] = $this->originalData[$this->editingIndex];
 
-            // Hapus index yang sedang diedit
-            $this->editingIndex = null;
+        //     // Hapus index yang sedang diedit
+        //     $this->editingIndex = null;
+        // }
 
-        }
+        $this->editingIndex = null;
+
+        // if ($this->editingIndex !== null) {
+        //     $id = $this->editingIndex;
+        //     $this->savedItemsAset[$id] = $this->originalData[$id];
+        //     $this->editingIndex = null;
+        // }
     }
 
 
@@ -198,7 +391,7 @@ class CreateLaporanProyek extends Component
                 'unit_price' => 'required|numeric|min:0',
                 'total_biaya' => 'nullable',
                 'keterangan' => 'nullable|string|max:500',
-            ],[
+            ], [
                 'tanggal.required' => 'Tanggal wajib diisi.',
                 'tanggal.date' => 'Format tanggal tidak valid.',
                 'nama_biaya_tambahan.required' => 'Nama biaya tambahan wajib diisi.',
@@ -247,14 +440,19 @@ class CreateLaporanProyek extends Component
             ]);
 
             // Tambahkan data baru ke tampilan
-            $this->savedItemsAset[] = $laporan->toArray();
+            $this->savedItemsAset[$laporan->id] = $laporan->toArray();
+
+            // $this->savedItemsAset[] = $laporan->toArray();
         }
 
         // Kosongkan form setelah disimpan
         $this->itemsAset = [];
+        $this->mergeAndSortItems();
 
         LogHelper::success('Laporan proyek berhasil diperbarui.');
         $this->dispatch('show-toast', ['message' => 'Laporan proyek berhasil diperbarui.']);
+
+        // $this->dispatch('reload-tab2');
     }
 
     public function render()

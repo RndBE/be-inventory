@@ -242,15 +242,14 @@
                                             {{-- menampilkan data yang ada di db --}}
                                             @foreach ($items as $row)
                                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                                                    {{-- wire:key="row-{{ $item['id'] ?? $item['uuid'] ?? $index }}"> --}}
-                                                    wire:key="{{ $row['id'] ?? $row['uuid'] }}">
+                                                    {{-- wire:key="row-{{ $item['id'] ?? $item['uuid'] ?? $index }}"> --}} wire:key="{{ $row['id'] ?? $row['uuid'] }}">
                                                     <td class="px-4 py-2 align-top">
                                                         {{-- @if (isset($editingIndex) && $editingIndex === $item['id']) --}}
                                                         @if ($editingIndex === ($row['id'] ?? $row['uuid']))
                                                             <input type="date"
                                                                 class="w-full px-2 py-1 bg-transparent border focus:ring-0"
                                                                 wire:model.defer="savedItemsAset.{{ $row['id'] ?? $row['uuid'] }}.tanggal">
-                                                                {{-- value="{{ \Carbon\Carbon::parse($item['tanggal'])->format('Y-m-d') }}"> --}}
+                                                            {{-- value="{{ \Carbon\Carbon::parse($item['tanggal'])->format('Y-m-d') }}"> --}}
                                                         @else
                                                             {{-- {{ \Carbon\Carbon::parse($item['tanggal'])->translatedFormat('d F Y') }} --}}
                                                             {{ $row['tanggal'] ? \Carbon\Carbon::parse($row['tanggal'])->translatedFormat('d F Y') : '-' }}
@@ -452,6 +451,11 @@
                                             <livewire:biaya-tambahan-excel :proyek-id="$proyek->id" />
                                         </div>
                                     </tr> --}}
+                                    <tr>
+                                        <td colspan="100%">
+                                            <livewire:biaya-tambahan-excel :proyek-id="$proyek->id" />
+                                        </td>
+                                    </tr>
                                 </div>
                             </div>
                             {{-- <div x-show="tab == 'tab2'">

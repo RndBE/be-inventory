@@ -446,11 +446,6 @@
                                             </tr>
                                         </tbody>
                                     </table>
-                                    {{-- <tr>
-                                        <div class="mb-4">
-                                            <livewire:biaya-tambahan-excel :proyek-id="$proyek->id" />
-                                        </div>
-                                    </tr> --}}
                                     <tr>
                                         <td colspan="100%">
                                             <livewire:biaya-tambahan-excel :proyek-id="$proyek->id" />

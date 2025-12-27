@@ -446,11 +446,11 @@
                                             </tr>
                                         </tbody>
                                     </table>
-                                    <tr>
+                                    {{-- <tr>
                                         <td colspan="100%">
                                             <livewire:biaya-tambahan-excel :proyek-id="$proyek->id" />
                                         </td>
-                                    </tr>
+                                    </tr> --}}
                                 </div>
                             </div>
                             {{-- <div x-show="tab == 'tab2'">

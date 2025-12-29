@@ -11,6 +11,9 @@
         <!-- Header: Right side -->
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
+                <a href="{{ route('download.template.laporan') }}" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+                    📥 Template Excel Laporan
+                </a>
                 <a href="{{ route('laporan-proyek.index') }}" type="button"
                     class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
                 <!-- Tombol Simpan -->
@@ -242,15 +245,14 @@
                                             {{-- menampilkan data yang ada di db --}}
                                             @foreach ($items as $row)
                                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                                                    {{-- wire:key="row-{{ $item['id'] ?? $item['uuid'] ?? $index }}"> --}}
-                                                    wire:key="{{ $row['id'] ?? $row['uuid'] }}">
+                                                    {{-- wire:key="row-{{ $item['id'] ?? $item['uuid'] ?? $index }}"> --}} wire:key="{{ $row['id'] ?? $row['uuid'] }}">
                                                     <td class="px-4 py-2 align-top">
                                                         {{-- @if (isset($editingIndex) && $editingIndex === $item['id']) --}}
                                                         @if ($editingIndex === ($row['id'] ?? $row['uuid']))
                                                             <input type="date"
                                                                 class="w-full px-2 py-1 bg-transparent border focus:ring-0"
                                                                 wire:model.defer="savedItemsAset.{{ $row['id'] ?? $row['uuid'] }}.tanggal">
-                                                                {{-- value="{{ \Carbon\Carbon::parse($item['tanggal'])->format('Y-m-d') }}"> --}}
+                                                            {{-- value="{{ \Carbon\Carbon::parse($item['tanggal'])->format('Y-m-d') }}"> --}}
                                                         @else
                                                             {{-- {{ \Carbon\Carbon::parse($item['tanggal'])->translatedFormat('d F Y') }} --}}
                                                             {{ $row['tanggal'] ? \Carbon\Carbon::parse($row['tanggal'])->translatedFormat('d F Y') : '-' }}

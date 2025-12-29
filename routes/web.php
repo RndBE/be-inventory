@@ -155,7 +155,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::put('/pengajuan-pembelian-bahan/updateApprovalAdminManager/{id}', [PembelianBahanController::class, 'updateApprovalAdminManager'])->name('pengajuan-pembelian-bahan.updateApprovalAdminManager');
     Route::put('/pengajuan-pembelian-bahan/updateApprovalDirektur/{id}', [PembelianBahanController::class, 'updateApprovalDirektur'])->name('pengajuan-pembelian-bahan.updateApprovalDirektur');
     Route::get('/pengajuan-pembelian-bahan/{id}/editHarga', [PembelianBahanController::class, 'editHarga'])
-    ->name('pengajuan-pembelian-bahan.editHarga');
+        ->name('pengajuan-pembelian-bahan.editHarga');
     Route::put('/pengajuan-pembelian-bahan/{id}/updateHarga', [PembelianBahanController::class, 'updateHarga'])->name('pengajuan-pembelian-bahan.updateHarga');
     Route::put('/pengajuan-pembelian-bahan/uploadInvoicePembelian/{id}', [PembelianBahanController::class, 'uploadInvoice'])->name('pengajuan-pembelian-bahan.uploadInvoicePembelian');
     Route::put('/pengajuan-pembelian-bahan/uploadDokumenPembelian/{id}', [PembelianBahanController::class, 'uploadDokumen'])->name('pengajuan-pembelian-bahan.uploadDokumenPembelian');
@@ -230,6 +230,11 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
         return Excel::download(new LaporanProyekExport($projekId), 'LaporanProyek.xlsx');
     })->name('laporan-proyek.export');
 
+    Route::get('/download-template-laporan', function () {
+        return response()->download(public_path('templateexcel/test.xlsx'));
+    })->name('download.template.laporan');
+
+
     Route::resource('laporan-garansi-proyek', LaporanGaransiProyekController::class);
     Route::get('/laporan-garansi-proyek/export/{garansi_proyek_id}', function ($garansi_proyek_id) {
         return Excel::download(new LaporanGaransiProyekExport($garansi_proyek_id), 'LaporanGaransiProyek.xlsx');
@@ -259,11 +264,9 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
     // Route::post('/inventory-token/generate/{user}', [InventoryTokenController::class, 'generate'])->name('admin.inventory-token.generate');
 
-    Route::fallback(function() {
+    Route::fallback(function () {
         return view('pages/utility/404');
     });
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
-
-

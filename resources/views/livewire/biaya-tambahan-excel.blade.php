@@ -4,7 +4,7 @@
             {{-- <input class="text-sm border rounded px-2 py-1" type="file" wire:model="excelFiles" multiple
             accept=".xlsx,.xls,.csv"> --}}
             <label for="excelFiles"
-                class="inline-flex items-center gap-2 px-1 py-1.5 bg-indigo-600 text-white text-sm rounded cursor-pointer hover:bg-indigo-700 active:bg-indigo-800 transition">
+                class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white text-sm rounded cursor-pointer hover:bg-indigo-700 active:bg-indigo-800 transition ml-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -18,7 +18,7 @@
             @if ($excelFiles)
                 <ul class="flex flex-wrap gap-2 text-xs md:text-sm">
                     @foreach ($excelFiles as $file)
-                        <li class="px-3 py-1 bg-gray-100 border rounded">
+                        <li class="px-3 py-2 bg-gray-100 border rounded">
                             📄 {{ $file->getClientOriginalName() }}
                         </li>
                     @endforeach
@@ -26,8 +26,8 @@
             @endif
         </div>
 
-        <div class="flex gap-2 justify-end md:justify-start">
-            <button wire:click="readExcel" class="px-3 py-1.5 text-sm bg-indigo-600 text-white  rounded">
+        <div class="flex gap-2 justify-end md:justify-start pr-4">
+            <button wire:click="readExcel" class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded">
                 Preview
             </button>
 

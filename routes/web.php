@@ -231,9 +231,19 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     })->name('laporan-proyek.export');
 
     Route::get('/download-template-laporan', function () {
-        return response()->download(public_path('templateexcel/test.xlsx'));
+        return response()->download(public_path('templateexcel/templates_laporan_projek.xlsx'));
     })->name('download.template.laporan');
 
+//     Route::get('/download-template-laporan', function () {
+//     $file = public_path('templateexcel/templates_laporan_proyek.xlsx');
+
+//     return [
+//         'exists' => file_exists($file),
+//         'updated_at' => date('Y-m-d H:i:s', filemtime($file)),
+//         'size_bytes' => filesize($file),
+//         'md5' => md5_file($file),
+//     ];
+// }) ->name('download.template.laporan');
 
     Route::resource('laporan-garansi-proyek', LaporanGaransiProyekController::class);
     Route::get('/laporan-garansi-proyek/export/{garansi_proyek_id}', function ($garansi_proyek_id) {

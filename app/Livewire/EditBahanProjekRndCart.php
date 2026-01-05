@@ -12,6 +12,7 @@ use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use App\Models\PurchaseDetail;
 use App\Models\BahanSetengahjadiDetails;
+use App\Models\ProjekRndDetails;
 
 class EditBahanProjekRndCart extends Component
 {
@@ -21,6 +22,7 @@ class EditBahanProjekRndCart extends Component
     public $details = [];
     public $details_raw = [];
     public $subtotals = [];
+    public $keterangan_penanggungjawab = [];
     public $totalharga = 0;
     public $editingItemId = 0;
     public $projekId;
@@ -58,6 +60,21 @@ class EditBahanProjekRndCart extends Component
                 $this->jml_bahan[$detail['produk_id']] = $detail['jml_bahan'] ?? 0;
             }
         }
+
+
+        $details = ProjekRndDetails::where('projek_rnd_id', $this->projekId)->get();
+
+        foreach ($details as $d) {
+            if (!empty($d->bahan_id)) {
+                $this->keterangan_penanggungjawab[$d->bahan_id] = $d->keterangan_penanggungjawab;
+                // $this->qty[$d->bahan_id] = $d->qty;
+            }
+
+            if (!empty($d->produk_id)) {
+                $this->keterangan_penanggungjawab[$d->produk_id] = $d->keterangan_penanggungjawab;
+                // $this->qty[$d->produk_id] = $d->qty;
+            }
+        }
     }
 
     public function loadProduksi()
@@ -77,7 +94,12 @@ class EditBahanProjekRndCart extends Component
                     'sub_total' => $detail->sub_total,
                     'serial_number' => $detail->serial_number ?? null,
                     'details' => json_decode($detail->details, true),
+                    'keterangan_penanggungjawab' => $detail->keterangan_penanggungjawab ?? '',
                 ];
+
+                $id = $detail->bahan_id ?? $detail->produk_id;
+                $this->keterangan_penanggungjawab[$id] =
+                    $detail->keterangan_penanggungjawab ?? '';
             }
         }
     }
@@ -92,7 +114,7 @@ class EditBahanProjekRndCart extends Component
             ->where('projek_rnd_id', $this->projekId)
             ->get();
 
-            $this->pendingReturCount = BahanRetur::where('projek_rnd_id', $this->projekId)
+        $this->pendingReturCount = BahanRetur::where('projek_rnd_id', $this->projekId)
             ->where('status', 'Belum disetujui')
             ->count();
 
@@ -214,7 +236,7 @@ class EditBahanProjekRndCart extends Component
     public function updateQuantity($type, $itemId)
     {
         $requestedQty = $this->qty[$itemId] ?? 0;
-        if ($type==='produk') {
+        if ($type === 'produk') {
             // Cek di bahan setengah jadi details
             $bahanSetengahjadiDetails = BahanSetengahjadiDetails::where('id', $itemId)
                 ->where('sisa', '>', 0)
@@ -222,12 +244,12 @@ class EditBahanProjekRndCart extends Component
                     $query->orderBy('tgl_masuk', 'asc');
                 }])->get();
 
-                $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
-                if ($requestedQty > $totalAvailable) {
-                    $this->qty[$itemId] = $totalAvailable;
-                } else {
-                    $this->qty[$itemId] = $requestedQty;
-                }
+            $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
+            if ($requestedQty > $totalAvailable) {
+                $this->qty[$itemId] = $totalAvailable;
+            } else {
+                $this->qty[$itemId] = $requestedQty;
+            }
         } else {
             // Cek di purchase details untuk bahan biasa
             $purchaseDetails = PurchaseDetail::where('bahan_id', $itemId)
@@ -236,12 +258,12 @@ class EditBahanProjekRndCart extends Component
                     $query->orderBy('tgl_masuk', 'asc');
                 }])->get();
 
-                $totalAvailable = $purchaseDetails->sum('sisa');
-                if ($requestedQty > $totalAvailable) {
-                    $this->qty[$itemId] = $totalAvailable;
-                } else {
-                    $this->qty[$itemId] = $requestedQty;
-                }
+            $totalAvailable = $purchaseDetails->sum('sisa');
+            if ($requestedQty > $totalAvailable) {
+                $this->qty[$itemId] = $totalAvailable;
+            } else {
+                $this->qty[$itemId] = $requestedQty;
+            }
         }
     }
 
@@ -631,6 +653,7 @@ class EditBahanProjekRndCart extends Component
                 'details' => $details,
                 'serial_number' => $item['serial_number'] ?? null,
                 'sub_total' => $totalPrice,
+                'keterangan_penanggungjawab' => $this->keterangan_penanggungjawab[$itemId] ?? '',
             ];
         }
         return $projekRndDetails;

@@ -4,7 +4,8 @@
     <x-app.secondary-header :variant="$attributes['headerVariant']">
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
-                <a href="{{ route('projek-rnd.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
+                <a href="{{ route('projek-rnd.index') }}" type="button"
+                    class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
             </div>
         </div>
     </x-app.secondary-header>
@@ -16,9 +17,9 @@
                         <h1 class="text-xl font-bold text-gray-800">Histori Projek</h1>
                         <p class="text-sm text-gray-600">
                             Mulai projek:
-                                {{ \Carbon\Carbon::parse($projekRnd->mulai_projek_rnd)->translatedFormat('d F Y H:i') }}
-                                -
-                                {{ \Carbon\Carbon::parse($projekRnd->selesai_projek_rnd)->translatedFormat('d F Y H:i') }}
+                            {{ \Carbon\Carbon::parse($projekRnd->mulai_projek_rnd)->translatedFormat('d F Y H:i') }}
+                            -
+                            {{ \Carbon\Carbon::parse($projekRnd->selesai_projek_rnd)->translatedFormat('d F Y H:i') }}
                         </p>
                     </div>
                     <img src="{{ asset('images/logo_be2.png') }}" alt="Logo Be" class="h-10 w-auto">
@@ -74,8 +75,8 @@
                                 </p>
                             </div>
                             <svg :class="open ? 'rotate-180' : ''"
-                                class="w-5 h-5 text-gray-600 transform transition-transform duration-200"
-                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="w-5 h-5 text-gray-600 transform transition-transform duration-200" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 9l-7 7-7-7" />
                             </svg>
@@ -98,7 +99,6 @@
                                 <span class="pr-1">:</span>
                                 <span>{{ $bk->dataUser->name ?? '-' }}</span>
                             </div>
-
                             <!-- Nested Accordion: Bahan Keluar Details -->
                             <div class="mt-4">
                                 <h3 class="font-semibold text-gray-700 mb-2">Detail Bahan</h3>
@@ -107,14 +107,14 @@
                                         <button @click="openDetail = !openDetail"
                                             class="w-full flex justify-between items-center px-3 py-2 bg-gray-50 hover:bg-gray-100">
                                             <div class="text-sm">
-                                                @if($detail->dataBahan)
+                                                @if ($detail->dataBahan)
                                                     {{ $detail->dataBahan->nama_bahan }}
                                                 @elseif($detail->dataProduk)
                                                     {{ $detail->dataProduk->nama_bahan }}
                                                 @elseif($detail->dataProdukJadi)
                                                     {{ $detail->dataProdukJadi->nama_produk }}
                                                 @else
-                                                    {{ 'Bahan #' . ($detailIndex+1) }}
+                                                    {{ 'Bahan #' . ($detailIndex + 1) }}
                                                 @endif
                                             </div>
                                             <svg :class="openDetail ? 'rotate-180' : ''"
@@ -132,6 +132,17 @@
                                                 <span>{{ $detail->qty }}</span>
                                             </div>
                                             <div class="flex mb-1">
+                                                <span class="w-28 font-medium">Keterangan</span>
+                                                <span class="pr-1">:</span>
+                                                <span>
+                                                    {{ $detail->projekRndDetails->keterangan_penanggungjawab ??
+                                                        ($projekRnd->projekRndDetails->where('bahan_id', $detail->bahan_id)->where('produk_id', $detail->produk_id)->first()->keterangan_penanggungjawab ??
+                                                            '-') }}
+                                                </span>
+                                                {{-- <span>{{ $detail->projekRndDetails->keterangan_penanggungjawab ?? '-' }}</span> --}}
+                                                {{-- <span>{{ $detail->projekRndDetailsAktif->keterangan_penanggungjawab ?? '-' }}</span> --}}
+                                            </div>
+                                            <div class="flex mb-1">
                                                 @php
                                                     $detailItems = json_decode($detail->details, true);
                                                 @endphp
@@ -141,7 +152,7 @@
                                                     <span class="pr-1">:</span>
                                                 </div>
 
-                                                @if(is_array($detailItems) && count($detailItems) > 0)
+                                                @if (is_array($detailItems) && count($detailItems) > 0)
                                                     <div class="overflow-x-auto">
                                                         <table class="min-w-full text-xs border">
                                                             <thead class="bg-gray-100">
@@ -150,14 +161,13 @@
                                                                     <th class="px-2 py-1 border">Qty</th>
                                                                     <th class="px-2 py-1 border">Unit Price</th>
                                                                     <th class="px-2 py-1 border">Sub Total</th>
-                                                                </tr>
                                                             </thead>
                                                             <tbody>
                                                                 @php
                                                                     $grandTotal = 0;
                                                                 @endphp
 
-                                                                @foreach($detailItems as $item)
+                                                                @foreach ($detailItems as $item)
                                                                     @php
                                                                         $qty = (float) ($item['qty'] ?? 0);
                                                                         $price = (float) ($item['unit_price'] ?? 0);
@@ -167,33 +177,36 @@
                                                                     <tr>
                                                                         <td>
                                                                             @php
-                                                                                $trx = $lookupTransaksi[$item['kode_transaksi']] ?? null;
+                                                                                $trx =
+                                                                                    $lookupTransaksi[
+                                                                                        $item['kode_transaksi']
+                                                                                    ] ?? null;
                                                                             @endphp
 
-                                                                            @if($trx && $trx['purchase'] && $trx['purchase']->qcBahanMasuk)
+                                                                            @if ($trx && $trx['purchase'] && $trx['purchase']->qcBahanMasuk)
                                                                                 <a href="{{ route('quality-page.qc-bahan-masuk.view', $trx['purchase']->qcBahanMasuk->id_qc_bahan_masuk) }}"
-                                                                                class="text-blue-600 hover:underline" target="_blank">
-                                                                                {{ $trx['purchase']->qcBahanMasuk->kode_qc }}
+                                                                                    class="text-blue-600 hover:underline"
+                                                                                    target="_blank">
+                                                                                    {{ $trx['purchase']->qcBahanMasuk->kode_qc }}
                                                                                 </a>
-
                                                                             @elseif($trx && $trx['produkSetengahJadi'] && $trx['produkSetengahJadi']->qcProdukSetengaJadi)
                                                                                 <a href="{{ route('quality-page.qc-produk-setengah-jadi.view', $trx['produkSetengahJadi']->qcProdukSetengaJadi->id) }}"
-                                                                                class="text-blue-600 hover:underline" target="_blank">
-                                                                                {{ $trx['produkSetengahJadi']->qcProdukSetengaJadi->kode_list }}
+                                                                                    class="text-blue-600 hover:underline"
+                                                                                    target="_blank">
+                                                                                    {{ $trx['produkSetengahJadi']->qcProdukSetengaJadi->kode_list }}
                                                                                 </a>
-
                                                                             @elseif($trx && $trx['produkJadi'] && $trx['produkJadi']->qcProdukJadi)
                                                                                 <a href="{{ route('quality-page.qc-produk-jadi.view', $trx['produkJadi']->qcProdukJadi->id) }}"
-                                                                                class="text-blue-600 hover:underline" target="_blank">
-                                                                                {{ $trx['produkJadi']->qcProdukJadi->kode_list }}
+                                                                                    class="text-blue-600 hover:underline"
+                                                                                    target="_blank">
+                                                                                    {{ $trx['produkJadi']->qcProdukJadi->kode_list }}
                                                                                 </a>
-
                                                                             @elseif($trx && $trx['purchase'])
                                                                                 <a href="{{ route('purchases.show', $trx['purchase']->id) }}"
-                                                                                class="text-blue-600 hover:underline" target="_blank">
-                                                                                {{ $item['kode_transaksi'] }}
+                                                                                    class="text-blue-600 hover:underline"
+                                                                                    target="_blank">
+                                                                                    {{ $item['kode_transaksi'] }}
                                                                                 </a>
-
                                                                             @else
                                                                                 {{ $item['kode_transaksi'] ?? '-' }}
                                                                             @endif
@@ -201,16 +214,24 @@
                                                                         </td>
 
                                                                         {{-- <td class="px-2 py-1 border">{{ $item['serial_number'] ?? '-' }}</td> --}}
-                                                                        <td class="px-2 py-1 border text-right">{{ $qty }}</td>
-                                                                        <td class="px-2 py-1 border text-right">{{ number_format($price, 2, ',', '.') }}</td>
-                                                                        <td class="px-2 py-1 border text-right">{{ number_format($subTotal, 2, ',', '.') }}</td>
+                                                                        <td class="px-2 py-1 border text-right">
+                                                                            {{ $qty }}</td>
+                                                                        <td class="px-2 py-1 border text-right">
+                                                                            {{ number_format($price, 2, ',', '.') }}
+                                                                        </td>
+                                                                        <td class="px-2 py-1 border text-right">
+                                                                            {{ number_format($subTotal, 2, ',', '.') }}
+                                                                        </td>
                                                                     </tr>
                                                                 @endforeach
 
                                                                 {{-- Baris Total --}}
                                                                 <tr class="font-bold bg-gray-100">
-                                                                    <td colspan="3" class="px-2 py-1 border text-right">Total</td>
-                                                                    <td class="px-2 py-1 border text-right">{{ number_format($grandTotal, 2, ',', '.') }}</td>
+                                                                    <td colspan="3"
+                                                                        class="px-2 py-1 border text-right">Total</td>
+                                                                    <td class="px-2 py-1 border text-right">
+                                                                        {{ number_format($grandTotal, 2, ',', '.') }}
+                                                                    </td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -291,14 +312,14 @@
                                         <button @click="openDetail = !openDetail"
                                             class="w-full flex justify-between items-center px-3 py-2 bg-gray-50 hover:bg-gray-100">
                                             <div class="text-sm">
-                                                @if($detail->dataBahan)
+                                                @if ($detail->dataBahan)
                                                     {{ $detail->dataBahan->nama_bahan }}
                                                 @elseif($detail->dataProduk)
                                                     {{ $detail->dataProduk->nama_bahan }}
                                                 @elseif($detail->dataProdukJadi)
                                                     {{ $detail->dataProdukJadi->nama_produk }}
                                                 @else
-                                                    {{ 'Bahan #' . ($detailIndex+1) }}
+                                                    {{ 'Bahan #' . ($detailIndex + 1) }}
                                                 @endif
                                             </div>
                                             <svg :class="openDetail ? 'rotate-180' : ''"
@@ -309,7 +330,8 @@
                                             </svg>
                                         </button>
 
-                                        <div x-show="openDetail" x-collapse class="px-3 py-3 text-sm bg-white border-t rounded-b space-y-2">
+                                        <div x-show="openDetail" x-collapse
+                                            class="px-3 py-3 text-sm bg-white border-t rounded-b space-y-2">
                                             <div class="flex justify-between">
                                                 <span class="font-medium w-32">Serial Number</span>
                                                 <span>{{ $detail->serial_number ?? '-' }}</span>
@@ -320,11 +342,14 @@
                                             </div>
                                             <div class="flex justify-between">
                                                 <span class="font-medium w-32">Unit Price</span>
-                                                <span>Rp {{ number_format($detail->unit_price ?? 0, 0, ',', '.') }}</span>
+                                                <span>Rp
+                                                    {{ number_format($detail->unit_price ?? 0, 0, ',', '.') }}</span>
                                             </div>
-                                            <div class="flex justify-between border-t pt-2 font-semibold text-gray-800">
+                                            <div
+                                                class="flex justify-between border-t pt-2 font-semibold text-gray-800">
                                                 <span class="w-32">Sub Total</span>
-                                                <span>Rp {{ number_format($detail->sub_total ?? 0, 0, ',', '.') }}</span>
+                                                <span>Rp
+                                                    {{ number_format($detail->sub_total ?? 0, 0, ',', '.') }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -393,14 +418,14 @@
                                         <button @click="openDetail = !openDetail"
                                             class="w-full flex justify-between items-center px-3 py-2 bg-gray-50 hover:bg-gray-100">
                                             <div class="text-sm">
-                                                @if($detail->dataBahan)
+                                                @if ($detail->dataBahan)
                                                     {{ $detail->dataBahan->nama_bahan }}
                                                 @elseif($detail->dataProduk)
                                                     {{ $detail->dataProduk->nama_bahan }}
                                                 @elseif($detail->dataProdukJadi)
                                                     {{ $detail->dataProdukJadi->nama_produk }}
                                                 @else
-                                                    {{ 'Bahan #' . ($detailIndex+1) }}
+                                                    {{ 'Bahan #' . ($detailIndex + 1) }}
                                                 @endif
                                             </div>
                                             <svg :class="openDetail ? 'rotate-180' : ''"
@@ -411,7 +436,8 @@
                                             </svg>
                                         </button>
 
-                                        <div x-show="openDetail" x-collapse class="px-3 py-3 text-sm bg-white border-t rounded-b space-y-2">
+                                        <div x-show="openDetail" x-collapse
+                                            class="px-3 py-3 text-sm bg-white border-t rounded-b space-y-2">
                                             <div class="flex justify-between">
                                                 <span class="font-medium w-32">Serial Number</span>
                                                 <span>{{ $detail->serial_number ?? '-' }}</span>
@@ -422,11 +448,14 @@
                                             </div>
                                             <div class="flex justify-between">
                                                 <span class="font-medium w-32">Unit Price</span>
-                                                <span>Rp {{ number_format($detail->unit_price ?? 0, 0, ',', '.') }}</span>
+                                                <span>Rp
+                                                    {{ number_format($detail->unit_price ?? 0, 0, ',', '.') }}</span>
                                             </div>
-                                            <div class="flex justify-between border-t pt-2 font-semibold text-gray-800">
+                                            <div
+                                                class="flex justify-between border-t pt-2 font-semibold text-gray-800">
                                                 <span class="w-32">Sub Total</span>
-                                                <span>Rp {{ number_format($detail->sub_total ?? 0, 0, ',', '.') }}</span>
+                                                <span>Rp
+                                                    {{ number_format($detail->sub_total ?? 0, 0, ',', '.') }}</span>
                                             </div>
                                         </div>
                                     </div>

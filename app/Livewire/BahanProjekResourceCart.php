@@ -15,6 +15,7 @@ class BahanProjekResourceCart extends Component
     public $details = [];
     public $details_raw = [];
     public $subtotals = [];
+    public $keterangan_penanggungjawab = [];
     public $totalharga = 0;
     public $editingItemId = 0;
 
@@ -115,6 +116,7 @@ class BahanProjekResourceCart extends Component
                 $this->qty[$storedItem['id']] = $storedItem['qty'];
                 $this->jml_bahan[$storedItem['id']] = $storedItem['jml_bahan'];
                 $this->subtotals[$storedItem['id']] = $storedItem['sub_total'];
+                $this->keterangan_penanggungjawab[$storedItem['id']] = $storedItem['keterangan_penanggungjawab'];
             }
             $this->calculateTotalHarga();
         }
@@ -244,20 +246,41 @@ class BahanProjekResourceCart extends Component
 
     public function getCartItemsForStorage()
     {
+        // $items = [];
+
+        // foreach ($this->cart as $item) {
+        //     // Tentukan apakah item merupakan bahan setengah jadi berdasarkan serial_number
+        //     $isSetengahJadi = !empty($item->serial_number);
+
+        //     $items[] = [
+        //         'bahan_id' => $isSetengahJadi ? null : ($item->bahan_id ?? $item->id),
+        //         'produk_id' => $isSetengahJadi ? ($item->produk_id ?? $item->id) : null,
+        //         'serial_number' => $isSetengahJadi ? $item->serial_number : null,
+        //         'qty' => $this->qty[$item->id] ?? 0,
+        //         'jml_bahan' => $this->jml_bahan[$item->id] ?? 0,
+        //         'details' => $this->details[$item->id] ?? [],
+        //         'sub_total' => $this->subtotals[$item->id] ?? 0,
+        //         'keterangan_penanggungjawab' => $this->keterangan_penanggungjawab[$item->id] ?? '',
+        //     ];
+        // }
         $items = [];
 
         foreach ($this->cart as $item) {
-            // Tentukan apakah item merupakan bahan setengah jadi berdasarkan serial_number
-            $isSetengahJadi = !empty($item->serial_number);
+
+            $itemId = $item->id;
 
             $items[] = [
-                'bahan_id' => $isSetengahJadi ? null : ($item->bahan_id ?? $item->id),
-                'produk_id' => $isSetengahJadi ? ($item->produk_id ?? $item->id) : null,
-                'serial_number' => $isSetengahJadi ? $item->serial_number : null,
-                'qty' => $this->qty[$item->id] ?? 0,
-                'jml_bahan' => $this->jml_bahan[$item->id] ?? 0,
-                'details' => $this->details[$item->id] ?? [],
-                'sub_total' => $this->subtotals[$item->id] ?? 0,
+                'bahan_id' => $item->id,   // penting!
+                'produk_id' => null,
+                'serial_number' => null,
+
+                'qty' => $this->qty[$itemId] ?? 0,
+                'jml_bahan' => 0,
+                'details' => $this->details[$itemId] ?? [],
+                'sub_total' => $this->subtotals[$itemId] ?? 0,
+
+                'keterangan_penanggungjawab' =>
+                $this->keterangan_penanggungjawab[$itemId] ?? '',
             ];
         }
 

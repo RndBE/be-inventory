@@ -12,6 +12,18 @@ class ProjekRndDetails extends Model
     protected $table = 'projek_rnd_details';
     protected $guarded = [];
 
+    protected $fillable = [
+        'projek_rnd_id',
+        'bahan_id',
+        'produk_id',
+        'qty',
+        'used_materials',
+        'keterangan_penanggungjawab',
+        'details',
+        'sub_total',
+        'serial_number',
+    ];
+
 
     public function projekRnd()
     {

@@ -18,6 +18,7 @@ use App\Models\ProdukProduksi;
 use App\Exports\ProjekRndExport;
 use App\Models\BahanReturDetails;
 use App\Models\BahanRusakDetails;
+use App\Models\ProjekRndDetails;
 use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Jobs\SendWhatsAppNotification;
 use App\Models\BahanSetengahjadiDetails;
+use App\Models\Projek;
 use Illuminate\Support\Facades\Validator;
 
 class ProjekRndController extends Controller
@@ -34,8 +36,8 @@ class ProjekRndController extends Controller
     {
         $this->middleware('permission:lihat-projek-rnd', ['only' => ['index']]);
         $this->middleware('permission:selesai-projek-rnd', ['only' => ['updateStatus']]);
-        $this->middleware('permission:tambah-projek-rnd', ['only' => ['create','store']]);
-        $this->middleware('permission:edit-projek-rnd', ['only' => ['update','edit']]);
+        $this->middleware('permission:tambah-projek-rnd', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-projek-rnd', ['only' => ['update', 'edit']]);
         $this->middleware('permission:hapus-projek-rnd', ['only' => ['destroy']]);
     }
 
@@ -47,7 +49,7 @@ class ProjekRndController extends Controller
             'bahanKeluar.dataUser',
             'bahanKeluar.bahanKeluarDetails' => function ($query) {
                 $query->where('qty', '>', 0)
-                    ->with(['dataBahan', 'dataProduk', 'dataProdukJadi', 'purchase']);
+                    ->with(['dataBahan', 'dataProduk', 'dataProdukJadi', 'purchase', 'projekRndDetails']);
             },
             'dataBahanRetur.bahanReturDetails' => function ($query) {
                 $query->where('qty', '>', 0)
@@ -94,7 +96,7 @@ class ProjekRndController extends Controller
     public function export($projek_rnd_id)
     {
         $projek_rnd = ProjekRnd::findOrFail($projek_rnd_id);
-        $fileName = 'HPP_Projek_Rnd_' . 'Riset'.$projek_rnd->nama_projek_rnd . '_be-inventory.xlsx';
+        $fileName = 'HPP_Projek_Rnd_' . 'Riset' . $projek_rnd->nama_projek_rnd . '_be-inventory.xlsx';
         return Excel::download(new ProjekRndExport($projek_rnd_id), $fileName);
     }
 
@@ -106,7 +108,7 @@ class ProjekRndController extends Controller
     public function create()
     {
         $units = Unit::all();
-        $bahans = Bahan::whereHas('jenisBahan', function($query) {
+        $bahans = Bahan::whereHas('jenisBahan', function ($query) {
             $query->where('nama', 'Projek RnD');
         })->get();
         return view('pages.projek-rnd.create', compact('units', 'bahans'));
@@ -134,7 +136,7 @@ class ProjekRndController extends Controller
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
-            $tujuan = 'Proyek/Riset '. $request->nama_projek_rnd;
+            $tujuan = 'Proyek/Riset ' . $request->nama_projek_rnd;
             $user = Auth::user();
 
             $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
@@ -143,7 +145,7 @@ class ProjekRndController extends Controller
 
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
             $new_transaction_number = ($lastTransaction ? intval(substr($lastTransaction->kode_transaksi, 6)) : 0) + 1;
-            $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT). ' PJRnD';
+            $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT) . ' PJRnD';
             $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
             $lastTransactionProjek = ProjekRnd::orderByRaw('CAST(SUBSTRING(kode_projek_rnd, 10) AS UNSIGNED) DESC')->first();
@@ -225,14 +227,16 @@ class ProjekRndController extends Controller
                         'jml_bahan' => 0,
                         'details' => $item['details'] ?? [],
                         'sub_total' => 0,
+                        'keterangan_penanggungjawab' => $item['keterangan_penanggungjawab'] ?? null,
                     ];
                 }
 
                 $groupedItems[$key]['qty'] += $item['qty'] ?? 0;
                 $groupedItems[$key]['jml_bahan'] += $item['jml_bahan'] ?? 0;
                 $groupedItems[$key]['sub_total'] += $item['sub_total'] ?? 0;
+                $groupedItems[$key]['keterangan_penanggungjawab'] = $item['keterangan_penanggungjawab'] ?? null;
             }
-
+            // dd($groupedItems);
             // Save items to BahanKeluarDetails and ProjekDetails
             foreach ($groupedItems as $details) {
                 BahanKeluarDetails::create([
@@ -246,7 +250,21 @@ class ProjekRndController extends Controller
                     'details' => json_encode($details['details']),
                     'sub_total' => $details['sub_total'],
                 ]);
+
+                ProjekRndDetails::create([
+                    'projek_rnd_id' => $projek_rnd->id,
+                    'bahan_id' => $details['bahan_id'],
+                    'produk_id' => $details['produk_id'],
+                    'serial_number' => $details['serial_number'],
+                    'qty' => $details['qty'],
+                    'used_materials' => 0,
+                    // 'keterangan_penanggungjawab' => $details['keterangan_penanggungjawab'] ?? null,
+                    'keterangan_penanggungjawab' => $details['keterangan_penanggungjawab'] ?? null,
+                    'details' => json_encode($details['details'] ?? []),
+                    'sub_total' => $details['sub_total'] ?? 0,
+                ]);
             }
+
 
             // Kirim notifikasi jika nomor telepon valid
             if ($targetPhone) {
@@ -279,7 +297,7 @@ class ProjekRndController extends Controller
             'projekRndDetails.dataBahan',
             'projekRndDetails.dataProduk',
             'bahanKeluar'
-            ])->findOrFail($id);
+        ])->findOrFail($id);
 
         $isComplete = true;
         if ($projek_rnd->projekRndDetails && count($projek_rnd->projekRndDetails) > 0) {
@@ -312,19 +330,29 @@ class ProjekRndController extends Controller
             'serial_number' => 'nullable|string|max:255',
         ]);
         try {
-            //dd($request->all());
-            $projekRndDetails = json_decode($request->projekRndDetails, true) ?? [];
+            // dd($request->all());
+            // $projekRndDetails = json_decode($request->projekRndDetails, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $projek_rnd = ProjekRnd::findOrFail($id);
+            // dd($request->projekRndDetails);
 
+            $projeckRndDetails = $request->projekRndDetails;
+            if (is_array($projeckRndDetails)) {
+                $projekRndDetails = $projeckRndDetails;
+            } elseif (is_string($projeckRndDetails)) {
+                $projekRndDetails = json_decode($projeckRndDetails, true) ?? [];
+            } else {
+                $projekRndDetails = [];
+            }
+            // dd($projekRndDetails);
             $projek_rnd->update([
                 'nama_projek_rnd' => $validatedData['nama_projek_rnd'],
                 'keterangan' => $validatedData['keterangan'],
                 'serial_number' => $validatedData['serial_number'],
             ]);
 
-            $tujuan = 'Proyek/Riset '. $projek_rnd->nama_projek_rnd;
+            $tujuan = 'Proyek/Riset ' . $projek_rnd->nama_projek_rnd;
             $user = Auth::user();
 
             $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
@@ -339,7 +367,7 @@ class ProjekRndController extends Controller
             }
             $new_transaction_number = $last_transaction_number + 1;
             $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-            $kode_transaksi = 'KBK - ' . $formatted_number. ' PJRnD';
+            $kode_transaksi = 'KBK - ' . $formatted_number . ' PJRnD';
             $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
             if ($user->job_level == 3 && $user->atasan_level3_id === null) {
@@ -373,16 +401,30 @@ class ProjekRndController extends Controller
                 $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
             }
 
+            $projekRndDetails = is_array($request->projekRndDetails)
+                ? $request->projekRndDetails
+                : json_decode($request->projekRndDetails, true);
+
+
             // Kelompokkan item berdasarkan bahan_id dan jumlah
+            $newItemsOnly = [];
             $groupedItems = [];
             $totalQty = 0;  // Variabel untuk menghitung total qty
-
+            // dd($projeckRndDetails);
             foreach ($projekRndDetails as $item) {
                 $bahan_id = $item['bahan_id'] ?? null;
                 $produk_id = $item['produk_id'] ?? null;
                 $serial_number = $item['serial_number'] ?? null;
+                // dd($projekRndDetails, $projeckRndDetails);
 
+                if (!$bahan_id && !$produk_id) continue;
+
+                $qty = (float)($item['qty'] ?? 0);
+                $jml_bahan = (float)($item['jml_bahan'] ?? 0);
+                $sub_total = (float)($item['sub_total'] ?? 0);
+                $details = $item['details'] ?? [];
                 $final_bahan_id = $bahan_id ?? $produk_id;
+
                 // Gunakan kunci unik berdasarkan bahan_id dan serial_number
                 $key = $final_bahan_id . ($serial_number ?? '');
                 if (!isset($groupedItems[$key])) {
@@ -392,17 +434,25 @@ class ProjekRndController extends Controller
                         'serial_number' => $serial_number,
                         'qty' => 0,
                         'jml_bahan' => 0,
-                        'details' => $item['details'],
+                        'details' => $details,
                         'sub_total' => 0,
+                        'keterangan_penanggungjawab' => $item['keterangan_penanggungjawab'] ?? null,
                     ];
                 }
-                $groupedItems[$key]['qty'] += $item['qty'];
-                $groupedItems[$key]['jml_bahan'] += $item['jml_bahan'];
-                $groupedItems[$key]['sub_total'] += $item['sub_total'];
-                $totalQty += $item['qty']; // Tambahkan qty item ke total qty
-            }
+                $groupedItems[$key]['qty'] += $qty;
+                $groupedItems[$key]['jml_bahan'] += $jml_bahan;
+                $groupedItems[$key]['sub_total'] += $sub_total;
+                $totalQty += $qty; // Tambahkan qty item ke total qty
+                // $groupedItems[$key]['keterangan_penanggungjawab'] = $item['keterangan_penanggungjawab'] ?? null;
 
-            if ($totalQty !== 0) {
+                if ((float)($item['qty'] ?? 0) > 0) {
+                    $newItemsOnly[$key] = $groupedItems[$key];
+                }
+            }
+            // dd($newItemsOnly, $groupedItems);
+            // dd($groupedItems);
+            // if ($totalQty !== 0) {
+            if (count($newItemsOnly) > 0) {
                 $bahan_keluar = BahanKeluar::create([
                     'kode_transaksi' => $kode_transaksi,
                     'projek_rnd_id' => $projek_rnd->id,
@@ -417,7 +467,9 @@ class ProjekRndController extends Controller
                 ]);
 
                 // Simpan data ke Bahan Keluar Detail dan Produksi Detail
-                foreach ($groupedItems as $bahan_id => $details) {
+                // foreach ($groupedItems as $bahan_id => $details) {
+                // foreach ($groupedItems as $details) {
+                foreach ($newItemsOnly as $details) {
                     BahanKeluarDetails::create([
                         'bahan_keluar_id' => $bahan_keluar->id,
                         'bahan_id' => $details['bahan_id'],
@@ -426,7 +478,7 @@ class ProjekRndController extends Controller
                         'qty' => $details['qty'],
                         'jml_bahan' => $details['jml_bahan'],
                         'used_materials' => 0,
-                        'details' => json_encode($details['details']),
+                        'details' => json_encode($details['details'] ?? []),
                         'sub_total' => $details['sub_total'],
                     ]);
                 }
@@ -443,6 +495,34 @@ class ProjekRndController extends Controller
                     LogHelper::error('No valid phone number found for WhatsApp notification.');
                 }
             }
+            
+            foreach ($groupedItems as $item) {
+                $existing = ProjekRndDetails::where('projek_rnd_id', $projek_rnd->id)
+                    ->where('bahan_id', $item['bahan_id'])
+                    ->where('produk_id', $item['produk_id'])
+                    ->where('serial_number', $item['serial_number'])
+                    ->first();
+
+                if ($existing) {
+                    $existing->update([
+                        'keterangan_penanggungjawab' => $item['keterangan_penanggungjawab'],
+                        'details' => json_encode($item['details'] ?? []),
+                        'sub_total' => $item['sub_total'],
+                    ]);
+                } else {
+                    ProjekRndDetails::create([
+                        'projek_rnd_id' => $projek_rnd->id,
+                        'bahan_id' => $item['bahan_id'],
+                        'produk_id' => $item['produk_id'],
+                        'serial_number' => $item['serial_number'],
+                        'qty' => $item['qty'],
+                        'used_materials' => 0,
+                        'keterangan_penanggungjawab' => $item['keterangan_penanggungjawab'],
+                        'details' => json_encode($item['details'] ?? []),
+                        'sub_total' => $item['sub_total'],
+                    ]);
+                }
+            }
 
             // Save bahan rusak if available
             if (!empty($bahanRusak)) {
@@ -454,7 +534,7 @@ class ProjekRndController extends Controller
                 }
                 $new_transaction_number = $last_transaction_number + 1;
                 $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-                $kode_transaksi = 'BRS - ' . $formatted_number. ' PJRnD';
+                $kode_transaksi = 'BRS - ' . $formatted_number . ' PJRnD';
 
                 $bahanRusakRecord = BahanRusak::create([
                     'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
@@ -506,7 +586,7 @@ class ProjekRndController extends Controller
                 }
                 $new_transaction_number = $last_transaction_number + 1;
                 $formatted_number = str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT);
-                $kode_transaksi = 'BRT - ' . $formatted_number. ' PJRnD';
+                $kode_transaksi = 'BRT - ' . $formatted_number . ' PJRnD';
 
                 $bahanReturRecord = BahanRetur::create([
                     'tgl_pengajuan' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
@@ -627,7 +707,7 @@ class ProjekRndController extends Controller
 
     public function destroy(string $id)
     {
-        try{
+        try {
             $projek_rnd = ProjekRnd::find($id);
             //dd($projek_rnd);
             if (!$projek_rnd) {
@@ -636,7 +716,7 @@ class ProjekRndController extends Controller
             $projek_rnd->delete();
             LogHelper::success('Projek RnD berhasil dihapus!');
             return redirect()->back()->with('success', 'Projek RnD berhasil dihapus!');
-        }catch(Throwable $e){
+        } catch (Throwable $e) {
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }

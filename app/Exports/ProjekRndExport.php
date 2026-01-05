@@ -45,7 +45,8 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
         $data[] = ['Masa Pekerjaan', '', ': '.$formattedStartDate . ' - ' . $formattedEndDate];
         $data[] = [''];
 
-        $data[] = ['No', 'Nama Barang/Bahan', 'Qty', 'Satuan', 'Harga Satuan', 'Total'];
+        // $data[] = ['No', 'Nama Barang/Bahan', 'Qty', 'Satuan', 'Harga Satuan', 'Total'];
+        $data[] = ['No', 'Nama Barang/Bahan', 'Qty', 'Satuan', 'Harga Satuan', 'Total' , 'Keterangan'];
 
         foreach ($projek_rnd->projekRndDetails as $index => $detail) {
             $detailsArray = json_decode($detail->details, true);
@@ -64,6 +65,7 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
                 $detail->dataBahan->dataUnit->nama ?? 'Pcs',
                 $formattedDetailsString,
                 $detail->sub_total,
+                $detail->keterangan_penanggungjawab ?? '-',
             ];
 
             $totalQty += $detail->qty;
@@ -73,6 +75,7 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
 
         $data[] = [
             'Total HPP Proyek RnD',
+            '',
             '',
             $totalQty,
             '',
@@ -108,8 +111,8 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
         $sheet->mergeCells('C6:F6');
         $sheet->mergeCells('C7:F7');
 
-        $sheet->getStyle('A9:F9')->getFont()->setBold(true);
-        $sheet->getStyle('A9:F9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A9:G9')->getFont()->setBold(true);
+        $sheet->getStyle('A9:G9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $lastRow = $sheet->getHighestRow();
 
@@ -129,7 +132,7 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
             ],
         ];
 
-        $sheet->getStyle('A9:F' . $lastRow)->applyFromArray($borderStyle);
+        $sheet->getStyle('A9:G' . $lastRow)->applyFromArray($borderStyle);
 
         $sheet->mergeCells('A' . $lastRow . ':B' . $lastRow);
         $sheet->getStyle('A' . $lastRow . ':F' . $lastRow)->getFont()->setBold(true);

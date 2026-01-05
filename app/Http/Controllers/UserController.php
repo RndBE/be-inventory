@@ -17,14 +17,14 @@ class UserController extends Controller
     public function __construct()
     {
         $this->middleware('permission:lihat-user', ['only' => ['index']]);
-        $this->middleware('permission:tambah-user', ['only' => ['create','store']]);
-        $this->middleware('permission:edit-user', ['only' => ['update','edit']]);
+        $this->middleware('permission:tambah-user', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-user', ['only' => ['update', 'edit']]);
         $this->middleware('permission:hapus-user', ['only' => ['destroy']]);
     }
 
     public function index()
     {
-        $users = User::with(['atasanLevel1','atasanLevel2','atasanLevel3'])->get();
+        $users = User::with(['atasanLevel1', 'atasanLevel2', 'atasanLevel3'])->get();
         return view('pages.user.index', ['users' => $users]);
     }
 
@@ -116,8 +116,8 @@ class UserController extends Controller
         $users = User::orderBy('name', 'asc')->get();
         $jobpositions = JobPosition::orderBy('nama', 'asc')->get();
         $organizations = Organization::orderBy('nama', 'asc')->get();
-        $roles = Role::pluck('name','name')->all();
-        $userRoles = $user->roles->pluck('name','name')->all();
+        $roles = Role::pluck('name', 'name')->all();
+        $userRoles = $user->roles->pluck('name', 'name')->all();
         return view('pages.user.edit', [
             'users' => $users,
             'jobpositions' => $jobpositions,
@@ -172,9 +172,18 @@ class UserController extends Controller
                 'job_level' => $validated['job_level'] ?? $user->job_level,
                 'email' => $validated['email'],
                 'telephone' => $validated['telephone'] ?? $user->telephone,
-                'atasan_level1_id' => $validated['atasan_level1_id'] ?? $user->atasan_level1_id,
-                'atasan_level2_id' => $validated['atasan_level2_id'] ?? $user->atasan_level2_id,
-                'atasan_level3_id' => $validated['atasan_level3_id'] ?? $user->atasan_level3_id,
+                // 'atasan_level1_id' => $validated['atasan_level1_id'] ?? $user->atasan_level1_id,
+                // 'atasan_level2_id' => $validated['atasan_level2_id'] ?? $user->atasan_level2_id,
+                // 'atasan_level3_id' => $validated['atasan_level3_id'] ?? $user->atasan_level3_id,
+                'atasan_level1_id' => array_key_exists('atasan_level1_id', $validated)
+                    ? ($validated['atasan_level1_id'] ?: null)
+                    : $user->atasan_level1_id,
+                'atasan_level2_id' => array_key_exists('atasan_level2_id', $validated)
+                    ? ($validated['atasan_level2_id'] ?: null)
+                    : $user->atasan_level2_id,
+                'atasan_level3_id' => array_key_exists('atasan_level3_id', $validated)
+                    ? ($validated['atasan_level3_id'] ?: null)
+                    : $user->atasan_level3_id,
                 'tanda_tangan' => $validated['tanda_tangan'] ?? $user->tanda_tangan,
                 'status' => $validated['status'],
             ]);
@@ -211,5 +220,4 @@ class UserController extends Controller
             return redirect('/users')->with('error', 'Failed to delete user. Please try again.');
         }
     }
-
 }

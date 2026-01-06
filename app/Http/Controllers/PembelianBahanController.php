@@ -43,15 +43,15 @@ class PembelianBahanController extends Controller
     {
         $this->middleware('permission:lihat-pembelian-bahan', ['only' => ['index']]);
         $this->middleware('permission:detail-pembelian-bahan', ['only' => ['show']]);
-        $this->middleware('permission:tambah-pembelian-bahan', ['only' => ['create','store']]);
-        $this->middleware('permission:edit-pembelian-bahan', ['only' => ['updateApprovalFinance','updateApprovalAdminManager']]);
+        $this->middleware('permission:tambah-pembelian-bahan', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-pembelian-bahan', ['only' => ['updateApprovalFinance', 'updateApprovalAdminManager']]);
         $this->middleware('permission:edit-pengambilan', ['only' => ['updatepengambilan']]);
         $this->middleware('permission:edit-approvepembelian-leader', ['only' => ['updateApprovalLeader']]);
         $this->middleware('permission:edit-approvepembelian-gm', ['only' => ['updateApprovalGM']]);
         $this->middleware('permission:edit-approve-purchasing', ['only' => ['updateApprovalPurchasing']]);
-        $this->middleware('permission:edit-pengajuan-purchasing', ['only' => ['update','edit']]);
+        $this->middleware('permission:edit-pengajuan-purchasing', ['only' => ['update', 'edit']]);
         $this->middleware('permission:edit-approve-manager', ['only' => ['updateApprovalManager']]);
-        $this->middleware('permission:update-harga-pembelian-bahan', ['only' => ['editHarga','updateHarga']]);
+        $this->middleware('permission:update-harga-pembelian-bahan', ['only' => ['editHarga', 'updateHarga']]);
         $this->middleware('permission:upload-link-invoice', ['only' => ['uploadInvoice']]);
         // $this->middleware('permission:upload-dokumen', ['only' => ['uploadDokumen']]);
         $this->middleware('permission:hapus-pembelian-bahan', ['only' => ['destroy']]);
@@ -149,8 +149,8 @@ class PembelianBahanController extends Controller
 
             $generalUser = cache()->remember('general_user', 60, function () {
                 return User::whereHas('roles', function ($query) {
-                        $query->where('name', 'general_affair');
-                    })
+                    $query->where('name', 'general_affair');
+                })
                     ->first();
             });
 
@@ -160,7 +160,7 @@ class PembelianBahanController extends Controller
 
             $tandaTanganPengisiHarga = $pengisiHargaUser->tanda_tangan ?? null;
 
-            $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
+            $tandaTanganGeneral = $generalUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
                 return User::where('name', 'LINA WIDIASTUTI')->first();
@@ -176,25 +176,53 @@ class PembelianBahanController extends Controller
             $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
 
             $pdf = Pdf::loadView('pages.pembelian-bahan.pdf', compact(
-                'pembelianBahan','status_leader','status_purchasing','status_manager','status_finance','status_admin_manager','status_general_manager',
+                'pembelianBahan',
+                'status_leader',
+                'status_purchasing',
+                'status_manager',
+                'status_finance',
+                'status_admin_manager',
+                'status_general_manager',
                 'tandaTanganPengaju',
                 'tandaTanganLeader',
                 'tandaTanganManager',
                 'tandaTanganDirektur',
-                'tandaTanganPurchasing','tandaTanganGeneral',
-                'purchasingUser','generalUser',
-                'tandaTanganFinance','new_shipping_cost','new_full_amount_fee','new_value_today_fee',
-                'financeUser','new_shipping_cost_usd','new_full_amount_fee_usd','new_value_today_fee_usd',
-                'tandaTanganAdminManager','shipping_cost_usd','full_amount_fee_usd','value_today_fee_usd',
-                'adminManagerceUser','shipping_cost','full_amount_fee','value_today_fee', 'ppn',
-                'leaderName','status','jenis_pengajuan',
-                'managerName','ongkir','layanan','jasa_aplikasi','asuransi', 'pengisiHargaUser', 'tandaTanganPengisiHarga'
+                'tandaTanganPurchasing',
+                'tandaTanganGeneral',
+                'purchasingUser',
+                'generalUser',
+                'tandaTanganFinance',
+                'new_shipping_cost',
+                'new_full_amount_fee',
+                'new_value_today_fee',
+                'financeUser',
+                'new_shipping_cost_usd',
+                'new_full_amount_fee_usd',
+                'new_value_today_fee_usd',
+                'tandaTanganAdminManager',
+                'shipping_cost_usd',
+                'full_amount_fee_usd',
+                'value_today_fee_usd',
+                'adminManagerceUser',
+                'shipping_cost',
+                'full_amount_fee',
+                'value_today_fee',
+                'ppn',
+                'leaderName',
+                'status',
+                'jenis_pengajuan',
+                'managerName',
+                'ongkir',
+                'layanan',
+                'jasa_aplikasi',
+                'asuransi',
+                'pengisiHargaUser',
+                'tandaTanganPengisiHarga'
             ));
             return $pdf->stream("pembelian_bahan_{$id}.pdf");
 
             LogHelper::success('Berhasil generating PDF for pembelianBahan ID {$id}!');
             return $pdf->download("pembelian_bahan_{$id}.pdf");
-
         } catch (\Exception $e) {
             LogHelper::error("Error generating PDF for pembelianBahan ID {$id}: " . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
@@ -273,14 +301,14 @@ class PembelianBahanController extends Controller
 
             $generalUser = cache()->remember('general_user', 60, function () {
                 return User::whereHas('roles', function ($query) {
-                        $query->where('name', 'general_affair');
-                    })
+                    $query->where('name', 'general_affair');
+                })
                     ->first();
             });
 
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
 
-            $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
+            $tandaTanganGeneral = $generalUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
                 return User::where('name', 'LINA WIDIASTUTI')->first();
@@ -296,25 +324,51 @@ class PembelianBahanController extends Controller
             $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
 
             $pdf = Pdf::loadView('pages.pembelian-bahan.pdfpo', compact(
-                'pembelianBahan','status_leader','status_purchasing','status_manager','status_finance','status_admin_manager','status_general_manager',
+                'pembelianBahan',
+                'status_leader',
+                'status_purchasing',
+                'status_manager',
+                'status_finance',
+                'status_admin_manager',
+                'status_general_manager',
                 'tandaTanganPengaju',
                 'tandaTanganLeader',
                 'tandaTanganManager',
                 'tandaTanganDirektur',
-                'tandaTanganPurchasing','tandaTanganGeneral',
-                'purchasingUser','generalUser',
-                'tandaTanganFinance','new_shipping_cost','new_full_amount_fee','new_value_today_fee',
-                'financeUser','new_shipping_cost_usd','new_full_amount_fee_usd','new_value_today_fee_usd',
-                'tandaTanganAdminManager','shipping_cost_usd','full_amount_fee_usd','value_today_fee_usd',
-                'adminManagerceUser','shipping_cost','full_amount_fee','value_today_fee', 'ppn',
-                'leaderName','status','jenis_pengajuan',
-                'managerName','ongkir','layanan','jasa_aplikasi','asuransi'
+                'tandaTanganPurchasing',
+                'tandaTanganGeneral',
+                'purchasingUser',
+                'generalUser',
+                'tandaTanganFinance',
+                'new_shipping_cost',
+                'new_full_amount_fee',
+                'new_value_today_fee',
+                'financeUser',
+                'new_shipping_cost_usd',
+                'new_full_amount_fee_usd',
+                'new_value_today_fee_usd',
+                'tandaTanganAdminManager',
+                'shipping_cost_usd',
+                'full_amount_fee_usd',
+                'value_today_fee_usd',
+                'adminManagerceUser',
+                'shipping_cost',
+                'full_amount_fee',
+                'value_today_fee',
+                'ppn',
+                'leaderName',
+                'status',
+                'jenis_pengajuan',
+                'managerName',
+                'ongkir',
+                'layanan',
+                'jasa_aplikasi',
+                'asuransi'
             ));
             return $pdf->stream("pembelian_bahan_{$id}.pdf");
 
             LogHelper::success('Berhasil generating PDF for pembelianBahan ID {$id}!');
             return $pdf->download("pembelian_bahan_{$id}.pdf");
-
         } catch (\Exception $e) {
             LogHelper::error("Error generating PDF for pembelianBahan ID {$id}: " . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
@@ -406,7 +460,8 @@ class PembelianBahanController extends Controller
         }
 
         // Process each pembelianBahanDetail
-        foreach ($pembelianBahanDetails as $item) {$bahanId = $item['id'] ?? null;
+        foreach ($pembelianBahanDetails as $item) {
+            $bahanId = $item['id'] ?? null;
             $namaBahan = $item['nama_bahan'] ?? null;
 
             // Tentukan kondisi pencarian: jika bahan_id ada, gunakan itu; jika tidak, gunakan nama_bahan
@@ -453,14 +508,14 @@ class PembelianBahanController extends Controller
             if ($pembelianBahan->pengajuan_id) {
                 // Look for existing PengajuanDetails based on pengajuan_id and bahan_id
                 $existingDetail = PengajuanDetails::where('pengajuan_id', $pembelianBahan->pengajuan_id)
-                ->where(function ($query) use ($detail) {
-                    if (!empty($detail->bahan_id)) {
-                        $query->where('bahan_id', $detail->bahan_id);
-                    } else {
-                        $query->where('nama_bahan', $detail->nama_bahan);
-                    }
-                })
-                ->first();
+                    ->where(function ($query) use ($detail) {
+                        if (!empty($detail->bahan_id)) {
+                            $query->where('bahan_id', $detail->bahan_id);
+                        } else {
+                            $query->where('nama_bahan', $detail->nama_bahan);
+                        }
+                    })
+                    ->first();
 
                 if (!is_array($transactionDetails) || isset($transactionDetails['new_unit_price'])) {
                     // Jika data berbentuk array asosiatif sederhana (single entry), bungkus ke dalam array
@@ -670,10 +725,17 @@ class PembelianBahanController extends Controller
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
 
+            $leaderUser = null;
+            if ($data->dataUser) {
+                $leaderUser = $data->dataUser->atasanLevel3 ?? $data->dataUser->atasanLevel2 ?? null;
+            }
+            $leaderName = $leaderUser->name ?? 'Leader';
+
             $tgl_approve_leader = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
             $data->status_leader = $validated['status_leader'];
             $data->tgl_approve_leader = $tgl_approve_leader;
+            // $data->leader_approval_by = $leaderUser->id ?? null;
 
             $pengajuan = null;
             if ($data->pengajuan_id) {
@@ -765,7 +827,7 @@ class PembelianBahanController extends Controller
                 $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
-            }  else {
+            } else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
             DB::commit();
@@ -870,7 +932,7 @@ class PembelianBahanController extends Controller
                 $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
-            }  else {
+            } else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
             DB::commit();
@@ -911,7 +973,7 @@ class PembelianBahanController extends Controller
                 $pengajuan = Pengajuan::find($data->pengajuan_id);
             }
 
-            if($data->status_purchasing === 'Ditolak'){
+            if ($data->status_purchasing === 'Ditolak') {
                 $data->catatan = $validated['catatan'];
                 $data->status_manager = 'Ditolak';
                 $data->status_finance = 'Ditolak';
@@ -956,7 +1018,7 @@ class PembelianBahanController extends Controller
                         } else {
                             LogHelper::error('No valid phone number found for Finance notification.');
                         }
-                    }elseif ($data->dataUser->atasan_level3_id && $data->dataUser->atasan_level2_id === null) {
+                    } elseif ($data->dataUser->atasan_level3_id && $data->dataUser->atasan_level2_id === null) {
                         // Job level 4 tanpa atasan level 3 dan 2, kirim notifikasi ke Finance
                         $financeUser = User::where('name', 'LINA WIDIASTUTI')->first();
                         $recipientName = $financeUser;
@@ -989,7 +1051,7 @@ class PembelianBahanController extends Controller
                             LogHelper::error('No valid phone number found for Manager notification.');
                         }
                     }
-                }else{
+                } else {
                     // Kirim notifikasi ke atasan level 2/manager
                     $managerUser = $data->dataUser->atasanLevel2;
                     $recipientName = $managerUser->name;
@@ -1024,7 +1086,7 @@ class PembelianBahanController extends Controller
                 $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
-            }  else {
+            } else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
             DB::commit();
@@ -1064,7 +1126,7 @@ class PembelianBahanController extends Controller
                 $pengajuan = Pengajuan::find($data->pengajuan_id);
             }
 
-            if($data->status_manager === 'Ditolak'){
+            if ($data->status_manager === 'Ditolak') {
                 $data->catatan = $validated['catatan'];
                 $data->status_finance = 'Ditolak';
                 $data->status_admin_manager = 'Ditolak';
@@ -1121,7 +1183,7 @@ class PembelianBahanController extends Controller
                 $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
-            }  else {
+            } else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
             DB::commit();
@@ -1161,7 +1223,7 @@ class PembelianBahanController extends Controller
                 $pengajuan = Pengajuan::find($data->pengajuan_id);
             }
 
-            if($data->status_finance === 'Ditolak'){
+            if ($data->status_finance === 'Ditolak') {
                 $data->catatan = $validated['catatan'];
                 $data->status_admin_manager = 'Ditolak';
                 $data->status = 'Ditolak';
@@ -1201,7 +1263,7 @@ class PembelianBahanController extends Controller
                 $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
-            }  else {
+            } else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
             DB::commit();
@@ -1215,7 +1277,6 @@ class PembelianBahanController extends Controller
             LogHelper::error($errorMessage);
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
-
     }
     // //Approve Admin Manager
     public function updateApprovalAdminManager(Request $request, int $id)
@@ -1242,7 +1303,7 @@ class PembelianBahanController extends Controller
                 $pengajuan = Pengajuan::find($data->pengajuan_id);
             }
 
-            if($data->status_admin_manager === 'Ditolak'){
+            if ($data->status_admin_manager === 'Ditolak') {
                 $data->catatan = $validated['catatan'];
                 $data->status = 'Ditolak';
 
@@ -1279,7 +1340,7 @@ class PembelianBahanController extends Controller
                 $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
-            }  else {
+            } else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
             DB::commit();
@@ -1354,7 +1415,6 @@ class PembelianBahanController extends Controller
             return redirect()
                 ->route('pengajuan-pembelian-bahan.index', ['page' => $page])
                 ->with('success', 'Upload dokumen berhasil.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();
@@ -1390,7 +1450,7 @@ class PembelianBahanController extends Controller
                 $pengajuan = Pengajuan::find($data->pengajuan_id);
             }
 
-            if($data->status === 'Ditolak'){
+            if ($data->status === 'Ditolak') {
                 $data->catatan = $validated['catatan'];
 
                 if ($pengajuan) {
@@ -1419,14 +1479,14 @@ class PembelianBahanController extends Controller
                     if ($data->pengajuan_id) {
                         // Proses data pada tabel PengajuanDetails
                         $existingDetail = PengajuanDetails::where('pengajuan_id', $data->pengajuan_id)
-                        ->where(function ($query) use ($detail) {
-                            if (!empty($detail->bahan_id)) {
-                                $query->where('bahan_id', $detail->bahan_id);
-                            } else {
-                                $query->where('nama_bahan', $detail->nama_bahan);
-                            }
-                        })
-                        ->first();
+                            ->where(function ($query) use ($detail) {
+                                if (!empty($detail->bahan_id)) {
+                                    $query->where('bahan_id', $detail->bahan_id);
+                                } else {
+                                    $query->where('nama_bahan', $detail->nama_bahan);
+                                }
+                            })
+                            ->first();
 
 
                         $groupedDetails = [];
@@ -1457,7 +1517,7 @@ class PembelianBahanController extends Controller
                         }
 
                         if ($existingDetail) {
-                             // Ensure the sub total is calculated correctly
+                            // Ensure the sub total is calculated correctly
                             $subTotal = $detail->jml_bahan * array_sum(array_column($groupedDetails, 'unit_price'));
                             $subTotalUSD = $detail->jml_bahan * array_sum(array_column($groupedDetailsUSD, 'unit_price_usd'));
 
@@ -1535,7 +1595,7 @@ class PembelianBahanController extends Controller
                 $message .= "https://inventory.beacontelemetry.com/";
 
                 SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
-            }  else {
+            } else {
                 LogHelper::error('No valid phone number found for pengaju.');
             }
             DB::commit();
@@ -1553,7 +1613,7 @@ class PembelianBahanController extends Controller
 
     public function destroy(Request $request, string $id)
     {
-        try{
+        try {
             $data = PembelianBahan::find($id);
             if (!$data) {
                 return redirect()->back()->with('gagal', 'Transaksi tidak ditemukan.');
@@ -1563,7 +1623,7 @@ class PembelianBahanController extends Controller
             // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Berhasil Menghapus Pengajuan Pembelian Bahan!');
             $page = $request->input('page', 1);
             return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Berhasil Menghapus Pengajuan Pembelian Bahan!');
-        }catch(Throwable $e){
+        } catch (Throwable $e) {
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }

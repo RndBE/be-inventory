@@ -10,13 +10,14 @@ use Livewire\WithPagination;
 use App\Models\PembelianBahan;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+
 class PembelianBahanTable extends Component
 {
     use WithPagination;
     public $search = "";
     public $perPage = 25;
     public $id_pembelian_bahan, $status, $gambar, $nama_bahan, $kode_bahan, $jenis_bahan_id, $stok_awal,  $unit_id, $total_stok,  $penempatan, $supplier,
-    $kode_transaksi, $tgl_keluar, $divisi,$link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $ppn, $new_value_today_fee, $status_general_manager, $catatan, $dokumen;
+        $kode_transaksi, $tgl_keluar, $divisi, $link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $ppn, $new_value_today_fee, $status_general_manager, $catatan, $dokumen;
 
     public $filter = 'semua';
     public $totalHarga;
@@ -100,7 +101,7 @@ class PembelianBahanTable extends Component
                 'Manager Admin' => $Data->tgl_approve_admin_manager,
                 'Direktur' => $Data->tgl_approve_direktur,
             ];
-        }else {
+        } else {
             $this->statusList = [
                 'Leader' => $Data->status_leader ?? 'Belum disetujui',
                 'Purchasing' => $Data->status_purchasing ?? 'Belum disetujui',
@@ -219,7 +220,7 @@ class PembelianBahanTable extends Component
     public function calculateTotalHarga()
     {
         $this->totalHarga = PembelianBahan::where('status', 'Disetujui')->with('pembelianBahanDetails')
-        ->get()
+            ->get()
             ->sum(function ($pemebelianBahan) {
                 return $pemebelianBahan->pembelianBahanDetails->sum('sub_total');
             });
@@ -361,10 +362,9 @@ class PembelianBahanTable extends Component
 
         if ($user->hasRole(['superadmin'])) {
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset','Purchase Order']);
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor', 'Pembelian Aset', 'Purchase Order']);
             })->orderBy('tgl_pengajuan', 'desc');
-        }
-        elseif ($user->hasRole(['hardware manager'])) {
+        } elseif ($user->hasRole(['hardware manager'])) {
             $pembelian_bahan->whereIn('divisi', ['RnD', 'Helper', 'Teknisi', 'OP', 'Produksi'])
                 ->whereIn('jenis_pengajuan', [
                     'Pembelian Bahan/Barang/Alat Lokal',
@@ -376,156 +376,185 @@ class PembelianBahanTable extends Component
                     // Jika jenis pengajuan adalah Purchase Order → hanya tampil jika status_leader = 'Disetujui'
                     $query->where(function ($q) {
                         $q->where('jenis_pengajuan', 'Purchase Order')
-                        ->where('status_leader', 'Disetujui');
+                            ->where('status_leader', 'Disetujui');
                     })
-                    // Untuk jenis pengajuan lain → tetap tampil berdasarkan job_level & status_purchasing
-                    ->orWhere(function ($q) {
-                        $q->whereIn('jenis_pengajuan', [
-                            'Pembelian Bahan/Barang/Alat Lokal',
-                            'Pembelian Bahan/Barang/Alat Impor',
-                            'Pembelian Aset'
-                        ])
-                        ->where(function ($sub) {
-                            $sub->whereHas('dataUser', function ($u) {
-                                $u->where('job_level', 3)
-                                ->where('status_purchasing', 'Disetujui');
-                            })
-                            ->orWhereHas('dataUser', function ($u) {
-                                $u->where('job_level', 4)
-                                ->where('status_purchasing', 'Disetujui');
-                            });
+                        // Untuk jenis pengajuan lain → tetap tampil berdasarkan job_level & status_purchasing
+                        ->orWhere(function ($q) {
+                            $q->whereIn('jenis_pengajuan', [
+                                'Pembelian Bahan/Barang/Alat Lokal',
+                                'Pembelian Bahan/Barang/Alat Impor',
+                                'Pembelian Aset'
+                            ])
+                                ->where(function ($sub) {
+                                    $sub->whereHas('dataUser', function ($u) {
+                                        $u->where('job_level', 3)
+                                            ->where('status_purchasing', 'Disetujui');
+                                    })
+                                        ->orWhereHas('dataUser', function ($u) {
+                                            $u->where('job_level', 4)
+                                                ->where('status_purchasing', 'Disetujui');
+                                        });
+                                });
                         });
-                    });
                 })
                 ->orderBy('tgl_pengajuan', 'desc');
-        }
-        elseif ($user->hasRole(['marketing manager'])) {
-            $pembelian_bahan->whereIn('divisi', ['Marketing'])
-            ->whereIn('jenis_pengajuan', [
+        } elseif ($user->hasRole(['marketing manager'])) {
+            $pembelian_bahan
+                ->whereIn('divisi', ['RnD', 'Helper', 'Teknisi', 'OP', 'Produksi'])
+                ->whereIn('jenis_pengajuan', [
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
-                    'Pembelian Aset', 'Purchase Order'
+                    'Pembelian Aset',
+                    'Purchase Order'
                 ])
-                ->where(function($query) {
-                    // Kondisi berdasarkan job_level pengaju
-                    $query
-                    ->whereHas('dataUser', function($q) {
-                        $q->where('job_level', 3)
-                        ->where('status_purchasing', 'Disetujui');
-                    })
-                    ->orWhereHas('dataUser', function($q) {
-                        $q->where('job_level', 4)
-                        ->where('status_purchasing', 'Disetujui');
-                    });
+                ->where(function ($query) {
+
+                    $query->where('status_leader', 'Belum disetujui')
+
+                        ->orWhere(function ($q) {
+                            $q->where('jenis_pengajuan', 'Purchase Order')
+                                ->where('status_leader', 'Disetujui');
+                        })
+
+                        ->orWhere(function ($q) {
+                            $q->whereIn('jenis_pengajuan', [
+                                'Pembelian Bahan/Barang/Alat Lokal',
+                                'Pembelian Bahan/Barang/Alat Impor',
+                                'Pembelian Aset'
+                            ])->whereHas('dataUser', function ($u) {
+                                $u->whereIn('job_level', [3, 4])
+                                    ->where('status_purchasing', 'Disetujui');
+                            });
+                        });
                 })
+
+                ->orderByRaw("
+            CASE
+                WHEN status_leader = 'Belum disetujui' THEN 0
+                ELSE 1
+            END
+        ")
                 ->orderBy('tgl_pengajuan', 'desc');
-        }
-        elseif ($user->hasRole(['software manager', 'software', 'publikasi'])) {
+            // $pembelian_bahan->whereIn('divisi', ['Marketing'])
+            //     ->whereIn('jenis_pengajuan', [
+            //         'Pembelian Bahan/Barang/Alat Lokal',
+            //         'Pembelian Bahan/Barang/Alat Impor',
+            //         'Pembelian Aset',
+            //         'Purchase Order'
+            //     ])
+            //     ->where(function ($query) {
+            //         // Kondisi berdasarkan job_level pengaju
+            //         $query
+            //             ->whereHas('dataUser', function ($q) {
+            //                 $q->where('job_level', 3)
+            //                     ->where('status_purchasing', 'Disetujui');
+            //             })
+            //             ->orWhereHas('dataUser', function ($q) {
+            //                 $q->where('job_level', 4)
+            //                     ->where('status_purchasing', 'Disetujui');
+            //             });
+            //     })
+            //     ->orderBy('tgl_pengajuan', 'desc');
+        } elseif ($user->hasRole(['software manager', 'software', 'publikasi'])) {
             $pembelian_bahan->whereIn('divisi', ['Software', 'Publikasi']);
             $pembelian_bahan->orderByRaw("CASE WHEN status_manager = 'Belum disetujui' THEN 0 ELSE 1 END");
-        }
-        elseif ($user->hasRole(['marketing level 3'])) {
+        } elseif ($user->hasRole(['marketing level 3'])) {
             $pembelian_bahan->whereIn('divisi', ['Marketing']);
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset','Purchase Order']);
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor', 'Pembelian Aset', 'Purchase Order']);
             });
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
-        }
-        elseif ($user->hasRole(['rnd level 3'])) {
+        } elseif ($user->hasRole(['rnd level 3'])) {
             $pembelian_bahan->whereIn('divisi', ['RnD']);
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset','Purchase Order']);
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor', 'Pembelian Aset', 'Purchase Order']);
             });
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
-        }
-        elseif ($user->hasRole(['teknisi level 3'])) {
-            $pembelian_bahan->whereIn('divisi', ['Helper','Teknisi']);
+        } elseif ($user->hasRole(['teknisi level 3'])) {
+            $pembelian_bahan->whereIn('divisi', ['Helper', 'Teknisi']);
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset','Purchase Order']);
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor', 'Pembelian Aset', 'Purchase Order']);
             });
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
-        }
-        elseif ($user->hasRole(['produksi level 3'])) {
-            $pembelian_bahan->whereIn('divisi', ['OP','Produksi']);
+        } elseif ($user->hasRole(['produksi level 3'])) {
+            $pembelian_bahan->whereIn('divisi', ['OP', 'Produksi']);
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset','Purchase Order']);
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor', 'Pembelian Aset', 'Purchase Order']);
             });
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
-        }
-        elseif ($user->hasAnyRole(['hrd level 3', 'general_affair'])) {
+        } elseif ($user->hasAnyRole(['hrd level 3', 'general_affair'])) {
 
-    $pembelian_bahan->where(function ($query) use ($user) {
+            $pembelian_bahan->where(function ($query) use ($user) {
 
-        /*
+                /*
         |---------------------------------------------------------
         | HRD LEVEL 3 FILTER
         |---------------------------------------------------------
         */
-        if ($user->hasRole('hrd level 3')) {
-            $query->orWhere(function ($q) {
-                $q->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
-                    ->whereIn('jenis_pengajuan', [
-                        'Pembelian Bahan/Barang/Alat Lokal',
-                        'Pembelian Bahan/Barang/Alat Impor',
-                        'Pembelian Aset',
-                        'Purchase Order'
-                    ]);
-            });
-        }
+                if ($user->hasRole('hrd level 3')) {
+                    $query->orWhere(function ($q) {
+                        $q->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
+                            ->whereIn('jenis_pengajuan', [
+                                'Pembelian Bahan/Barang/Alat Lokal',
+                                'Pembelian Bahan/Barang/Alat Impor',
+                                'Pembelian Aset',
+                                'Purchase Order'
+                            ]);
+                    });
+                }
 
-        /*
+                /*
         |---------------------------------------------------------
         | GENERAL AFFAIR FILTER
         |---------------------------------------------------------
         */
-        if ($user->hasRole('general_affair')) {
-            $query->orWhere(function ($q) {
+                if ($user->hasRole('general_affair')) {
+                    $query->orWhere(function ($q) {
 
-                // Workflow GA
-                $q->where('status_leader', 'Disetujui')
-                  ->where('status_general_manager', 'Belum disetujui');
+                        // Workflow GA
+                        $q->where('status_leader', 'Disetujui')
+                            ->where('status_general_manager', 'Belum disetujui');
 
-                // ====== RULE GENERAL AFFAIR ======
-                $q->where(function ($sub) {
+                        // ====== RULE GENERAL AFFAIR ======
+                        $q->where(function ($sub) {
 
-                    // 1. Pembelian Aset → tampilkan semua divisi
-                    $sub->orWhere('jenis_pengajuan', 'Pembelian Aset');
+                            // 1. Pembelian Aset → tampilkan semua divisi
+                            $sub->orWhere('jenis_pengajuan', 'Pembelian Aset');
 
-                    // 2. Lokal & Impor → hanya divisi tertentu
-                    $sub->orWhere(function ($x) {
-                        $x->whereIn('jenis_pengajuan', [
-                            'Pembelian Bahan/Barang/Alat Lokal',
-                            'Pembelian Bahan/Barang/Alat Impor'
-                        ])->whereIn('divisi', [
-                            'HSE', 'HRD', 'Helper', 'General Affair'
-                        ]);
+                            // 2. Lokal & Impor → hanya divisi tertentu
+                            $sub->orWhere(function ($x) {
+                                $x->whereIn('jenis_pengajuan', [
+                                    'Pembelian Bahan/Barang/Alat Lokal',
+                                    'Pembelian Bahan/Barang/Alat Impor'
+                                ])->whereIn('divisi', [
+                                    'HSE',
+                                    'HRD',
+                                    'Helper',
+                                    'General Affair'
+                                ]);
+                            });
+                        });
+                        // =================================
                     });
-
-                });
-                // =================================
+                }
             });
-        }
 
-    });
-
-    // Order prioritas
-    $pembelian_bahan->orderByRaw("
+            // Order prioritas
+            $pembelian_bahan->orderByRaw("
         CASE
             WHEN status_general_manager = 'Belum disetujui' THEN 0
             WHEN status_leader = 'Belum disetujui' THEN 1
             ELSE 2
         END
     ");
-}
-
-
-        elseif ($user->hasRole(['purchasing level 3'])) {
+        } elseif ($user->hasRole(['purchasing level 3'])) {
             // $pembelian_bahan->whereIn('divisi', ['Purchasing']);
             $pembelian_bahan->where(function ($query) {
                 $query->whereIn('jenis_pengajuan', [
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
-                    'Pembelian Aset','Purchase Order'
+                    'Pembelian Aset',
+                    'Purchase Order'
                 ]);
 
                 // Untuk Aset, hanya tampil kalau sudah disetujui GA
@@ -536,32 +565,29 @@ class PembelianBahanTable extends Component
             });
 
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END")->orderBy('tgl_pengajuan', 'desc');
-        }
-        elseif ($user->hasRole(['purchasing'])) {
+        } elseif ($user->hasRole(['purchasing'])) {
             $pembelian_bahan->where(function ($query) {
                 $query->whereIn('jenis_pengajuan', [
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
-                    'Pembelian Aset','Purchase Order'
+                    'Pembelian Aset',
+                    'Purchase Order'
                 ]);
             })->orderBy('tgl_pengajuan', 'desc');
-        }
-
-        elseif ($user->hasRole(['administrasi'])) {
+        } elseif ($user->hasRole(['administrasi'])) {
             $pembelian_bahan->whereIn('jenis_pengajuan', [
                 'Pembelian Bahan/Barang/Alat Lokal',
                 'Pembelian Bahan/Barang/Alat Impor',
-                'Pembelian Aset','Purchase Order'
+                'Pembelian Aset',
+                'Purchase Order'
             ])
-            ->orderBy('tgl_pengajuan', 'desc'); // Hanya tampilkan yang sudah disetujui oleh manager
+                ->orderBy('tgl_pengajuan', 'desc'); // Hanya tampilkan yang sudah disetujui oleh manager
 
             // Urutkan agar status_finance yang belum disetujui muncul lebih dulu
             $pembelian_bahan->orderByRaw("CASE WHEN status_finance = 'Belum disetujui' THEN 0 ELSE 1 END");
-        }
-
-        elseif ($user->hasRole(['administration manager'])) {
+        } elseif ($user->hasRole(['administration manager'])) {
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor','Pembelian Aset','Purchase Order']);
+                $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor', 'Pembelian Aset', 'Purchase Order']);
             })->orderBy('tgl_pengajuan', 'desc');
             // $pembelian_bahan->orderByRaw("CASE WHEN status_finance = 'Belum disetujui' THEN 0 ELSE 1 END");
         }

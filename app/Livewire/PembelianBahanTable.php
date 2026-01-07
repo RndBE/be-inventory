@@ -365,40 +365,6 @@ class PembelianBahanTable extends Component
                 $query->whereIn('jenis_pengajuan', ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor', 'Pembelian Aset', 'Purchase Order']);
             })->orderBy('tgl_pengajuan', 'desc');
         } elseif ($user->hasRole(['hardware manager'])) {
-            $pembelian_bahan->whereIn('divisi', ['RnD', 'Helper', 'Teknisi', 'OP', 'Produksi'])
-                ->whereIn('jenis_pengajuan', [
-                    'Pembelian Bahan/Barang/Alat Lokal',
-                    'Pembelian Bahan/Barang/Alat Impor',
-                    'Pembelian Aset',
-                    'Purchase Order'
-                ])
-                ->where(function ($query) {
-                    // Jika jenis pengajuan adalah Purchase Order → hanya tampil jika status_leader = 'Disetujui'
-                    $query->where(function ($q) {
-                        $q->where('jenis_pengajuan', 'Purchase Order')
-                            ->where('status_leader', 'Disetujui');
-                    })
-                        // Untuk jenis pengajuan lain → tetap tampil berdasarkan job_level & status_purchasing
-                        ->orWhere(function ($q) {
-                            $q->whereIn('jenis_pengajuan', [
-                                'Pembelian Bahan/Barang/Alat Lokal',
-                                'Pembelian Bahan/Barang/Alat Impor',
-                                'Pembelian Aset'
-                            ])
-                                ->where(function ($sub) {
-                                    $sub->whereHas('dataUser', function ($u) {
-                                        $u->where('job_level', 3)
-                                            ->where('status_purchasing', 'Disetujui');
-                                    })
-                                        ->orWhereHas('dataUser', function ($u) {
-                                            $u->where('job_level', 4)
-                                                ->where('status_purchasing', 'Disetujui');
-                                        });
-                                });
-                        });
-                })
-                ->orderBy('tgl_pengajuan', 'desc');
-        } elseif ($user->hasRole(['marketing manager'])) {
             $pembelian_bahan
                 ->whereIn('divisi', ['RnD', 'Helper', 'Teknisi', 'OP', 'Produksi'])
                 ->whereIn('jenis_pengajuan', [
@@ -435,7 +401,7 @@ class PembelianBahanTable extends Component
             END
         ")
                 ->orderBy('tgl_pengajuan', 'desc');
-            // $pembelian_bahan->whereIn('divisi', ['Marketing'])
+            // $pembelian_bahan->whereIn('divisi', ['RnD', 'Helper', 'Teknisi', 'OP', 'Produksi'])
             //     ->whereIn('jenis_pengajuan', [
             //         'Pembelian Bahan/Barang/Alat Lokal',
             //         'Pembelian Bahan/Barang/Alat Impor',
@@ -443,18 +409,52 @@ class PembelianBahanTable extends Component
             //         'Purchase Order'
             //     ])
             //     ->where(function ($query) {
-            //         // Kondisi berdasarkan job_level pengaju
-            //         $query
-            //             ->whereHas('dataUser', function ($q) {
-            //                 $q->where('job_level', 3)
-            //                     ->where('status_purchasing', 'Disetujui');
-            //             })
-            //             ->orWhereHas('dataUser', function ($q) {
-            //                 $q->where('job_level', 4)
-            //                     ->where('status_purchasing', 'Disetujui');
+            //         // Jika jenis pengajuan adalah Purchase Order → hanya tampil jika status_leader = 'Disetujui'
+            //         $query->where(function ($q) {
+            //             $q->where('jenis_pengajuan', 'Purchase Order')
+            //                 ->where('status_leader', 'Disetujui');
+            //         })
+            //             // Untuk jenis pengajuan lain → tetap tampil berdasarkan job_level & status_purchasing
+            //             ->orWhere(function ($q) {
+            //                 $q->whereIn('jenis_pengajuan', [
+            //                     'Pembelian Bahan/Barang/Alat Lokal',
+            //                     'Pembelian Bahan/Barang/Alat Impor',
+            //                     'Pembelian Aset'
+            //                 ])
+            //                     ->where(function ($sub) {
+            //                         $sub->whereHas('dataUser', function ($u) {
+            //                             $u->where('job_level', 3)
+            //                                 ->where('status_purchasing', 'Disetujui');
+            //                         })
+            //                             ->orWhereHas('dataUser', function ($u) {
+            //                                 $u->where('job_level', 4)
+            //                                     ->where('status_purchasing', 'Disetujui');
+            //                             });
+            //                     });
             //             });
             //     })
             //     ->orderBy('tgl_pengajuan', 'desc');
+        } elseif ($user->hasRole(['marketing manager'])) {
+            $pembelian_bahan->whereIn('divisi', ['Marketing'])
+                ->whereIn('jenis_pengajuan', [
+                    'Pembelian Bahan/Barang/Alat Lokal',
+                    'Pembelian Bahan/Barang/Alat Impor',
+                    'Pembelian Aset',
+                    'Purchase Order'
+                ])
+                ->where(function ($query) {
+                    // Kondisi berdasarkan job_level pengaju
+                    $query
+                        ->whereHas('dataUser', function ($q) {
+                            $q->where('job_level', 3)
+                                ->where('status_purchasing', 'Disetujui');
+                        })
+                        ->orWhereHas('dataUser', function ($q) {
+                            $q->where('job_level', 4)
+                                ->where('status_purchasing', 'Disetujui');
+                        });
+                })
+                ->orderBy('tgl_pengajuan', 'desc');
         } elseif ($user->hasRole(['software manager', 'software', 'publikasi'])) {
             $pembelian_bahan->whereIn('divisi', ['Software', 'Publikasi']);
             $pembelian_bahan->orderByRaw("CASE WHEN status_manager = 'Belum disetujui' THEN 0 ELSE 1 END");

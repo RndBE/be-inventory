@@ -75,6 +75,7 @@ class EditPembelianBahanCart extends Component
     public $statusPembelianBahan = [];
     public $checkedItems = [];
     public $bukti_pembelian, $pembelianId;
+    public $unit_price_usd_aset = [];
 
 
 

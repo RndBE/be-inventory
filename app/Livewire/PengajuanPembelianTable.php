@@ -80,7 +80,7 @@ class PengajuanPembelianTable extends Component
         $jenis = $Data->jenis_pengajuan;
 
         // Daftar status
-        if ($jenis === 'Pembelian Aset') {
+        if ($jenis === 'Pembelian Aset' || $jenis === 'Pembelian Aset Lokal' || $jenis === 'Pembelian Aset Impor') {
             $this->statusList = [
                 'Leader' => $Data->status_leader ?? 'Belum disetujui',
                 'General Affair' => $Data->status_general_manager ?? 'Belum disetujui',

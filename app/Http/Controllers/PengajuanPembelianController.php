@@ -314,7 +314,7 @@ class PengajuanPembelianController extends Controller
     public function store(Request $request)
     {
         try {
-            // dd($request->all());
+            dd($request->all());
             DB::beginTransaction();
             // Validasi input
             $cartItems = json_decode($request->cartItems, true);
@@ -343,12 +343,16 @@ class PengajuanPembelianController extends Controller
             $user = Auth::user();
             $jenisPengajuan = $request->jenis_pengajuan;
 
+            // dd($jenisPengajuan);
+
             if ($jenisPengajuan === 'Pembelian Bahan/Barang/Alat Lokal') {
                 $prefix = 'PBL-';
             } elseif ($jenisPengajuan === 'Pembelian Bahan/Barang/Alat Impor') {
                 $prefix = 'PBI-';
-            } elseif ($jenisPengajuan === 'Pembelian Aset') {
-                $prefix = 'PA-';
+            } elseif ($jenisPengajuan === 'Pembelian Aset Lokal') {
+                $prefix = 'PAL-';
+            } elseif ($jenisPengajuan === 'Pembelian Aset Impor') {
+                $prefix = 'PAI-';
             } else {
                 $prefix = 'PB-';
             }
@@ -456,7 +460,7 @@ class PengajuanPembelianController extends Controller
                 'status_manager' => $status_manager,
             ]);
 
-            if ($jenisPengajuan === 'Pembelian Aset') {
+            if ($jenisPengajuan === 'Pembelian Aset Lokal') {
                 foreach ($itemsAset as $item) {
                     PembelianBahanDetails::create([
                         'pembelian_bahan_id' => $pembelian_bahan->id,

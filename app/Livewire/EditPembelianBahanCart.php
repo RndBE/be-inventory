@@ -68,10 +68,10 @@ class EditPembelianBahanCart extends Component
     public $pendingReturCount = [];
     public $isBahanRusakPending = [];
     public $pendingRusakCount = [];
-    public $produksiStatus,$status,$status_finance;
+    public $produksiStatus, $status, $status_finance;
     public $keterangan_pembayaran = [];
     public $pembelianBahans = [];
-    public $jenis_pengajuan, $editingCurrency ;
+    public $jenis_pengajuan, $editingCurrency;
     public $statusPembelianBahan = [];
     public $checkedItems = [];
     public $bukti_pembelian, $pembelianId;
@@ -164,7 +164,17 @@ class EditPembelianBahanCart extends Component
                 $bahan->save();
 
                 // Update status di PengajuanDetails hanya untuk pengajuan terkait
-                PengajuanDetails::where('pengajuan_id', $pembelian->pengajuan_id)
+                // PengajuanDetails::where('pengajuan_id', $pembelian->pengajuan_id)
+                //     ->where(function ($query) use ($bahan) {
+                //         if ($bahan->bahan_id) {
+                //             $query->where('bahan_id', $bahan->bahan_id);
+                //         } else {
+                //             $query->where('nama_bahan', $bahan->nama_bahan);
+                //         }
+                //     })
+                //     ->update(['status_pembelian' => $bahan->status_pembelian]);
+
+                PembelianBahanDetails::where('pembelian_bahan_id', $pembelian->id)
                     ->where(function ($query) use ($bahan) {
                         if ($bahan->bahan_id) {
                             $query->where('bahan_id', $bahan->bahan_id);
@@ -172,7 +182,9 @@ class EditPembelianBahanCart extends Component
                             $query->where('nama_bahan', $bahan->nama_bahan);
                         }
                     })
-                    ->update(['status_pembelian' => $bahan->status_pembelian]);
+                    ->update([
+                        'status_pembelian' => $bahan->status_pembelian
+                    ]);
 
                 // Kirim Notifikasi WhatsApp hanya jika status_pembelian === 1
                 if ($bahan->status_pembelian === 1) {
@@ -242,6 +254,7 @@ class EditPembelianBahanCart extends Component
 
                 $unitPrice = $decodedDetails['unit_price'] ?? 0;
                 $unitPriceUSD = $decodedDetailsUSD['unit_price_usd'] ?? 0;
+                $unitPriceUSDAset = $decodedDetailsUSD['unit_price_usd_aset'] ?? 0;
 
                 $bahanKey = $detail->bahan_id ?? $detail->nama_bahan;
                 $this->keterangan_pembayaran[$bahanKey] = $detail->keterangan_pembayaran ?? '';
@@ -265,8 +278,9 @@ class EditPembelianBahanCart extends Component
                 $this->unit_price[$detail->bahan_id] = $unitPrice;
                 $this->unit_price_aset[$detail->nama_bahan] = $unitPrice;
                 $this->unit_price_usd[$detail->bahan_id] = $unitPriceUSD;
+                // USD utk ASET IMPOR  🔥 (INI YG BELUM ADA)
+                $this->unit_price_usd_aset[$detail->nama_bahan] = $unitPriceUSDAset;
             }
-
         }
     }
 
@@ -388,6 +402,26 @@ class EditPembelianBahanCart extends Component
         $this->unit_price_raw[$itemBahan] = $this->unit_price_aset[$itemBahan] ?? 0;
     }
 
+    public function editItemPriceImporAset($currency, $itemBahan)
+    {
+        // $this->editingItemBahan = $itemBahan;
+        // $this->unit_price_usd_raw[$itemBahan] = $this->unit_price_usd_aset[$itemBahan] ?? 0;
+
+        $itemBahan = $this->sanitizeKey($itemBahan);
+
+        if ($currency === 'usd') {
+            $this->editingItemBahan = 'usd_' . $itemBahan;
+            $this->unit_price_usd_raw[$itemBahan] =
+                $this->unit_price_usd_aset[$itemBahan] ?? 0;
+        }
+
+        if ($currency === 'idr') {
+            $this->editingItemBahan = 'idr_' . $itemBahan;
+            $this->unit_price_raw[$itemBahan] =
+                $this->unit_price_aset[$itemBahan] ?? 0;
+        }
+    }
+
     public function editItem($item)
     {
         $this->editingItemId = $item;
@@ -397,6 +431,18 @@ class EditPembelianBahanCart extends Component
     {
         $this->editingItemId = $item;
         $this->{$item . '_raw'} = $this->$item ?? null;
+    }
+
+    public function editItemAset($bahan)
+    {
+        $this->editingItemBahan = $bahan;
+        $this->{$bahan . '_raw'} = $this->$bahan ?? null;
+    }
+
+    public function editItemUSDAset($bahan)
+    {
+        $this->editingItemBahan = $bahan;
+        $this->{$bahan . '_raw'} = $this->$bahan ?? null;
     }
 
     public function sanitizeKey($string)
@@ -468,6 +514,60 @@ class EditPembelianBahanCart extends Component
         $this->editingItemBahan = null;
     }
 
+    public function formatToUSDPriceAset($itemBahan)
+    {
+
+        if (!isset($this->unit_price_usd_raw[$itemBahan])) {
+            return;
+        }
+
+        $rawValue = $this->unit_price_usd_raw[$itemBahan];
+
+        // ───── Parse agar aman ke float ─────
+        // hapus spasi dan simbol $
+        $clean = str_replace(['$', ' '], '', $rawValue);
+
+        // jika formatnya 1.234,56 → ganti . jadi kosong, , jadi .
+        if (strpos($clean, ',') !== false) {
+            $clean = str_replace('.', '', $clean);
+            $clean = str_replace(',', '.', $clean);
+        }
+
+        $parsedValue = floatval($clean);
+        // dd($this->pembelianBahanId, $itemBahan, $parsedValue);
+        // Simpan nilai float murni
+        $this->unit_price_usd_aset[$itemBahan] = $parsedValue;
+
+        // Format ulang ke 2 desimal INDONESIA style
+        $this->unit_price_usd_raw[$itemBahan] = number_format(
+            $parsedValue,
+            2,
+            ',',
+            '.'
+        );
+
+        // 🔥 UPDATE DATABASE DI SINI
+        PembelianBahanDetails::where('pembelian_bahan_id', $this->pembelianBahanId)
+            ->where(function ($q) use ($itemBahan) {
+                $q->where('nama_bahan', $itemBahan)
+                    ->orWhereHas('dataBahan', function ($qq) use ($itemBahan) {
+                        $qq->where('nama_bahan', $itemBahan);
+                    });
+            })
+            ->update([
+                'details_usd' => json_encode([
+                    'unit_price_usd' => $parsedValue
+                ])
+            ]);
+        // dd($this->pembelianBahanId, $itemBahan, $parsedValue, $this->unit_price_usd_aset[$itemBahan]);
+        // Hitung ulang subtotal
+        $this->calculateSubTotal($itemBahan);
+
+        // Tutup mode edit
+        $this->editingItemBahan = null;
+
+        // dd($this->unit_price_usd);
+    }
 
 
     public function formatToUSDPrice($itemId)
@@ -602,7 +702,7 @@ class EditPembelianBahanCart extends Component
             // $unitPriceUSD = $this->unit_price_usd[$bahanId] ?? 0;
 
             $unitPrice = $this->unit_price_aset[$safeKey] ?? 0;
-            $unitPriceUSD = $this->unit_price_usd[$safeKey] ?? 0;
+            $unitPriceUSD = $this->unit_price_usd_aset[$safeKey] ?? 0;
             $qty = $this->qty[$safeKey] ?? ($item['jml_bahan'] ?? 0);
             $keteranganPembayaran = $this->keterangan_pembayaran[$safeKey] ?? '';
 
@@ -621,7 +721,7 @@ class EditPembelianBahanCart extends Component
                     'unit_price' => $unitPrice,
                 ],
                 'details_usd' => [
-                    'unit_price_usd' => $unitPriceUSD,
+                    'unit_price_usd_aset' => $unitPriceUSD,
                 ],
                 'sub_total' => $subTotal,
                 'sub_total_usd' => $subTotalUSD,

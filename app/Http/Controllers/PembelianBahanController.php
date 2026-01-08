@@ -638,7 +638,7 @@ class PembelianBahanController extends Controller
             if (!is_array($pembelianBahanDetails) || !is_array($biaya)) {
                 return redirect()->back()->with('error', 'Data tidak valid.');
             }
-
+            // dd($pembelianBahanDetails);
             // Update or create pembelian bahan details
             foreach ($pembelianBahanDetails as $item) {
                 $bahanId = $item['id'] ?? null;
@@ -651,6 +651,7 @@ class PembelianBahanController extends Controller
                 } elseif ($namaBahan) {
                     $conditions['nama_bahan'] = $namaBahan;
                 }
+                // dd($pembelianBahanDetails, $item, $item['details_usd']);
                 PembelianBahanDetails::updateOrCreate(
                     $conditions,
                     [

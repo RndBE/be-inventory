@@ -414,7 +414,7 @@
                                                     $pembelian_bahan->status_leader == 'Disetujui' &&
                                                         $pembelian_bahan->status_general_manager !== 'Disetujui' &&
                                                         $pembelian_bahan->status_general_manager !== 'Ditolak' &&
-                                                        $pembelian_bahan->jenis_pengajuan == 'Pembelian Aset')
+                                                        in_array($pembelian_bahan->jenis_pengajuan, ['Pembelian Aset', 'Pembelian Aset Lokal', 'Pembelian Aset Impor']))
                                                     <button @click.stop
                                                         wire:click="editGMPembelianBahan({{ $pembelian_bahan->id }}, {{ $pembelian_bahans->currentPage() }})"
                                                         class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center"

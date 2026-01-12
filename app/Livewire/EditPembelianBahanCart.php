@@ -560,13 +560,6 @@ class EditPembelianBahanCart extends Component
                     'unit_price_usd' => $parsedValue
                 ])
             ]);
-        foreach ($this->pembelianBahanDetails as &$d) {
-            if (($d['nama_bahan'] ?? null) === $itemBahan) {
-                $d['details_usd']['unit_price_usd_aset'] = $parsedValue;
-                $d['sub_total_usd'] = (($d['qty'] ?? 0) * $parsedValue);
-                break;
-            }
-        }
         unset($d);
         // dd($this->pembelianBahanId, $itemBahan, $parsedValue, $this->unit_price_usd_aset[$itemBahan]);
         // Hitung ulang subtotal

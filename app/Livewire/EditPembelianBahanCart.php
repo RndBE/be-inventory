@@ -258,6 +258,7 @@ class EditPembelianBahanCart extends Component
                 $unitPriceUSDAset = $decodedDetailsUSD['unit_price_usd_aset'] ?? 0;
 
                 $bahanKey = $detail->bahan_id ?? $detail->nama_bahan;
+                $safeKey = $this->sanitizeKey($detail->nama_bahan);
                 $this->keterangan_pembayaran[$bahanKey] = $detail->keterangan_pembayaran ?? '';
 
 
@@ -277,10 +278,12 @@ class EditPembelianBahanCart extends Component
                     'status_pembelian' => $detail->status_pembelian ?? '',
                 ];
                 $this->unit_price[$detail->bahan_id] = $unitPrice;
-                $this->unit_price_aset[$detail->nama_bahan] = $unitPrice;
+                // $this->unit_price_aset[$detail->nama_bahan] = $unitPrice;
+                $this->unit_price_aset[$safeKey] = $unitPrice;
                 $this->unit_price_usd[$detail->bahan_id] = $unitPriceUSD;
                 // USD utk ASET IMPOR  🔥 (INI YG BELUM ADA)
-                $this->unit_price_usd_aset[$detail->nama_bahan] = $unitPriceUSDAset;
+                // $this->unit_price_usd_aset[$detail->nama_bahan] = $unitPriceUSDAset;
+                $this->unit_price_usd_aset[$safeKey] = $unitPriceUSDAset;
             }
         }
     }

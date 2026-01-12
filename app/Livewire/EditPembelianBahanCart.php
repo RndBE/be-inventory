@@ -557,10 +557,10 @@ class EditPembelianBahanCart extends Component
             })
             ->update([
                 'details_usd' => json_encode([
-                    'unit_price_usd' => $parsedValue
+                    'unit_price_usd_aset' => $parsedValue
                 ])
             ]);
-        
+
         // dd($this->pembelianBahanId, $itemBahan, $parsedValue, $this->unit_price_usd_aset[$itemBahan]);
         // Hitung ulang subtotal
         $this->calculateSubTotal($itemBahan);

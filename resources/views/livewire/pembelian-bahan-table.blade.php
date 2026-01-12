@@ -135,7 +135,7 @@
                                     $jenis = $pembelian_bahan->jenis_pengajuan;
 
                                     // Urutan berdasarkan jenis pengajuan
-                                    if ($jenis === 'Pembelian Aset') {
+                                    if ($jenis === 'Pembelian Aset'|| 'Pembelian Aset Lokal' || 'Pembelian Aset Impor') {
                                         $statusList = [
                                             'Leader' => $pembelian_bahan->status_leader ?? 'Belum disetujui',
                                             'General Affair' => $pembelian_bahan->status_general_manager ?? 'Belum disetujui',

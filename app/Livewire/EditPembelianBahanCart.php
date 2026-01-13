@@ -259,7 +259,8 @@ class EditPembelianBahanCart extends Component
 
                 $bahanKey = $detail->bahan_id ?? $detail->nama_bahan;
                 $safeKey = $this->sanitizeKey($detail->nama_bahan);
-                $this->keterangan_pembayaran[$bahanKey] = $detail->keterangan_pembayaran ?? '';
+                // $this->keterangan_pembayaran[$bahanKey] = $detail->keterangan_pembayaran ?? '';
+                $this->keterangan_pembayaran[$safeKey] = $detail->keterangan_pembayaran ?? '';
 
 
                 $this->pembelianBahanDetails[] = [
@@ -271,7 +272,8 @@ class EditPembelianBahanCart extends Component
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,
                     'details' => $decodedDetails,
-                    'keterangan_pembayaran' => $this->keterangan_pembayaran[$bahanKey],
+                    // 'keterangan_pembayaran' => $this->keterangan_pembayaran[$bahanKey],
+                    'keterangan_pembayaran' => $this->keterangan_pembayaran[$safeKey],
                     'spesifikasi' => $detail->spesifikasi ?? '',
                     'penanggungjawabaset' => $detail->penanggungjawabaset ?? '',
                     'alasan' => $detail->alasan ?? '',
@@ -615,9 +617,10 @@ class EditPembelianBahanCart extends Component
         $requestedQty = $this->keterangan_pembayaran[$itemId] ?? 0;
     }
 
-    public function changeKeteranganAset($itemBahan)
+    public function changeKeteranganAset($safeKey)
     {
-        $requestedQty = $this->keterangan_pembayaran[$itemBahan] ?? 0;
+        // $requestedQty = $this->keterangan_pembayaran[$itemBahan] ?? 0;
+        $value = $this->keterangan_pembayaran[$safeKey] ?? '';
     }
 
     // public function getCartItemsForStorage()

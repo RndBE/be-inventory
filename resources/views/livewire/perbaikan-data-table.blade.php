@@ -94,37 +94,37 @@
                         <td class="px-6 py-3">
                             @switch($perbaikanData->status)
                                 @case('Diajukan')
-                                    <span class="px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">
+                                    <span class="inline-flex items-center whitespace-nowrap px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">
                                         Diajukan
                                     </span>
                                     @break
 
                                 @case('Dalam Pemeriksaan')
-                                    <span class="px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">
+                                    <span class="inline-flex items-center whitespace-nowrap px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">
                                         Dalam Pemeriksaan
                                     </span>
                                     @break
 
                                 @case('Disetujui')
-                                    <span class="px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
+                                    <span class="inline-flex items-center whitespace-nowrap px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
                                         Disetujui
                                     </span>
                                     @break
 
                                 @case('Sedang Diperbaiki')
-                                    <span class="px-2 py-1 text-xs font-semibold text-indigo-800 bg-indigo-100 rounded-full">
+                                    <span class="inline-flex items-center whitespace-nowrap px-2 py-1 text-xs font-semibold text-indigo-800 bg-indigo-100 rounded-full">
                                         Sedang Diperbaiki
                                     </span>
                                     @break
 
                                 @case('Selesai')
-                                    <span class="px-2 py-1 text-xs font-semibold text-emerald-800 bg-emerald-100 rounded-full">
+                                    <span class="inline-flex items-center whitespace-nowrap px-2 py-1 text-xs font-semibold text-emerald-800 bg-emerald-100 rounded-full">
                                         Selesai
                                     </span>
                                     @break
 
                                 @case('Ditolak')
-                                    <span class="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">
+                                    <span class="inline-flex items-center whitespace-nowrap px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">
                                         Ditolak
                                     </span>
                                     @break

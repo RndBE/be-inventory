@@ -10,7 +10,7 @@ class BahanKeluarDetails extends Model
     use HasFactory;
 
     protected $table = 'bahan_keluar_details';
-    protected $guarded = [];
+    // protected $guarded = [];
 
     protected $fillable = [
         'bahan_keluar_id',
@@ -23,6 +23,11 @@ class BahanKeluarDetails extends Model
         'details',
         'unit_price',
         'sub_total'
+    ];
+
+    protected $casts = [
+        'details' => 'array',
+        'used_materials' => 'array',
     ];
 
     public function bahanKeluar()

@@ -38,28 +38,49 @@ class RoleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        try {
-            $request->validate([
-                'name' => [
-                    'required',
-                    'string',
-                    'unique:roles,name'
-                ]
-            ]);
+    // public function store(Request $request)
+    // {
+    //     try {
+    //         $request->validate([
+    //             'name' => [
+    //                 'required',
+    //                 'string',
+    //                 'unique:roles,name'
+    //             ]
+    //         ]);
 
-            Role::create([
-                'name' => $request->name,
-                'guard_name' => 'web',
-            ]);
-            LogHelper::success('Berhasil Menambah Role!');
-            return redirect('roles')->with('success', 'Role Created Successfully');
-        } catch (Throwable $e) {
-            LogHelper::error($e->getMessage());
-            return view('pages.utility.404');
-        }
+    //         Role::create([
+    //             'name' => $request->name,
+    //             'guard_name' => 'web',
+    //         ]);
+    //         LogHelper::success('Berhasil Menambah Role!');
+    //         return redirect('roles')->with('success', 'Role Created Successfully');
+    //     } catch (Throwable $e) {
+    //         LogHelper::error($e->getMessage());
+    //         return view('pages.utility.404');
+    //     }
+    // }
+    public function store(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'unique:roles,name']
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $role = new Role();
+            $role->name = $validated['name'];
+            $role->guard_name = 'web';
+            $role->save();
+        });
+
+        LogHelper::success('Berhasil Menambah Role!');
+        return redirect('roles')->with('success', 'Role Created Successfully');
+    } catch (Throwable $e) {
+        LogHelper::error($e->getMessage());
+        return redirect()->back()->withInput()->with('error', $e->getMessage());
     }
+}
 
 
     /**

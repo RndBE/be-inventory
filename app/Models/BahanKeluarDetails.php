@@ -10,7 +10,7 @@ class BahanKeluarDetails extends Model
     use HasFactory;
 
     protected $table = 'bahan_keluar_details';
-    // protected $guarded = [];
+    protected $guarded = [];
 
     protected $fillable = [
         'bahan_keluar_id',

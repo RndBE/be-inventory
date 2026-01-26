@@ -288,15 +288,15 @@
                             </td>
 
                             <td class="items-right px-6 py-4 text-right">
-                                {{-- @php
+                                @php
                                     $details = $detail->details ?? [];
                                     if (is_string($details)) {
                                         $details = json_decode($details, true) ?: [];
                                     }
                                 @endphp
 
-                                @foreach ($details as $d) --}}
-                                    @foreach ($detail['details'] as $d)
+                                @foreach ($details as $d)
+                                    {{-- @foreach ($detail['details'] as $d) --}}
                                     <div class="flex flex-col space-y-2">
                                         <div class="flex justify-end items-center">
                                             <p>{{ $d['qty'] }} x

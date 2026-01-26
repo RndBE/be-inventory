@@ -25,10 +25,10 @@ class BahanKeluarDetails extends Model
         'sub_total'
     ];
 
-    protected $casts = [
-        'details' => 'array',
-        'used_materials' => 'array',
-    ];
+    // protected $casts = [
+    //     'details' => 'array',
+    //     'used_materials' => 'array',
+    // ];
 
     public function bahanKeluar()
     {

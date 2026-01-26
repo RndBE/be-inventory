@@ -288,15 +288,24 @@
                             </td>
 
                             <td class="items-right px-6 py-4 text-right">
-                                {{-- @php
-                                    $details = $detail->details ?? [];
-                                    if (is_string($details)) {
-                                        $details = json_decode($details, true) ?: [];
-                                    }
+
+                                @php
+                                    // $details = $detail->details ?? '[]';
+                                    // $details = is_string($details)
+                                    //     ? (json_decode($details, true) ?:
+                                    //     [])
+                                    //     : $details ?? [];
+                                    $rawDetails = is_array($detail)
+                                        ? $detail['details'] ?? '[]'
+                                        : $detail->details ?? '[]';
+                                    $details = is_string($rawDetails)
+                                        ? (json_decode($rawDetails, true) ?:
+                                        [])
+                                        : $rawDetails ?? [];
                                 @endphp
 
-                                @foreach ($details as $d) --}}
-                                    @foreach ($detail['details'] as $d)
+                                @foreach ($details as $d)
+                                    {{-- @foreach ($detail['details'] as $d) --}}
                                     <div class="flex flex-col space-y-2">
                                         <div class="flex justify-end items-center">
                                             <p>{{ $d['qty'] }} x
@@ -304,8 +313,14 @@
 
                                             @if ($projekRndStatus !== 'Selesai' && $projekRndStatus !== 'Tidak dilanjutkan')
                                                 @php
-                                                    $bahanId = $detail['bahan_id'] ?? null;
-                                                    $produkId = $detail['produk_id'] ?? null;
+                                                    // $bahanId = $detail['bahan_id'] ?? null;
+                                                    // $produkId = $detail['produk_id'] ?? null;
+                                                    $bahanId = is_array($detail)
+                                                        ? $detail['bahan_id'] ?? null
+                                                        : $detail->bahan_id ?? null;
+                                                    $produkId = is_array($detail)
+                                                        ? $detail['produk_id'] ?? null
+                                                        : $detail->produk_id ?? null;
                                                 @endphp
 
                                                 {{-- Tombol untuk Bahan --}}

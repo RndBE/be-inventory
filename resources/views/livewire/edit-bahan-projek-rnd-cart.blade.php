@@ -288,7 +288,8 @@
                             </td>
 
                             <td class="items-right px-6 py-4 text-right">
-                                @foreach ($detail['details'] as $d)
+                                {{-- @foreach ($detail['details'] as $d) --}}
+                                @foreach (($detail['details'] ?? []) as $d)
                                     <div class="flex flex-col space-y-2">
                                         <div class="flex justify-end items-center">
                                             <p>{{ $d['qty'] }} x

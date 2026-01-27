@@ -114,7 +114,7 @@ class BahanKeluarTable extends Component
         } elseif ($user->hasRole(['teknisi level 3', 'produksi level 3'])) {
             $bahan_keluars->whereIn('divisi', ['Teknisi', 'OP', 'Produksi', 'Engineer', 'Hardware']);
         } elseif ($user->hasRole(['marketing manager', 'marketing level 3'])) {
-            $bahan_keluars->whereIn('divisi', ['Marketing', 'Admin Project']);
+            $bahan_keluars->whereIn('divisi', ['Marketing', 'Admin Project','Staff BD', 'BD Manager']);
         } elseif ($user->hasRole(['software manager'])) {
             $bahan_keluars->whereIn('divisi', ['Software', 'Publikasi']);
         } elseif ($user->hasRole(['hrd level 3'])) {

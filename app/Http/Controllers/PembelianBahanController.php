@@ -775,7 +775,7 @@ class PembelianBahanController extends Controller
             $data->save();
 
             if ($data->status_leader === 'Disetujui') {
-                if ($data->jenis_pengajuan === 'Pembelian Aset' || 'Pembelian Aset Lokal' || 'Pembelian Aset Impor') {
+                if ($data->jenis_pengajuan === 'Pembelian Aset' || $data->jenis_pengajuan ===  'Pembelian Aset Lokal' || $data->jenis_pengajuan ===  'Pembelian Aset Impor') {
                     // Kirim notifikasi ke General Affair
                     // $targetUser = User::whereHas('dataJobPosition', function ($query) {
                     //     $query->where('nama', 'General Affair'); // Posisi General Affair

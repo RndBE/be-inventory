@@ -226,6 +226,8 @@ class DashboardController extends Controller
                     'Pembelian Bahan/Barang/Alat Lokal' => 0,
                     'Pembelian Bahan/Barang/Alat Impor' => 0,
                     'Pembelian Aset' => 0,
+                    'Pembelian Aset Lokal' => 0,
+                    'Pembelian Aset Impor' => 0,
                 ];
 
                 foreach ($group as $pembelian) {

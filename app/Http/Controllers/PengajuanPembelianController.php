@@ -140,7 +140,7 @@ class PengajuanPembelianController extends Controller
 
             $tandaTanganPengisiHarga = $pengisiHargaUser->tanda_tangan ?? null;
 
-            $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
+            $tandaTanganGeneral = $generalUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
                 return User::where('name', 'LINA WIDIASTUTI')->first();
@@ -156,25 +156,53 @@ class PengajuanPembelianController extends Controller
             $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
 
             $pdf = Pdf::loadView('pages.pembelian-bahan.pdf', compact(
-                'pembelianBahan','status_leader','status_purchasing','status_manager','status_finance','status_admin_manager','status_general_manager',
+                'pembelianBahan',
+                'status_leader',
+                'status_purchasing',
+                'status_manager',
+                'status_finance',
+                'status_admin_manager',
+                'status_general_manager',
                 'tandaTanganPengaju',
                 'tandaTanganLeader',
                 'tandaTanganManager',
                 'tandaTanganDirektur',
-                'tandaTanganPurchasing','tandaTanganGeneral',
-                'purchasingUser','generalUser',
-                'tandaTanganFinance','new_shipping_cost','new_full_amount_fee','new_value_today_fee',
-                'financeUser','new_shipping_cost_usd','new_full_amount_fee_usd','new_value_today_fee_usd',
-                'tandaTanganAdminManager','shipping_cost_usd','full_amount_fee_usd','value_today_fee_usd',
-                'adminManagerceUser','shipping_cost','full_amount_fee','value_today_fee', 'ppn',
-                'leaderName','status','jenis_pengajuan',
-                'managerName','ongkir','layanan','jasa_aplikasi','asuransi', 'pengisiHargaUser', 'tandaTanganPengisiHarga'
+                'tandaTanganPurchasing',
+                'tandaTanganGeneral',
+                'purchasingUser',
+                'generalUser',
+                'tandaTanganFinance',
+                'new_shipping_cost',
+                'new_full_amount_fee',
+                'new_value_today_fee',
+                'financeUser',
+                'new_shipping_cost_usd',
+                'new_full_amount_fee_usd',
+                'new_value_today_fee_usd',
+                'tandaTanganAdminManager',
+                'shipping_cost_usd',
+                'full_amount_fee_usd',
+                'value_today_fee_usd',
+                'adminManagerceUser',
+                'shipping_cost',
+                'full_amount_fee',
+                'value_today_fee',
+                'ppn',
+                'leaderName',
+                'status',
+                'jenis_pengajuan',
+                'managerName',
+                'ongkir',
+                'layanan',
+                'jasa_aplikasi',
+                'asuransi',
+                'pengisiHargaUser',
+                'tandaTanganPengisiHarga'
             ));
             return $pdf->stream("pembelian_bahan_{$id}.pdf");
 
             LogHelper::success('Berhasil generating PDF for pembelianBahan ID {$id}!');
             return $pdf->download("pembelian_bahan_{$id}.pdf");
-
         } catch (\Exception $e) {
             LogHelper::error("Error generating PDF for pembelianBahan ID {$id}: " . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
@@ -263,7 +291,7 @@ class PengajuanPembelianController extends Controller
 
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
 
-            $tandaTanganGeneral= $generalUser->tanda_tangan ?? null;
+            $tandaTanganGeneral = $generalUser->tanda_tangan ?? null;
 
             $financeUser = cache()->remember('finance_user', 60, function () {
                 return User::where('name', 'LINA WIDIASTUTI')->first();
@@ -279,25 +307,51 @@ class PengajuanPembelianController extends Controller
             $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
 
             $pdf = Pdf::loadView('pages.pembelian-bahan.pdfpo', compact(
-                'pembelianBahan','status_leader','status_purchasing','status_manager','status_finance','status_admin_manager','status_general_manager',
+                'pembelianBahan',
+                'status_leader',
+                'status_purchasing',
+                'status_manager',
+                'status_finance',
+                'status_admin_manager',
+                'status_general_manager',
                 'tandaTanganPengaju',
                 'tandaTanganLeader',
                 'tandaTanganManager',
                 'tandaTanganDirektur',
-                'tandaTanganPurchasing','tandaTanganGeneral',
-                'purchasingUser','generalUser',
-                'tandaTanganFinance','new_shipping_cost','new_full_amount_fee','new_value_today_fee',
-                'financeUser','new_shipping_cost_usd','new_full_amount_fee_usd','new_value_today_fee_usd',
-                'tandaTanganAdminManager','shipping_cost_usd','full_amount_fee_usd','value_today_fee_usd',
-                'adminManagerceUser','shipping_cost','full_amount_fee','value_today_fee', 'ppn',
-                'leaderName','status','jenis_pengajuan',
-                'managerName','ongkir','layanan','jasa_aplikasi','asuransi'
+                'tandaTanganPurchasing',
+                'tandaTanganGeneral',
+                'purchasingUser',
+                'generalUser',
+                'tandaTanganFinance',
+                'new_shipping_cost',
+                'new_full_amount_fee',
+                'new_value_today_fee',
+                'financeUser',
+                'new_shipping_cost_usd',
+                'new_full_amount_fee_usd',
+                'new_value_today_fee_usd',
+                'tandaTanganAdminManager',
+                'shipping_cost_usd',
+                'full_amount_fee_usd',
+                'value_today_fee_usd',
+                'adminManagerceUser',
+                'shipping_cost',
+                'full_amount_fee',
+                'value_today_fee',
+                'ppn',
+                'leaderName',
+                'status',
+                'jenis_pengajuan',
+                'managerName',
+                'ongkir',
+                'layanan',
+                'jasa_aplikasi',
+                'asuransi'
             ));
             return $pdf->stream("pembelian_bahan_{$id}.pdf");
 
             LogHelper::success('Berhasil generating PDF for pembelianBahan ID {$id}!');
             return $pdf->download("pembelian_bahan_{$id}.pdf");
-
         } catch (\Exception $e) {
             LogHelper::error("Error generating PDF for pembelianBahan ID {$id}: " . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengunduh PDF.');
@@ -373,13 +427,22 @@ class PengajuanPembelianController extends Controller
             $kode_transaksi = $prefix . date('Ymd') . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
             if ($jenisPengajuan === 'Pembelian Bahan/Barang/Alat Lokal' || $jenisPengajuan === 'Pembelian Bahan/Barang/Alat Impor') {
-                if ($user->job_level == 3 && $user->atasan_level3_id === null) {
+                if ($user->job_level == 3 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
+                    // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                    $status_leader = 'Disetujui';
+                    $status_manager = 'Disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke Purchasing
+                    $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                    $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+                } elseif ($user->job_level == 3 && $user->atasan_level3_id === null) {
                     // Job level 3 dan atasan_level3_id null
                     $status_leader = 'Disetujui';
                     $status_manager = 'Belum disetujui'; // Menunggu approval manager
                     // Kirim notifikasi ke Purchasing
-                    $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
-                    $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+                    // $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                    // $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+                    $targetPhone = $user->atasanLevel2 ? $user->atasanLevel2->telephone : null;
+                    $recipientName = $user->atasanLevel2 ? $user->atasanLevel2->name : 'Manager';
                 } elseif ($user->job_level == 4 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
                     // Job level 4 dan atasan_level3_id, atasan_level2_id null
                     $status_leader = 'Disetujui';
@@ -409,7 +472,14 @@ class PengajuanPembelianController extends Controller
                     $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
                 }
             }else{
-                if ($user->job_level == 3 && $user->atasan_level3_id === null) {
+                if ($user->job_level == 3 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
+                    // Job level 3 dan atasan_level3_id null
+                    $status_leader = 'Disetujui';
+                    $status_manager = 'Disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke General Affair
+                    $targetPhone = $generalAffairUser ? $generalAffairUser->telephone : null;
+                    $recipientName = $generalAffairUser ? $generalAffairUser->name : 'General Affair';
+                } elseif ($user->job_level == 3 && $user->atasan_level3_id === null) {
                     // Job level 3 dan atasan_level3_id null
                     $status_leader = 'Disetujui';
                     $status_manager = 'Belum disetujui'; // Menunggu approval manager
@@ -616,7 +686,7 @@ class PengajuanPembelianController extends Controller
 
     public function destroy(Request $request, string $id)
     {
-        try{
+        try {
             $data = PembelianBahan::find($id);
             if (!$data) {
                 return redirect()->back()->with('gagal', 'Transaksi tidak ditemukan.');
@@ -626,7 +696,7 @@ class PengajuanPembelianController extends Controller
             // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Berhasil Menghapus Pengajuan Pembelian Bahan!');
             $page = $request->input('page', 1);
             return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Berhasil Menghapus Pengajuan Pembelian Bahan!');
-        }catch(Throwable $e){
+        } catch (Throwable $e) {
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }

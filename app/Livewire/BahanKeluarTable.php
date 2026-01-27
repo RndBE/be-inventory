@@ -13,7 +13,7 @@ class BahanKeluarTable extends Component
     public $search = "";
     public $perPage = 25;
     public $id_bahan_keluars, $status,
-    $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $tujuan;
+        $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $tujuan;
     public $filter = 'semua';
     public $totalHarga;
     public $isShowModalOpen = false;
@@ -56,7 +56,7 @@ class BahanKeluarTable extends Component
     public function calculateTotalHarga()
     {
         $this->totalHarga = BahanKeluar::where('status', 'Disetujui')->with('bahanKeluarDetails')
-        ->get()
+            ->get()
             ->sum(function ($bahanKeluar) {
                 return $bahanKeluar->bahanKeluarDetails->sum('sub_total');
             });
@@ -104,32 +104,27 @@ class BahanKeluarTable extends Component
         $bahan_keluars = BahanKeluar::with('dataUser', 'bahanKeluarDetails', 'produksiS', 'produkJadiDetails')
             ->orderBy('id', 'desc');
 
-        if ($user->hasRole(['superadmin','administrasi','purchasing'])) {
-
-        }
-        elseif ($user->hasRole(['hardware manager'])) {
-            $bahan_keluars->whereIn('divisi', ['RnD', 'Helper','Teknisi','OP','Produksi','Engineer']);
-        }elseif ($user->hasRole(['rnd level 3'])) {
+        if ($user->hasRole(['superadmin', 'administrasi', 'purchasing'])) {
+        } elseif ($user->hasRole(['hardware manager'])) {
+            $bahan_keluars->whereIn('divisi', ['RnD', 'Helper', 'Teknisi', 'OP', 'Produksi', 'Engineer']);
+        } elseif ($user->hasRole(['rnd level 3'])) {
             $bahan_keluars->whereIn('divisi', ['RnD']);
-        }elseif ($user->hasRole(['purchasing level 3','helper'])) {
-            $bahan_keluars->whereIn('divisi', ['Purchasing','Helper']);
-        }elseif ($user->hasRole(['teknisi level 3','produksi level 3'])) {
-            $bahan_keluars->whereIn('divisi', ['Teknisi','OP','Produksi','Engineer','Hardware']);
-        }
-        elseif ($user->hasRole(['marketing manager','marketing level 3'])) {
+        } elseif ($user->hasRole(['purchasing level 3', 'helper'])) {
+            $bahan_keluars->whereIn('divisi', ['Purchasing', 'Helper']);
+        } elseif ($user->hasRole(['teknisi level 3', 'produksi level 3'])) {
+            $bahan_keluars->whereIn('divisi', ['Teknisi', 'OP', 'Produksi', 'Engineer', 'Hardware']);
+        } elseif ($user->hasRole(['marketing manager', 'marketing level 3'])) {
             $bahan_keluars->whereIn('divisi', ['Marketing', 'Admin Project']);
-        }
-        elseif ($user->hasRole(['software manager'])) {
-            $bahan_keluars->whereIn('divisi', ['Software','Publikasi']);
-        }
-        elseif ($user->hasRole(['hrd level 3'])) {
-            $bahan_keluars->where('divisi', ['HSE','Helper', 'HRD', 'General Affair']);
-        }
-        elseif ($user->hasRole(['sekretaris'])) {
+        } elseif ($user->hasRole(['software manager'])) {
+            $bahan_keluars->whereIn('divisi', ['Software', 'Publikasi']);
+        } elseif ($user->hasRole(['hrd level 3'])) {
+            $bahan_keluars->where('divisi', ['HSE', 'Helper', 'HRD', 'General Affair']);
+        } elseif ($user->hasRole(['sekretaris'])) {
             $bahan_keluars->where('divisi', 'Sekretaris', 'Secretary');
-        }
-        elseif ($user->hasRole('administrasi')) {
-            $bahan_keluars->where('divisi', ['HSE','Sekretaris','Administrasi', 'Tax Officer', 'Accounting', 'Secretary']);
+        } elseif ($user->hasRole('administrasi')) {
+            $bahan_keluars->where('divisi', ['HSE', 'Sekretaris', 'Administrasi', 'Tax Officer', 'Accounting', 'Secretary']);
+        } elseif ($user->hasRole(['BD_manager'])) {
+            $bahan_keluars->whereIn('divisi', ['Marketing', 'Admin Project', 'Staff BD', 'BD Manager']);
         }
 
         // Pencarian dan filter tambahan
@@ -158,8 +153,8 @@ class BahanKeluarTable extends Component
             $query->orWhereHas('bahanKeluarDetails', function ($q) use ($search) {
                 $q->whereHas('dataBahan', function ($b) use ($search) {
                     $b->where('nama_bahan', 'like', $search)
-                    ->orWhere('serial_number', 'like', $search)
-                    ->orWhereRaw("CONCAT(nama_bahan, ' (', serial_number, ')') LIKE ?", [$search]);
+                        ->orWhere('serial_number', 'like', $search)
+                        ->orWhereRaw("CONCAT(nama_bahan, ' (', serial_number, ')') LIKE ?", [$search]);
                 });
             });
 
@@ -168,8 +163,8 @@ class BahanKeluarTable extends Component
                 $q->whereHas('dataProduk', function ($p) use ($search) {
                     $p->whereHas('dataBahan', function ($b) use ($search) {
                         $b->where('nama_bahan', 'like', $search)
-                        ->orWhere('serial_number', 'like', $search)
-                        ->orWhereRaw("CONCAT(nama_bahan, ' (', serial_number, ')') LIKE ?", [$search]);
+                            ->orWhere('serial_number', 'like', $search)
+                            ->orWhereRaw("CONCAT(nama_bahan, ' (', serial_number, ')') LIKE ?", [$search]);
                     });
                 });
             });
@@ -178,11 +173,10 @@ class BahanKeluarTable extends Component
             $query->orWhereHas('bahanKeluarDetails', function ($q) use ($search) {
                 $q->whereHas('dataProdukJadi', function ($pj) use ($search) {
                     $pj->where('nama_produk', 'like', $search)
-                    ->orWhere('serial_number', 'like', $search)
-                    ->orWhereRaw("CONCAT(nama_produk, ' (', serial_number, ')') LIKE ?", [$search]);
+                        ->orWhere('serial_number', 'like', $search)
+                        ->orWhereRaw("CONCAT(nama_produk, ' (', serial_number, ')') LIKE ?", [$search]);
                 });
             });
-
         })
 
             ->when($this->filter === 'Ditolak', function ($query) {

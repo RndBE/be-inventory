@@ -42,8 +42,8 @@ class BahanKeluarController extends Controller
     {
         $this->middleware('permission:lihat-bahan-keluar', ['only' => ['index']]);
         $this->middleware('permission:detail-bahan-keluar', ['only' => ['show']]);
-        $this->middleware('permission:tambah-bahan-keluar', ['only' => ['create','store']]);
-        $this->middleware('permission:edit-bahan-keluar', ['only' => ['update','edit']]);
+        $this->middleware('permission:tambah-bahan-keluar', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-bahan-keluar', ['only' => ['update', 'edit']]);
         $this->middleware('permission:edit-pengambilan', ['only' => ['updatepengambilan']]);
         $this->middleware('permission:edit-approve-leader', ['only' => ['updateApprovalLeader']]);
 
@@ -142,100 +142,116 @@ class BahanKeluarController extends Controller
     //     }
     // }
 
-public function downloadPdf(int $id)
-{
-    try {
-        $bahanKeluar = BahanKeluar::with([
-            'dataUser',
-            'dataUser.atasanLevel1',
-            'dataUser.atasanLevel2',
-            'dataUser.atasanLevel3',
-            'bahanKeluarDetails.dataBahan.dataUnit',
-            'bahanKeluarDetails.dataProduk',
-            'bahanKeluarDetails.dataProdukJadi',
-        ])->findOrFail($id);
+    public function downloadPdf(int $id)
+    {
+        try {
+            $bahanKeluar = BahanKeluar::with([
+                'dataUser',
+                'dataUser.atasanLevel1',
+                'dataUser.atasanLevel2',
+                'dataUser.atasanLevel3',
+                'bahanKeluarDetails.dataBahan.dataUnit',
+                'bahanKeluarDetails.dataProduk',
+                'bahanKeluarDetails.dataProdukJadi',
+            ])->findOrFail($id);
 
-        $hasProduk = $bahanKeluar->bahanKeluarDetails->filter(function ($detail) {
-            return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
-        })->isNotEmpty();
+            $hasProduk = $bahanKeluar->bahanKeluarDetails->filter(function ($detail) {
+                return !empty($detail->dataProduk) && !empty($detail->dataProduk->id);
+            })->isNotEmpty();
 
-        $hasProdukJadi = $bahanKeluar->bahanKeluarDetails->filter(function ($detail) {
-            return !empty($detail->dataProdukJadi) && !empty($detail->dataProdukJadi->id);
-        })->isNotEmpty();
+            $hasProdukJadi = $bahanKeluar->bahanKeluarDetails->filter(function ($detail) {
+                return !empty($detail->dataProdukJadi) && !empty($detail->dataProdukJadi->id);
+            })->isNotEmpty();
 
-        $tandaTanganPengaju   = $bahanKeluar->dataUser->tanda_tangan ?? null;
-        $tandaTanganLeader    = null;
-        $tandaTanganManager   = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
-        $tandaTanganDirektur  = $bahanKeluar->dataUser->atasanLevel1->tanda_tangan ?? null;
+            $tandaTanganPengaju   = $bahanKeluar->dataUser->tanda_tangan ?? null;
+            $tandaTanganLeader    = null;
+            $tandaTanganManager   = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
+            $tandaTanganDirektur  = $bahanKeluar->dataUser->atasanLevel1->tanda_tangan ?? null;
 
-        if ($bahanKeluar->dataUser->atasanLevel3) {
-            $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel3->tanda_tangan ?? null;
-        } elseif ($bahanKeluar->dataUser->atasanLevel2) {
-            $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
+            if ($bahanKeluar->dataUser->atasanLevel3) {
+                $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel3->tanda_tangan ?? null;
+            } elseif ($bahanKeluar->dataUser->atasanLevel2) {
+                $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
+            }
+
+            $leaderName  = $bahanKeluar->dataUser->atasanLevel3 ? $bahanKeluar->dataUser->atasanLevel3->name : null;
+            $managerName = $bahanKeluar->dataUser->atasanLevel2 ? $bahanKeluar->dataUser->atasanLevel2->name : null;
+
+            if (!$leaderName && $managerName) {
+                $leaderName = $managerName;
+            }
+
+            $purchasingUser = cache()->remember('purchasing_user', 60, function () {
+                return User::where('job_level', 3)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Purchasing');
+                    })->first();
+            });
+
+            $hardwareManager = cache()->remember('hardware_manager', 60, function () {
+                return User::where('job_level', 2)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Engineer Manager');
+                    })->first();
+            });
+
+            $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+            $namaManager           = $hardwareManager->name ?? null;
+
+            $financeUser = cache()->remember('finance_user', 60, function () {
+                return User::where('name', 'LINA WIDIASTUTI')->first();
+            });
+            $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
+
+            $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
+                return User::where('job_level', 2)
+                    ->whereHas('dataJobPosition', function ($query) {
+                        $query->where('nama', 'Admin Manager');
+                    })->first();
+            });
+            $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
+
+            LogHelper::success("Berhasil menampilkan preview untuk BahanKeluar ID {$id}!");
+
+            // langsung return ke view tanpa Pdf::loadView
+            return view('pages.bahan-keluars.preview', compact(
+                'bahanKeluar',
+                'purchasingUser',
+                'adminManagerceUser',
+                'leaderName',
+                'managerName',
+                'namaManager',
+                'hasProduk',
+                'hasProdukJadi'
+            ));
+        } catch (\Exception $e) {
+            LogHelper::error("Error menampilkan preview BahanKeluar ID {$id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menampilkan preview.');
         }
-
-        $leaderName  = $bahanKeluar->dataUser->atasanLevel3 ? $bahanKeluar->dataUser->atasanLevel3->name : null;
-        $managerName = $bahanKeluar->dataUser->atasanLevel2 ? $bahanKeluar->dataUser->atasanLevel2->name : null;
-
-        if (!$leaderName && $managerName) {
-            $leaderName = $managerName;
-        }
-
-        $purchasingUser = cache()->remember('purchasing_user', 60, function () {
-            return User::where('job_level', 3)
-                ->whereHas('dataJobPosition', function ($query) {
-                    $query->where('nama', 'Purchasing');
-                })->first();
-        });
-
-        $hardwareManager = cache()->remember('hardware_manager', 60, function () {
-            return User::where('job_level', 2)
-                ->whereHas('dataJobPosition', function ($query) {
-                    $query->where('nama', 'Engineer Manager');
-                })->first();
-        });
-
-        $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
-        $namaManager           = $hardwareManager->name ?? null;
-
-        $financeUser = cache()->remember('finance_user', 60, function () {
-            return User::where('name', 'LINA WIDIASTUTI')->first();
-        });
-        $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
-
-        $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
-            return User::where('job_level', 2)
-                ->whereHas('dataJobPosition', function ($query) {
-                    $query->where('nama', 'Admin Manager');
-                })->first();
-        });
-        $tandaTanganAdminManager = $adminManagerceUser->tanda_tangan ?? null;
-
-        LogHelper::success("Berhasil menampilkan preview untuk BahanKeluar ID {$id}!");
-
-        // langsung return ke view tanpa Pdf::loadView
-        return view('pages.bahan-keluars.preview', compact(
-            'bahanKeluar',
-            'purchasingUser',
-            'adminManagerceUser',
-            'leaderName',
-            'managerName',
-            'namaManager',
-            'hasProduk',
-            'hasProdukJadi'
-        ));
-
-    } catch (\Exception $e) {
-        LogHelper::error("Error menampilkan preview BahanKeluar ID {$id}: " . $e->getMessage());
-        return redirect()->back()->with('error', 'Terjadi kesalahan saat menampilkan preview.');
     }
-}
 
 
 
     public function index()
     {
-        $bahan_keluars = BahanKeluar::with('bahanKeluarDetails')->get();
+        // $bahan_keluars = BahanKeluar::with('bahanKeluarDetails')->get();
+        // return view('pages.bahan-keluars.index', compact('bahan_keluars'));
+        $userId = auth()->id();
+
+        $bahan_keluars = BahanKeluar::with(['bahanKeluarDetails', 'dataUser'])
+            ->whereNotIn('status_leader', ['Disetujui', 'Ditolak'])
+            ->whereHas('dataUser', function ($q) use ($userId) {
+                $q->where(function ($qq) use ($userId) {
+                    $qq->whereNotNull('atasan_level3_id')
+                        ->where('atasan_level3_id', $userId);
+                })->orWhere(function ($qq) use ($userId) {
+                    $qq->whereNull('atasan_level3_id')
+                        ->where('atasan_level2_id', $userId);
+                });
+            })
+            ->latest()
+            ->get();
+
         return view('pages.bahan-keluars.index', compact('bahan_keluars'));
     }
 
@@ -368,8 +384,8 @@ public function downloadPdf(int $id)
                     if ($bahanKeluar->produksi_id) {
                         // Melakukan pencarian pada tabel produksi_details
                         $existingDetail = ProduksiDetails::where('produksi_id', $bahanKeluar->produksi_id)
-                        ->where('bahan_id', $detail->bahan_id)
-                        ->first();
+                            ->where('bahan_id', $detail->bahan_id)
+                            ->first();
                         // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel produksi_details dengan data default
                         if (!$existingDetail) {
                             ProduksiDetails::create([
@@ -382,14 +398,14 @@ public function downloadPdf(int $id)
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->produksi_produk_jadi_id) {
+                    } elseif ($bahanKeluar->produksi_produk_jadi_id) {
                         // Melakukan pencarian pada tabel projek_details
                         $existingDetail = ProduksiProdukJadiDetails::where('produksi_produk_jadi_id', $bahanKeluar->produksi_produk_jadi_id)
-                        ->where(function ($query) use ($detail) {
-                            $query->where('bahan_id', $detail->bahan_id)
-                                ->orWhere('produk_id', $detail->produk_id);
-                        })
-                        ->first();
+                            ->where(function ($query) use ($detail) {
+                                $query->where('bahan_id', $detail->bahan_id)
+                                    ->orWhere('produk_id', $detail->produk_id);
+                            })
+                            ->first();
                         // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel projek_details dengan data default
                         if (!$existingDetail) {
                             ProjekDetails::create([
@@ -403,15 +419,15 @@ public function downloadPdf(int $id)
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->projek_id) {
+                    } elseif ($bahanKeluar->projek_id) {
                         // Melakukan pencarian pada tabel projek_details
                         $existingDetail = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
-                        ->where(function ($query) use ($detail) {
-                            $query->where('bahan_id', $detail->bahan_id)
-                                ->orWhere('produk_id', $detail->produk_id)
-                                ->orWhere('produk_jadis_id', $detail->produk_jadis_id);
-                        })
-                        ->first();
+                            ->where(function ($query) use ($detail) {
+                                $query->where('bahan_id', $detail->bahan_id)
+                                    ->orWhere('produk_id', $detail->produk_id)
+                                    ->orWhere('produk_jadis_id', $detail->produk_jadis_id);
+                            })
+                            ->first();
                         // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel projek_details dengan data default
                         if (!$existingDetail) {
                             ProjekDetails::create([
@@ -426,14 +442,14 @@ public function downloadPdf(int $id)
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->garansi_projek_id) {
+                    } elseif ($bahanKeluar->garansi_projek_id) {
                         // Melakukan pencarian pada tabel garansi_projek_details
                         $existingDetail = GaransiProjekDetails::where('garansi_projek_id', $bahanKeluar->garansi_projek_id)
-                        ->where(function ($query) use ($detail) {
-                            $query->where('bahan_id', $detail->bahan_id)
-                                ->orWhere('produk_id', $detail->produk_id);
-                        })
-                        ->first();
+                            ->where(function ($query) use ($detail) {
+                                $query->where('bahan_id', $detail->bahan_id)
+                                    ->orWhere('produk_id', $detail->produk_id);
+                            })
+                            ->first();
                         // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel projek_details dengan data default
                         if (!$existingDetail) {
                             GaransiProjekDetails::create([
@@ -447,14 +463,14 @@ public function downloadPdf(int $id)
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->projek_rnd_id) {
+                    } elseif ($bahanKeluar->projek_rnd_id) {
                         // Melakukan pencarian pada tabel projek_rnd_details
                         $existingDetail = ProjekRndDetails::where('projek_rnd_id', $bahanKeluar->projek_rnd_id)
-                        ->where(function ($query) use ($detail) {
-                            $query->where('bahan_id', $detail->bahan_id)
-                                ->orWhere('produk_id', $detail->produk_id);
-                        })
-                        ->first();
+                            ->where(function ($query) use ($detail) {
+                                $query->where('bahan_id', $detail->bahan_id)
+                                    ->orWhere('produk_id', $detail->produk_id);
+                            })
+                            ->first();
                         // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel projek_rnd_details dengan data default
                         if (!$existingDetail) {
                             ProjekRndDetails::create([
@@ -468,7 +484,7 @@ public function downloadPdf(int $id)
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->pengajuan_id) {
+                    } elseif ($bahanKeluar->pengajuan_id) {
                         // Melakukan pencarian pada tabel pengajuan_details
                         $existingDetail = PengajuanDetails::where('pengajuan_id', $bahanKeluar->pengajuan_id)
                             ->where('bahan_id', $detail->bahan_id)
@@ -485,7 +501,7 @@ public function downloadPdf(int $id)
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->pengambilan_bahan_id) {
+                    } elseif ($bahanKeluar->pengambilan_bahan_id) {
                         // Melakukan pencarian pada tabel pengambilan_bahan_details
                         $existingDetail = PengambilanBahanDetails::where('pengambilan_bahan_id', $bahanKeluar->pengambilan_bahan_id)
                             ->where('bahan_id', $detail->bahan_id)
@@ -502,15 +518,15 @@ public function downloadPdf(int $id)
                                 'sub_total' => 0,
                             ]);
                         }
-                    }elseif ($bahanKeluar->produk_sample_id) {
+                    } elseif ($bahanKeluar->produk_sample_id) {
                         // Melakukan pencarian pada tabel produk_sample_details
                         $existingDetail = ProdukSampleDetails::where('produk_sample_id', $bahanKeluar->produk_sample_id)
-                        ->where(function ($query) use ($detail) {
-                            $query->where('bahan_id', $detail->bahan_id)
-                                ->orWhere('produk_id', $detail->produk_id)
-                                ->orWhere('produk_jadis_id', $detail->produk_jadis_id);
-                        })
-                        ->first();
+                            ->where(function ($query) use ($detail) {
+                                $query->where('bahan_id', $detail->bahan_id)
+                                    ->orWhere('produk_id', $detail->produk_id)
+                                    ->orWhere('produk_jadis_id', $detail->produk_jadis_id);
+                            })
+                            ->first();
                         // Jika tidak ditemukan entri sebelumnya, Dibuatkan entri baru di tabel produk_sample_details dengan data default
                         if (!$existingDetail) {
                             ProdukSampleDetails::create([
@@ -590,7 +606,7 @@ public function downloadPdf(int $id)
                             } else {
                                 throw new \Exception('Bahan setengah jadi tidak ditemukan!');
                             }
-                        }elseif ($detail->produk_jadis_id) {
+                        } elseif ($detail->produk_jadis_id) {
                             // Jika bahan setengah jadi (menggunakan produk_jadis_id)
                             $produkJadiDetail = ProdukJadiDetails::where('id', $detail->produk_jadis_id)
                                 ->whereHas('ProdukJadis', function ($query) use ($transaksiDetail) {
@@ -725,7 +741,8 @@ public function downloadPdf(int $id)
                                 ]);
                             }
                         }
-                    }if ($bahanKeluar->produksi_produk_jadi_id) {
+                    }
+                    if ($bahanKeluar->produksi_produk_jadi_id) {
                         // Iterasi array groupedDetails untuk mengelola bahan keluar
                         foreach ($groupedDetails as $unitPrice => $group) {
                             if ($detail->produk_id) {
@@ -791,14 +808,15 @@ public function downloadPdf(int $id)
                                 ]);
                             }
                         }
-                    }if ($bahanKeluar->projek_id) {
+                    }
+                    if ($bahanKeluar->projek_id) {
                         // Iterasi array groupedDetails untuk mengelola bahan keluar
                         foreach ($groupedDetails as $unitPrice => $group) {
                             if ($detail->produk_id) {
                                 // Jika bahan setengah jadi (menggunakan produk_id)
                                 $projekDetailQuery = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
                                     ->where('produk_id', $detail->produk_id);
-                            }elseif ($detail->produk_jadis_id) {
+                            } elseif ($detail->produk_jadis_id) {
                                 // Jika produk jadi (menggunakan produk_jadis_id)
                                 $projekDetailQuery = ProjekDetails::where('projek_id', $bahanKeluar->projek_id)
                                     ->where('produk_jadis_id', $detail->produk_jadis_id);
@@ -862,7 +880,8 @@ public function downloadPdf(int $id)
                                 ]);
                             }
                         }
-                    }if ($bahanKeluar->garansi_projek_id) {
+                    }
+                    if ($bahanKeluar->garansi_projek_id) {
                         // Iterasi array groupedDetails untuk mengelola bahan keluar
                         foreach ($groupedDetails as $unitPrice => $group) {
                             if ($detail->produk_id) {
@@ -928,7 +947,8 @@ public function downloadPdf(int $id)
                                 ]);
                             }
                         }
-                    }if ($bahanKeluar->projek_rnd_id) {
+                    }
+                    if ($bahanKeluar->projek_rnd_id) {
                         foreach ($groupedDetails as $unitPrice => $group) {
                             if ($detail->produk_id) {
                                 // Jika bahan setengah jadi (menggunakan produk_id)
@@ -992,7 +1012,8 @@ public function downloadPdf(int $id)
                                 ]);
                             }
                         }
-                    }if ($bahanKeluar->pengajuan_id) {
+                    }
+                    if ($bahanKeluar->pengajuan_id) {
                         foreach ($groupedDetails as $unitPrice => $group) {
                             $pengajuanDetail = PengajuanDetails::where('pengajuan_id', $bahanKeluar->pengajuan_id)
                                 ->where('bahan_id', $detail->bahan_id)
@@ -1029,7 +1050,8 @@ public function downloadPdf(int $id)
                                 ]);
                             }
                         }
-                    }if ($bahanKeluar->pengambilan_bahan_id) {
+                    }
+                    if ($bahanKeluar->pengambilan_bahan_id) {
                         foreach ($groupedDetails as $unitPrice => $group) {
                             $pengambilanBahanDetail = PengambilanBahanDetails::where('pengambilan_bahan_id', $bahanKeluar->pengambilan_bahan_id)
                                 ->where('bahan_id', $detail->bahan_id)
@@ -1066,14 +1088,15 @@ public function downloadPdf(int $id)
                                 ]);
                             }
                         }
-                    }if ($bahanKeluar->produk_sample_id) {
+                    }
+                    if ($bahanKeluar->produk_sample_id) {
                         // Iterasi array groupedDetails untuk mengelola bahan keluar
                         foreach ($groupedDetails as $unitPrice => $group) {
                             if ($detail->produk_id) {
                                 // Jika bahan setengah jadi (menggunakan produk_id)
                                 $produkSampleDetailQuery = ProdukSampleDetails::where('produk_sample_id', $bahanKeluar->produk_sample_id)
                                     ->where('produk_id', $detail->produk_id);
-                            }elseif ($detail->produk_jadis_id) {
+                            } elseif ($detail->produk_jadis_id) {
                                 // Jika produk jadi (menggunakan produk_jadis_id)
                                 $produkSampleDetailQuery = ProdukSampleDetails::where('produk_sample_id', $bahanKeluar->produk_sample_id)
                                     ->where('produk_jadis_id', $detail->produk_jadis_id);
@@ -1121,7 +1144,6 @@ public function downloadPdf(int $id)
 
                                 $produkSampleDetail->details = json_encode(array_values($mergedDetails));
                                 $produkSampleDetail->save();
-
                             } else {
                                 // Buat entri baru jika produk_id / bahan_id sama tapi serial_number berbeda atau tidak ada
                                 ProdukSampleDetails::create([
@@ -1139,7 +1161,6 @@ public function downloadPdf(int $id)
                             }
                         }
                     }
-
                 }
             }
             // Kode ini digunakan untuk mengurangi stok bahan sesuai dengan transaksi yang dilakukan
@@ -1216,7 +1237,7 @@ public function downloadPdf(int $id)
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
                     SendWhatsAppApproveLeader::dispatch($pengajuPhone, $message);
                     LogHelper::success("Pesan sedang dikirim.");
-                }  else {
+                } else {
                     LogHelper::error('No valid phone number found for pengaju.');
                 }
             }
@@ -1263,7 +1284,7 @@ public function downloadPdf(int $id)
 
     public function destroy(string $id)
     {
-        try{
+        try {
             $data = BahanKeluar::find($id);
             if (!$data) {
                 return redirect()->back()->with('gagal', 'Transaksi tidak ditemukan.');
@@ -1271,7 +1292,7 @@ public function downloadPdf(int $id)
             $data->delete();
             LogHelper::success('Berhasil Menghapus Pengajuan Bahan Keluar!');
             return redirect()->route('bahan-keluars.index')->with('success', 'Berhasil Menghapus Pengajuan Bahan Keluar!');
-        }catch(Throwable $e){
+        } catch (Throwable $e) {
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
         }

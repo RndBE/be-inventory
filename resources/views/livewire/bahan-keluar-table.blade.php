@@ -285,10 +285,9 @@
                                             $loginUser = Auth::user();
                                             $isAtasanLevel3 = $pengaju?->atasan_level3_id == $loginUser->id;
                                             $isAtasanLevel2 = $pengaju?->atasan_level2_id == $loginUser->id;
-                                            $isSuperadmin = Auth::user()?->hasRole('Superadmin');
                                         @endphp
 
-                                        @if ($isSuperadmin || $isAtasanLevel3 || (!$pengaju?->atasan_level3_id && $isAtasanLevel2))
+                                        @if ($isAtasanLevel3 || (!$pengaju?->atasan_level3_id && $isAtasanLevel2))
                                             @if ($bahan_keluar->status_leader !== 'Disetujui' && $bahan_keluar->status_leader !== 'Ditolak')
                                                 <button wire:click="editBahanKeluar({{ $bahan_keluar->id }})"
                                                     class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">

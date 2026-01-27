@@ -235,7 +235,8 @@ public function downloadPdf(int $id)
 
     public function index()
     {
-        $bahan_keluars = BahanKeluar::with('bahanKeluarDetails')->get();
+        // $bahan_keluars = BahanKeluar::with('bahanKeluarDetails')->get();
+        $bahan_keluars = BahanKeluar::with(['bahanKeluarDetails', 'dataUser'])->latest()->get();
         return view('pages.bahan-keluars.index', compact('bahan_keluars'));
     }
 

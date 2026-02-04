@@ -231,25 +231,19 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     })->name('laporan-proyek.export');
 
     Route::get('/download-template-laporan', function () {
-        $path = public_path('templates/template_laporan_projek.xlsx');
+        return response()->download(public_path('templates/template_laporan_projek.xlsx'));
+    })->name('download.template.laporan');
 
-        if (!file_exists($path)) {
-            dd("File tidak ditemukan di: " . $path);
-        }
+//     Route::get('/download-template-laporan', function () {
+//     $file = public_path('templateexcel/templates_laporan_proyek.xlsx');
 
-        return response()->download($path);
-    });
-
-    //     Route::get('/download-template-laporan', function () {
-    //     $file = public_path('templateexcel/templates_laporan_proyek.xlsx');
-
-    //     return [
-    //         'exists' => file_exists($file),
-    //         'updated_at' => date('Y-m-d H:i:s', filemtime($file)),
-    //         'size_bytes' => filesize($file),
-    //         'md5' => md5_file($file),
-    //     ];
-    // }) ->name('download.template.laporan');
+//     return [
+//         'exists' => file_exists($file),
+//         'updated_at' => date('Y-m-d H:i:s', filemtime($file)),
+//         'size_bytes' => filesize($file),
+//         'md5' => md5_file($file),
+//     ];
+// }) ->name('download.template.laporan');
 
     Route::resource('laporan-garansi-proyek', LaporanGaransiProyekController::class);
     Route::get('/laporan-garansi-proyek/export/{garansi_proyek_id}', function ($garansi_proyek_id) {

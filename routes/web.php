@@ -231,7 +231,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     })->name('laporan-proyek.export');
 
     Route::get('/download-template-laporan', function () {
-        return response()->download(public_path('templates/templates_laporan_projek.xlsx'));
+        return response()->download(public_path('templates/template_laporan_projek.xlsx'));
     })->name('download.template.laporan');
 
 //     Route::get('/download-template-laporan', function () {

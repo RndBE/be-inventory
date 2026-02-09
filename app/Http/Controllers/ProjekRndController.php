@@ -133,6 +133,10 @@ class ProjekRndController extends Controller
                 'cartItems' => 'required|array',
             ]);
             if ($validator->fails()) {
+                // Flash cart items ke session agar tidak hilang saat redirect back
+                if ($cartItems) {
+                    session()->flash('cartItems', $cartItems);
+                }
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
@@ -496,20 +500,18 @@ class ProjekRndController extends Controller
                 }
             }
             
-            foreach ($groupedItems as $item) {
+            // ONLY CREATE new items in ProjekRndDetails, DO NOT update existing ones
+            // This preserves approved details from previous BahanKeluar approvals
+            foreach ($newItemsOnly as $item) {
+                // Check if this item already exists
                 $existing = ProjekRndDetails::where('projek_rnd_id', $projek_rnd->id)
                     ->where('bahan_id', $item['bahan_id'])
                     ->where('produk_id', $item['produk_id'])
                     ->where('serial_number', $item['serial_number'])
                     ->first();
 
-                if ($existing) {
-                    $existing->update([
-                        'keterangan_penanggungjawab' => $item['keterangan_penanggungjawab'],
-                        'details' => json_encode($item['details'] ?? []),
-                        'sub_total' => $item['sub_total'],
-                    ]);
-                } else {
+                // Only create if it doesn't exist (new item)
+                if (!$existing) {
                     ProjekRndDetails::create([
                         'projek_rnd_id' => $projek_rnd->id,
                         'bahan_id' => $item['bahan_id'],
@@ -522,6 +524,7 @@ class ProjekRndController extends Controller
                         'sub_total' => $item['sub_total'],
                     ]);
                 }
+                // If exists, skip update to preserve approved details
             }
 
             // Save bahan rusak if available

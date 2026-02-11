@@ -525,7 +525,11 @@ class PembelianBahanTable extends Component
                         $q->where(function ($sub) {
 
                             // 1. Pembelian Aset → tampilkan semua divisi
-                            $sub->orWhere('jenis_pengajuan', 'Pembelian Aset', 'Pembelian Aset Lokal', 'Pembelian Aset Impor');
+                            $sub->orWhere('jenis_pengajuan', [
+                                'Pembelian Aset',
+                                'Pembelian Aset Lokal',
+                                'Pembelian Aset Impor'
+                            ]);
 
                             // 2. Lokal & Impor → hanya divisi tertentu
                             $sub->orWhere(function ($x) {

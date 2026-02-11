@@ -539,17 +539,24 @@ class PembelianBahanTable extends Component
                     });
                 } elseif ($user->hasRole('general_affair')) {
                     $query->orWhere(function ($q) {
-                        $q->where(function ($sub) {
-                            $sub->whereIn('jenis_pengajuan', [
-                                'Pembelian Aset',
-                                'Pembelian Aset Lokal',
-                                'Pembelian Aset Impor',
+                        $q->whereIn('jenis_pengajuan', [
+                            'Pembelian Aset',
+                            'Pembelian Aset Lokal',
+                            'Pembelian Aset Impor',
+                        ])->orWhere(function ($x) {
+                            $x->whereIn('jenis_pengajuan', [
                                 'Pembelian Bahan/Barang/Alat Lokal',
                                 'Pembelian Bahan/Barang/Alat Impor',
+                            ])->whereIn('divisi', [
+                                'HSE',
+                                'HRD',
+                                'Helper',
+                                'General Affair',
                             ]);
                         });
                     });
                 }
+
 
                 // elseif ($user->hasRole('general_affair')) {
                 //     $query->orWhere(function ($q) {

@@ -488,14 +488,7 @@ class PembelianBahanTable extends Component
             });
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END");
         } elseif ($user->hasAnyRole(['hrd level 3', 'general_affair'])) {
-
             $pembelian_bahan->where(function ($query) use ($user) {
-
-                /*
-        |---------------------------------------------------------
-        | HRD LEVEL 3 FILTER
-        |---------------------------------------------------------
-        */
                 if ($user->hasRole('hrd level 3')) {
                     $query->orWhere(function ($q) {
                         $q->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
@@ -507,31 +500,16 @@ class PembelianBahanTable extends Component
                                 'Purchase Order'
                             ]);
                     });
-                }
-
-                /*
-        |---------------------------------------------------------
-        | GENERAL AFFAIR FILTER
-        |---------------------------------------------------------
-        */
-                if ($user->hasRole('general_affair')) {
+                }elseif ($user->hasRole('general_affair')) {
                     $query->orWhere(function ($q) {
-
-                        // Workflow GA
                         $q->where('status_leader', 'Disetujui')
                             ->where('status_general_manager', 'Belum disetujui');
-
-                        // ====== RULE GENERAL AFFAIR ======
                         $q->where(function ($sub) {
-
-                            // 1. Pembelian Aset → tampilkan semua divisi
                             $sub->orWhere('jenis_pengajuan', [
                                 'Pembelian Aset',
                                 'Pembelian Aset Lokal',
                                 'Pembelian Aset Impor'
                             ]);
-
-                            // 2. Lokal & Impor → hanya divisi tertentu
                             $sub->orWhere(function ($x) {
                                 $x->whereIn('jenis_pengajuan', [
                                     'Pembelian Bahan/Barang/Alat Lokal',
@@ -544,19 +522,17 @@ class PembelianBahanTable extends Component
                                 ]);
                             });
                         });
-                        // =================================
                     });
                 }
             });
 
             // Order prioritas
             $pembelian_bahan->orderByRaw("
-        CASE
-            WHEN status_general_manager = 'Belum disetujui' THEN 0
-            WHEN status_leader = 'Belum disetujui' THEN 1
-            ELSE 2
-        END
-    ");
+            CASE
+                WHEN status_general_manager = 'Belum disetujui' THEN 0
+                WHEN status_leader = 'Belum disetujui' THEN 1
+                ELSE 2
+            END");
         } elseif ($user->hasRole(['purchasing level 3'])) {
             // $pembelian_bahan->whereIn('divisi', ['Purchasing']);
             $pembelian_bahan->where(function ($query) {

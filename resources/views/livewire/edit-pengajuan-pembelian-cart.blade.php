@@ -172,8 +172,8 @@
 
                         @foreach ($pembelianBahanDetails as $detail)
                             @php
-                                $unitPrice = $unit_price[$detail['bahan']->id] ?? 0;
-                                $unitPriceUSD = $unit_price_usd[$detail['bahan']->id] ?? 0;
+                                $unitPrice = $unit_price[$detail['nama_bahan']] ?? 0;
+                                $unitPriceUSD = $unit_price_usd[$detail['nama_bahan']] ?? 0;
                                 $jmlBahan = $detail['jml_bahan'] ?? 0;
 
                                 $subTotal = $jmlBahan * $unitPrice;
@@ -191,7 +191,7 @@
                             <tr
                                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                    {{ $detail['bahan']->nama_bahan }}
+                                    {{ $detail['nama_bahan'] }}
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
                                     <span>{{ $detail['qty_pengajuan'] ?? 0 }}</span>
@@ -537,8 +537,8 @@
 
                         @foreach ($pembelianBahanDetails as $detail)
                             @php
-                                $unitPrice = $unit_price[$detail['bahan']->id] ?? 0;
-                                $unitPriceUSD = $unit_price_usd[$detail['bahan']->id] ?? 0;
+                                $unitPrice = $unit_price[$detail['nama_bahan']] ?? 0;
+                                $unitPriceUSD = $unit_price_usd[$detail['nama_bahan']] ?? 0;
                                 $jmlBahan = $detail['jml_bahan'] ?? 0;
 
                                 $subTotal = $jmlBahan * $unitPrice;
@@ -556,27 +556,27 @@
                             <tr
                                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                    {{ $detail['bahan']->nama_bahan }}
+                                    {{ $detail['nama_bahan'] }}
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                                    <span>{{ $detail['qty_pengajuan'] ?? 0 }}</span>
+                                    <span>{!! nl2br(e($detail['spesifikasi'] ?? '')) !!}</span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
                                     <span>{{ $detail['jml_bahan'] ?? 0 }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                    @if ($editingItemId === 'usd_' . $detail['bahan']->id)
-                                    {{-- @if ($editingItemId === $detail['bahan']->id) --}}
-                                        <input autofocus wire:model="unit_price_usd_raw.{{ $detail['bahan']->id }}"
+                                    @if ($editingItemId === 'usd_' . $detail['nama_bahan'])
+                                    {{-- @if ($editingItemId === $detail['nama_bahan']) --}}
+                                        <input autofocus wire:model="unit_price_usd_raw.{{ $detail['nama_bahan'] }}"
                                             type="number"
                                             class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-right"
-                                            placeholder="0" wire:blur="formatToUSDPriceAset({{ $detail['bahan']->id }})"
+                                            placeholder="0" wire:blur="formatToUSDPriceAset('{{ $detail['nama_bahan'] }}')"
                                             @if ($status_finance === 'Disetujui') disabled @endif />
                                     @else
                                         @if ($status_finance !== 'Disetujui')
                                             <span>
                                                 {{ number_format(
-                                                    $unit_price_usd[$detail['bahan']->id] ?? ($detail['details_usd']['unit_price_usd'] ?? 0),
+                                                    $unit_price_usd[$detail['nama_bahan']] ?? ($detail['details_usd']['unit_price_usd'] ?? 0),
                                                     2,
                                                     ',',
                                                     '.',
@@ -585,7 +585,7 @@
                                         @else
                                             <span>
                                                 {{ number_format(
-                                                    $unit_price_usd[$detail['bahan']->id] ?? ($detail['details_usd']['unit_price_usd'] ?? 0),
+                                                    $unit_price_usd[$detail['nama_bahan']] ?? ($detail['details_usd']['unit_price_usd'] ?? 0),
                                                     2,
                                                     ',',
                                                     '.',
@@ -603,7 +603,7 @@
                                             type="text"
                                             class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-right"
                                             placeholder="0"
-                                            wire:blur="formatToRupiahPrice({{ $detail['nama_bahan'] }})"
+                                            wire:blur="formatToRupiahPrice('{{ $detail['nama_bahan'] }}')"
                                             @if ($status_finance === 'Disetujui') disabled @endif />
                                     @else
                                         @if ($status_finance !== 'Disetujui')
@@ -620,10 +620,16 @@
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                     <span>{{ number_format($subTotal, 2, ',', '.') }}</span>
                                 </td>
+                                <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
+                                    <span>{{ $detail['penanggungjawabaset'] ?? 0 }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
+                                    <span>{{ $detail['alasan'] ?? 0 }}</span>
+                                </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                     <div class="flex justify-right items-right">
-                                        <textarea wire:model="keterangan_pembayaran.{{ $detail['bahan']->id }}"
-                                            wire:keyup="changeKeterangan({{ $detail['bahan']->id }})"
+                                        <textarea wire:model="keterangan_pembayaran.{{ $detail['nama_bahan'] }}"
+                                            wire:keyup="changeKeterangan('{{ $detail['nama_bahan'] }}')"
                                             class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                             disabled>{{ $detail['keterangan_pembayaran'] ?? '' }}</textarea>
                                     </div>
@@ -632,7 +638,7 @@
                                     <div class="inline-flex items-center">
                                         <label class="flex items-center relative">
                                             <input type="checkbox"
-                                                wire:click="updateStatusPembelian({{ $detail['pembelian_bahan_id'] }}, {{ $detail['bahan']->id ?? 'null' }}, '{{ $detail['nama_bahan'] ?? '' }}')"
+                                                wire:click="updateStatusPembelian({{ $detail['pembelian_bahan_id'] }}, null, '{{ $detail['nama_bahan'] ?? '' }}')"
                                                 disabled @if ($detail['status_pembelian'] == 1) checked @endif
                                                 class="peer h-5 w-5 transition-all appearance-none rounded shadow hover:shadow-md border border-slate-300 checked:bg-green-600 checked:border-green-600" />
                                             <span
@@ -705,7 +711,7 @@
                         <!-- Total Anggaran -->
                         <tr
                             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            <td colspan="2"></td>
+                            <td colspan="3"></td>
                             <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 <span><strong>$</strong> {{ number_format($grandTotalUSD, 2, ',', '.') }}</span>

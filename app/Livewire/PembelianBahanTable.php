@@ -539,29 +539,43 @@ class PembelianBahanTable extends Component
                     });
                 } elseif ($user->hasRole('general_affair')) {
                     $query->orWhere(function ($q) {
-                        $q->where('status_leader', 'Disetujui')
-                            ->where('status_general_manager', 'Belum disetujui')
-                            ->where(function ($sub) {
-                                $sub->whereIn('jenis_pengajuan', [
-                                    'Pembelian Aset',
-                                    'Pembelian Aset Lokal',
-                                    'Pembelian Aset Impor'
-                                ])
-                                    ->orWhere(function ($x) {
-                                        $x->whereIn('jenis_pengajuan', [
-                                            'Pembelian Bahan/Barang/Alat Lokal',
-                                            'Pembelian Bahan/Barang/Alat Impor'
-                                        ])
-                                            ->whereIn('divisi', [
-                                                'HSE',
-                                                'HRD',
-                                                'Helper',
-                                                'General Affair'
-                                            ]);
-                                    });
-                            });
+                        $q->where(function ($sub) {
+                            $sub->whereIn('jenis_pengajuan', [
+                                'Pembelian Aset',
+                                'Pembelian Aset Lokal',
+                                'Pembelian Aset Impor',
+                                'Pembelian Bahan/Barang/Alat Lokal',
+                                'Pembelian Bahan/Barang/Alat Impor',
+                            ]);
+                        });
                     });
                 }
+
+                // elseif ($user->hasRole('general_affair')) {
+                //     $query->orWhere(function ($q) {
+                //         $q->where('status_leader', 'Disetujui')
+                //             ->where('status_general_manager', 'Belum disetujui')
+                //             ->where(function ($sub) {
+                //                 $sub->whereIn('jenis_pengajuan', [
+                //                     'Pembelian Aset',
+                //                     'Pembelian Aset Lokal',
+                //                     'Pembelian Aset Impor'
+                //                 ])
+                //                     ->orWhere(function ($x) {
+                //                         $x->whereIn('jenis_pengajuan', [
+                //                             'Pembelian Bahan/Barang/Alat Lokal',
+                //                             'Pembelian Bahan/Barang/Alat Impor'
+                //                         ])
+                //                             ->whereIn('divisi', [
+                //                                 'HSE',
+                //                                 'HRD',
+                //                                 'Helper',
+                //                                 'General Affair'
+                //                             ]);
+                //                     });
+                //             });
+                //     });
+                // }
             });
 
             // Order prioritas

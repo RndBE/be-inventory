@@ -591,7 +591,7 @@ class PembelianBahanTable extends Component
                 WHEN status_general_manager = 'Belum disetujui' THEN 0
                 WHEN status_leader = 'Belum disetujui' THEN 1
                 ELSE 2
-            END");
+            END")->orderBy('tgl_pengajuan', 'desc');
         } elseif ($user->hasRole(['purchasing level 3'])) {
             // $pembelian_bahan->whereIn('divisi', ['Purchasing']);
             $pembelian_bahan->where(function ($query) {

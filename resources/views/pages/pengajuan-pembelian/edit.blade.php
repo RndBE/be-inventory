@@ -103,6 +103,7 @@
                                         <option value="OP" {{ (old('divisi') ?? $pembelian_bahan->divisi) == 'OP' ? 'selected' : '' }}>OP</option>
                                         <option value="Administrasi" {{ (old('divisi') ?? $pembelian_bahan->divisi) == 'Administrasi' ? 'selected' : '' }}>Administrasi</option>
                                         <option value="Sekretaris" {{ (old('divisi') ?? $pembelian_bahan->divisi) == 'Sekretaris' ? 'selected' : '' }}>Sekretaris</option>
+                                        <option value="General Affair" {{ (old('divisi') ?? $pembelian_bahan->divisi) == 'General Affair' ? 'selected' : '' }}>General Affair</option>
                                     </select>
                                 </div>
 

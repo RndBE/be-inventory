@@ -23,6 +23,7 @@ class EditPengajuanPembelianCart extends Component
     public $qty_pengajuan = [];
     public $details = [];
     public $details_raw = [];
+    public $nama_bahan_raw = [];
     public $unit_price = [];
     public $unit_price_aset = [];
     public $unit_price_raw = [];
@@ -65,10 +66,10 @@ class EditPengajuanPembelianCart extends Component
     public $pendingReturCount = [];
     public $isBahanRusakPending = [];
     public $pendingRusakCount = [];
-    public $produksiStatus,$status,$status_finance;
+    public $produksiStatus, $status, $status_finance;
     public $keterangan_pembayaran = [];
     public $pembelianBahans = [];
-    public $jenis_pengajuan, $editingCurrency ;
+    public $jenis_pengajuan, $editingCurrency;
     public $statusPembelianBahan = [];
     public $checkedItems = [];
     public $bukti_pembelian;
@@ -146,12 +147,6 @@ class EditPengajuanPembelianCart extends Component
         }
     }
 
-
-
-
-
-
-
     public function loadProduksi()
     {
         $pembelianBahan = PembelianBahan::with('pembelianBahanDetails')->find($this->pembelianBahanId);
@@ -188,11 +183,12 @@ class EditPengajuanPembelianCart extends Component
                 $unitPrice = $decodedDetails['unit_price'] ?? 0;
                 $unitPriceUSD = $decodedDetailsUSD['unit_price_usd'] ?? 0;
 
-                $bahanKey = $detail->bahan_id ?? $detail->nama_bahan;
+                $bahanKey = $detail->bahan_id ?? $detail->nama_bahan ?? $detail->id;
                 $this->keterangan_pembayaran[$bahanKey] = $detail->keterangan_pembayaran ?? '';
 
 
                 $this->pembelianBahanDetails[] = [
+                    'detail_id' => $detail->id,
                     'bahan' => Bahan::find($detail->bahan_id),
                     'nama_bahan' => $detail->nama_bahan,
                     'pembelian_bahan_id' => $detail->pembelian_bahan_id,
@@ -207,13 +203,66 @@ class EditPengajuanPembelianCart extends Component
                     'alasan' => $detail->alasan ?? '',
                     'status_pembelian' => $detail->status_pembelian ?? '',
                 ];
-                $this->unit_price[$detail->bahan_id] = $unitPrice;
-                $this->unit_price_aset[$detail->nama_bahan] = $unitPrice;
-                $this->unit_price_usd[$detail->bahan_id] = $unitPriceUSD;
+                // $this->unit_price[$detail->bahan_id] = $unitPrice;
+                // $this->unit_price_aset[$detail->nama_bahan] = $unitPrice;
+                // $this->unit_price_usd[$detail->bahan_id] = $unitPriceUSD;
+                $this->unit_price[$bahanKey] = $unitPrice;
+                $this->unit_price_aset[$bahanKey] = $unitPrice;
+                $this->unit_price_usd[$bahanKey] = $unitPriceUSD;
             }
-
         }
     }
+
+    public function startEditNama($detailId)
+    {
+        if ($this->status_finance === 'Disetujui') {
+            return;
+        }
+
+        $row = PembelianBahanDetails::where('id', $detailId)
+            ->where('pembelian_bahan_id', $this->pembelianBahanId)
+            ->first();
+
+        if (!$row) {
+            return;
+        }
+
+        $this->editingItemId = 'nama_' . $detailId;
+        $this->nama_bahan_raw[$detailId] = $row->nama_bahan ?? '';
+    }
+
+    public function saveNamaBahan($detailId)
+    {
+        if ($this->status_finance === 'Disetujui') {
+            $this->editingItemId = null;
+            return;
+        }
+
+        $newName = trim($this->nama_bahan_raw[$detailId] ?? '');
+
+        if ($newName === '') {
+            $this->editingItemId = null;
+            return;
+        }
+
+        $row = PembelianBahanDetails::where('id', $detailId)
+            ->where('pembelian_bahan_id', $this->pembelianBahanId)
+            ->first();
+
+        if (!$row) {
+            $this->editingItemId = null;
+            return;
+        }
+
+        $row->nama_bahan = $newName;
+        $row->save();
+
+        $this->pembelianBahanDetails = [];
+        $this->loadProduksi();
+
+        $this->editingItemId = null;
+    }
+
 
     protected function saveCartToSession()
     {
@@ -299,9 +348,6 @@ class EditPengajuanPembelianCart extends Component
         $this->editingItemId = null;
     }
 
-
-
-
     public function formatToRupiahUSD($item)
     {
         $this->$item = intval(str_replace(['.', '$'], '', $this->{$item . '_raw'}));
@@ -355,7 +401,6 @@ class EditPengajuanPembelianCart extends Component
         return is_numeric($cleaned) ? floatval($cleaned) : 0;
     }
 
-
     public function formatToRupiahPrice($itemId)
     {
         // Ambil input mentah dari user
@@ -376,7 +421,6 @@ class EditPengajuanPembelianCart extends Component
         // Keluar dari mode edit
         $this->editingItemId = null;
     }
-
 
     public function formatToRupiahPriceAset($itemBahan)
     {
@@ -402,8 +446,6 @@ class EditPengajuanPembelianCart extends Component
         // Keluar dari mode edit
         $this->editingItemBahan = null;
     }
-
-
 
     public function formatToUSDPrice($itemId)
     {
@@ -533,8 +575,6 @@ class EditPengajuanPembelianCart extends Component
             'value_today_fee_usd' => $this->value_today_fee_usd,
         ];
     }
-
-
 
     public function render()
     {

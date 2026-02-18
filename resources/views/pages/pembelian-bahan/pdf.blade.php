@@ -97,7 +97,7 @@
         <tr style="text-align: left;vertical-align: top;">
             <td style="border: 1px solid black;width: 30%;"><strong>Divisi</strong></td>
             <td style="border: 1px solid black">:
-                @if ($jenis_pengajuan != 'Pembelian Aset')
+                @if ($jenis_pengajuan != 'Pembelian Aset' && $jenis_pengajuan != 'Pembelian Aset Lokal' && $jenis_pengajuan != 'Pembelian Aset Impor')
                     Purchasing
                 @else
                     {{ $pembelianBahan->divisi }}

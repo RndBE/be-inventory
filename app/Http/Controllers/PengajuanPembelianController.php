@@ -428,7 +428,7 @@ class PengajuanPembelianController extends Controller
 
             if ($jenisPengajuan === 'Pembelian Bahan/Barang/Alat Lokal' || $jenisPengajuan === 'Pembelian Bahan/Barang/Alat Impor') {
                 if ($user->job_level == 3 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
-                    // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                    // Job level 3 dan atasan_level3_id null, atasan_level2_id null
                     $status_leader = 'Disetujui';
                     $status_manager = 'Disetujui'; // Menunggu approval manager
                     // Kirim notifikasi ke Purchasing
@@ -444,12 +444,19 @@ class PengajuanPembelianController extends Controller
                     $targetPhone = $user->atasanLevel2 ? $user->atasanLevel2->telephone : null;
                     $recipientName = $user->atasanLevel2 ? $user->atasanLevel2->name : 'Manager';
                 } elseif ($user->job_level == 4 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
-                    // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                    // Job level 4 dan atasan_level3_id null, atasan_level2_id null
                     $status_leader = 'Disetujui';
                     $status_manager = 'Disetujui'; // Menunggu approval manager
                     // Kirim notifikasi ke Purchasing
                     $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
                     $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+                } elseif ($user->job_level == 4 && $user->atasan_level3_id !== null &&$user->atasan_level2_id === null) {
+                    // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                    $status_leader = 'Belum disetujui';
+                    $status_manager = 'Disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke General Affair
+                    $targetPhone = $generalAffairUser ? $generalAffairUser->telephone : null;
+                    $recipientName = $generalAffairUser ? $generalAffairUser->name : 'General Affair';
                 } elseif ($user->job_level == 4 && $user->atasan_level3_id === null) {
                     // Job level 4 dan atasan_level3_id null
                     $status_leader = 'Belum disetujui';
@@ -487,9 +494,23 @@ class PengajuanPembelianController extends Controller
                     $targetPhone = $generalAffairUser ? $generalAffairUser->telephone : null;
                     $recipientName = $generalAffairUser ? $generalAffairUser->name : 'General Affair';
                 } elseif ($user->job_level == 4 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
-                    // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                    // Job level 4 dan atasan_level3_id null, atasan_level2_id null
                     $status_leader = 'Disetujui';
                     $status_manager = 'Disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke General Affair
+                    $targetPhone = $generalAffairUser ? $generalAffairUser->telephone : null;
+                    $recipientName = $generalAffairUser ? $generalAffairUser->name : 'General Affair';
+                } elseif ($user->job_level == 4 && $user->atasan_level3_id !== null &&$user->atasan_level2_id === null) {
+                    // Job level 4 dan atasan_level3_id, atasan_level2_id null
+                    $status_leader = 'Belum disetujui';
+                    $status_manager = 'Disetujui'; // Menunggu approval manager
+                    // Kirim notifikasi ke General Affair
+                    $targetPhone = $generalAffairUser ? $generalAffairUser->telephone : null;
+                    $recipientName = $generalAffairUser ? $generalAffairUser->name : 'General Affair';
+                } elseif ($user->job_level == 3 && $user->atasan_level3_id === null) {
+                    // Job level 3 dan atasan_level3_id null
+                    $status_leader = 'Disetujui';
+                    $status_manager = 'Belum disetujui'; // Menunggu approval manager
                     // Kirim notifikasi ke General Affair
                     $targetPhone = $generalAffairUser ? $generalAffairUser->telephone : null;
                     $recipientName = $generalAffairUser ? $generalAffairUser->name : 'General Affair';

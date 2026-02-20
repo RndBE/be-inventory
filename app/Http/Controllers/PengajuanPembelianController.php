@@ -454,9 +454,9 @@ class PengajuanPembelianController extends Controller
                     // Job level 4 dan atasan_level3_id, atasan_level2_id null
                     $status_leader = 'Belum disetujui';
                     $status_manager = 'Disetujui'; // Menunggu approval manager
-                    // Kirim notifikasi ke General Affair
-                    $targetPhone = $generalAffairUser ? $generalAffairUser->telephone : null;
-                    $recipientName = $generalAffairUser ? $generalAffairUser->name : 'General Affair';
+                    // Kirim notifikasi ke Purchasing
+                    $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                    $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
                 } elseif ($user->job_level == 4 && $user->atasan_level3_id === null) {
                     // Job level 4 dan atasan_level3_id null
                     $status_leader = 'Belum disetujui';

@@ -66,7 +66,7 @@
                             class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 w-full py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             required
                             wire:model.lazy="jmlProduksi"
-                            wire:input="updateJmlBahan">
+                            wire:input="updateJmlBahan($event.target.value)">
                     </div>
                 </div>
             </div>

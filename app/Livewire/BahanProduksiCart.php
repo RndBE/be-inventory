@@ -66,6 +66,11 @@ class BahanProduksiCart extends Component
                 }
             }
         }
+
+        // Jika jumlah produksi sudah diisi sebelum produk dipilih, kalkulasi ulang qty
+        if ($this->jmlProduksi > 0) {
+            $this->updateJmlBahan();
+        }
     }
 
     public function addToCart($bahan, $jmlBahan, $usedMaterials)
@@ -99,8 +104,17 @@ class BahanProduksiCart extends Component
         }
     }
 
-    public function updateJmlBahan()
+    public function updateJmlBahan($inputValue = null)
     {
+        // Gunakan nilai dari parameter (langsung dari event) jika ada,
+        // supaya tidak bergantung pada timing sync wire:model.lazy
+        $jmlProduksi = ($inputValue !== null && $inputValue !== '')
+            ? (int) $inputValue
+            : (int) $this->jmlProduksi;
+
+        // Simpan juga ke property agar onProductSelected bisa membacanya
+        $this->jmlProduksi = $jmlProduksi;
+
         $this->subtotals = [];
         $this->totalharga = 0;
 
@@ -111,10 +125,10 @@ class BahanProduksiCart extends Component
             $currentStock = $this->checkRemainingStock($bahanId);
             $originalJmlBahan = $this->originalJmlBahan[$bahanId] ?? 0;
 
-            if ($this->jmlProduksi < 0) {
+            if ($jmlProduksi < 0) {
                 $this->jml_bahan[$bahanId] = $originalJmlBahan;
-            } elseif ($this->jmlProduksi > 0) {
-                $this->jml_bahan[$bahanId] = $this->jmlProduksi * $originalJmlBahan;
+            } elseif ($jmlProduksi > 0) {
+                $this->jml_bahan[$bahanId] = $jmlProduksi * $originalJmlBahan;
             } else {
                 $this->jml_bahan[$bahanId] = 0;
             }
@@ -127,10 +141,7 @@ class BahanProduksiCart extends Component
             } else {
                 $this->qty[$bahanId] = $currentStock;
             }
-            // $this->calculateSubTotal($bahanId);
         }
-
-        // $this->calculateTotalHarga();
     }
 
     public function calculateSubTotal($itemId)

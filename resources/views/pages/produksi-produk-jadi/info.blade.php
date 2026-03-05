@@ -171,7 +171,7 @@
                                                                         <td>
                                                                             @php
                                                                                 $purchase = \App\Models\Purchase::where('kode_transaksi', $item['kode_transaksi'])->first();
-                                                                                $produkSetengahJadi = \App\Models\BahanSetengahJadi::where('kode_transaksi', $item['kode_transaksi'])->first();
+                                                                                $produkSetengahJadi = \App\Models\BahanSetengahjadi::where('kode_transaksi', $item['kode_transaksi'])->first();
                                                                             @endphp
 
                                                                             @if($purchase && $purchase->qcBahanMasuk)

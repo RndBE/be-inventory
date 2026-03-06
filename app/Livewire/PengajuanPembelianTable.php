@@ -19,6 +19,7 @@ class PengajuanPembelianTable extends Component
     $kode_transaksi, $tgl_keluar, $divisi,$link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $ppn, $new_value_today_fee, $status_general_manager, $catatan, $dokumen;
 
     public $filter = 'semua';
+    public $filterDivisi = '';
     public $totalHarga;
     public $isShowModalOpen = false;
     public $isDeleteModalOpen = false;
@@ -156,6 +157,11 @@ class PengajuanPembelianTable extends Component
     }
 
     public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterDivisi()
     {
         $this->resetPage();
     }
@@ -360,8 +366,18 @@ class PengajuanPembelianTable extends Component
 
         $pembelian_bahan = PembelianBahan::with(['dataUser', 'pembelianBahanDetails'])->orderBy('id', 'desc');
 
-        if (!$user->hasRole('superadmin')) {
+        $rolesCanSeeAll = [
+            'superadmin',
+            'general_affair',
+        ];
+
+        if (!$user->hasAnyRole($rolesCanSeeAll)) {
             $pembelian_bahan->where('pengaju', $user->id);
+        }
+
+        // Filter berdasarkan divisi
+        if (!empty($this->filterDivisi)) {
+            $pembelian_bahan->where('divisi', $this->filterDivisi);
         }
 
         // Pencarian dan filter tambahan

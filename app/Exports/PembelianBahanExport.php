@@ -24,6 +24,7 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
     protected $startDate;
     protected $endDate;
     protected $companyName;
+    protected $divisi;
 
     protected $startDay;
     protected $endDay;
@@ -31,11 +32,12 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
     protected $endMonth;
     protected $monthYear;
 
-    public function __construct($startDate, $endDate, $companyName)
+    public function __construct($startDate, $endDate, $companyName, $divisi = null)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->companyName = $companyName;
+        $this->divisi = $divisi;
     }
 
     public function array(): array
@@ -50,7 +52,8 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
 
         $formattedPeriod = "Periode $this->startDay-$this->endDay $this->monthYear";
 
-        $data[] = ["Rekap Pengajuan Pembelian " . $this->companyName];
+        $divisiLabel = $this->divisi ? " - Divisi {$this->divisi}" : '';
+        $data[] = ["Rekap Pengajuan Pembelian " . $this->companyName . $divisiLabel];
         $data[] = ["Periode: " . $formattedPeriod];
 
         $headers = [
@@ -63,6 +66,9 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
         $transactions = PembelianBahan::with(['pembelianBahanDetails', 'dataUser'])
             ->where('status', 'Disetujui')
             ->whereBetween('tgl_pengajuan', [$this->startDate, $this->endDate])
+            ->when($this->divisi, function ($query) {
+                $query->where('divisi', $this->divisi);
+            })
             ->orderBy('tgl_pengajuan')
             ->get();
 

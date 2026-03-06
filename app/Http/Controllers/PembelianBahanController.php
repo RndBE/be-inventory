@@ -62,14 +62,20 @@ class PembelianBahanController extends Controller
         $request->validate([
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'divisi' => 'nullable|string',
         ]);
 
         $startDate = $request->input('start_date') . ' 00:00:00';
         $endDate = $request->input('end_date') . ' 23:59:59';
+        $divisi = $request->input('divisi'); // null = semua divisi
 
         $companyName = "PT ARTA TEKNOLOGI COMUNINDO";
 
-        return Excel::download(new PembelianBahanExport($startDate, $endDate, $companyName), 'Rekap Pembelian Bahan.xlsx');
+        $fileName = $divisi
+            ? "Rekap Pembelian Bahan - {$divisi}.xlsx"
+            : 'Rekap Pembelian Bahan.xlsx';
+
+        return Excel::download(new PembelianBahanExport($startDate, $endDate, $companyName, $divisi), $fileName);
     }
 
     public function downloadPdf(int $id)

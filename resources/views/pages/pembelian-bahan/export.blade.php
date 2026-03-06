@@ -53,6 +53,27 @@
                         </div>
                     </div>
 
+                    <div class="mb-4">
+                        <label for="filter_divisi" class="block text-sm font-medium leading-6 text-gray-900">Filter Divisi</label>
+                        <div class="mt-2">
+                            <select name="divisi" id="filter_divisi"
+                                class="block w-full rounded-md border-0 py-1.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-600">
+                                <option value="">Semua Divisi</option>
+                                <option value="RnD">RnD</option>
+                                <option value="Software">Software</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Produksi">Produksi</option>
+                                <option value="Teknisi">Teknisi</option>
+                                <option value="Helper">Helper</option>
+                                <option value="OP">OP</option>
+                                <option value="HRD">HRD</option>
+                                <option value="HSE">HSE</option>
+                                <option value="General Affair">General Affair</option>
+                                <option value="Publikasi">Publikasi</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div>
                         <button type="submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800">Unduh</button>
                     </div>

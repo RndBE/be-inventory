@@ -68,6 +68,23 @@
                 <div class="mb-4 sm:mb-0">
                 </div>
                 <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
+                    @if(auth()->user()->hasAnyRole(['superadmin', 'general_affair']))
+                    <select wire:model.live="filterDivisi"
+                        class="mt-2 block rounded-md border-0 py-1.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-600">
+                        <option value="">Semua Divisi</option>
+                        <option value="RnD">RnD</option>
+                        <option value="Software">Software</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Produksi">Produksi</option>
+                        <option value="Teknisi">Teknisi</option>
+                        <option value="Helper">Helper</option>
+                        <option value="OP">OP</option>
+                        <option value="HRD">HRD</option>
+                        <option value="HSE">HSE</option>
+                        <option value="General Affair">General Affair</option>
+                        <option value="Publikasi">Publikasi</option>
+                    </select>
+                    @endif
                     @include('livewire.searchdata')
                     @include('livewire.dataperpage')
                     {{-- @include('pages.pembelian-bahan.export') --}}

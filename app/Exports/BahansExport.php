@@ -42,6 +42,11 @@ class BahansExport implements FromCollection, WithHeadings, WithStyles, WithEven
         ];
     }
 
+    public function startCell(): string
+    {
+        return 'A6';
+    }
+
     public function styles(Worksheet $sheet)
     {
         return [

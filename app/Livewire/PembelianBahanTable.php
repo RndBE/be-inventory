@@ -304,7 +304,6 @@ class PembelianBahanTable extends Component
         $this->isShowInvoiceModalOpen = true;
     }
 
-
     public function editPengambilanPembelianBahan(int $id)
     {
         $Data = PembelianBahan::findOrFail($id);

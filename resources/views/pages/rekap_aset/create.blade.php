@@ -88,7 +88,7 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900">Tanggal Perolehan</label>
+                                <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Tanggal Perolehan</label>
                                 <div class="mt-2">
                                     <div class="relative max-w-lg">
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -105,7 +105,7 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label for="jumlah_aset" class="block text-sm font-medium leading-6 text-gray-900">Jumlah Aset</label>
+                                <label for="jumlah_aset" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Jumlah Aset</label>
                                 <div class="mt-2">
                                     <input value="{{ old('jumlah_aset') }}" type="number" name="jumlah_aset" id="jumlah_aset" autocomplete="address-level2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                     @error('jumlah_aset')
@@ -115,7 +115,7 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label for="harga_perolehan" class="block text-sm font-medium leading-6 text-gray-900">Harga Perolehan</label>
+                                <label for="harga_perolehan" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Harga Perolehan</label>
                                 <div class="mt-2">
                                     <input value="{{ old('harga_perolehan') }}" type="text" name="harga_perolehan" id="harga_perolehan" autocomplete="address-level2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                     @error('harga_perolehan')
@@ -140,7 +140,7 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label for="jumlah_aset" class="block text-sm font-medium leading-6 text-gray-900">Keterangan</label>
+                                <label for="jumlah_aset" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Keterangan</label>
                                 <div class="mt-2">
                                     <textarea id="keterangan" name="keterangan" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan') }}</textarea>
                                     @error('keterangan')

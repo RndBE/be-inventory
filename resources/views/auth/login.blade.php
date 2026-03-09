@@ -66,7 +66,7 @@
                         </div>
                     </div>
 
-                    <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
+                    {{-- <input type="hidden" name="g-recaptcha-response" id="recaptchaToken"> --}}
                     @if ($errors->has('email') && Str::contains($errors->first('email'), 'Silakan coba lagi dalam'))
                         <p id="countdown" class="text-sm text-red-600 mt-2"></p>
 

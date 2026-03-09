@@ -100,7 +100,7 @@
                                         </div>
 
                                         <div class="flex items-center relative">
-                                            <label for="kontrak_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">
+                                            <label for="kontrak_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 ">
                                                 Proyek <sup class="text-red-500 text-base">*</sup>
                                             </label>
 

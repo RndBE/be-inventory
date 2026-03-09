@@ -84,17 +84,17 @@
                                     <div>
                                         @if ($detail->dataBahan)
                                             {{ $detail->dataBahan->nama_bahan }} |
-                                            <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">
+                                            <span class="inline-flex items-center whitespace-nowrap bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">
                                                 {{ $detail->sisa }} {{ $detail->dataBahan->dataUnit->nama ?? 'Null' }}
                                             </span>
                                         @elseif ($detail->dataProduk)
                                             {{ $detail->dataProduk->nama_bahan }} ({{ $detail->serial_number ?? 'N/A' }}) |
-                                            <span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-blue-400 border border-blue-400">
+                                            <span class="inline-flex items-center whitespace-nowrap bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-blue-400 border border-blue-400">
                                                 {{ $detail->sisa }} {{ 'Pcs' }}
                                             </span>
                                         @elseif ($detail->dataProdukJadi)
                                             {{ $detail->dataProdukJadi->nama_produk }} ({{ $detail->serial_number ?? 'N/A' }}) |
-                                            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-yellow-400 border border-yellow-400">
+                                            <span class="inline-flex items-center whitespace-nowrap bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-yellow-400 border border-yellow-400">
                                                 {{ $detail->sisa }} {{ 'Pcs' }}
                                             </span>
                                         @else
@@ -108,11 +108,11 @@
                         </td>
                         <td class="px-6 py-4">
                                 @if ($bahanRusak->status == 'Belum disetujui')
-                                    <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahanRusak->status }}</span>
+                                    <span class="inline-flex items-center whitespace-nowrap bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahanRusak->status }}</span>
                                 @elseif($bahanRusak->status == 'Disetujui')
                                     <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-green-400 border border-green-100">{{ $bahanRusak->status }}</span>
                                 @else
-                                    <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $bahanRusak->status }}</span>
+                                    <span class="inline-flex items-center whitespace-nowrap bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $bahanRusak->status }}</span>
                                 @endif
                             </td>
                         <td class="px-6 py-3">Rp {{ number_format($bahanRusak->bahanRusakDetails->sum('sub_total'), 2, ',', '.') }}</td>

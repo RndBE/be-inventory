@@ -112,7 +112,7 @@
                             <td class="px-6 py-4">Rp {{ number_format($bahan_retur->bahanReturDetails->sum('sub_total'), 2, ',', '.') }}</td>
                             <td class="px-6 py-4">
                                 @if ($bahan_retur->status == 'Belum disetujui')
-                                    <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_retur->status }}</span>
+                                    <span class="inline-flex items-center whitespace-nowrap bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_retur->status }}</span>
                                 @elseif($bahan_retur->status == 'Disetujui')
                                     <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-green-400 border border-green-100">{{ $bahan_retur->status }}</span>
                                 @else

@@ -465,7 +465,7 @@ public function downloadPdf(int $id)
                                 'qty' => 0,
                                 'jml_bahan' => $detail->jml_bahan,
                                 'used_materials' => 0,
-                                'details' => json_encode([]),
+                                'details' => json_encode([$detail]),
                                 'sub_total' => 0,
                             ]);
                         }

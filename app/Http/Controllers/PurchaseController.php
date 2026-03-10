@@ -213,7 +213,7 @@ class PurchaseController extends Controller
             $response = Http::withHeaders([
                 'x-api-key' => env('WHATSAPP_API_KEY'),
                 'Content-Type' => 'application/json',
-            ])->post('http://31.58.158.182:3000/client/sendMessage/beacon', [
+            ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
                 'chatId' => '6282242966796-1553841116@g.us',
                 // 'chatId' => '6282137153589@c.us',
                 'contentType' => 'string',

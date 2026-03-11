@@ -116,7 +116,7 @@ class BahanKeluarTable extends Component
         } elseif ($user->hasRole(['marketing manager', 'marketing level 3'])) {
             $bahan_keluars->whereIn('divisi', ['Marketing', 'Admin Project','Staff BD', 'BD Manager']);
         } elseif ($user->hasRole(['software manager'])) {
-            $bahan_keluars->whereIn('divisi', ['Software', 'Publikasi']);
+            $bahan_keluars->whereIn('divisi', ['Software']);
         } elseif ($user->hasRole(['hrd level 3'])) {
             $bahan_keluars->where('divisi', ['HSE', 'Helper', 'HRD', 'General Affair']);
         } elseif ($user->hasRole(['sekretaris'])) {
@@ -124,7 +124,7 @@ class BahanKeluarTable extends Component
         } elseif ($user->hasRole('administrasi')) {
             $bahan_keluars->where('divisi', ['HSE', 'Sekretaris', 'Administrasi', 'Tax Officer', 'Accounting', 'Secretary']);
         } elseif ($user->hasRole(['BD_manager'])) {
-            $bahan_keluars->whereIn('divisi', ['Marketing', 'Admin Project', 'Staff BD', 'BD Manager']);
+            $bahan_keluars->whereIn('divisi', ['Marketing', 'Admin Project', 'Staff BD', 'BD Manager', 'Publikasi']);
         }
 
         // Pencarian dan filter tambahan

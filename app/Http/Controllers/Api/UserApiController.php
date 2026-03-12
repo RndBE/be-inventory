@@ -27,6 +27,7 @@ class UserApiController extends Controller
                     'job_position' => $user->dataJobPosition?->nama ?? null,
                     'organization' => $user->dataOrganization?->nama ?? null,
                     'job_level'    => $user->job_level,
+                    'status'       => $user->status,
                 ];
             });
 
@@ -73,6 +74,7 @@ class UserApiController extends Controller
                 'job_position' => $user->dataJobPosition?->nama ?? null,
                 'organization' => $user->dataOrganization?->nama ?? null,
                 'job_level'    => $user->job_level,
+                'status'       => $user->status,
             ],
         ]);
     }

@@ -1232,6 +1232,49 @@ public function downloadPdf(int $id)
         }
     }
 
+    public function tolakPurchasing(Request $request, int $id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $bahanKeluar = BahanKeluar::with('dataUser')->findOrFail($id);
+
+            // Hanya bisa ditolak jika status masih Belum disetujui
+            if ($bahanKeluar->status !== 'Belum disetujui') {
+                return redirect()->back()->with('error', 'Tidak dapat ditolak. Status saat ini: ' . $bahanKeluar->status);
+            }
+
+            // Ubah status jadi Ditolak
+            $bahanKeluar->status = 'Ditolak';
+            $bahanKeluar->save();
+
+            // Kirim notifikasi WA ke pengaju
+            $pengaju = $bahanKeluar->dataUser;
+            if ($pengaju && $pengaju->telephone) {
+                $message = "Halo {$pengaju->name},\n\n";
+                $message .= "Pengajuan bahan keluar Anda dengan kode transaksi *{$bahanKeluar->kode_transaksi}* telah *DITOLAK* oleh Purchasing.\n\n";
+                $message .= "Project: {$bahanKeluar->tujuan}\n";
+                $message .= "Divisi: {$bahanKeluar->divisi}\n";
+                $message .= "Tgl Pengajuan: {$bahanKeluar->tgl_pengajuan}\n\n";
+                $message .= "Silakan buat pengajuan bahan keluar ulang jika diperlukan.\n\n";
+                $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+
+                SendWhatsAppNotification::dispatch($pengaju->telephone, $message, $pengaju->name);
+                LogHelper::success("Notifikasi penolakan dikirim ke: {$pengaju->telephone}");
+            } else {
+                LogHelper::error('No valid phone number found for WhatsApp notification (tolak purchasing).');
+            }
+
+            DB::commit();
+            LogHelper::success("Bahan keluar {$bahanKeluar->kode_transaksi} berhasil ditolak oleh Purchasing.");
+            return redirect()->route('bahan-keluars.index')->with('success', 'Pengajuan berhasil ditolak.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            LogHelper::error($e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
     public function sendWhatsApp($id)
     {
         SendWhatsAppMessage::dispatch($id);

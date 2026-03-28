@@ -20,6 +20,12 @@
                 <a href="{{ route('bahan-keluars.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
 
                 @if($bahan_keluar->status === 'Belum disetujui')
+                    {{-- Tombol Tolak --}}
+                    <button type="button" onclick="document.getElementById('modalTolak').classList.remove('hidden')"
+                        class="rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-900">
+                        Tolak
+                    </button>
+                    {{-- Tombol Simpan --}}
                     <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
                 @endif
             </div>
@@ -146,10 +152,58 @@
         </div>
     </div>
     {{-- @include('pages.pengajuan.selesai') --}}
+
+    {{-- Modal Konfirmasi Tolak --}}
+    @if($bahan_keluar->status === 'Belum disetujui')
+    <div id="modalTolak" class="hidden fixed inset-0 z-50 flex items-center justify-center"
+        style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Konfirmasi Penolakan</h3>
+                    <p class="text-sm text-gray-500">Kode: {{ $bahan_keluar->kode_transaksi }}</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-gray-600 mb-6">
+                Apakah Anda yakin ingin <span class="font-semibold text-red-600">menolak</span> pengajuan bahan keluar ini?
+                Status akan berubah menjadi <span class="font-bold text-red-600">DITOLAK</span> dan notifikasi akan dikirim ke pengaju via WhatsApp.
+            </p>
+
+            <div class="flex justify-end gap-3">
+                <button type="button"
+                    onclick="document.getElementById('modalTolak').classList.add('hidden')"
+                    class="rounded-md px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200">
+                    Batal
+                </button>
+
+                {{-- Form tersembunyi untuk submit PUT tolakPurchasing --}}
+                <form method="POST" action="{{ route('bahan-keluars.tolakPurchasing', $bahan_keluar->id) }}">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit"
+                        class="rounded-md px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700">
+                        Ya, Tolak Pengajuan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <script>
-        document.getElementById('saveButton').addEventListener('click', function() {
-            document.getElementById('produksiForm').submit();
-        });
+        const saveBtn = document.getElementById('saveButton');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function() {
+                document.getElementById('produksiForm').submit();
+            });
+        }
     </script>
 
     <script>
@@ -163,33 +217,25 @@
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Atur waktu delay dalam milidetik (contoh: 5000 = 5 detik)
             const delay = 5000;
 
-            // Menghilangkan alert sukses
             const successAlert = document.getElementById('successAlert');
             if (successAlert) {
-                setTimeout(() => {
-                    successAlert.style.display = 'none';
-                }, delay);
+                setTimeout(() => { successAlert.style.display = 'none'; }, delay);
             }
 
-            // Menghilangkan alert error
             const errorAlert = document.getElementById('errorAlert');
             if (errorAlert) {
-                setTimeout(() => {
-                    errorAlert.style.display = 'none';
-                }, delay);
+                setTimeout(() => { errorAlert.style.display = 'none'; }, delay);
             }
         });
     </script>
     <script>
-        // Fungsi untuk menghilangkan pesan error setelah 5 detik
         setTimeout(function() {
             const errorMessages = document.querySelectorAll('.error-message');
             errorMessages.forEach(function(message) {
                 message.style.display = 'none';
             });
-        }, 3000); // 3000 ms = 3 detik
+        }, 3000);
     </script>
 </x-app-layout>

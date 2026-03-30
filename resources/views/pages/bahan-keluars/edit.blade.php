@@ -22,7 +22,7 @@
                 @if($bahan_keluar->status === 'Belum disetujui')
                     {{-- Tombol Tolak --}}
                     <button type="button" onclick="document.getElementById('modalTolak').classList.remove('hidden')"
-                        class="rounded-md bg-gray-950 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-800">
+                        class="rounded-md bg-gray-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-800">
                         Tolak
                     </button>
                     {{-- Tombol Simpan --}}

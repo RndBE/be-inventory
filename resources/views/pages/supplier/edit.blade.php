@@ -56,6 +56,14 @@
                         <label for="npwp" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">NPWP/NIK</label>
                         <input autofocus wire:model="npwp" type="text" name="npwp" id="npwp" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="">
                     </div>
+                    <div>
+                        <label for="edit_nama_pic" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama PIC</label>
+                        <input autofocus wire:model="nama_pic" type="text" name="nama_pic" id="edit_nama_pic" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Masukkan Nama PIC">
+                    </div>
+                    <div>
+                        <label for="edit_keterangan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Keterangan <span class="text-gray-500 font-normal">(Nama Barang/Jasa)</span></label>
+                        <textarea wire:model="keterangan" name="keterangan" id="edit_keterangan" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Contoh: Pembelian komponen elektronik, PCB, kabel, dll."></textarea>
+                    </div>
 
                     <button type="submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800">Simpan</button>
                 </form>

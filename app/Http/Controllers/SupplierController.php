@@ -42,6 +42,8 @@ class SupplierController extends Controller
                 'alamat' => 'nullable',
                 'telepon' => 'nullable',
                 'npwp' => 'nullable',
+                'keterangan' => 'nullable',
+                'nama_pic' => 'nullable',
             ]);
             $supplier = Supplier::create($validated);
 
@@ -64,12 +66,16 @@ class SupplierController extends Controller
                 'alamat' => 'nullable',
                 'telepon' => 'nullable',
                 'npwp' => 'nullable',
+                'keterangan' => 'nullable',
+                'nama_pic' => 'nullable',
             ]);
             $data = Supplier::find($id);
             $data->nama = $validated['nama'];
             $data->alamat = $validated['alamat'];
             $data->telepon = $validated['telepon'];
             $data->npwp = $validated['npwp'];
+            $data->keterangan = $validated['keterangan'];
+            $data->nama_pic = $validated['nama_pic'];
             $supplier = $data->save();
             if (!$supplier) {
                 return redirect()->back()->with('errors', 'Gagal menambahkan data');

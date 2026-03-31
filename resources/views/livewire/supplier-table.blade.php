@@ -82,6 +82,12 @@
                             NPWP/NIK
                         </th>
                         <th scope="col" class="px-6 py-3">
+                            Nama PIC
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Keterangan (Barang/Jasa)
+                        </th>
+                        <th scope="col" class="px-6 py-3">
                             Action
                         </th>
                     </tr>
@@ -94,6 +100,10 @@
                             <td class="px-6 py-3">{{ $row->alamat ?? '' }}</td>
                             <td class="px-6 py-3">{{ $row->telepon ?? '' }}</td>
                             <td class="px-6 py-3">{{ $row->npwp ?? '' }}</td>
+                            <td class="px-6 py-3">{{ $row->nama_pic ?? '-' }}</td>
+                            <td class="px-6 py-3" style="max-width:250px;">
+                                <span title="{{ $row->keterangan ?? '' }}" class="block truncate">{{ $row->keterangan ?? '-' }}</span>
+                            </td>
                             <td class="px-6 py-4">
                                 @can('edit-supplier')
                                     <button wire:click="editSupplier({{$row->id}})" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">

@@ -175,7 +175,7 @@ class DashboardApiController extends Controller
     $query = PurchaseDetail::with([
             'dataBahan.jenisBahan',
             'dataBahan.dataUnit',
-            'dataBahan.dataSupplier'
+            'dataBahan.suppliers'
         ])
         ->select('bahan_id')
         ->selectRaw('SUM(sisa) as total_sisa')
@@ -197,7 +197,7 @@ class DashboardApiController extends Controller
             'jenis_bahan'  => $bahan->jenisBahan->nama ?? '-',
             'satuan_unit'  => $bahan->dataUnit->nama ?? '-',
             'penempatan'   => $bahan->penempatan ?? '-',
-            'supplier'     => $bahan->dataSupplier->nama ?? '-',
+            'supplier'     => $bahan->suppliers->isNotEmpty() ? $bahan->suppliers->pluck('nama')->implode(', ') : '-',
             'total_sisa'   => (float) $item->total_sisa,
         ];
     });

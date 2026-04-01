@@ -169,12 +169,11 @@
                                     Supplier
                                 </label>
                                 <div class="mt-2">
-                                    <select name="bahan[{{ $bahan->id }}][supplier_id]" id="supplier_id_{{ $bahan->id }}"
+                                    <select multiple name="bahan[{{ $bahan->id }}][supplier_id][]" id="supplier_id_{{ $bahan->id }}"
                                         class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700">
-                                        <option value="" disabled>Pilih Supplier</option>
                                         @foreach($suppliers as $supplier)
                                             <option value="{{ $supplier->id }}"
-                                                {{ old('bahan.' . $bahan->id . '.supplier_id', $bahan->supplier_id) == $supplier->id ? 'selected' : '' }}>
+                                                {{ in_array($supplier->id, old('bahan.' . $bahan->id . '.supplier_id', $bahan->suppliers ? $bahan->suppliers->pluck('id')->toArray() : [])) ? 'selected' : '' }}>
                                                 {{ $supplier->nama }}
                                             </option>
                                         @endforeach

@@ -30,10 +30,12 @@ class BahanResource extends JsonResource
                 'id' => $this->dataUnit->id ?? null,
                 'nama' => $this->dataUnit->nama ?? null,
             ],
-            'data_supplier' => [
-                'id' => $this->dataSupplier->id ?? null,
-                'nama' => $this->dataSupplier->nama ?? null,
-            ]
+            'data_supplier' => $this->suppliers->map(function($supplier) {
+                return [
+                    'id' => $supplier->id,
+                    'nama' => $supplier->nama,
+                ];
+            }),
         ];
     }
 

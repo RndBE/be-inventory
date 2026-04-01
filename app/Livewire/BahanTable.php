@@ -59,7 +59,7 @@ class BahanTable extends Component
         $this->stok_awal = $Data->stok_awal;
         $this->total_stok = $Data->purchaseDetails->sum('sisa');
         $this->penempatan = $Data->penempatan;
-        $this->supplier = $Data->dataSupplier->nama ?? 'N/A';
+        $this->supplier = $Data->suppliers->isNotEmpty() ? $Data->suppliers->pluck('nama')->implode(', ') : 'N/A';
         $this->kondisi = $Data->kondisi;
         $this->unit_id = $Data->dataUnit->nama ?? 'N/A';
         $this->gambar = $Data->gambar;
@@ -127,7 +127,7 @@ class BahanTable extends Component
                     })->orWhereHas('dataUnit', function ($query) {
                         $query->where('nama', 'like', '%' . $this->search . '%');
                     })
-                    ->orWhereHas('dataSupplier', function ($query) {
+                    ->orWhereHas('suppliers', function ($query) {
                         $query->where('nama', 'like', '%' . $this->search . '%');
                     });
             })

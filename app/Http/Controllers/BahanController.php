@@ -69,7 +69,8 @@ class BahanController extends Controller
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 // 'stok_awal' => 'required|integer',
                 'unit_id' => 'required|exists:unit,id',
-                'supplier_id' => 'nullable|exists:supplier,id',
+                'supplier_id' => 'nullable|array',
+                'supplier_id.*' => 'exists:supplier,id',
                 'penempatan' => 'required|string|max:255',
                 'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             ]);
@@ -80,7 +81,14 @@ class BahanController extends Controller
                 $validated['gambar'] = 'bahan/' . $fileName;
             }
 
-            Bahan::create($validated);
+            $supplier_ids = $validated['supplier_id'] ?? [];
+            unset($validated['supplier_id']);
+
+            $bahan = Bahan::create($validated);
+            
+            if (!empty($supplier_ids)) {
+                $bahan->suppliers()->sync($supplier_ids);
+            }
             LogHelper::success('Berhasil Menambah Bahan!');
             return redirect()->route('bahan.index')->with('success', 'Berhasil Menambah Bahan!');
         } catch (ValidationException $e) {
@@ -114,7 +122,8 @@ class BahanController extends Controller
                 'nama_bahan' => 'required|string|max:255',
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 'unit_id' => 'required|exists:unit,id',
-                'supplier_id' => 'nullable|exists:supplier,id',
+                'supplier_id' => 'nullable|array',
+                'supplier_id.*' => 'exists:supplier,id',
                 'penempatan' => 'required|string|max:255',
                 'gambar' => 'nullable|image|max:2048',
             ]);
@@ -129,7 +138,13 @@ class BahanController extends Controller
             } else {
                 $validated['gambar'] = $bahan->gambar;
             }
+            
+            $supplier_ids = $validated['supplier_id'] ?? [];
+            unset($validated['supplier_id']);
+            
             $bahan->update($validated);
+            $bahan->suppliers()->sync($supplier_ids);
+            
             LogHelper::success('Berhasil Mengubah Bahan!');
            $page = $request->input('page', 1);
         return redirect()->route('bahan.index', ['page' => $page])
@@ -170,7 +185,8 @@ class BahanController extends Controller
                 'bahan.*.nama_bahan' => 'required|string|max:255',
                 'bahan.*.jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 'bahan.*.unit_id' => 'required|exists:unit,id',
-                'bahan.*.supplier_id' => 'nullable|exists:supplier,id',
+                'bahan.*.supplier_id' => 'nullable|array',
+                'bahan.*.supplier_id.*' => 'exists:supplier,id',
                 'bahan.*.penempatan' => 'required|string|max:255',
                 'bahan.*.gambar' => 'nullable|image|max:2048',
             ]);
@@ -190,15 +206,19 @@ class BahanController extends Controller
                     $data['gambar'] = $bahan->gambar;
                 }
 
+                $supplier_ids = $data['supplier_id'] ?? [];
+                unset($data['supplier_id']);
+
                 $bahan->update([
                     'kode_bahan' => $data['kode_bahan'],
                     'nama_bahan' => $data['nama_bahan'],
                     'jenis_bahan_id' => $data['jenis_bahan_id'],
                     'unit_id' => $data['unit_id'],
-                    'supplier_id' => $data['supplier_id'],
                     'penempatan' => $data['penempatan'],
                     'gambar' => $data['gambar'],
                 ]);
+                
+                $bahan->suppliers()->sync($supplier_ids);
 
                 $updatedCount++;
             }

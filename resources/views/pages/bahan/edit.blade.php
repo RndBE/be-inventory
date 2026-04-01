@@ -157,18 +157,91 @@
                             </div>
                             </div>
 
-                            <div class="sm:col-span-2">
-                                <label for="supplier_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Supplier</label>
-                                <div class="mt-2">
-                                    <select id="supplier_id" name="supplier_id" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-                                        <option value="">Pilih Supplier</option>
-                                        @foreach($suppliers as $supplier)
-                                            <option value="{{ $supplier->id }}" {{ old('supplier_id', $bahan->supplier_id) == $supplier->id ? 'selected' : '' }}>
-                                                {{ $supplier->nama }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('supplier')
+                            <div class="sm:col-span-2" x-data="{
+                                searchQuery: '',
+                                options: [
+                                    @foreach($suppliers as $supplier)
+                                        { value: '{{ $supplier->id }}', text: '{{ addslashes($supplier->nama) }}' },
+                                    @endforeach
+                                ],
+                                selected: [
+                                    @foreach(old('supplier_id', $bahan->suppliers ? $bahan->suppliers->pluck('id')->toArray() : []) as $sid)
+                                        '{{ $sid }}',
+                                    @endforeach
+                                ],
+                                open: false,
+                                select(val) {
+                                    if (!this.selected.includes(val)) this.selected.push(val);
+                                    this.open = false;
+                                    this.searchQuery = '';
+                                },
+                                remove(val) {
+                                    this.selected = this.selected.filter(item => item !== val);
+                                },
+                                get selectedOptions() {
+                                    return this.selected.map(val => this.options.find(opt => opt.value === val)).filter(Boolean);
+                                },
+                                get unselectedOptions() {
+                                    return this.options.filter(opt => !this.selected.includes(opt.value) && opt.text.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                                }
+                            }">
+                                <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Supplier</label>
+                                <div class="mt-2 text-sm z-50">
+                                    <!-- Dropdown Trigger & Hidden Select -->
+                                    <div class="relative">
+                                        <!-- Real Select untuk Submit -->
+                                        <select class="hidden" multiple name="supplier_id[]">
+                                            <template x-for="option in options" :key="option.value">
+                                                <option :value="option.value" :selected="selected.includes(option.value)"></option>
+                                            </template>
+                                        </select>
+                            
+                                        <!-- Button -->
+                                        <button type="button" @click="open = !open" @click.outside="open = false" class="relative w-full cursor-pointer rounded-md bg-white border-0 py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600 dark:placeholder-gray-400">
+                                            <span class="block truncate">Pilih Supplier</span>
+                                            <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                    <path fill-rule="evenodd" d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z" clip-rule="evenodd" />
+                                                </svg>
+                                            </span>
+                                        </button>
+                            
+                                        <!-- Options List -->
+                                        <div x-show="open" x-transition x-cloak class="absolute z-50 mt-1 top-full w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-700">
+                                            <!-- Search Input -->
+                                            <div class="p-2 border-b border-gray-200 dark:border-gray-600">
+                                                <input type="text" x-model="searchQuery" @click.stop placeholder="Cari supplier..." class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
+                                            </div>
+                                            <!-- List -->
+                                            <ul class="max-h-48 overflow-auto py-1 text-base sm:text-sm">
+                                                <template x-for="option in unselectedOptions" :key="option.value">
+                                                    <li @click="select(option.value)" class="text-gray-900 dark:text-white relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white">
+                                                        <span class="block truncate font-normal" x-text="option.text"></span>
+                                                    </li>
+                                                </template>
+                                                <li x-show="unselectedOptions.length === 0" class="text-gray-500 dark:text-gray-400 relative cursor-default select-none py-2 pl-3 pr-9">
+                                                    Tidak ada supplier ditemukan.
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Selected Chips (Moved to bottom) -->
+                                    <div class="flex flex-wrap gap-2 mt-3" x-show="selectedOptions.length > 0" x-cloak>
+                                        <template x-for="item in selectedOptions" :key="item.value">
+                                            <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-md text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                                                <span x-text="item.text"></span>
+                                                <button type="button" @click="remove(item.value)" class="flex-shrink-0 h-4 w-4 rounded-full inline-flex items-center justify-center text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 focus:outline-none focus:bg-indigo-200 focus:text-indigo-900 dark:hover:bg-indigo-800 dark:hover:text-indigo-100">
+                                                    <span class="sr-only">Remove</span>
+                                                    <svg class="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
+                                                        <path stroke-linecap="round" stroke-width="1.5" d="M1 1l6 6m0-6L1 7" />
+                                                    </svg>
+                                                </button>
+                                            </span>
+                                        </template>
+                                    </div>
+
+                                    @error('supplier_id')
                                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>

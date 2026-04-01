@@ -28,7 +28,7 @@ class BahanApiController extends Controller
     {
         $search = $request->input('search');
 
-        $query = Bahan::with('jenisBahan', 'dataUnit', 'dataSupplier', 'purchaseDetails');
+        $query = Bahan::with('jenisBahan', 'dataUnit', 'suppliers', 'purchaseDetails');
 
         if ($search) {
             $query->where('nama_bahan', 'LIKE', "%$search%")
@@ -40,7 +40,7 @@ class BahanApiController extends Controller
                 ->orWhereHas('dataUnit', function($q) use ($search) {
                     $q->where('nama', 'LIKE', "%$search%");
                 })
-                ->orWhereHas('dataSupplier', function($q) use ($search) {
+                ->orWhereHas('suppliers', function($q) use ($search) {
                     $q->where('nama', 'LIKE', "%$search%");
                 });
         }
@@ -86,7 +86,8 @@ class BahanApiController extends Controller
                 'nama_bahan' => 'required|string|max:255',
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 'unit_id' => 'required|exists:unit,id',
-                'supplier_id' => 'nullable|exists:supplier,id',
+                'supplier_id' => 'nullable|array',
+                'supplier_id.*' => 'exists:supplier,id',
                 'penempatan' => 'required|string|max:255',
                 'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             ]);
@@ -109,7 +110,14 @@ class BahanApiController extends Controller
                 $data['gambar'] = 'bahan/' . $fileName;
             }
 
+            $supplier_ids = $data['supplier_id'] ?? [];
+            unset($data['supplier_id']);
+
             $bahan = Bahan::create($data);
+            
+            if (!empty($supplier_ids)) {
+                $bahan->suppliers()->sync($supplier_ids);
+            }
 
             LogHelper::success('Berhasil menambahkan data bahan.');
             return response()->json([
@@ -130,7 +138,7 @@ class BahanApiController extends Controller
 
     public function show($id)
     {
-        $bahan = Bahan::with('jenisBahan', 'dataUnit', 'dataSupplier', 'purchaseDetails')
+        $bahan = Bahan::with('jenisBahan', 'dataUnit', 'suppliers', 'purchaseDetails')
                     ->findOrFail($id);
 
         $bahan->total_stok = $bahan->purchaseDetails->sum('sisa');
@@ -161,7 +169,8 @@ class BahanApiController extends Controller
                 'nama_bahan' => 'required|string|max:255',
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 'unit_id' => 'required|exists:unit,id',
-                'supplier_id' => 'nullable|exists:supplier,id',
+                'supplier_id' => 'nullable|array',
+                'supplier_id.*' => 'exists:supplier,id',
                 'penempatan' => 'required|string|max:255',
                 'gambar' => 'nullable|image|max:2048', // ✅ Validasi file image
             ]);
@@ -188,16 +197,18 @@ class BahanApiController extends Controller
                 $gambarPath = $bahan->gambar;
             }
 
-            // Update data
+            $supplier_ids = $request->supplier_id ?? [];
+            
             $bahan->update([
                 'kode_bahan' => $request->kode_bahan,
                 'nama_bahan' => $request->nama_bahan,
                 'jenis_bahan_id' => $request->jenis_bahan_id,
                 'unit_id' => $request->unit_id,
-                'supplier_id' => $request->supplier_id,
                 'penempatan' => $request->penempatan,
                 'gambar' => $gambarPath,
             ]);
+            
+            $bahan->suppliers()->sync($supplier_ids);
 
             LogHelper::success('Berhasil mengubah data bahan.');
             return response()->json([

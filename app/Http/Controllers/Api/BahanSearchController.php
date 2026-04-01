@@ -15,7 +15,7 @@ class BahanSearchController extends Controller
         $perPage = $request->input('per_page', 12);
 
         // Ambil data bahan dengan relasi
-        $bahanQuery = Bahan::with(['dataUnit', 'purchaseDetails', 'dataSupplier', 'jenisBahan'])
+        $bahanQuery = Bahan::with(['dataUnit', 'purchaseDetails', 'suppliers', 'jenisBahan'])
             ->whereHas('jenisBahan', function ($q) {
                 $q->where('nama', '!=', 'Produksi');
             })
@@ -37,7 +37,7 @@ class BahanSearchController extends Controller
                 'gambar' => $bahan->gambar,
                 'kode' => $bahan->kode_bahan,
                 'penempatan' => $bahan->penempatan ?? '-',
-                'supplier' => $bahan->dataSupplier->nama ?? '-',
+                'supplier' => $bahan->suppliers->isNotEmpty() ? $bahan->suppliers->pluck('nama')->implode(', ') : '-',
                 'stok' => $bahan->purchaseDetails->sum('sisa'),
                 'unit' => optional($bahan->dataUnit)->nama ?? '-',
             ];

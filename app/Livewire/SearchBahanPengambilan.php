@@ -51,7 +51,7 @@ class SearchBahanPengambilan extends Component
     public function render()
     {
         // Ambil data dari tabel Bahan
-        $bahanResults = Bahan::with('dataUnit', 'purchaseDetails')
+        $bahanResults = Bahan::with('dataUnit', 'purchaseDetails', 'suppliers')
             ->where('status', 'Digunakan')
             ->whereHas('jenisBahan', function ($query) {
                 $query->where('nama', '!=', 'Produksi');
@@ -71,7 +71,7 @@ class SearchBahanPengambilan extends Component
                     'gambar' => $bahan->gambar,
                     'kode' => $bahan->kode_bahan,
                     'penempatan' => $bahan->penempatan ?? '-',
-                    'supplier' => $bahan->dataSupplier->nama ?? '-',
+                    'supplier' => $bahan->suppliers->isNotEmpty() ? $bahan->suppliers->pluck('nama')->implode(', ') : '-',
                     'stok' => $bahan->purchaseDetails->sum('sisa'),
                     'unit' => optional($bahan->dataUnit)->nama ?? '-',
                 ];

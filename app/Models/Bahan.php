@@ -22,9 +22,9 @@ class Bahan extends Model
         return $this->belongsTo(Unit::class, 'unit_id');
     }
 
-    public function dataSupplier()
+    public function suppliers()
     {
-        return $this->belongsTo(Supplier::class, 'supplier_id');
+        return $this->belongsToMany(Supplier::class, 'bahan_supplier');
     }
 
     public function produksiDetails()

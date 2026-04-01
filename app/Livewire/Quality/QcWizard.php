@@ -487,7 +487,7 @@ class QcWizard extends Component
                         ->orWhereHas('dataUnit', function ($q) {
                             $q->where('nama', 'like', '%' . $this->search . '%');
                         })
-                        ->orWhereHas('dataSupplier', function ($q) {
+                        ->orWhereHas('suppliers', function ($q) {
                             $q->where('nama', 'like', '%' . $this->search . '%');
                         });
                 })

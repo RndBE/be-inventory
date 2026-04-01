@@ -25,6 +25,7 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
     protected $endDate;
     protected $companyName;
     protected $divisi;
+    protected $statusFilter;
 
     protected $startDay;
     protected $endDay;
@@ -32,12 +33,13 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
     protected $endMonth;
     protected $monthYear;
 
-    public function __construct($startDate, $endDate, $companyName, $divisi = null)
+    public function __construct($startDate, $endDate, $companyName, $divisi = null, $statusFilter = 'Disetujui')
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->companyName = $companyName;
         $this->divisi = $divisi;
+        $this->statusFilter = $statusFilter;
     }
 
     public function array(): array
@@ -64,7 +66,12 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
         $data[] = $headers;
 
         $transactions = PembelianBahan::with(['pembelianBahanDetails', 'dataUser'])
-            ->where('status', 'Disetujui')
+            ->when($this->statusFilter === 'Disetujui', function ($query) {
+                $query->where('status', 'Disetujui');
+            })
+            ->when($this->statusFilter === 'Belum Finance', function ($query) {
+                $query->where('status_finance', 'Belum disetujui');
+            })
             ->whereBetween('tgl_pengajuan', [$this->startDate, $this->endDate])
             ->when($this->divisi, function ($query) {
                 $query->where('divisi', $this->divisi);

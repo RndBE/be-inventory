@@ -101,17 +101,75 @@
                             </div>
                             </div>
 
-                            <div class="sm:col-span-2">
-                            <label for="jenis_bahan_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Jenis Bahan</label>
-                            <div class="mt-2">
-                                    <select id="jenis_bahan_id" name="jenis_bahan_id" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-                                        <option value="" disabled>Pilih Jenis Bahan</option>
-                                        @foreach($jenisBahan as $jenis)
-                                            <option value="{{ $jenis->id }}" {{ old('jenis_bahan_id', $bahan->jenis_bahan_id) == $jenis->id ? 'selected' : '' }}>
-                                                {{ $jenis->nama }}
-                                            </option>
-                                        @endforeach
+                            <div class="sm:col-span-2" x-data="{
+                                searchQuery: '',
+                                options: [
+                                    @foreach($jenisBahan as $jenis)
+                                        { value: '{{ $jenis->id }}', text: '{{ addslashes($jenis->nama) }}' },
+                                    @endforeach
+                                ],
+                                selected: '{{ old('jenis_bahan_id', $bahan->jenis_bahan_id) }}',
+                                open: false,
+                                select(val) {
+                                    this.selected = val;
+                                    this.open = false;
+                                    this.searchQuery = '';
+                                },
+                                get selectedText() {
+                                    if (!this.selected) return 'Pilih Jenis Bahan';
+                                    const opt = this.options.find(o => o.value == this.selected);
+                                    return opt ? opt.text : 'Pilih Jenis Bahan';
+                                },
+                                get filteredOptions() {
+                                    if (this.searchQuery === '') return this.options;
+                                    return this.options.filter(opt => opt.text.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                                }
+                            }">
+                                <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Jenis Bahan</label>
+                                <div class="mt-2 text-sm z-40 relative">
+                                    <select x-model="selected" name="jenis_bahan_id" class="hidden">
+                                        <option value=""></option>
+                                        <template x-for="option in options" :key="option.value">
+                                            <option :value="option.value" x-text="option.text"></option>
+                                        </template>
                                     </select>
+
+                                    <!-- Button -->
+                                    <button type="button" @click="open = !open" @click.outside="open = false" class="relative w-full cursor-pointer rounded-md bg-white border-0 py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600 dark:placeholder-gray-400">
+                                        <span class="block truncate" x-text="selectedText"></span>
+                                        <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                            <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z" clip-rule="evenodd" />
+                                            </svg>
+                                        </span>
+                                    </button>
+
+                                    <!-- Options List -->
+                                    <div x-show="open" x-transition x-cloak class="absolute z-50 mt-1 top-full w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-700">
+                                        <!-- Search Input -->
+                                        <div class="p-2 border-b border-gray-200 dark:border-gray-600">
+                                            <input type="text" x-model="searchQuery" @click.stop placeholder="Cari jenis bahan..." class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
+                                        </div>
+                                        <!-- List -->
+                                        <ul class="max-h-48 overflow-auto py-1 text-base sm:text-sm">
+                                            <template x-for="option in filteredOptions" :key="option.value">
+                                                <li @click="select(option.value)" 
+                                                    :class="{'bg-indigo-600 text-white': selected == option.value, 'text-gray-900 dark:text-white hover:bg-indigo-50 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white': selected != option.value}"
+                                                    class="relative cursor-pointer select-none py-2 pl-3 pr-9">
+                                                    <span class="block truncate font-normal" x-text="option.text"></span>
+                                                    <!-- Checkmark for selected -->
+                                                    <span x-show="selected == option.value" class="absolute inset-y-0 right-0 flex items-center pr-4 text-white">
+                                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
+                                                        </svg>
+                                                    </span>
+                                                </li>
+                                            </template>
+                                            <li x-show="filteredOptions.length === 0" class="text-gray-500 dark:text-gray-400 relative cursor-default select-none py-2 pl-3 pr-9">
+                                                Tidak ada jenis bahan ditemukan.
+                                            </li>
+                                        </ul>
+                                    </div>
                                     @error('jenis_bahan_id')
                                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -129,17 +187,75 @@
                                 </div>
                             </div>
 
-                            <div class="sm:col-span-2">
-                                <label for="unit_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Unit</label>
-                                <div class="mt-2">
-                                    <select id="unit_id" name="unit_id" autocomplete="country-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-                                        <option value="">Pilih Satuan Unit</option>
-                                        @foreach($units as $unit)
-                                            <option value="{{ $unit->id }}" {{ old('unit_id', $bahan->unit_id) == $unit->id ? 'selected' : '' }}>
-                                                {{ $unit->nama }}
-                                            </option>
-                                        @endforeach
+                            <div class="sm:col-span-2" x-data="{
+                                searchQuery: '',
+                                options: [
+                                    @foreach($units as $unit)
+                                        { value: '{{ $unit->id }}', text: '{{ addslashes($unit->nama) }}' },
+                                    @endforeach
+                                ],
+                                selected: '{{ old('unit_id', $bahan->unit_id) }}',
+                                open: false,
+                                select(val) {
+                                    this.selected = val;
+                                    this.open = false;
+                                    this.searchQuery = '';
+                                },
+                                get selectedText() {
+                                    if (!this.selected) return 'Pilih Satuan Unit';
+                                    const opt = this.options.find(o => o.value == this.selected);
+                                    return opt ? opt.text : 'Pilih Satuan Unit';
+                                },
+                                get filteredOptions() {
+                                    if (this.searchQuery === '') return this.options;
+                                    return this.options.filter(opt => opt.text.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                                }
+                            }">
+                                <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Unit</label>
+                                <div class="mt-2 text-sm z-30 relative">
+                                    <select x-model="selected" name="unit_id" class="hidden">
+                                        <option value=""></option>
+                                        <template x-for="option in options" :key="option.value">
+                                            <option :value="option.value" x-text="option.text"></option>
+                                        </template>
                                     </select>
+
+                                    <!-- Button -->
+                                    <button type="button" @click="open = !open" @click.outside="open = false" class="relative w-full cursor-pointer rounded-md bg-white border-0 py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600 dark:placeholder-gray-400">
+                                        <span class="block truncate" x-text="selectedText"></span>
+                                        <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                            <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z" clip-rule="evenodd" />
+                                            </svg>
+                                        </span>
+                                    </button>
+
+                                    <!-- Options List -->
+                                    <div x-show="open" x-transition x-cloak class="absolute z-50 mt-1 top-full w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-700">
+                                        <!-- Search Input -->
+                                        <div class="p-2 border-b border-gray-200 dark:border-gray-600">
+                                            <input type="text" x-model="searchQuery" @click.stop placeholder="Cari satuan unit..." class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
+                                        </div>
+                                        <!-- List -->
+                                        <ul class="max-h-48 overflow-auto py-1 text-base sm:text-sm">
+                                            <template x-for="option in filteredOptions" :key="option.value">
+                                                <li @click="select(option.value)" 
+                                                    :class="{'bg-indigo-600 text-white': selected == option.value, 'text-gray-900 dark:text-white hover:bg-indigo-50 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white': selected != option.value}"
+                                                    class="relative cursor-pointer select-none py-2 pl-3 pr-9">
+                                                    <span class="block truncate font-normal" x-text="option.text"></span>
+                                                    <!-- Checkmark for selected -->
+                                                    <span x-show="selected == option.value" class="absolute inset-y-0 right-0 flex items-center pr-4 text-white">
+                                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
+                                                        </svg>
+                                                    </span>
+                                                </li>
+                                            </template>
+                                            <li x-show="filteredOptions.length === 0" class="text-gray-500 dark:text-gray-400 relative cursor-default select-none py-2 pl-3 pr-9">
+                                                Tidak ada satuan unit ditemukan.
+                                            </li>
+                                        </ul>
+                                    </div>
                                     @error('unit_id')
                                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                     @enderror

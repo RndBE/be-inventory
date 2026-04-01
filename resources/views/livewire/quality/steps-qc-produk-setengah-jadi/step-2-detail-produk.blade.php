@@ -159,6 +159,7 @@
                                                 <option value="14">14 - Watchdog</option>
                                                 <option value="15">15 - Modul sensor tipping bucket pronamik</option>
                                                 <option value="16">16 - Filter sensor tipping bucket pronamik</option>
+                                                <option value="17">17 - QC MSCAM</option>
                                             </select>
 
                                             @error("selectedProdukList.$index.kode_jenis_unit")

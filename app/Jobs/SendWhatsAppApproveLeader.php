@@ -31,23 +31,36 @@ class SendWhatsAppApproveLeader implements ShouldQueue
      */
     public function handle()
     {
+        if (empty($this->phone)) {
+            LogHelper::error('SendWhatsAppApproveLeader: Phone number is empty.');
+            return;
+        }
+
         try {
+            // Bersihkan nomor telepon dari karakter non-numerik (seperti spasi, +, strip)
+            $cleanPhone = preg_replace('/[^0-9]/', '', $this->phone);
+            
+            // Format wajib diawali 62 untuk Indonesia (jika awalnya 0, ubah jadi 62)
+            if (substr($cleanPhone, 0, 1) == '0') {
+                $cleanPhone = '62' . substr($cleanPhone, 1);
+            }
+
             $response = Http::withHeaders([
                 'x-api-key' => env('WHATSAPP_API_KEY'),
                 'Content-Type' => 'application/json',
             ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
-                'chatId' => "{$this->phone}@c.us",
+                'chatId' => "{$cleanPhone}@c.us",
                 'contentType' => 'string',
                 'content' => $this->message,
             ]);
 
             if ($response->successful()) {
-                LogHelper::success("WhatsApp message sent to: {$this->phone}");
+                LogHelper::success("WhatsApp message (Approve Leader) sent successfully to: {$cleanPhone}");
             } else {
-                LogHelper::error("Failed to send WhatsApp message to: {$this->phone}");
+                LogHelper::error("Failed to send WhatsApp message (Approve Leader) to {$cleanPhone}. Response: " . $response->body());
             }
         } catch (\Exception $e) {
-            LogHelper::error("Error sending WhatsApp message: {$e->getMessage()}");
+            LogHelper::error("Exception in SendWhatsAppApproveLeader for {$this->phone}: {$e->getMessage()}");
         }
     }
 }

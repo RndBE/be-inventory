@@ -1220,6 +1220,27 @@ public function downloadPdf(int $id)
                 }  else {
                     LogHelper::error('No valid phone number found for pengaju.');
                 }
+            } elseif ($data->status_leader === 'Ditolak') {
+                // Ubah status utama menjadi Ditolak
+                $data->status = 'Ditolak';
+                $data->save();
+
+                // Kirim notifikasi WA penolakan ke pengaju
+                $pengaju = $data->dataUser;
+                if ($pengaju && $pengaju->telephone) {
+                    $message = "Halo {$pengaju->name},\n\n";
+                    $message .= "Pengajuan bahan keluar Anda dengan kode transaksi *{$data->kode_transaksi}* telah *DITOLAK* oleh Leader.\n\n";
+                    $message .= "Project: {$data->tujuan}\n";
+                    $message .= "Divisi: {$data->divisi}\n";
+                    $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\n\n";
+                    $message .= "Silakan buat pengajuan bahan keluar ulang jika diperlukan.\n\n";
+                    $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+
+                    SendWhatsAppNotification::dispatch($pengaju->telephone, $message, $pengaju->name);
+                    LogHelper::success("Notifikasi penolakan (Leader) dikirim ke: {$pengaju->telephone}");
+                } else {
+                    LogHelper::error('No valid phone number found for WhatsApp notification (tolak leader).');
+                }
             }
             DB::commit();
             LogHelper::success("Status approval leader berhasil diubah.");

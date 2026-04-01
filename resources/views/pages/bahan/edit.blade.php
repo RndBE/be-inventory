@@ -151,7 +151,7 @@
                                             <input type="text" x-model="searchQuery" @click.stop placeholder="Cari jenis bahan..." class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
                                         </div>
                                         <!-- List -->
-                                        <ul class="max-h-48 overflow-auto py-1 text-base sm:text-sm">
+                                        <ul class="py-1 text-base sm:text-sm" style="max-height: 15rem; overflow-y: auto;">
                                             <template x-for="option in filteredOptions" :key="option.value">
                                                 <li @click="select(option.value)" 
                                                     :class="{'bg-indigo-600 text-white': selected == option.value, 'text-gray-900 dark:text-white hover:bg-indigo-50 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white': selected != option.value}"
@@ -237,7 +237,7 @@
                                             <input type="text" x-model="searchQuery" @click.stop placeholder="Cari satuan unit..." class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
                                         </div>
                                         <!-- List -->
-                                        <ul class="max-h-48 overflow-auto py-1 text-base sm:text-sm">
+                                        <ul class="py-1 text-base sm:text-sm" style="max-height: 15rem; overflow-y: auto;">
                                             <template x-for="option in filteredOptions" :key="option.value">
                                                 <li @click="select(option.value)" 
                                                     :class="{'bg-indigo-600 text-white': selected == option.value, 'text-gray-900 dark:text-white hover:bg-indigo-50 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white': selected != option.value}"
@@ -329,7 +329,7 @@
                                                 <input type="text" x-model="searchQuery" @click.stop placeholder="Cari supplier..." class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
                                             </div>
                                             <!-- List -->
-                                            <ul class="max-h-48 overflow-auto py-1 text-base sm:text-sm">
+                                            <ul class="py-1 text-base sm:text-sm" style="max-height: 15rem; overflow-y: auto;">
                                                 <template x-for="option in unselectedOptions" :key="option.value">
                                                     <li @click="select(option.value)" class="text-gray-900 dark:text-white relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white">
                                                         <span class="block truncate font-normal" x-text="option.text"></span>

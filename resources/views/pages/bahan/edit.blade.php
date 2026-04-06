@@ -129,9 +129,9 @@
                                 <div class="mt-2 text-sm z-40 relative">
                                     <select x-model="selected" name="jenis_bahan_id" class="hidden">
                                         <option value=""></option>
-                                        <template x-for="option in options" :key="option.value">
-                                            <option :value="option.value" x-text="option.text"></option>
-                                        </template>
+                                        @foreach($jenisBahan as $jenis)
+                                            <option value="{{ $jenis->id }}">{{ $jenis->nama }}</option>
+                                        @endforeach
                                     </select>
 
                                     <!-- Button -->
@@ -215,9 +215,9 @@
                                 <div class="mt-2 text-sm z-30 relative">
                                     <select x-model="selected" name="unit_id" class="hidden">
                                         <option value=""></option>
-                                        <template x-for="option in options" :key="option.value">
-                                            <option :value="option.value" x-text="option.text"></option>
-                                        </template>
+                                        @foreach($units as $unit)
+                                            <option value="{{ $unit->id }}">{{ $unit->nama }}</option>
+                                        @endforeach
                                     </select>
 
                                     <!-- Button -->
@@ -306,10 +306,10 @@
                                     <!-- Dropdown Trigger & Hidden Select -->
                                     <div class="relative">
                                         <!-- Real Select untuk Submit -->
-                                        <select class="hidden" multiple name="supplier_id[]">
-                                            <template x-for="option in options" :key="option.value">
-                                                <option :value="option.value" :selected="selected.includes(option.value)"></option>
-                                            </template>
+                                        <select class="hidden" multiple name="supplier_id[]" x-model="selected">
+                                            @foreach($suppliers as $supplier)
+                                                <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                                            @endforeach
                                         </select>
                             
                                         <!-- Button -->

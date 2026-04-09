@@ -19,6 +19,7 @@ class PembelianBahanTable extends Component
     public $id_pembelian_bahan, $status, $gambar, $nama_bahan, $kode_bahan, $jenis_bahan_id, $stok_awal,  $unit_id, $total_stok,  $penempatan, $supplier,
         $kode_transaksi, $tgl_keluar, $divisi, $link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $ppn, $new_value_today_fee, $status_general_manager, $catatan, $dokumen;
 
+    public $filterJenisPengajuan = 'semua';
     public $filter = 'semua';
     public $totalHarga;
     public $isShowModalOpen = false;
@@ -683,6 +684,9 @@ class PembelianBahanTable extends Component
             })
             ->when($this->filter === 'Belum disetujui', function ($query) {
                 return $query->where('status', 'Belum disetujui');
+            })
+            ->when($this->filterJenisPengajuan !== 'semua' && $this->filterJenisPengajuan !== null, function ($query) {
+                return $query->where('jenis_pengajuan', $this->filterJenisPengajuan);
             });
 
         // Paginate hasil query

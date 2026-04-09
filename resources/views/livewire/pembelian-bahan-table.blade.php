@@ -81,6 +81,15 @@
                 <div class="mb-4 sm:mb-0">
                 </div>
                 <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
+                    <select wire:model.live="filterJenisPengajuan" class="mt-2 block w-full min-w-[280px] rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:bg-gray-800">
+                        <option value="semua">Semua Jenis Pengajuan</option>
+                        <option value="Pembelian Aset">Pembelian Aset</option>
+                        <option value="Pembelian Aset Lokal">Pembelian Aset Lokal</option>
+                        <option value="Pembelian Aset Impor">Pembelian Aset Impor</option>
+                        <option value="Pembelian Bahan/Barang/Alat">Pembelian Bahan/Barang/Alat</option>
+                        <option value="Pembelian Bahan/Barang/Alat Lokal">Pembelian Bahan/Barang/Alat Lokal</option>
+                        <option value="Pembelian Bahan/Barang/Alat Impor">Pembelian Bahan/Barang/Alat Impor</option>
+                    </select>
                     @include('livewire.searchdata')
                     @include('livewire.dataperpage')
                     @include('pages.pembelian-bahan.export')

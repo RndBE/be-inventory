@@ -1223,6 +1223,7 @@ public function downloadPdf(int $id)
             } elseif ($data->status_leader === 'Ditolak') {
                 // Ubah status utama menjadi Ditolak
                 $data->status = 'Ditolak';
+                $data->status_pengambilan = 'Ditolak';
                 $data->save();
 
                 // Kirim notifikasi WA penolakan ke pengaju
@@ -1267,6 +1268,7 @@ public function downloadPdf(int $id)
 
             // Ubah status jadi Ditolak
             $bahanKeluar->status = 'Ditolak';
+            $bahanKeluar->status_pengambilan = 'Ditolak';
             $bahanKeluar->save();
 
             // Kirim notifikasi WA ke pengaju

@@ -4,10 +4,8 @@ namespace App\Exports;
 
 use Carbon\Carbon;
 use App\Models\BahanKeluar;
-use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -30,24 +28,22 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
         $data = [];
 
         // ── Header laporan ──────────────────────────────────────────
-        $startFmt  = Carbon::parse($this->startDate)->translatedFormat('d F Y');
-        $endFmt    = Carbon::parse($this->endDate)->translatedFormat('d F Y');
-        $period    = "Periode: {$startFmt} s/d {$endFmt}";
+        $startFmt = Carbon::parse($this->startDate)->translatedFormat('d F Y');
+        $endFmt   = Carbon::parse($this->endDate)->translatedFormat('d F Y');
 
         $data[] = ['Rekap Bahan Keluar (Disetujui)'];
-        $data[] = [$period];
+        $data[] = ["Periode: {$startFmt} s/d {$endFmt}"];
 
-        // ── Kolom header tabel ───────────────────────────────────────
+        // ── Kolom header tabel (8 kolom: A–H) ───────────────────────
         $data[] = [
-            'No',
-            'Tanggal Pengajuan',
-            'Tanggal Keluar',
-            'Kode Transaksi',
-            'Nama Bahan',
-            'Kuantitas',
-            'Total Item',
-            'Jumlah Harga',
-            'Project / Tujuan',
+            'No',               // A
+            'Tanggal Pengajuan',// B
+            'Tanggal Keluar',   // C
+            'Kode Transaksi',   // D
+            'Nama Bahan',       // E
+            'Kuantitas',        // F
+            'Jumlah Harga',     // G
+            'Project / Tujuan', // H
         ];
 
         // ── Query data ───────────────────────────────────────────────
@@ -62,22 +58,18 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
             ->orderBy('tgl_pengajuan', 'desc')
             ->get();
 
-        $counter       = 1;
-        $grandTotal    = 0;
-        $grandTotalQty = 0;
+        $counter = 1;
 
         foreach ($transactions as $transaction) {
-            // Baris header per transaksi (group header)
+
+            // ── Baris group header per transaksi ─────────────────────
             $data[] = [
                 '',
                 $transaction->tgl_pengajuan ?? '-',
                 $transaction->tgl_keluar    ?? '-',
                 $transaction->kode_transaksi,
                 '— ' . ($transaction->keterangan ?? '-') . ' —',
-                '',
-                '',
-                '',
-                '',
+                '', '', '',
             ];
 
             $transactionTotal = 0;
@@ -99,48 +91,25 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                 $transactionTotal += $subTotal;
                 $transactionQty   += $detail->qty ?? 0;
 
+                // ── Baris detail item ─────────────────────────────────
                 $data[] = [
                     $counter++,
                     $transaction->tgl_pengajuan ?? '-',
                     $transaction->tgl_keluar    ?? '-',
                     $transaction->kode_transaksi,
                     $namaBahan,
-                    $detail->qty ?? 0,
-                    '',
-                    $subTotal,
+                    $detail->qty ?? 0,           // F: Kuantitas
+                    $subTotal,                    // G: Jumlah Harga
                     $transaction->keterangan ?? '-',
                 ];
             }
 
-            // Baris subtotal per transaksi
-            $data[] = [
-                '',
-                '',
-                '',
-                '',
-                '',
-                'Subtotal',
-                $transactionQty,
-                $transactionTotal,
-                '',
-            ];
+            // ── Baris "Total Item" → total qty di bawah kolom F ──────
+            $data[] = ['', '', '', '', 'Total Item', $transactionQty, '', ''];
 
-            $grandTotal    += $transactionTotal;
-            $grandTotalQty += $transactionQty;
+            // ── Baris "Subtotal" → total harga di bawah kolom G ──────
+            $data[] = ['', '', '', '', 'Subtotal', '', $transactionTotal, ''];
         }
-
-        // ── Grand total ──────────────────────────────────────────────
-        $data[] = [
-            '',
-            '',
-            '',
-            '',
-            '',
-            'GRAND TOTAL',
-            $grandTotalQty,
-            $grandTotal,
-            '',
-        ];
 
         return $data;
     }
@@ -152,22 +121,21 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
 
     public function styles(Worksheet $sheet)
     {
-        // ── Judul & Periode ──────────────────────────────────────────
-        $lastCol = 'I';
+        $lastCol = 'H'; // 8 kolom A–H
 
+        // ── Judul & Periode ──────────────────────────────────────────
         $sheet->mergeCells("A1:{$lastCol}1");
         $sheet->mergeCells("A2:{$lastCol}2");
 
         $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(12);
         $sheet->getStyle('A1:A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $headerFill = [
+        $sheet->getStyle("A1:{$lastCol}2")->applyFromArray([
             'fill' => [
                 'fillType'   => Fill::FILL_SOLID,
                 'startColor' => ['argb' => '89D8FC'],
             ],
-        ];
-        $sheet->getStyle("A1:{$lastCol}2")->applyFromArray($headerFill);
+        ]);
 
         // ── Header kolom (baris 3) ───────────────────────────────────
         foreach (range('A', $lastCol) as $col) {
@@ -184,51 +152,31 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
         $highestRow    = $sheet->getHighestRow();
         $highestColumn = $sheet->getHighestColumn();
 
-        $borderStyle = [
+        $sheet->getStyle("A3:{$highestColumn}{$highestRow}")->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
                     'color'       => ['argb' => '000000'],
                 ],
             ],
-        ];
-        $sheet->getStyle("A3:{$highestColumn}{$highestRow}")->applyFromArray($borderStyle);
+        ]);
 
-        // ── Format kolom Total Item (G) & Jumlah Harga (H) ──────────
-        $sheet->getStyle("H4:H{$highestRow}")
-            ->getNumberFormat()
-            ->setFormatCode('"Rp "#,##0');
+        // ── Format angka ─────────────────────────────────────────────
+        // F: Kuantitas → right-align
+        $sheet->getStyle("F4:F{$highestRow}")
+            ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
+        // G: Jumlah Harga → format Rupiah + right-align
+        $sheet->getStyle("G4:G{$highestRow}")
+            ->getNumberFormat()->setFormatCode('"Rp "#,##0');
         $sheet->getStyle("G4:G{$highestRow}")
             ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
-        $sheet->getStyle("H4:H{$highestRow}")
-            ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-
-        // ── Highlight baris Subtotal & Grand Total ───────────────────
+        // ── Highlight baris ringkasan ────────────────────────────────
         for ($row = 4; $row <= $highestRow; $row++) {
-            $cellF = $sheet->getCell("F{$row}")->getValue();
-
-            if ($cellF === 'Subtotal') {
-                $sheet->getStyle("A{$row}:{$lastCol}{$row}")
-                    ->getFont()->setBold(true);
-                $sheet->getStyle("A{$row}:{$lastCol}{$row}")
-                    ->getFill()->setFillType(Fill::FILL_SOLID)
-                    ->getStartColor()->setARGB('FFFACD');
-            }
-
-            if ($cellF === 'GRAND TOTAL') {
-                $sheet->getStyle("A{$row}:{$lastCol}{$row}")
-                    ->getFont()->setBold(true)->setSize(11);
-                $sheet->getStyle("A{$row}:{$lastCol}{$row}")
-                    ->getFill()->setFillType(Fill::FILL_SOLID)
-                    ->getStartColor()->setARGB('FFFF00');
-                $sheet->getStyle("G{$row}:H{$row}")
-                    ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-            }
-
-            // Highlight baris group header transaksi (kolom E mulai dengan —)
             $cellE = $sheet->getCell("E{$row}")->getValue();
+
+            // Group header transaksi (diawali '—')
             if (is_string($cellE) && str_starts_with($cellE, '—')) {
                 $sheet->getStyle("A{$row}:{$lastCol}{$row}")
                     ->getFill()->setFillType(Fill::FILL_SOLID)
@@ -236,6 +184,25 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                 $sheet->getStyle("A{$row}:{$lastCol}{$row}")
                     ->getFont()->setBold(true)->setItalic(true);
             }
+
+            // "Total Item" per transaksi — kuning sangat muda
+            if ($cellE === 'Total Item') {
+                $sheet->getStyle("A{$row}:{$lastCol}{$row}")
+                    ->getFont()->setBold(true);
+                $sheet->getStyle("A{$row}:{$lastCol}{$row}")
+                    ->getFill()->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFF9C4');
+            }
+
+            // "Subtotal" per transaksi — kuning
+            if ($cellE === 'Subtotal') {
+                $sheet->getStyle("A{$row}:{$lastCol}{$row}")
+                    ->getFont()->setBold(true);
+                $sheet->getStyle("A{$row}:{$lastCol}{$row}")
+                    ->getFill()->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFFACD');
+            }
+
         }
 
         // ── Auto-size semua kolom ────────────────────────────────────

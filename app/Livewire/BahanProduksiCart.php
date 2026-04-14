@@ -344,14 +344,21 @@ class BahanProduksiCart extends Component
     {
         $items = [];
         foreach ($this->cart as $item) {
-            $itemId = $item->id;
+            // Livewire bisa serialize object jadi array, handle keduanya
+            if (is_array($item)) {
+                $itemId = $item['id'] ?? $item['bahan_id'] ?? null;
+            } else {
+                $itemId = $item->id ?? $item->bahan_id ?? null;
+            }
+
+            if ($itemId === null) continue;
 
             $items[] = [
-                'id' => $itemId,
-                'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
-                'jml_bahan' => isset($this->jml_bahan[$itemId]) ? $this->jml_bahan[$itemId] : 0,
-                'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
-                'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
+                'id'        => $itemId,
+                'qty'       => $this->qty[$itemId] ?? 0,
+                'jml_bahan' => $this->jml_bahan[$itemId] ?? 0,
+                'details'   => $this->details[$itemId] ?? [],
+                'sub_total' => $this->subtotals[$itemId] ?? 0,
             ];
         }
         return $items;

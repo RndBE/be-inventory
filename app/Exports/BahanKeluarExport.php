@@ -58,7 +58,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
             ])
             ->where('status', 'Disetujui')
             ->whereBetween('tgl_pengajuan', [$this->startDate, $this->endDate])
-            ->orderBy('tgl_pengajuan')
+            ->orderBy('tgl_pengajuan', 'desc')
             ->get();
 
         $counter    = 1;

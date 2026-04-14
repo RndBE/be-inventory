@@ -45,6 +45,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
             'Kode Transaksi',
             'Nama Bahan',
             'Kuantitas',
+            'Total Item',
             'Jumlah Harga',
             'Project / Tujuan',
         ];
@@ -61,8 +62,9 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
             ->orderBy('tgl_pengajuan', 'desc')
             ->get();
 
-        $counter    = 1;
-        $grandTotal = 0;
+        $counter       = 1;
+        $grandTotal    = 0;
+        $grandTotalQty = 0;
 
         foreach ($transactions as $transaction) {
             // Baris header per transaksi (group header)
@@ -75,9 +77,11 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                 '',
                 '',
                 '',
+                '',
             ];
 
             $transactionTotal = 0;
+            $transactionQty   = 0;
 
             foreach ($transaction->bahanKeluarDetails as $detail) {
                 // Ambil nama bahan dari relasi yang tersedia
@@ -93,6 +97,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
 
                 $subTotal          = $detail->sub_total ?? 0;
                 $transactionTotal += $subTotal;
+                $transactionQty   += $detail->qty ?? 0;
 
                 $data[] = [
                     $counter++,
@@ -101,6 +106,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                     $transaction->kode_transaksi,
                     $namaBahan,
                     $detail->qty ?? 0,
+                    '',
                     $subTotal,
                     $transaction->keterangan ?? '-',
                 ];
@@ -114,11 +120,13 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                 '',
                 '',
                 'Subtotal',
+                $transactionQty,
                 $transactionTotal,
                 '',
             ];
 
-            $grandTotal += $transactionTotal;
+            $grandTotal    += $transactionTotal;
+            $grandTotalQty += $transactionQty;
         }
 
         // ── Grand total ──────────────────────────────────────────────
@@ -129,6 +137,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
             '',
             '',
             'GRAND TOTAL',
+            $grandTotalQty,
             $grandTotal,
             '',
         ];

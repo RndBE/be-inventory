@@ -168,7 +168,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
 
         // G: Jumlah Harga → format Rupiah + right-align
         $sheet->getStyle("G4:G{$highestRow}")
-            ->getNumberFormat()->setFormatCode('"Rp "#,##0');
+            ->getNumberFormat()->setFormatCode('"Rp "#,##0.00');
         $sheet->getStyle("G4:G{$highestRow}")
             ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 

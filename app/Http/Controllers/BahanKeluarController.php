@@ -34,6 +34,8 @@ use App\Models\BahanSetengahjadiDetails;
 use App\Models\ProdukJadiDetails;
 use App\Models\ProduksiProdukJadiDetails;
 use Illuminate\Support\Facades\Validator;
+use App\Exports\BahanKeluarExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BahanKeluarController extends Controller
 {
@@ -48,6 +50,23 @@ class BahanKeluarController extends Controller
         $this->middleware('permission:edit-approve-leader', ['only' => ['updateApprovalLeader']]);
 
         $this->middleware('permission:hapus-bahan-keluar', ['only' => ['destroy']]);
+    }
+
+    /**
+     * Export data Bahan Keluar (Disetujui) ke Excel berdasarkan filter tanggal pengajuan.
+     */
+    public function exportExcel(\Illuminate\Http\Request $request)
+    {
+        $startDate = $request->start_date;
+        $endDate   = $request->end_date;
+
+        if (!$startDate || !$endDate) {
+            return redirect()->back()->with('error', 'Tanggal awal dan akhir harus diisi.');
+        }
+
+        $filename = 'bahan-keluar-' . $startDate . '-sd-' . $endDate . '.xlsx';
+
+        return Excel::download(new BahanKeluarExport($startDate, $endDate), $filename);
     }
 
     // public function downloadPdf(int $id)

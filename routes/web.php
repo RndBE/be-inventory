@@ -144,6 +144,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::put('bahan-keluars/{id}/updatepengambilan', [BahanKeluarController::class, 'updatepengambilan'])->name('bahan-keluars.updatepengambilan');
     Route::put('/bahan-keluars/{id}/tolakPurchasing', [BahanKeluarController::class, 'tolakPurchasing'])->name('bahan-keluars.tolakPurchasing');
     Route::post('/siap-ambil/{id}', [BahanKeluarController::class, 'sendWhatsApp'])->name('send.siap-ambil');
+    Route::get('bahan-keluars-export', [BahanKeluarController::class, 'exportExcel'])->name('bahan-keluars.exportExcel');
 
     Route::get('/pengajuan-pembelian-bahan/pdf/{id}', [PembelianBahanController::class, 'downloadPdf'])->name('pengajuan-pembelian-bahan.downloadPdf');
     Route::get('/pengajuan-pembelian-bahan/pdf_po/{id}', [PembelianBahanController::class, 'downloadPdfPo'])->name('pengajuan-pembelian-bahan.downloadPdfPo');

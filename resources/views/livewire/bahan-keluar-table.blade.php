@@ -100,6 +100,7 @@
                 <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
                     @include('livewire.searchdata')
                     @include('livewire.dataperpage')
+                    @include('pages.bahan-keluars.export')
                 </div>
             </div>
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">

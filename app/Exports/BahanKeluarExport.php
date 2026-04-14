@@ -71,7 +71,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                 $transaction->tgl_pengajuan ?? '-',
                 $transaction->tgl_keluar    ?? '-',
                 $transaction->kode_transaksi,
-                '— ' . ($transaction->tujuan ?? $transaction->keterangan ?? '-') . ' —',
+                '— ' . ($transaction->keterangan ?? '-') . ' —',
                 '',
                 '',
                 '',
@@ -100,9 +100,9 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                     $transaction->tgl_keluar    ?? '-',
                     $transaction->kode_transaksi,
                     $namaBahan,
-                    $detail->jml_bahan ?? $detail->qty ?? 0,
+                    $detail->qty ?? 0,
                     $subTotal,
-                    $transaction->tujuan ?? $transaction->keterangan ?? '-',
+                    $transaction->keterangan ?? '-',
                 ];
             }
 

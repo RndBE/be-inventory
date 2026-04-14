@@ -153,7 +153,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
     public function styles(Worksheet $sheet)
     {
         // ── Judul & Periode ──────────────────────────────────────────
-        $lastCol = 'H';
+        $lastCol = 'I';
 
         $sheet->mergeCells("A1:{$lastCol}1");
         $sheet->mergeCells("A2:{$lastCol}2");
@@ -194,12 +194,15 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
         ];
         $sheet->getStyle("A3:{$highestColumn}{$highestRow}")->applyFromArray($borderStyle);
 
-        // ── Format kolom Jumlah Harga (G) sebagai angka ──────────────
-        $sheet->getStyle("G4:G{$highestRow}")
+        // ── Format kolom Total Item (G) & Jumlah Harga (H) ──────────
+        $sheet->getStyle("H4:H{$highestRow}")
             ->getNumberFormat()
             ->setFormatCode('"Rp "#,##0');
 
         $sheet->getStyle("G4:G{$highestRow}")
+            ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        $sheet->getStyle("H4:H{$highestRow}")
             ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
         // ── Highlight baris Subtotal & Grand Total ───────────────────
@@ -220,7 +223,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                 $sheet->getStyle("A{$row}:{$lastCol}{$row}")
                     ->getFill()->setFillType(Fill::FILL_SOLID)
                     ->getStartColor()->setARGB('FFFF00');
-                $sheet->getStyle("G{$row}")
+                $sheet->getStyle("G{$row}:H{$row}")
                     ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
             }
 

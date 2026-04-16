@@ -133,6 +133,7 @@
                             </div>
 
                             <div class="sm:col-span-2" x-data="{
+                                searchQuery: '',
                                 options: [
                                     @foreach($suppliers as $supplier)
                                         { value: '{{ $supplier->id }}', text: '{{ addslashes($supplier->nama) }}' },
@@ -144,9 +145,29 @@
                                     @endforeach
                                 ],
                                 open: false,
+                                normalizeText(value) {
+                                    return (value || '').toLowerCase().trim();
+                                },
+                                scoreOption(text) {
+                                    const query = this.normalizeText(this.searchQuery);
+                                    const candidate = this.normalizeText(text);
+
+                                    if (!query) return 1;
+                                    if (candidate === query) return 100;
+                                    if (candidate.startsWith(query)) return 75;
+
+                                    const wordIndex = candidate.indexOf(` ${query}`);
+                                    if (wordIndex !== -1) return 60 - wordIndex;
+
+                                    const containsIndex = candidate.indexOf(query);
+                                    if (containsIndex !== -1) return 40 - containsIndex;
+
+                                    return 0;
+                                },
                                 select(val) {
                                     if (!this.selected.includes(val)) this.selected.push(val);
                                     this.open = false;
+                                    this.searchQuery = '';
                                 },
                                 remove(val) {
                                     this.selected = this.selected.filter(item => item !== val);
@@ -155,7 +176,11 @@
                                     return this.selected.map(val => this.options.find(opt => opt.value === val)).filter(Boolean);
                                 },
                                 get unselectedOptions() {
-                                    return this.options.filter(opt => !this.selected.includes(opt.value));
+                                    return this.options
+                                        .filter(opt => !this.selected.includes(opt.value))
+                                        .map(opt => ({ ...opt, score: this.scoreOption(opt.text) }))
+                                        .filter(opt => opt.score > 0)
+                                        .sort((a, b) => b.score - a.score || a.text.localeCompare(b.text));
                                 }
                             }">
                                 <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Supplier</label>
@@ -194,16 +219,21 @@
                                         </button>
                             
                                         <!-- Options List -->
-                                        <ul x-show="open" x-transition x-cloak class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm dark:bg-gray-700">
+                                        <div x-show="open" x-transition x-cloak class="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-700">
+                                            <div class="p-2 border-b border-gray-200 dark:border-gray-600">
+                                                <input type="text" x-model="searchQuery" @click.stop placeholder="Cari supplier..." class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
+                                            </div>
+                                            <ul class="max-h-60 overflow-auto py-1 text-base sm:text-sm">
                                             <template x-for="option in unselectedOptions" :key="option.value">
                                                 <li @click="select(option.value)" class="text-gray-900 dark:text-white relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white">
                                                     <span class="block truncate font-normal" x-text="option.text"></span>
                                                 </li>
                                             </template>
                                             <li x-show="unselectedOptions.length === 0" class="text-gray-500 dark:text-gray-400 relative cursor-default select-none py-2 pl-3 pr-9">
-                                                Semua supplier telah dipilih.
+                                                Tidak ada supplier ditemukan.
                                             </li>
-                                        </ul>
+                                            </ul>
+                                        </div>
                                     </div>
                                     @error('supplier_id')
                                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>

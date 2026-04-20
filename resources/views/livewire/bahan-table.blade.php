@@ -1,4 +1,4 @@
-<div x-data="{ openMutasiModal: false }" class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
     @if (session('success'))
         <div id="successAlert" class="flex items-center p-4 mb-4 text-sm text-green-800 border border-green-300 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800" role="alert">
             <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -55,14 +55,17 @@
             <ul class="flex flex-wrap -m-1">
                 <li class="m-1">
                     <button
+                        data-modal-target="export-saldo-bahan-modal"
+                        data-modal-toggle="export-saldo-bahan-modal"
                         type="button"
-                        @click="openMutasiModal = true"
-                        class="mt-2 inline-flex items-center gap-2 rounded-md border border-emerald-300 bg-emerald-50 py-1.5 px-3 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                        class="mt-2 block w-fit rounded-md py-1.5 px-3 bg-green-600 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
                     >
+                        <span class="inline-flex items-center gap-2">
                         <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16M6 9.5h12M10 14h4M11 18h2"/>
                         </svg>
                         Saldo Persediaan
+                        </span>
                     </button>
                 </li>
                 <li class="m-1">
@@ -261,80 +264,98 @@
         @endif
     </div>
 
-    <div
-        x-cloak
-        x-show="openMutasiModal"
-        x-transition.opacity
-        class="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/50 px-4 py-6"
-    >
-        <div
-            @click.away="openMutasiModal = false"
-            x-transition.scale
-            class="w-full max-w-3xl rounded-2xl bg-white shadow-2xl"
-        >
-            <form method="GET" action="{{ route('bahan.export-saldo') }}">
-                <div class="flex items-start justify-between border-b border-slate-200 px-6 py-4">
+    <div id="export-saldo-bahan-modal"
+        tabindex="-1"
+        aria-hidden="true"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-full max-h-full"
+        style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px);">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-800">Export Saldo Persediaan</h3>
-                        <p class="mt-1 text-sm text-slate-500">
-                            File Excel akan berisi dua sheet rekap saldo persediaan: <strong>Bulanan</strong> dan <strong>Tahunan</strong>.
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                            Export Saldo Persediaan
+                        </h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                            File Excel berisi dua sheet rekap saldo persediaan: Bulanan dan Tahunan.
                         </p>
                     </div>
-                    <button
-                        type="button"
-                        @click="openMutasiModal = false"
-                        class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-                    >
-                        <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 9-6 6m0-6 6 6"/>
+                    <button type="button"
+                        class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                        data-modal-hide="export-saldo-bahan-modal">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                         </svg>
+                        <span class="sr-only">Close modal</span>
                     </button>
                 </div>
 
-                <div class="grid gap-4 px-6 py-5 sm:grid-cols-2">
-                    <label class="block">
-                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Periode Awal</span>
-                        <input
-                            type="date"
-                            name="start_date"
-                            value="{{ request('start_date', now()->startOfYear()->format('Y-m-d')) }}"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                            required
-                        >
-                    </label>
-                    <label class="block">
-                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Periode Akhir</span>
-                        <input
-                            type="date"
-                            name="end_date"
-                            value="{{ request('end_date', now()->format('Y-m-d')) }}"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                            required
-                        >
-                    </label>
-                </div>
+                <div class="pt-0 p-5">
+                    <form action="{{ route('bahan.export-saldo') }}" method="GET">
+                        <div class="mb-4">
+                            <label for="saldo_bahan_start_date" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-300">
+                                Periode Awal
+                            </label>
+                            <div class="mt-2">
+                                <div class="relative max-w-sm">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                                            xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path
+                                                d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                                        </svg>
+                                    </div>
+                                    <input type="text" name="start_date" id="saldo_bahan_start_date"
+                                        value="{{ request('start_date', now()->startOfYear()->format('Y-m-d')) }}"
+                                        placeholder="Pilih tanggal awal"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                        required autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
-                    <div class="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                        <span class="rounded-full bg-white px-3 py-1 font-medium text-slate-600">Rekap per bahan</span>
-                        <span class="rounded-full bg-white px-3 py-1 font-medium text-slate-600">Menampilkan kuantitas dan total nilai</span>
-                    </div>
-                    <div class="flex flex-wrap justify-end gap-2">
-                        <button
-                            type="reset"
-                            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white"
-                        >
-                            Reset
+                        <div class="mb-5">
+                            <label for="saldo_bahan_end_date" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-300">
+                                Periode Akhir
+                            </label>
+                            <div class="mt-2">
+                                <div class="relative max-w-sm">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                                            xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path
+                                                d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                                        </svg>
+                                    </div>
+                                    <input type="text" name="end_date" id="saldo_bahan_end_date"
+                                        value="{{ request('end_date', now()->format('Y-m-d')) }}"
+                                        placeholder="Pilih tanggal akhir"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                                        required autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-5 rounded-md bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                            <div class="font-medium text-gray-800">Rekap data per bahan</div>
+                            <div class="mt-1">Menampilkan saldo akhir persediaan dari sisi kuantitas dan total nilai.</div>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            Unduh Excel
                         </button>
-                        <button
-                            type="submit"
-                            class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500"
-                        >
-                            Export Excel
-                        </button>
-                    </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
@@ -357,6 +378,18 @@
             setTimeout(() => {
                 errorAlert.style.display = 'none';
             }, delay);
+        }
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof flatpickr !== 'undefined') {
+            flatpickr("#saldo_bahan_start_date", {
+                dateFormat: "Y-m-d",
+            });
+            flatpickr("#saldo_bahan_end_date", {
+                dateFormat: "Y-m-d",
+            });
         }
     });
 </script>

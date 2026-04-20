@@ -13,6 +13,7 @@ use App\Models\JenisBahan;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
 use App\Exports\BahansExport;
+use App\Exports\SaldoPersediaanExport;
 use App\Models\ProjekDetails;
 use App\Models\ProdukProduksi;
 use App\Models\PurchaseDetail;
@@ -36,12 +37,31 @@ class BahanController extends Controller
         $this->middleware('permission:tambah-bahan', ['only' => ['create','store']]);
         $this->middleware('permission:edit-bahan', ['only' => ['update','edit','updateMultiple','editMultiple']]);
         $this->middleware('permission:hapus-bahan', ['only' => ['destroy']]);
-        $this->middleware('permission:export-bahan', ['only' => ['export']]);
+        $this->middleware('permission:export-bahan', ['only' => ['export', 'exportSaldoPersediaan']]);
     }
 
     public function export()
     {
         return Excel::download(new BahansExport, 'bahan_be-inventory.xlsx');
+    }
+
+    public function exportSaldoPersediaan(Request $request)
+    {
+        $validated = $request->validate([
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+        ]);
+
+        $filename = sprintf(
+            'saldo-persediaan-%s-sd-%s.xlsx',
+            $validated['start_date'],
+            $validated['end_date']
+        );
+
+        return Excel::download(
+            new SaldoPersediaanExport($validated['start_date'], $validated['end_date']),
+            $filename
+        );
     }
 
 

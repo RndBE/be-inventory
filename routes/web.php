@@ -120,6 +120,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::put('/bahan/{id}', [BahanController::class, 'update'])->name('bahan.update');
     Route::delete('/bahan/{id}', [BahanController::class, 'destroy'])->name('bahan.destroy');
     Route::get('bahan-export', [BahanController::class, 'export'])->name('bahan.export');
+    Route::get('bahan-export-saldo', [BahanController::class, 'exportSaldoPersediaan'])->name('bahan.export-saldo');
 
     Route::resource('barang-aset', BarangAsetController::class);
     Route::resource('rekap-aset', RekapAsetController::class);

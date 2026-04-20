@@ -1,4 +1,4 @@
-<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+<div x-data="{ openMutasiModal: false }" class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
     @if (session('success'))
         <div id="successAlert" class="flex items-center p-4 mb-4 text-sm text-green-800 border border-green-300 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800" role="alert">
             <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -53,6 +53,18 @@
 
         <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
             <ul class="flex flex-wrap -m-1">
+                <li class="m-1">
+                    <button
+                        type="button"
+                        @click="openMutasiModal = true"
+                        class="mt-2 inline-flex items-center gap-2 rounded-md border border-emerald-300 bg-emerald-50 py-1.5 px-3 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                    >
+                        <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16M6 9.5h12M10 14h4M11 18h2"/>
+                        </svg>
+                        Saldo Persediaan
+                    </button>
+                </li>
                 <li class="m-1">
                     @include('livewire.searchdata')
                 </li>
@@ -248,6 +260,83 @@
                 @include('pages.bahan.show')
         @endif
     </div>
+
+    <div
+        x-cloak
+        x-show="openMutasiModal"
+        x-transition.opacity
+        class="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/50 px-4 py-6"
+    >
+        <div
+            @click.away="openMutasiModal = false"
+            x-transition.scale
+            class="w-full max-w-3xl rounded-2xl bg-white shadow-2xl"
+        >
+            <form method="GET" action="{{ route('bahan.export-saldo') }}">
+                <div class="flex items-start justify-between border-b border-slate-200 px-6 py-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Export Saldo Persediaan</h3>
+                        <p class="mt-1 text-sm text-slate-500">
+                            File Excel akan berisi dua sheet rekap saldo persediaan: <strong>Bulanan</strong> dan <strong>Tahunan</strong>.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        @click="openMutasiModal = false"
+                        class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                    >
+                        <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 9-6 6m0-6 6 6"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="grid gap-4 px-6 py-5 sm:grid-cols-2">
+                    <label class="block">
+                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Periode Awal</span>
+                        <input
+                            type="date"
+                            name="start_date"
+                            value="{{ request('start_date', now()->startOfYear()->format('Y-m-d')) }}"
+                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                            required
+                        >
+                    </label>
+                    <label class="block">
+                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Periode Akhir</span>
+                        <input
+                            type="date"
+                            name="end_date"
+                            value="{{ request('end_date', now()->format('Y-m-d')) }}"
+                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                            required
+                        >
+                    </label>
+                </div>
+
+                <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
+                    <div class="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        <span class="rounded-full bg-white px-3 py-1 font-medium text-slate-600">Rekap per bahan</span>
+                        <span class="rounded-full bg-white px-3 py-1 font-medium text-slate-600">Menampilkan kuantitas dan total nilai</span>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-2">
+                        <button
+                            type="reset"
+                            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white"
+                        >
+                            Reset
+                        </button>
+                        <button
+                            type="submit"
+                            class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500"
+                        >
+                            Export Excel
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -327,5 +416,3 @@
         });
     });
 </script>
-
-

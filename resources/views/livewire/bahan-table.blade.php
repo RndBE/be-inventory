@@ -54,6 +54,7 @@
         <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
             <ul class="flex flex-wrap -m-1">
                 <li class="m-1">
+                    @hasanyrole('administrasi|superadmin|administration manager')
                     <button
                         data-modal-target="export-saldo-bahan-modal"
                         data-modal-toggle="export-saldo-bahan-modal"
@@ -67,6 +68,7 @@
                         Saldo Persediaan
                         </span>
                     </button>
+                    @endhasanyrole
                 </li>
                 <li class="m-1">
                     @include('livewire.searchdata')
@@ -264,6 +266,7 @@
         @endif
     </div>
 
+    @hasanyrole('administrasi|superadmin|administration manager')
     <div id="export-saldo-bahan-modal"
         tabindex="-1"
         aria-hidden="true"
@@ -358,6 +361,7 @@
             </div>
         </div>
     </div>
+    @endhasanyrole
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function() {

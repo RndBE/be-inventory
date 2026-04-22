@@ -48,7 +48,9 @@ class BahanReturController extends Controller
             $bahanRetur = BahanRetur::with([
                 'produksiS','projek','garansiProjek','projekRnd','pengajuan','pengambilanBahan','produkSample',
                 'bahanReturDetails.dataBahan.dataUnit',
-                'bahanReturDetails.dataProduk', 'produksiProdukJadi',
+                'bahanReturDetails.dataProduk',
+                'bahanReturDetails.dataProdukJadi',
+                'produksiProdukJadi',
             ])->findOrFail($id);
 
             // $hasProduk = $bahanRetur->bahanReturDetails->filter(function ($detail) {
@@ -62,11 +64,8 @@ class BahanReturController extends Controller
             })->isNotEmpty();
 
 
-            $tandaTanganPengaju = $bahanRetur->dataUser->tanda_tangan ?? null;
-
-            $tandaTanganLeader = null;
-            $tandaTanganManager = $bahanRetur->dataUser->atasanLevel2->tanda_tangan ?? null;
-            $tandaTanganDirektur = $bahanRetur->dataUser->atasanLevel1->tanda_tangan ?? null;
+            $pengaju = null;
+            $atasanLevel2 = null;
 
             if ($bahanRetur->produksiS) {
                 $pengaju = $bahanRetur->produksiS->pengaju ?? null;
@@ -87,20 +86,12 @@ class BahanReturController extends Controller
             }
 
             if ($pengaju) {
-                // Cari user berdasarkan nama
                 $user = User::where('name', $pengaju)->first();
 
                 if ($user && $user->atasanLevel2) {
                     $atasanLevel2 = $user->atasanLevel2->name;
                 }
             }
-
-            // $leaderName = $bahanRetur->dataUser->atasanLevel3 ? $bahanRetur->dataUser->atasanLevel3->name : null;
-            // $managerName = $bahanRetur->dataUser->atasanLevel2 ? $bahanRetur->dataUser->atasanLevel2->name : null;
-
-            // if (!$leaderName && $managerName) {
-            //     $leaderName = $managerName;
-            // }
 
             $purchasingUser = cache()->remember('purchasing_user', 60, function () {
                 return User::where('job_level', 3)
@@ -620,12 +611,16 @@ class BahanReturController extends Controller
                     }
                 }
 
-                $bahanRetur->status = $validated['status'];
-                $bahanRetur->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-                $bahanRetur->save();
-                DB::commit();
-                LogHelper::success('Berhasil Mengubah Status Bahan Retur!');
             }
+
+            $bahanRetur->status = $validated['status'];
+            $bahanRetur->tgl_diterima = $validated['status'] === 'Disetujui'
+                ? now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s')
+                : null;
+            $bahanRetur->save();
+
+            DB::commit();
+            LogHelper::success('Berhasil Mengubah Status Bahan Retur!');
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();

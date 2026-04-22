@@ -155,16 +155,16 @@
 
         <tr style="text-align: left; vertical-align: top;">
             <td style="text-align: center;">
-                {{ $pengaju }}
+                {{ $pengaju ?? '-' }}
             </td>
             <td colspan="2" style="text-align: center;">
-                {{ $purchasingUser->name }}
+                {{ $purchasingUser->name ?? '-' }}
                 {{-- @if($hasProduk)
                     RHOMADONI
                 @endif --}}
             </td>
             <td style="text-align: center;">
-                {{ $atasanLevel2 }}
+                {{ $atasanLevel2 ?? '-' }}
             </td>
         </tr>
 

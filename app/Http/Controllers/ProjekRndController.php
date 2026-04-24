@@ -708,6 +708,54 @@ class ProjekRndController extends Controller
     }
 
 
+    public function uploadLaporan(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'file_laporan' => 'required|file|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png|max:10240',
+            ], [
+                'file_laporan.required' => 'File laporan wajib dipilih.',
+                'file_laporan.mimes'    => 'Format file harus PDF, Excel, Word, atau gambar (JPG/PNG).',
+                'file_laporan.max'      => 'Ukuran file maksimal 10 MB.',
+            ]);
+
+            $projek_rnd = ProjekRnd::findOrFail($id);
+
+            // Hapus file lama jika ada
+            if ($projek_rnd->file_laporan && \Illuminate\Support\Facades\Storage::disk('public')->exists($projek_rnd->file_laporan)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($projek_rnd->file_laporan);
+            }
+
+            $file = $request->file('file_laporan');
+            $fileName = 'laporan_projek_rnd_' . $projek_rnd->kode_projek_rnd . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs('laporan-projek-rnd', $fileName, 'public');
+
+            $projek_rnd->update(['file_laporan' => $filePath]);
+
+            LogHelper::success('Berhasil mengupload laporan Projek RnD!');
+            return redirect()->back()->with('success', 'File laporan berhasil diupload.');
+        } catch (\Exception $e) {
+            LogHelper::error($e->getMessage());
+            return redirect()->back()->with('error', 'Gagal mengupload file: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadLaporan($id)
+    {
+        try {
+            $projek_rnd = ProjekRnd::findOrFail($id);
+
+            if (!$projek_rnd->file_laporan || !\Illuminate\Support\Facades\Storage::disk('public')->exists($projek_rnd->file_laporan)) {
+                return redirect()->back()->with('error', 'File laporan tidak ditemukan.');
+            }
+
+            return \Illuminate\Support\Facades\Storage::disk('public')->download($projek_rnd->file_laporan);
+        } catch (\Exception $e) {
+            LogHelper::error($e->getMessage());
+            return redirect()->back()->with('error', 'Gagal mengunduh file: ' . $e->getMessage());
+        }
+    }
+
     public function destroy(string $id)
     {
         try {

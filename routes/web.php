@@ -222,6 +222,8 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::put('projek-rnd/{projek}/selesai', [ProjekRndController::class, 'updateStatus'])->name('projek-rnd.updateStatus');
     Route::get('projek-rnd-export/{projek_rnd_id}', [ProjekRndController::class, 'export'])->name('projek-rnd.export');
     Route::get('projek-rnd/{projek}/info', [ProjekRndController::class, 'info'])->name('projek-rnd.info');
+    Route::post('projek-rnd/{projek}/upload-laporan', [ProjekRndController::class, 'uploadLaporan'])->name('projek-rnd.uploadLaporan');
+    Route::get('projek-rnd/{projek}/download-laporan', [ProjekRndController::class, 'downloadLaporan'])->name('projek-rnd.downloadLaporan');
 
 
     Route::resource('pengambilan-bahan', PengambilanBahanController::class);

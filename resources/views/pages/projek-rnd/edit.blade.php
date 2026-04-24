@@ -39,7 +39,7 @@
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
                 @if($projek_rnd->status !== 'Selesai' && $projek_rnd->status !== 'Tidak dilanjutkan')
-                    <a href="{{ route('projek-rnd.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
+                    <a href="{{ route('projek-rnd.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                     <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
                     @can('selesai-projek-rnd')
                         @if($isComplete)
@@ -47,11 +47,17 @@
                             Selesai
                         </button>
                         @endif
+                        <button data-modal-target="upload-laporan-modal" data-modal-toggle="upload-laporan-modal" type="button" class="rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500">Upload Laporan</button>
+                        <button data-modal-target="hentikan-modal" data-modal-toggle="hentikan-modal" class="rounded-md bg-orange-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500" type="button">
+                            Hentikan
+                        </button>
                     @endcan
                 @elseif ($projek_rnd->status === 'Selesai')
                     <a href="{{ route('projek-rnd.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
+                    <button data-modal-target="upload-laporan-modal" data-modal-toggle="upload-laporan-modal" type="button" class="rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500">Upload Laporan</button>
                 @else
                     <a href="{{ route('projek-rnd.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
+                    <button data-modal-target="upload-laporan-modal" data-modal-toggle="upload-laporan-modal" type="button" class="rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500">Upload Laporan</button>
                 @endif
                 {{-- <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button> --}}
             </div>
@@ -193,6 +199,63 @@
         </div>
     </div>
     @include('pages.projek-rnd.selesai')
+
+    {{-- Modal Upload Laporan --}}
+    <div id="upload-laporan-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-full max-h-full" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-xl shadow-lg dark:bg-gray-700">
+                <button type="button" class="absolute top-3 end-3 text-gray-400 bg-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center" data-modal-hide="upload-laporan-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+                <div class="p-6">
+                    <div class="flex items-center justify-center w-14 h-14 mx-auto mb-4 rounded-full bg-yellow-100">
+                        <svg class="w-7 h-7 text-yellow-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                        </svg>
+                    </div>
+                    <h3 class="mb-1 text-base font-semibold text-gray-800 text-center">Upload Laporan</h3>
+                    <p class="mb-4 text-sm text-gray-500 text-center">Upload file laporan Projek RnD <br><span class="font-medium text-gray-700">{{ $projek_rnd->kode_projek_rnd }}</span></p>
+
+                    @if($projek_rnd->file_laporan)
+                    <div class="mb-4 flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <svg class="w-5 h-5 text-green-600 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-medium text-green-700">File laporan tersedia</p>
+                            <a href="{{ route('projek-rnd.downloadLaporan', $projek_rnd->id) }}" class="text-xs text-green-600 hover:underline truncate block">Download file saat ini</a>
+                        </div>
+                    </div>
+                    @endif
+
+                    <form action="{{ route('projek-rnd.uploadLaporan', $projek_rnd->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pilih File <sup class="text-red-500">*</sup></label>
+                            <input type="file" name="file_laporan" id="file_laporan" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
+                                class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-600 file:text-white hover:file:bg-yellow-700">
+                            <p class="mt-1 text-xs text-gray-400">Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.</p>
+                            @error('file_laporan')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button type="button" data-modal-hide="upload-laporan-modal"
+                                class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                                Batal
+                            </button>
+                            <button type="submit"
+                                class="px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-700">
+                                Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         document.getElementById('saveButton').addEventListener('click', function() {
             document.getElementById('projekRndForm').submit();

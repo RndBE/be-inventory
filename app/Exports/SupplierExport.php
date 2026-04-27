@@ -17,8 +17,13 @@ class SupplierExport implements FromCollection, WithHeadings, WithStyles, WithEv
     {
         return Supplier::all()->map(function ($item, $index) {
             return [
-                'nomor' => $index + 1,
-                'nama' => $item->nama,
+                'nomor'     => $index + 1,
+                'nama'      => $item->nama,
+                'telepon'   => $item->telepon,
+                'npwp'      => $item->npwp,
+                'alamat'    => $item->alamat,
+                'nama_pic'  => $item->nama_pic,
+                'keterangan'=> $item->keterangan,
             ];
         });
     }
@@ -27,16 +32,24 @@ class SupplierExport implements FromCollection, WithHeadings, WithStyles, WithEv
     {
         return [
             'No',
-            'Nama',
+            'Nama Supplier',
+            'Telepon',
+            'NPWP',
+            'Alamat',
+            'Nama PIC',
+            'Keterangan',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
+        $lastRow = count($this->collection()) + 1;
+
         return [
             1 => [ // Header row
                 'font' => [
                     'bold' => true,
+                    'color' => ['argb' => 'FFFFFFFF'],
                 ],
                 'fill' => [
                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -44,10 +57,11 @@ class SupplierExport implements FromCollection, WithHeadings, WithStyles, WithEv
                 ],
                 'alignment' => [
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'vertical'   => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 ],
             ],
-            // Apply borders to all rows and columns
-            'A1:B' . (count($this->collection()) + 1) => [
+            // Border semua cell
+            'A1:G' . $lastRow => [
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -62,7 +76,7 @@ class SupplierExport implements FromCollection, WithHeadings, WithStyles, WithEv
     {
         return [
             AfterSheet::class => function(AfterSheet $event) {
-                foreach (range('A', 'B') as $column) { // Adjusted to E for correct range
+                foreach (range('A', 'G') as $column) {
                     $event->sheet->getDelegate()->getColumnDimension($column)->setAutoSize(true);
                 }
             },

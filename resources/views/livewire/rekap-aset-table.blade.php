@@ -109,9 +109,37 @@
                             <td class="px-6 py-3">{{ $row->nomor_aset }}</td>
                             <td class="px-6 py-3">
                                 @if($row->link_gambar)
-                                    <button wire:click="showGambar({{ $row->id }})" class="w-8 h-8 flex items-center justify-center text-sm text-slate-600 bg-yellow-500 hover:bg-yellow-600 hover:text-white rounded-full" type="button">
-                                        🔍
-                                    </button>
+                                    @php
+                                        $fileId = null;
+                                        if (strpos($row->link_gambar, '/d/') !== false) {
+                                            $fileId = explode('/d/', $row->link_gambar)[1];
+                                            $fileId = explode('/', $fileId)[0];
+                                        }
+                                    @endphp
+                                    @if($fileId)
+                                        <button wire:click="showGambar({{ $row->id }})" type="button"
+                                            class="block group relative overflow-hidden rounded-lg border border-gray-200 hover:border-indigo-400 transition-all duration-150 shadow-sm hover:shadow-md"
+                                            title="Klik untuk lihat gambar penuh">
+                                            <img
+                                                src="https://drive.google.com/thumbnail?id={{ $fileId }}&sz=w120"
+                                                alt="Foto Aset"
+                                                class="w-16 h-16 object-cover rounded-lg group-hover:scale-105 transition-transform duration-150"
+                                                onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Gagal load</span>';"
+                                            >
+                                            <span class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition rounded-lg flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition drop-shadow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
+                                                </svg>
+                                            </span>
+                                        </button>
+                                    @else
+                                        <a href="{{ $row->link_gambar }}" target="_blank"
+                                            class="text-xs text-indigo-600 hover:underline">
+                                            Lihat File
+                                        </a>
+                                    @endif
+                                @else
+                                    <span class="text-xs text-gray-400">-</span>
                                 @endif
                             </td>
                             <td class="px-6 py-3">{{ $row->tgl_perolehan }}</td>

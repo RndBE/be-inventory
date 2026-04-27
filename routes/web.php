@@ -97,6 +97,8 @@ Route::get('/auto-login/{token}', [AuthController::class, 'autoLogin']);
 
 
 
+Route::get('/aset-scan/{id}', [RekapAsetController::class, 'scan'])->name('rekap-aset.scan');
+
 Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
     Route::resource('log-activities', LogActivityController::class);
@@ -125,6 +127,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('barang-aset', BarangAsetController::class);
     Route::resource('rekap-aset', RekapAsetController::class);
     Route::post('rekap-aset/import', [RekapAsetController::class, 'import'])->name('rekap-aset.import');
+    Route::get('rekap-aset/{id}/label', [RekapAsetController::class, 'label'])->name('rekap-aset.label');
 
     Route::resource('supplier', SupplierController::class);
     Route::get('supplier-export', [SupplierController::class, 'export'])->name('supplier.export');

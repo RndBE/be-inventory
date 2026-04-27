@@ -73,6 +73,7 @@ class RekapAsetController extends Controller
         try {
             $validated = $request->validate([
                 'nomor_aset' => 'required|string|max:255|unique:rekap_aset,nomor_aset',
+                'serial_number' => 'nullable|string|max:255',
                 'barang_aset_id' => 'required|exists:barang_aset,id',
                 'link_gambar' => 'nullable|string',
                 'tgl_perolehan' => 'nullable',
@@ -114,6 +115,7 @@ class RekapAsetController extends Controller
 
             $validated = $request->validate([
                 'nomor_aset' => 'required|unique:rekap_aset,nomor_aset,'. $id,
+                'serial_number' => 'nullable|string|max:255',
                 'barang_aset_id' => 'required|exists:barang_aset,id',
                 'link_gambar' => 'nullable|string',
                 'tgl_perolehan' => 'nullable',
@@ -135,6 +137,18 @@ class RekapAsetController extends Controller
         }
     }
 
+
+    public function scan($id)
+    {
+        $rekap_aset = RekapAset::with('barangAset', 'dataUser.dataJobPosition')->findOrFail($id);
+        return view('pages.rekap_aset.scan', compact('rekap_aset'));
+    }
+
+    public function label($id)
+    {
+        $rekap_aset = RekapAset::with('barangAset', 'dataUser.dataJobPosition')->findOrFail($id);
+        return view('pages.rekap_aset.label', compact('rekap_aset'));
+    }
 
     public function destroy($id)
     {

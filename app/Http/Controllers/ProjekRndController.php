@@ -647,16 +647,17 @@ class ProjekRndController extends Controller
         try {
             $projek_rnd = ProjekRnd::findOrFail($id);
 
-            // Jika user memilih "Tidak", biarkan proyek tetap berjalan
+            // Status: Dihentikan
             if ($request->status === 'batal') {
                 $projek_rnd->status = 'Tidak dilanjutkan';
                 $projek_rnd->selesai_projek_rnd = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                $projek_rnd->keterangan_status = $request->keterangan_status;
                 $projek_rnd->save();
-                LogHelper::success('Berhasil membatalkan proyek RnD.');
-                return redirect()->back()->with('success', 'Projek RnD tidak dilanjutkan.');
+                LogHelper::success('Berhasil menghentikan proyek RnD.');
+                return redirect()->back()->with('success', 'Projek RnD dihentikan / tidak dilanjutkan.');
             }
 
-            //Jika proyek belum selesai, lanjutkan proses penyimpanan
+            // Status: Selesai
             if ($request->status === 'selesai') {
                 if (empty($projek_rnd->serial_number)) {
                     return redirect()->back()->with('error', 'Silakan isi dan Simpan Serial Number sebelum menyelesaikan proyek RnD.');
@@ -684,9 +685,10 @@ class ProjekRndController extends Controller
                     $bahanSetengahJadiDetail->serial_number = $projek_rnd->serial_number;
                     $bahanSetengahJadiDetail->save();
 
-                    // Update status proyek menjadi selesai
+                    // Update status proyek menjadi Selesai
                     $projek_rnd->status = 'Selesai';
                     $projek_rnd->selesai_projek_rnd = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                    $projek_rnd->keterangan_status = $request->keterangan_status;
                     $projek_rnd->save();
 
                     DB::commit();
@@ -700,7 +702,17 @@ class ProjekRndController extends Controller
                 }
             }
 
-            return redirect()->back()->with('error', 'Projek RnD sudah selesai sebelumnya.');
+            // Status: Selesai tapi tidak laku
+            if ($request->status === 'selesai_tidak_laku') {
+                $projek_rnd->status = 'Selesai Tidak Laku';
+                $projek_rnd->selesai_projek_rnd = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+                $projek_rnd->keterangan_status = $request->keterangan_status;
+                $projek_rnd->save();
+                LogHelper::success('Berhasil mengubah status Projek RnD menjadi Selesai Tidak Laku.');
+                return redirect()->back()->with('success', 'Projek RnD selesai namun tidak laku.');
+            }
+
+            return redirect()->back()->with('error', 'Status tidak dikenal atau proyek sudah selesai sebelumnya.');
         } catch (\Throwable $e) {
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');

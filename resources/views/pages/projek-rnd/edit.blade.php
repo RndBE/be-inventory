@@ -38,19 +38,20 @@
         <!-- Header: Right side -->
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
-                @if($projek_rnd->status !== 'Selesai' && $projek_rnd->status !== 'Tidak dilanjutkan')
+                @if($projek_rnd->status !== 'Selesai' && $projek_rnd->status !== 'Tidak dilanjutkan'  && $projek_rnd->status !== 'Selesai Tidak Laku')
                     <a href="{{ route('projek-rnd.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
-                    <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
                     @can('selesai-projek-rnd')
-                        @if($isComplete)
-                        <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
-                            Selesai
-                        </button>
-                        @endif
                         <button data-modal-target="upload-laporan-modal" data-modal-toggle="upload-laporan-modal" type="button" class="rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500">Upload Laporan</button>
-                        <button data-modal-target="hentikan-modal" data-modal-toggle="hentikan-modal" class="rounded-md bg-orange-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500" type="button">
-                            Hentikan
+                        <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
+                        <button id="simpanSelesaikanBtn" type="button"
+                            class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 flex items-center gap-1.5">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            Selesaikan
                         </button>
+                    @else
+                        <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
                     @endcan
                 @elseif ($projek_rnd->status === 'Selesai')
                     <a href="{{ route('projek-rnd.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
@@ -59,7 +60,6 @@
                     <a href="{{ route('projek-rnd.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                     <button data-modal-target="upload-laporan-modal" data-modal-toggle="upload-laporan-modal" type="button" class="rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500">Upload Laporan</button>
                 @endif
-                {{-- <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button> --}}
             </div>
         </div>
     </x-app.secondary-header>
@@ -257,8 +257,62 @@
         </div>
     </div>
     <script>
-        document.getElementById('saveButton').addEventListener('click', function() {
-            document.getElementById('projekRndForm').submit();
+        // Tombol Simpan biasa (untuk user tanpa permission selesai-projek-rnd)
+        const saveButtonOnly = document.getElementById('saveButton');
+        if (saveButtonOnly) {
+            saveButtonOnly.addEventListener('click', function() {
+                document.getElementById('projekRndForm').submit();
+            });
+        }
+
+        // Tombol Simpan & Selesaikan — buka modal pilihan status
+        const simpanSelesaikanBtn = document.getElementById('simpanSelesaikanBtn');
+        if (simpanSelesaikanBtn) {
+            simpanSelesaikanBtn.addEventListener('click', function() {
+                const modal = document.getElementById('pilihan-status-modal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+            });
+        }
+
+        // Fungsi tutup modal pilihan status
+        function tutupPilihanStatusModal() {
+            const modal = document.getElementById('pilihan-status-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        // Pilihan tab status di dalam modal
+        const pilihanBtns = document.querySelectorAll('.pilihan-status-btn');
+        const pilihanPanels = document.querySelectorAll('.pilihan-status-panel');
+
+        pilihanBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const target = btn.dataset.target;
+
+                // Reset semua tombol
+                pilihanBtns.forEach(function(b) {
+                    b.classList.remove('border-indigo-600', 'text-indigo-600', 'bg-indigo-50');
+                    b.classList.add('border-gray-200', 'text-gray-500', 'bg-white');
+                });
+
+                // Aktifkan tombol yang dipilih
+                btn.classList.add('border-indigo-600', 'text-indigo-600', 'bg-indigo-50');
+                btn.classList.remove('border-gray-200', 'text-gray-500', 'bg-white');
+
+                // Sembunyikan semua panel
+                pilihanPanels.forEach(function(panel) {
+                    panel.classList.add('hidden');
+                });
+
+                // Tampilkan panel yang sesuai
+                const activePanel = document.getElementById('panel-' + target);
+                if (activePanel) activePanel.classList.remove('hidden');
+            });
         });
     </script>
 

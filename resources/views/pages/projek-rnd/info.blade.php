@@ -48,8 +48,51 @@
                             <span class="pr-1">:</span>
                             <span>{{ $projekRnd->pengaju }}</span>
                         </div>
+                        <div class="flex items-center">
+                            <span class="w-40 font-semibold">Status Akhir</span>
+                            <span class="pr-1">:</span>
+                            @php
+                                $statusColor = match($projekRnd->status) {
+                                    'Selesai'           => 'bg-green-100 text-green-700 border-green-200',
+                                    'Selesai Tidak Laku'=> 'bg-yellow-100 text-yellow-700 border-yellow-200',
+                                    'Tidak dilanjutkan' => 'bg-red-100 text-red-700 border-red-200',
+                                    'Dalam Proses'      => 'bg-blue-100 text-blue-700 border-blue-200',
+                                    default             => 'bg-gray-100 text-gray-600 border-gray-200',
+                                };
+                            @endphp
+                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold border {{ $statusColor }}">
+                                {{ $projekRnd->status ?? '-' }}
+                            </span>
+                        </div>
                     </div>
                 </div>
+
+                {{-- Keterangan Status Akhir (jika ada) --}}
+                @if($projekRnd->keterangan_status)
+                @php
+                    $ksBg = match($projekRnd->status) {
+                        'Selesai'            => 'bg-green-50 border-green-200 text-green-800',
+                        'Selesai Tidak Laku' => 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                        'Tidak dilanjutkan'  => 'bg-red-50 border-red-200 text-red-800',
+                        default              => 'bg-gray-50 border-gray-200 text-gray-700',
+                    };
+                    $ksIcon = match($projekRnd->status) {
+                        'Selesai'            => 'text-green-500',
+                        'Selesai Tidak Laku' => 'text-yellow-500',
+                        'Tidak dilanjutkan'  => 'text-red-500',
+                        default              => 'text-gray-400',
+                    };
+                @endphp
+                <div class="mt-4 flex gap-3 items-start p-4 rounded-lg border {{ $ksBg }}">
+                    <svg class="w-5 h-5 mt-0.5 shrink-0 {{ $ksIcon }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                    </svg>
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wide mb-1 opacity-70">Keterangan Status Akhir</p>
+                        <p class="text-sm leading-relaxed">{{ $projekRnd->keterangan_status }}</p>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
 

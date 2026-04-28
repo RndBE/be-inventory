@@ -43,7 +43,7 @@
                         Selesai
                     </button>
 
-                    {{-- Tombol: Selesai Tidak Laku --}}
+                    {{-- Tombol: Selesai Belum Laku --}}
                     <button type="button"
                         class="pilihan-status-btn border-2 border-gray-200 text-gray-500 bg-white rounded-xl px-3 py-3 text-sm font-medium flex flex-col items-center gap-2 transition-all duration-150 hover:border-yellow-400 hover:text-yellow-600 hover:bg-yellow-50 hover:shadow-md"
                         data-target="tidak-laku">
@@ -52,7 +52,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                             </svg>
                         </span>
-                        <span class="text-center leading-tight">Selesai Tapi<br>Tidak Laku</span>
+                        <span class="text-center leading-tight">Selesai Tapi<br>Belum Laku</span>
                     </button>
 
                     {{-- Tombol: Dihentikan --}}
@@ -106,7 +106,7 @@
                     </form>
                 </div>
 
-                {{-- Panel: Selesai Tidak Laku --}}
+                {{-- Panel: Selesai Belum Laku --}}
                 <div id="panel-tidak-laku" class="pilihan-status-panel hidden">
                     <form action="{{ route('projek-rnd.updateStatus', $projek_rnd->id) }}" method="POST" id="form-simpan-tidak-laku">
                         @csrf
@@ -118,14 +118,14 @@
                                 <svg class="w-4 h-4 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                                 </svg>
-                                <p class="text-sm font-semibold text-yellow-700">Selesai Tapi Tidak Laku</p>
+                                <p class="text-sm font-semibold text-yellow-700">Selesai Tapi Belum Laku</p>
                             </div>
                             <p class="text-xs text-yellow-700 mb-3">Proyek selesai namun produk/riset tidak berhasil dipasarkan atau tidak dapat dilanjutkan ke produksi.</p>
                             <label class="block text-xs font-semibold text-gray-700 mb-1">
                                 Deskripsi / Keterangan <sup class="text-red-500">*</sup>
                             </label>
                             <textarea name="keterangan_status" rows="3" required
-                                placeholder="Tuliskan alasan atau keterangan mengapa produk tidak laku..."
+                                placeholder="Tuliskan alasan atau keterangan mengapa produk belum laku..."
                                 class="w-full rounded-lg border border-yellow-300 bg-white text-sm text-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 placeholder:text-gray-400 resize-none"></textarea>
                         </div>
                         <div class="flex justify-end gap-2 mt-4">

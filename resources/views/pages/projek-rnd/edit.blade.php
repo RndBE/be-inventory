@@ -38,7 +38,7 @@
         <!-- Header: Right side -->
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
-                @if($projek_rnd->status !== 'Selesai' && $projek_rnd->status !== 'Tidak dilanjutkan'  && $projek_rnd->status !== 'Selesai Tidak Laku')
+                @if($projek_rnd->status !== 'Selesai' && $projek_rnd->status !== 'Tidak dilanjutkan'  && $projek_rnd->status !== 'Selesai Belum Laku')
                     <a href="{{ route('projek-rnd.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                     @can('selesai-projek-rnd')
                         <button data-modal-target="upload-laporan-modal" data-modal-toggle="upload-laporan-modal" type="button" class="rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500">Upload Laporan</button>

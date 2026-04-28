@@ -54,7 +54,7 @@
                             @php
                                 $statusColor = match($projekRnd->status) {
                                     'Selesai'           => 'bg-green-100 text-green-700 border-green-200',
-                                    'Selesai Tidak Laku'=> 'bg-yellow-100 text-yellow-700 border-yellow-200',
+                                    'Selesai Belum Laku'=> 'bg-yellow-100 text-yellow-700 border-yellow-200',
                                     'Tidak dilanjutkan' => 'bg-red-100 text-red-700 border-red-200',
                                     'Dalam Proses'      => 'bg-blue-100 text-blue-700 border-blue-200',
                                     default             => 'bg-gray-100 text-gray-600 border-gray-200',
@@ -72,13 +72,13 @@
                 @php
                     $ksBg = match($projekRnd->status) {
                         'Selesai'            => 'bg-green-50 border-green-200 text-green-800',
-                        'Selesai Tidak Laku' => 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                        'Selesai Belum Laku' => 'bg-yellow-50 border-yellow-200 text-yellow-800',
                         'Tidak dilanjutkan'  => 'bg-red-50 border-red-200 text-red-800',
                         default              => 'bg-gray-50 border-gray-200 text-gray-700',
                     };
                     $ksIcon = match($projekRnd->status) {
                         'Selesai'            => 'text-green-500',
-                        'Selesai Tidak Laku' => 'text-yellow-500',
+                        'Selesai Belum Laku' => 'text-yellow-500',
                         'Tidak dilanjutkan'  => 'text-red-500',
                         default              => 'text-gray-400',
                     };

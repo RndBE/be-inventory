@@ -179,16 +179,6 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label for="jumlah_aset" class="block text-sm font-medium leading-6 text-gray-900">Keterangan</label>
-                                <div class="mt-2">
-                                    <textarea id="keterangan" name="keterangan" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan', $rekap_aset->keterangan ?? '') }}</textarea>
-                                    @error('keterangan')
-                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="sm:col-span-2">
                                 <label for="user_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Penanggung Jawab</label>
                                 <div class="mt-2">
                                     <select id="user_id" name="user_id" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
@@ -198,6 +188,16 @@
                                         @endforeach
                                     </select>
                                     @error('user_id')
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="jumlah_aset" class="block text-sm font-medium leading-6 text-gray-900">Keterangan</label>
+                                <div class="mt-2">
+                                    <textarea id="keterangan" name="keterangan" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan', $rekap_aset->keterangan ?? '') }}</textarea>
+                                    @error('keterangan')
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
                                 </div>

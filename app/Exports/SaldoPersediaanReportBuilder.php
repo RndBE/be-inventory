@@ -110,7 +110,7 @@ class SaldoPersediaanReportBuilder
                 $periods[] = [
                     'label' => $periodStart->format('m/Y'),
                     'start' => $effectiveStart,
-                    'balance_start' => $periodStart,
+                    'balance_start' => $effectiveStart,
                     'end' => $periodEnd,
                 ];
             }
@@ -143,7 +143,7 @@ class SaldoPersediaanReportBuilder
                 $periods[] = [
                     'label' => $periodStart->format('Y'),
                     'start' => $effectiveStart,
-                    'balance_start' => $periodStart,
+                    'balance_start' => $effectiveStart,
                     'end' => $periodEnd,
                 ];
             }

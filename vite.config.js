@@ -7,22 +7,15 @@ export default defineConfig({
     // ubah batas warning dari default (500) jadi 1500 KB
     chunkSizeWarningLimit: 1500
   },
-    // server: {
-    //     host: '0.0.0.0',
-    //     port: 5173,
-    //     strictPort: true,
-    //     hmr: {
-    //         host: '192.168.12.53', // Pastikan alamat ini digunakan
-    //         port: 5173, // Port yang sama dengan server
-    //     },
-    //     // proxy: {
-    //     //     '/resources': {
-    //     //         target: 'http://192.168.3.106:5173',
-    //     //         changeOrigin: true,
-    //     //         rewrite: (path) => path.replace(/^\/resources/, '/resources'),
-    //     //     },
-    //     // },
-    // },
+    server: {
+        host: '0.0.0.0',
+        port: 5173,
+        strictPort: true,
+        hmr: {
+            host: '192.168.12.104',
+            port: 5173,
+        },
+    },
   plugins: [
     laravel({
       input: [

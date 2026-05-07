@@ -58,6 +58,7 @@ use App\Http\Controllers\StokProduksiController;
 use App\Http\Controllers\GaransiProjekController;
 use App\Http\Controllers\LaporanProyekController;
 use App\Http\Controllers\PerbaikanDataController;
+use App\Http\Controllers\KalkulasiRestockProdukJadiController;
 use App\Http\Controllers\InventoryTokenController;
 use App\Http\Controllers\PembelianBahanController;
 use App\Http\Controllers\ProdukProduksiController;
@@ -260,6 +261,8 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
     Route::resource('perbaikan-data', PerbaikanDataController::class);
     Route::put('/perbaikan-data/updateApproval/{id}', [PerbaikanDataController::class, 'updateApproval'])->name('perbaikan-data.updateApproval');
+
+    Route::resource('kalkulasi-restock-produk-jadi', KalkulasiRestockProdukJadiController::class);
 
     Route::prefix('quality-page')->name('quality-page.')->group(function () {
         Route::get('/', [QualityPageController::class, 'index'])->name('index');

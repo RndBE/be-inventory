@@ -659,9 +659,6 @@ class ProjekRndController extends Controller
 
             // Status: Selesai
             if ($request->status === 'selesai') {
-                if (empty($projek_rnd->serial_number)) {
-                    return redirect()->back()->with('error', 'Silakan isi dan Simpan Serial Number sebelum menyelesaikan proyek RnD.');
-                }
                 try {
                     DB::beginTransaction();
 

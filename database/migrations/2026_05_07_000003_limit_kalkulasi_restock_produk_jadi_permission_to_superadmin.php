@@ -1,28 +1,41 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        $permission = Permission::firstOrCreate([
-            'name' => 'lihat-kalkulasi-restock-produk-jadi',
-            'guard_name' => 'web',
-        ]);
+        $now = now();
 
-        Role::all()->each(function (Role $role) use ($permission) {
-            if ($role->name === 'superadmin') {
-                $role->givePermissionTo($permission);
-                return;
-            }
+        DB::table('permissions')->updateOrInsert(
+            ['name' => 'lihat-kalkulasi-restock-produk-jadi', 'guard_name' => 'web'],
+            ['updated_at' => $now, 'created_at' => $now]
+        );
 
-            if ($role->hasPermissionTo($permission)) {
-                $role->revokePermissionTo($permission);
-            }
-        });
+        $permissionId = DB::table('permissions')
+            ->where('name', 'lihat-kalkulasi-restock-produk-jadi')
+            ->where('guard_name', 'web')
+            ->value('id');
+
+        $superadminRoleId = DB::table('roles')
+            ->where('name', 'superadmin')
+            ->value('id');
+
+        DB::table('role_has_permissions')
+            ->where('permission_id', $permissionId)
+            ->when($superadminRoleId, function ($query) use ($superadminRoleId) {
+                $query->where('role_id', '!=', $superadminRoleId);
+            })
+            ->delete();
+
+        if ($superadminRoleId) {
+            DB::table('role_has_permissions')->updateOrInsert([
+                'permission_id' => $permissionId,
+                'role_id' => $superadminRoleId,
+            ]);
+        }
     }
 
     public function down(): void

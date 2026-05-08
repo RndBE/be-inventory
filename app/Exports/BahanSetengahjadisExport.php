@@ -127,7 +127,7 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
                 null, // no: akan diisi nanti setelah merge
                 $kode,
                 $detail->nama_bahan,
-                $serial,
+                $serial ? ' ' . $serial : '-',
                 "Pcs",
                 $stokAwal
             ];

@@ -173,9 +173,9 @@
 
                                 {{-- Input untuk Bahan --}}
                                 @if ($bahanId)
-                                    <input value="{{ old('qty.'.$bahanId, $qty[$bahanId] ?? 0) }}"
+                                    <input value="{{ old('qty.b_'.$bahanId, $qty['b_'.$bahanId] ?? 0) }}"
                                         type="number"
-                                        wire:model="qty.{{ $bahanId }}"
+                                        wire:model="qty.b_{{ $bahanId }}"
                                         wire:keyup="updateQuantity('bahan', {{ $bahanId }})"
                                         class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                         placeholder="0" min="0" required
@@ -184,9 +184,9 @@
 
                                 {{-- Input untuk Produk --}}
                                 @if ($produkId)
-                                    <input value="{{ old('qty.'.$produkId, $qty[$produkId] ?? 0) }}"
+                                    <input value="{{ old('qty.p_'.$produkId, $qty['p_'.$produkId] ?? 0) }}"
                                         type="number"
-                                        wire:model="qty.{{ $produkId }}"
+                                        wire:model="qty.p_{{ $produkId }}"
                                         wire:keyup="updateQuantity('produk', {{ $produkId }})"
                                         class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                         placeholder="0" min="0" required

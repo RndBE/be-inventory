@@ -15,7 +15,7 @@ use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
 use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
-use App\Models\ProdukJadis;
+
 use App\Models\ProdukSample;
 use Illuminate\Http\Request;
 use App\Exports\ProjekExport;
@@ -44,7 +44,7 @@ class ProdukSampleController extends Controller
     {
         $this->middleware('permission:lihat-produk-sample', ['only' => ['index']]);
         $this->middleware('permission:selesai-produk-sample', ['only' => ['updateStatus']]);
-        $this->middleware('permission:tambah-produk-sample', ['only' => ['create','store']]);
+        $this->middleware('permission:tambah-produk-sample', ['only' => ['create','store','masukkanKeStok']]);
         $this->middleware('permission:edit-produk-sample', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-produk-sample', ['only' => ['destroy']]);
     }
@@ -320,6 +320,7 @@ class ProdukSampleController extends Controller
             'units' => $units,
             'existingBahanIds' => $existingBahanIds,
             'isComplete' => $isComplete,
+            'produkJadis' => \App\Models\ProdukJadi::all(),
         ]);
     }
 
@@ -585,6 +586,56 @@ class ProdukSampleController extends Controller
         } catch (\Exception $e) {
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function masukkanKeStok(Request $request, $id)
+    {
+        try {
+            $produkSample = ProdukSample::findOrFail($id);
+
+            // Cek apakah sudah pernah dimasukkan ke setengah jadi
+            $sudahAda = BahanSetengahjadi::where('produk_sample_id', $produkSample->id)->exists();
+            if ($sudahAda) {
+                return redirect()->back()->with('error', 'Produk sample ini sudah pernah dimasukkan ke Produk Setengah Jadi.');
+            }
+
+            // Hitung total HPP dari bahan keluar yang sudah disetujui
+            $totalHpp = BahanKeluarDetails::whereHas('bahanKeluar', function ($q) use ($produkSample) {
+                $q->where('produk_sample_id', $produkSample->id)
+                  ->where('status', 'Disetujui');
+            })->sum('sub_total');
+
+            $tglMasuk     = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $kodeTransaksi = $produkSample->kode_produk_sample . '-SJ';
+            $serialNumber  = $request->serial_number ?? null;
+
+            DB::beginTransaction();
+
+            $bahanSetengahJadi = BahanSetengahjadi::create([
+                'tgl_masuk'        => $tglMasuk,
+                'kode_transaksi'   => $kodeTransaksi,
+                'produk_sample_id' => $produkSample->id,
+            ]);
+
+            BahanSetengahjadiDetails::create([
+                'bahan_setengahjadi_id' => $bahanSetengahJadi->id,
+                'nama_bahan'            => $produkSample->nama_produk_sample,
+                'qty'                   => 1,
+                'sisa'                  => 1,
+                'unit_price'            => $totalHpp,
+                'sub_total'             => $totalHpp,
+                'serial_number'         => $serialNumber,
+            ]);
+
+            DB::commit();
+            LogHelper::success('Produk Sample berhasil dimasukkan ke Produk Setengah Jadi.');
+            return redirect()->back()->with('success', 'Produk Sample berhasil dimasukkan ke stok Produk Setengah Jadi.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            LogHelper::error($e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 

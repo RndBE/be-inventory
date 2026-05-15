@@ -50,6 +50,17 @@
                     @endcan
                 @elseif ($produkSample->status === 'Selesai')
                     <a href="{{ route('produk-sample.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
+                    @can('tambah-produk-sample')
+                        <button data-modal-target="masukkan-stok-modal" data-modal-toggle="masukkan-stok-modal"
+                            type="button"
+                            class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 flex items-center gap-1.5">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+                            </svg>
+                            Masukkan ke Stok
+                        </button>
+                    @endcan
+
                 @else
                     <a href="{{ route('produk-sample.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                 @endif
@@ -166,8 +177,84 @@
         </div>
     </div>
     @include('pages.produk-sample.selesai')
+
+    {{-- Modal Masukkan ke Stok Setengah Jadi --}}
+    <div id="masukkan-stok-modal" tabindex="-1"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-full max-h-full"
+        style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px);">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-2xl shadow-xl">
+
+                {{-- Header Modal --}}
+                <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-teal-100">
+                            <svg class="w-5 h-5 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-800">Masukkan ke Produk Setengah Jadi</h3>
+                            <p class="text-xs text-gray-500">{{ $produkSample->kode_produk_sample }} — {{ $produkSample->nama_produk_sample }}</p>
+                        </div>
+                    </div>
+                    <button type="button" data-modal-hide="masukkan-stok-modal"
+                        class="text-gray-400 bg-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Body Modal --}}
+                <form action="{{ route('produk-sample.masukkanKeStok', $produkSample->id) }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="tujuan" value="setengah_jadi">
+
+                    <div class="px-6 py-5 space-y-4">
+
+                        {{-- Serial Number --}}
+                        <div>
+                            <label for="serial_number_stok" class="block text-xs font-semibold text-gray-700 mb-1">
+                                Serial Number <span class="text-gray-400 font-normal">(opsional)</span>
+                            </label>
+                            <input type="text" name="serial_number" id="serial_number_stok"
+                                placeholder="Kosongkan jika tidak ada..."
+                                class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                        </div>
+
+                        {{-- Info HPP --}}
+                        <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+                            <p class="text-xs text-blue-700">
+                                <strong>Info:</strong> Nilai HPP akan dihitung otomatis dari total bahan keluar yang sudah disetujui untuk produk sample ini.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="flex justify-end gap-2 px-6 pb-5">
+                        <button type="button" data-modal-hide="masukkan-stok-modal"
+                            class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="px-5 py-2 text-sm font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-700 flex items-center gap-1.5">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Konfirmasi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
     <script>
-        document.getElementById('saveButton').addEventListener('click', function() {
+        document.getElementById('saveButton') && document.getElementById('saveButton').addEventListener('click', function() {
             document.getElementById('produksiForm').submit();
         });
     </script>
@@ -177,39 +264,29 @@
             flatpickr("#datetimepicker", {
                 enableTime: true,
                 dateFormat: "Y-m-d H:i:S",
-                time_24hr: true // Menggunakan format 24 jam
+                time_24hr: true
             });
         });
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Atur waktu delay dalam milidetik (contoh: 5000 = 5 detik)
             const delay = 5000;
-
-            // Menghilangkan alert sukses
             const successAlert = document.getElementById('successAlert');
             if (successAlert) {
-                setTimeout(() => {
-                    successAlert.style.display = 'none';
-                }, delay);
+                setTimeout(() => { successAlert.style.display = 'none'; }, delay);
             }
-
-            // Menghilangkan alert error
             const errorAlert = document.getElementById('errorAlert');
             if (errorAlert) {
-                setTimeout(() => {
-                    errorAlert.style.display = 'none';
-                }, delay);
+                setTimeout(() => { errorAlert.style.display = 'none'; }, delay);
             }
         });
     </script>
     <script>
-        // Fungsi untuk menghilangkan pesan error setelah 5 detik
         setTimeout(function() {
             const errorMessages = document.querySelectorAll('.error-message');
             errorMessages.forEach(function(message) {
                 message.style.display = 'none';
             });
-        }, 3000); // 3000 ms = 3 detik
+        }, 3000);
     </script>
 </x-app-layout>

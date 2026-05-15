@@ -51,4 +51,9 @@ class BahanSetengahjadi extends Model
         return $this->belongsTo(QcProdukSetengahJadiList::class, 'id_qc_produk_setengahjadi', 'id');
     }
 
+    public function produkSample()
+    {
+        return $this->belongsTo(ProdukSample::class, 'produk_sample_id');
+    }
+
 }

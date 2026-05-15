@@ -72,7 +72,10 @@ class EditBahanProduksiProdukJadiCart extends Component
         $existingBahanKeluar = BahanKeluar::where('produksi_produk_jadi_id', $this->produksiProdukJadiId)->exists();
         $this->isFirstTimePengajuan = !$existingBahanKeluar;
 
-        $this->bahanKeluars = BahanKeluar::with('bahanKeluarDetails.dataBahan')
+        $this->bahanKeluars = BahanKeluar::with([
+                'bahanKeluarDetails.dataBahan',
+                'bahanKeluarDetails.dataProduk',
+            ])
             ->where('status', 'Belum disetujui')
             ->where('produksi_produk_jadi_id', $this->produksiProdukJadiId)
             ->get();
@@ -96,6 +99,8 @@ class EditBahanProduksiProdukJadiCart extends Component
         }
         // Tentukan ID yang akan digunakan
         $itemId = !empty($bahan->produk_id) ? $bahan->produk_id : $bahan->bahan_id;
+        // Gunakan prefix untuk hindari konflik: bahan_id=5 vs produk_id=5
+        $qtyKey = !empty($bahan->produk_id) ? 'p_' . $bahan->produk_id : 'b_' . $bahan->bahan_id;
         if (!$itemId) {
             session()->flash('error', 'ID bahan atau produk tidak ditemukan.');
             return;
@@ -146,8 +151,8 @@ class EditBahanProduksiProdukJadiCart extends Component
             'unit' => $bahan->unit,
             'newly_added' => true
         ];
-        $this->qty[$itemId] = null;
-        $this->subtotals[$itemId] = property_exists($bahan, 'unit_price') ? $bahan->unit_price : 0;
+        $this->qty[$qtyKey] = null;
+        $this->subtotals[$qtyKey] = property_exists($bahan, 'unit_price') ? $bahan->unit_price : 0;
 
         // Tambahkan bahan ke `projekDetails`
         $this->produksiProdukJadiDetails[] = [
@@ -196,35 +201,24 @@ class EditBahanProduksiProdukJadiCart extends Component
 
     public function updateQuantity($type, $itemId)
     {
-        $requestedQty = $this->qty[$itemId] ?? 0;
-        if ($type==='produk') {
-            // Cek di bahan setengah jadi details
+        $qtyKey = ($type === 'produk') ? 'p_' . $itemId : 'b_' . $itemId;
+        $requestedQty = $this->qty[$qtyKey] ?? 0;
+        if ($type === 'produk') {
             $bahanSetengahjadiDetails = BahanSetengahjadiDetails::where('id', $itemId)
                 ->where('sisa', '>', 0)
                 ->with(['bahanSetengahjadi' => function ($query) {
                     $query->orderBy('tgl_masuk', 'asc');
                 }])->get();
-
-                $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
-                if ($requestedQty > $totalAvailable) {
-                    $this->qty[$itemId] = $totalAvailable;
-                } else {
-                    $this->qty[$itemId] = $requestedQty;
-                }
+            $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
+            $this->qty[$qtyKey] = min($requestedQty, $totalAvailable);
         } else {
-            // Cek di purchase details untuk bahan biasa
             $purchaseDetails = PurchaseDetail::where('bahan_id', $itemId)
                 ->where('sisa', '>', 0)
                 ->with(['purchase' => function ($query) {
                     $query->orderBy('tgl_masuk', 'asc');
                 }])->get();
-
-                $totalAvailable = $purchaseDetails->sum('sisa');
-                if ($requestedQty > $totalAvailable) {
-                    $this->qty[$itemId] = $totalAvailable;
-                } else {
-                    $this->qty[$itemId] = $requestedQty;
-                }
+            $totalAvailable = $purchaseDetails->sum('sisa');
+            $this->qty[$qtyKey] = min($requestedQty, $totalAvailable);
         }
     }
 
@@ -398,13 +392,14 @@ class EditBahanProduksiProdukJadiCart extends Component
 
             // Pilih ID yang valid
             $itemId = $bahanId ?? $produkId;
+            $qtyKey = $bahanId ? 'b_' . $bahanId : 'p_' . $produkId;
 
             // Lewati jika tidak ada ID yang valid
             if (!$itemId) {
                 continue;
             }
 
-            $usedMaterials = $this->qty[$itemId] ?? 0;
+            $usedMaterials = $this->qty[$qtyKey] ?? 0;
 
             if ($usedMaterials <= 0) {
                 continue;
@@ -414,11 +409,10 @@ class EditBahanProduksiProdukJadiCart extends Component
             $details = [];
 
             $produksiProdukJadiDetails[] = [
-                // 'id' => $itemId,
                 'bahan_id' => $bahanId,
                 'produk_id' => $produkId,
-                'qty' => $this->qty[$itemId],
-                'jml_bahan' => $this->jml_bahan[$itemId] ?? 0,
+                'qty' => $this->qty[$qtyKey],
+                'jml_bahan' => $this->jml_bahan[$qtyKey] ?? 0,
                 'details' => $details,
                 'serial_number' => $item['serial_number'] ?? null,
                 'sub_total' => $totalPrice,

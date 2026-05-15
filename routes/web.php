@@ -195,6 +195,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::put('produk-sample/{produk}/selesai', [ProdukSampleController::class, 'updateStatus'])->name('produk-sample.updateStatus');
     Route::get('produk-sample-export/{projek_id}', [ProdukSampleController::class, 'export'])->name('produk-sample.export');
     Route::get('produk-sample/{produk}/info', [ProdukSampleController::class, 'info'])->name('produk-sample.info');
+    Route::post('produk-sample/{produk}/masukkan-ke-stok', [ProdukSampleController::class, 'masukkanKeStok'])->name('produk-sample.masukkanKeStok');
 
     Route::resource('garansi-projeks', GaransiProjekController::class);
     Route::put('garansi-projeks/{projek}/selesai', [GaransiProjekController::class, 'updateStatus'])->name('garansi-projeks.updateStatus');

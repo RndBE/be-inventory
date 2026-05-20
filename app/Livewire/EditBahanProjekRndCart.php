@@ -98,6 +98,8 @@ class EditBahanProjekRndCart extends Component
                 ];
 
                 $id = $detail->bahan_id ?? $detail->produk_id;
+                $this->qty[$id] = $detail->qty ?? 0;
+                $this->subtotals[$id] = $detail->sub_total ?? 0;
                 $this->keterangan_penanggungjawab[$id] =
                     $detail->keterangan_penanggungjawab ?? '';
             }
@@ -250,6 +252,7 @@ class EditBahanProjekRndCart extends Component
             } else {
                 $this->qty[$itemId] = $requestedQty;
             }
+            $this->updateDetailPrice($itemId, $this->qty[$itemId], $bahanSetengahjadiDetails);
         } else {
             // Cek di purchase details untuk bahan biasa
             $purchaseDetails = PurchaseDetail::where('bahan_id', $itemId)
@@ -264,7 +267,57 @@ class EditBahanProjekRndCart extends Component
             } else {
                 $this->qty[$itemId] = $requestedQty;
             }
+            $this->updateDetailPrice($itemId, $this->qty[$itemId], $purchaseDetails);
         }
+    }
+
+    protected function updateDetailPrice($itemId, $qty, $stockDetails)
+    {
+        $remainingQty = (float) $qty;
+        $totalPrice = 0;
+        $details = [];
+
+        foreach ($stockDetails as $stockDetail) {
+            if ($remainingQty <= 0) {
+                break;
+            }
+
+            $availableQty = (float) ($stockDetail->sisa ?? 0);
+            if ($availableQty <= 0) {
+                continue;
+            }
+
+            $toTake = min($availableQty, $remainingQty);
+            $unitPrice = (float) ($stockDetail->unit_price ?? 0);
+            $totalPrice += $toTake * $unitPrice;
+
+            $details[] = [
+                'kode_transaksi' => $stockDetail->purchase->kode_transaksi
+                    ?? $stockDetail->bahanSetengahjadi->kode_transaksi
+                    ?? null,
+                'qty' => $toTake,
+                'unit_price' => $unitPrice,
+                'serial_number' => $stockDetail->serial_number ?? null,
+            ];
+
+            $remainingQty -= $toTake;
+        }
+
+        foreach ($this->projekRndDetails as &$detail) {
+            $currentId = $detail['bahan_id'] ?? $detail['produk_id'] ?? null;
+            if ($currentId != $itemId || empty($detail['newly_added'])) {
+                continue;
+            }
+
+            $detail['qty'] = $qty;
+            $detail['details'] = $details;
+            $detail['sub_total'] = $totalPrice;
+            break;
+        }
+
+        unset($detail);
+        $this->subtotals[$itemId] = $totalPrice;
+        $this->calculateTotalHarga();
     }
 
     public function saveUnitPrice($itemId)
@@ -623,6 +676,10 @@ class EditBahanProjekRndCart extends Component
         $projekRndDetails = [];
 
         foreach ($this->projekRndDetails as $item) {
+            if (empty($item['newly_added'])) {
+                continue;
+            }
+
             // Ambil bahan_id atau produk_id langsung dari array
             $bahanId = $item['bahan_id'] ?? null;
             $produkId = $item['produk_id'] ?? null;
@@ -641,8 +698,8 @@ class EditBahanProjekRndCart extends Component
                 continue;
             }
 
-            $totalPrice = 0;
-            $details = [];
+            $totalPrice = $item['sub_total'] ?? 0;
+            $details = $item['details'] ?? [];
 
             $projekRndDetails[] = [
                 // 'id' => $itemId,

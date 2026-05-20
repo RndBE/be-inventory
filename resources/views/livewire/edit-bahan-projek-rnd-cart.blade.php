@@ -196,10 +196,6 @@
                         @php
                             $id = $detail['bahan_id'] ?? ($detail['produk_id'] ?? '');
                         @endphp
-                        <input type="hidden" name="projekRndDetails[{{ $id }}][bahan_id]"
-                            value="{{ $detail['bahan_id'] ?? '' }}">
-                        <input type="hidden" name="projekRndDetails[{{ $id }}][produk_id]"
-                            value="{{ $detail['produk_id'] ?? '' }}">
                         <tr wire:key= "projek-rnd-detail-{{ $id }}"
                             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
@@ -216,11 +212,10 @@
                             </td>
                             <td class="px-6 py-4 text-gray-900 dark:text-white">
                                 <div class="flex items-center">
-                                    <textarea wire:model.defer="keterangan_penanggungjawab.{{ $id }}"
+                                    <textarea wire:model.live.debounce.500ms="keterangan_penanggungjawab.{{ $id }}"
                                         class="bg-gray-50 w-48 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
                                             dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        rows="2" name="projekRndDetails[{{ $id }}][keterangan_penanggungjawab]"
-                                        @if ($this->projekRndStatus === 'Selesai' || $this->projekRndStatus === 'Tidak dilanjutkan') disabled @endif></textarea>
+                                        rows="2" @if ($this->projekRndStatus === 'Selesai' || $this->projekRndStatus === 'Tidak dilanjutkan') disabled @endif></textarea>
                                     {{-- @php
                                         $bahanId = $detail['bahan_id'] ?? null;
                                         $produkId = $detail['produk_id'] ?? null;
@@ -245,8 +240,7 @@
                             <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
                                 <div class="flex items-center">
                                     {{-- <input value="{{ old('qty.' . $id, $qty[$id] ?? 0) }}" type="number" --}}
-                                    <input value="{{ old('qty.' . $id, $qty[$id] ?? 0) }}"
-                                        name="projekRndDetails[{{ $id }}][qty]" type="number"
+                                    <input value="{{ old('qty.' . $id, $qty[$id] ?? 0) }}" type="number"
                                         wire:model.defer="qty.{{ $id }}"
                                         wire:keyup="updateQuantity('{{ isset($detail['bahan_id']) ? 'bahan' : 'produk' }}', {{ $id }})"
                                         class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"

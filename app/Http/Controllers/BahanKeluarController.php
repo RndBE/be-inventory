@@ -972,6 +972,13 @@ public function downloadPdf(int $id)
 
                             if ($projekRndDetail) {
                                 // Update existing entry jika bahan_id / produk_id & serial_number sama
+                                $currentDetails = json_decode($projekRndDetail->details, true) ?? [];
+
+                                if ((float) ($projekRndDetail->used_materials ?? 0) <= 0) {
+                                    $currentDetails = [];
+                                    $projekRndDetail->sub_total = 0;
+                                }
+
                                 $projekRndDetail->used_materials += $group['qty'];
                                 $projekRndDetail->sub_total += $group['qty'] * $unitPrice;
 
@@ -980,7 +987,6 @@ public function downloadPdf(int $id)
                                 }
 
                                 // Update details field
-                                $currentDetails = json_decode($projekRndDetail->details, true) ?? [];
                                 $mergedDetails = [];
 
                                 foreach ($currentDetails as $existingDetail) {

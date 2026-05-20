@@ -264,8 +264,8 @@ class ProjekRndController extends Controller
                     'used_materials' => 0,
                     // 'keterangan_penanggungjawab' => $details['keterangan_penanggungjawab'] ?? null,
                     'keterangan_penanggungjawab' => $details['keterangan_penanggungjawab'] ?? null,
-                    'details' => json_encode($details['details'] ?? []),
-                    'sub_total' => $details['sub_total'] ?? 0,
+                    'details' => json_encode([]),
+                    'sub_total' => 0,
                 ]);
             }
 
@@ -520,8 +520,8 @@ class ProjekRndController extends Controller
                         'qty' => $item['qty'],
                         'used_materials' => 0,
                         'keterangan_penanggungjawab' => $item['keterangan_penanggungjawab'],
-                        'details' => json_encode($item['details'] ?? []),
-                        'sub_total' => $item['sub_total'],
+                        'details' => json_encode([]),
+                        'sub_total' => 0,
                     ]);
                 }
                 // If exists, skip update to preserve approved details

@@ -972,7 +972,6 @@ public function downloadPdf(int $id)
 
                             if ($projekRndDetail) {
                                 // Update existing entry jika bahan_id / produk_id & serial_number sama
-                                $projekRndDetail->qty += $group['qty'];
                                 $projekRndDetail->used_materials += $group['qty'];
                                 $projekRndDetail->sub_total += $group['qty'] * $unitPrice;
 

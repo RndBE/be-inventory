@@ -110,6 +110,13 @@
                                             </svg>
                                         </a>
                                     @endif
+                                    @if(in_array($projek_rnd->status, ['Dalam Proses', 'Selesai', 'Selesai Belum Laku']) && $projek_rnd->file_laporan)
+                                        <a href="{{ route('projek-rnd.downloadLaporan', $projek_rnd->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-green-600 hover:border-green-600 focus:text-white focus:bg-green-600 focus:border-green-600 active:border-green-600 active:text-white active:bg-green-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
+                                            <svg class="w-[16px] h-[16px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+                                            </svg>
+                                        </a>
+                                    @endif
                                     @if($projek_rnd->status !== 'Konfirmasi')
                                         @can('edit-projek-rnd')
                                             <a href="{{ route('projek-rnd.edit', $projek_rnd->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">

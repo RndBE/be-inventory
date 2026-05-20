@@ -98,8 +98,6 @@ class EditBahanProjekRndCart extends Component
                 ];
 
                 $id = $detail->bahan_id ?? $detail->produk_id;
-                $this->qty[$id] = $detail->qty ?? 0;
-                $this->subtotals[$id] = $detail->sub_total ?? 0;
                 $this->keterangan_penanggungjawab[$id] =
                     $detail->keterangan_penanggungjawab ?? '';
             }

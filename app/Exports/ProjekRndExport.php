@@ -52,10 +52,10 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
             $detailsFormatted = [];
 
             foreach ($detailsArray as $item) {
-                $detailsFormatted[] = ($item['qty'] ?? 0) . ' x Rp' . number_format($item['unit_price'] ?? 0, 0, ',', '.');
+                $detailsFormatted[] = ($item['qty'] ?? 0) . 'x' . ($item['unit_price'] ?? 0);
             }
 
-            $formattedDetailsString = implode('; ', $detailsFormatted);
+            $formattedDetailsString = implode(', ', $detailsFormatted);
 
             $data[] = [
                 $index + 1,

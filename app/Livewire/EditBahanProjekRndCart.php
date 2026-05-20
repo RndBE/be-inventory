@@ -22,6 +22,8 @@ class EditBahanProjekRndCart extends Component
     public $details = [];
     public $details_raw = [];
     public $subtotals = [];
+    public $pendingDetails = [];
+    public $pendingSubtotals = [];
     public $keterangan_penanggungjawab = [];
     public $totalharga = 0;
     public $editingItemId = 0;
@@ -139,9 +141,21 @@ class EditBahanProjekRndCart extends Component
             return;
         }
 
-        // Cek apakah item sudah ada di projekRndDetails
+        $existingApprovedItem = collect($this->projekRndDetails)->first(function ($item) use ($bahan) {
+            return empty($item['newly_added']) &&
+                ($item['bahan_id'] ?? null) === ($bahan->bahan_id ?? null) &&
+                ($item['produk_id'] ?? null) === ($bahan->produk_id ?? null);
+        });
+
+        if ($existingApprovedItem) {
+            session()->flash('error', 'Bahan sudah ada. Isi qty tambahan pada baris bahan tersebut.');
+            return;
+        }
+
+        // Cek duplikat hanya untuk bahan yang baru ditambahkan di sesi edit ini.
         $itemExists = collect($this->projekRndDetails)->first(function ($item) use ($bahan) {
-            return ($item['bahan_id'] ?? null) === ($bahan->bahan_id ?? null) &&
+            return !empty($item['newly_added']) &&
+                ($item['bahan_id'] ?? null) === ($bahan->bahan_id ?? null) &&
                 ($item['produk_id'] ?? null) === ($bahan->produk_id ?? null);
         });
 
@@ -242,7 +256,9 @@ class EditBahanProjekRndCart extends Component
                 ->where('sisa', '>', 0)
                 ->with(['bahanSetengahjadi' => function ($query) {
                     $query->orderBy('tgl_masuk', 'asc');
-                }])->get();
+                }])
+                ->orderByRaw('(select tgl_masuk from bahan_setengahjadis where bahan_setengahjadis.id = bahan_setengahjadi_details.bahan_setengahjadi_id) ASC')
+                ->get();
 
             $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
             if ($requestedQty > $totalAvailable) {
@@ -257,7 +273,9 @@ class EditBahanProjekRndCart extends Component
                 ->where('sisa', '>', 0)
                 ->with(['purchase' => function ($query) {
                     $query->orderBy('tgl_masuk', 'asc');
-                }])->get();
+                }])
+                ->orderByRaw('(select tgl_masuk from purchases where purchases.id = purchase_details.purchase_id) ASC')
+                ->get();
 
             $totalAvailable = $purchaseDetails->sum('sisa');
             if ($requestedQty > $totalAvailable) {
@@ -303,17 +321,21 @@ class EditBahanProjekRndCart extends Component
 
         foreach ($this->projekRndDetails as &$detail) {
             $currentId = $detail['bahan_id'] ?? $detail['produk_id'] ?? null;
-            if ($currentId != $itemId || empty($detail['newly_added'])) {
+            if ($currentId != $itemId) {
                 continue;
             }
 
-            $detail['qty'] = $qty;
-            $detail['details'] = $details;
-            $detail['sub_total'] = $totalPrice;
+            if (!empty($detail['newly_added'])) {
+                $detail['qty'] = $qty;
+                $detail['details'] = $details;
+                $detail['sub_total'] = $totalPrice;
+            }
             break;
         }
 
         unset($detail);
+        $this->pendingDetails[$itemId] = $details;
+        $this->pendingSubtotals[$itemId] = $totalPrice;
         $this->subtotals[$itemId] = $totalPrice;
         $this->calculateTotalHarga();
     }
@@ -674,10 +696,6 @@ class EditBahanProjekRndCart extends Component
         $projekRndDetails = [];
 
         foreach ($this->projekRndDetails as $item) {
-            if (empty($item['newly_added'])) {
-                continue;
-            }
-
             // Ambil bahan_id atau produk_id langsung dari array
             $bahanId = $item['bahan_id'] ?? null;
             $produkId = $item['produk_id'] ?? null;
@@ -696,8 +714,12 @@ class EditBahanProjekRndCart extends Component
                 continue;
             }
 
-            $totalPrice = $item['sub_total'] ?? 0;
-            $details = $item['details'] ?? [];
+            $totalPrice = $this->pendingSubtotals[$itemId] ?? $item['sub_total'] ?? 0;
+            $details = $this->pendingDetails[$itemId] ?? $item['details'] ?? [];
+
+            if (empty($details) || $totalPrice <= 0) {
+                continue;
+            }
 
             $projekRndDetails[] = [
                 // 'id' => $itemId,

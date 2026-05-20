@@ -144,7 +144,9 @@ class BahanProjekRndCart extends Component
                     ->where('sisa', '>', 0)
                     ->with(['bahanSetengahjadi' => function ($query) {
                         $query->orderBy('tgl_masuk', 'asc');
-                    }])->get();
+                    }])
+                    ->orderByRaw('(select tgl_masuk from bahan_setengahjadis where bahan_setengahjadis.id = bahan_setengahjadi_details.bahan_setengahjadi_id) ASC')
+                    ->get();
 
                 $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
                 if ($requestedQty > $totalAvailable) {
@@ -160,7 +162,9 @@ class BahanProjekRndCart extends Component
                     ->where('sisa', '>', 0)
                     ->with(['purchase' => function ($query) {
                         $query->orderBy('tgl_masuk', 'asc');
-                    }])->get();
+                    }])
+                    ->orderByRaw('(select tgl_masuk from purchases where purchases.id = purchase_details.purchase_id) ASC')
+                    ->get();
 
                 $totalAvailable = $purchaseDetails->sum('sisa');
                 if ($requestedQty > $totalAvailable) {

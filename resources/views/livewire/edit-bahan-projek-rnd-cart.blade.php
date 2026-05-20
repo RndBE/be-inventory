@@ -243,6 +243,7 @@
                                     <input value="{{ old('qty.' . $id, $qty[$id] ?? 0) }}" type="number"
                                         wire:model.defer="qty.{{ $id }}"
                                         wire:keyup="updateQuantity('{{ isset($detail['bahan_id']) ? 'bahan' : 'produk' }}', {{ $id }})"
+                                        wire:change="updateQuantity('{{ isset($detail['bahan_id']) ? 'bahan' : 'produk' }}', {{ $id }})"
                                         class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                         placeholder="0" min="0" required
                                         @if ($this->projekRndStatus === 'Selesai' || $this->projekRndStatus === 'Tidak dilanjutkan') disabled @endif />

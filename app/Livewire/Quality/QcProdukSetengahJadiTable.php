@@ -274,10 +274,17 @@ class QcProdukSetengahJadiTable extends Component
             return null;
         }
 
-        // Hitung urutan tahunan (reset tiap tahun, dan per bahan_id)
-        $lastTahunan = QcProdukSetengahJadiList::whereYear('selesai_produksi', $tanggalSelesai->year)
-            ->where('bahan_id', $qc->bahan_id) // hanya produk dengan bahan yang sama
-            ->whereNotNull('serial_number')
+        // Hitung urutan tahunan (reset tiap tahun dan per sumber produk).
+        $lastTahunanQuery = QcProdukSetengahJadiList::whereYear('selesai_produksi', $tanggalSelesai->year)
+            ->whereNotNull('serial_number');
+
+        if ($qc->produk_sample_id) {
+            $lastTahunanQuery->where('produk_sample_id', $qc->produk_sample_id);
+        } else {
+            $lastTahunanQuery->where('bahan_id', $qc->bahan_id);
+        }
+
+        $lastTahunan = $lastTahunanQuery
             ->selectRaw("MAX(CAST(RIGHT(serial_number, 3) AS UNSIGNED)) as last_no")
             ->value('last_no');
 
@@ -285,7 +292,9 @@ class QcProdukSetengahJadiTable extends Component
 
 
         // Jumlah unit batch produksi (UT)
-        $jumlahUnitBatch = Produksi::find($qc->produksi_id)?->jml_produksi ?? 0;
+        $jumlahUnitBatch = $qc->produk_sample_id
+            ? max(1, (int) $qc->qty)
+            : (Produksi::find($qc->produksi_id)?->jml_produksi ?? 0);
 
         // Default bluetooth 000 jika kosong
         $idBluetooth = $qc->id_bluetooth ?: '000';
@@ -336,29 +345,37 @@ class QcProdukSetengahJadiTable extends Component
     public function prosesKeGudang($id, $serial)
     {
         try {
-            $qc = QcProdukSetengahJadiList::with('produksi')->findOrFail($id);
+            $qc = QcProdukSetengahJadiList::with(['produksi.dataBahan', 'produkSample'])->findOrFail($id);
 
             if (!$serial) {
                 $serial = $this->generateSerialNumber($qc);
             }
 
             DB::transaction(function () use ($qc, $serial) {
+                $namaProduk = $qc->produksi?->dataBahan?->nama_bahan
+                    ?? $qc->produkSample?->nama_produk_sample;
+
+                if (!$namaProduk) {
+                    throw new \Exception('Sumber produk QC tidak ditemukan.');
+                }
+
                 // Buat transaksi purchase
                 $bahan_setengahjadis = BahanSetengahjadi::create([
                     'kode_transaksi' => $qc->kode_list,
                     'tgl_masuk'      => Carbon::now('Asia/Jakarta'),
                     'id_qc_produk_setengahjadi' => $qc->id,
+                    'produk_sample_id' => $qc->produk_sample_id,
                 ]);
 
                 BahanSetengahjadiDetails::create([
                     'bahan_setengahjadi_id' => $bahan_setengahjadis->id,
-                    'bahan_id'      => $qc->produksi->bahan_id,
+                    'bahan_id'      => $qc->produksi?->bahan_id ?? $qc->bahan_id,
                     'qty'           => $qc->qty,
                     'sisa'          => $qc->qty,
                     'unit_price'    => $qc->unit_price ?? 0,
                     'sub_total'     => $qc->unit_price ? $qc->unit_price * $qc->qty : 0,
                     'serial_number' => $serial,
-                    'nama_bahan'    => $qc->produksi->dataBahan->nama_bahan,
+                    'nama_bahan'    => $namaProduk,
                 ]);
 
                 // Update tanggal masuk gudang terakhir (jika semua sukses)
@@ -446,7 +463,7 @@ class QcProdukSetengahJadiTable extends Component
 
     public function render()
     {
-        $qcList = QcProdukSetengahJadiList::with(['produksi', 'produksi.dataBahan', 'qc1', 'qc2'])
+        $qcList = QcProdukSetengahJadiList::with(['produksi', 'produksi.dataBahan', 'produkSample', 'qc1', 'qc2'])
             ->where(function ($query) {
                     $query->where('kode_list', 'like', '%' . $this->search . '%')
                         ->orWhere('mulai_produksi', 'like', '%' . $this->search . '%')
@@ -458,6 +475,8 @@ class QcProdukSetengahJadiTable extends Component
                         ->orWhere('kode_wiring_unit', 'like', '%' . $this->search . '%')
                         ->orWhere('tanggal_masuk_gudang', 'like', '%' . $this->search . '%')
                         ->orWhereHas('produksi.dataBahan', fn($q) => $q->where('nama_bahan', 'like', '%' . $this->search . '%'))
+                        ->orWhereHas('produkSample', fn($q) => $q->where('nama_produk_sample', 'like', '%' . $this->search . '%')
+                            ->orWhere('kode_produk_sample', 'like', '%' . $this->search . '%'))
                         ->orWhereHas('qc1', fn($q) => $q->where('kode_qc', 'like', '%' . $this->search . '%'))
                         ->orWhereHas('qc2', fn($q) => $q->where('kode_qc', 'like', '%' . $this->search . '%'));
                 })

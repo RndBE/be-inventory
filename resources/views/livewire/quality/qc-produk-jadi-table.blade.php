@@ -121,8 +121,13 @@
 
                         <td>
                             <div class="text-black text-sm">
-                                {{ $item->produksiProdukJadi->dataProdukJadi->nama_produk }}
+                                {{ $item->produkJadi?->nama_produk ?? $item->produksiProdukJadi?->dataProdukJadi?->nama_produk ?? '-' }}
                             </div>
+                            @if($item->produkSample)
+                                <div class="text-gray-600 text-xs">
+                                    Sample: {{ $item->produkSample->kode_produk_sample }}
+                                </div>
+                            @endif
                             <div class="text-gray-600 text-xs">
                                 {{ $item->serial_number ?? '-' }}
                             </div>

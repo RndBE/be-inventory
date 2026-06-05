@@ -12,7 +12,7 @@
             </div>
             <div>
                 <p class="text-gray-600">Product Number</p>
-                <p class="font-semibold">{{ $list->produksi->dataBahan->nama_bahan ?? '-' }}</p>
+                <p class="font-semibold">{{ $list->produksi?->dataBahan?->nama_bahan ?? $list->produkSample?->nama_produk_sample ?? '-' }}</p>
             </div>
             <div>
                 <p class="text-gray-600">Tanggal Masuk Gudang</p>

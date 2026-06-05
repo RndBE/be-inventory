@@ -16,6 +16,9 @@ class QcProdukJadiView extends Component
     {
         $this->list = QcProdukJadiList::with([
             'produksiProdukJadi',
+            'produksiProdukJadi.dataProdukJadi',
+            'produkJadi',
+            'produkSample',
             'qc1', 'qc1.dokumentasi',
             'qc2', 'qc2.dokumentasi'
         ])->findOrFail($id);

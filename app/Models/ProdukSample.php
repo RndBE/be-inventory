@@ -42,6 +42,16 @@ class ProdukSample extends Model
         return $this->belongsTo(Unit::class, 'unit_id');
     }
 
+    public function produkJadi()
+    {
+        return $this->belongsTo(ProdukJadi::class, 'produk_jadi_id');
+    }
+
+    public function produksiProdukJadi()
+    {
+        return $this->hasMany(ProduksiProdukJadi::class, 'produk_sample_id');
+    }
+
     public function dataBahanRusak()
     {
         return $this->hasMany(BahanRusak::class, 'produk_sample_id', 'id');
@@ -55,6 +65,11 @@ class ProdukSample extends Model
     public function laporanProyek()
     {
         return $this->hasMany(LaporanProyek::class, 'produk_sample_id');
+    }
+
+    public function qcProdukSetengahJadi()
+    {
+        return $this->hasMany(QcProdukSetengahJadiList::class, 'produk_sample_id');
     }
 
 }

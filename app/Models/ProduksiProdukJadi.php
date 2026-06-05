@@ -22,6 +22,11 @@ class ProduksiProdukJadi extends Model
         return $this->belongsTo(ProdukJadi::class, 'produk_jadi_id');
     }
 
+    public function produkSample()
+    {
+        return $this->belongsTo(ProdukSample::class, 'produk_sample_id');
+    }
+
     public function produksiProdukJadiDetails()
     {
         return $this->hasMany(ProduksiProdukJadiDetails::class, 'produksi_produk_jadi_id', 'id');

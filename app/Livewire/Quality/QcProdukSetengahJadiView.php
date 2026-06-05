@@ -14,7 +14,8 @@ class QcProdukSetengahJadiView extends Component
     public function mount($id)
     {
         $this->list = QcProdukSetengahJadiList::with([
-            'produksi',
+            'produksi.dataBahan',
+            'produkSample',
             'qc1', 'qc1.dokumentasi',
             'qc2', 'qc2.dokumentasi'
         ])->findOrFail($id);

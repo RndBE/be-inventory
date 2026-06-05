@@ -277,8 +277,9 @@ class QcProdukJadiTable extends Component
         $urutanTahunan = ($lastTahunan ?? 0) + 1;
 
 
-        // Jumlah unit batch produksi produk jadi (UT)
-        $jumlahUnitBatch = ProduksiProdukJadi::find($qc->produksi_produk_jadi_id)?->jml_produksi ?? 0;
+        // Jumlah unit batch produksi produk jadi (UT). Produk sample dihitung sebagai 1 unit.
+        $jumlahUnitBatch = ProduksiProdukJadi::find($qc->produksi_produk_jadi_id)?->jml_produksi
+            ?? (int) ($qc->qty ?: 1);
 
         // Default bluetooth 000 jika kosong
         $idLogger = $qc->id_logger ?: '';
@@ -295,7 +296,7 @@ class QcProdukJadiTable extends Component
             $mm,                       // Bulan 2 digit
             $dd,                          // Hari 2 digit
             $jumlahUnitBatch,          // UT (2 digit)
-            $qc->produkJadi->kode_bahan,      // PR (2 digit)
+            $qc->produkJadi?->kode_bahan ?? '00',      // PR (2 digit)
             str_pad($qc->id_logger, 5, '0', STR_PAD_LEFT), // PRO (5 digit)
             $urutanTahunan
         );
@@ -313,28 +314,40 @@ class QcProdukJadiTable extends Component
     public function prosesKeGudang($id, $serial)
     {
         try {
-            $qc = QcProdukJadiList::with('produksiProdukJadi')->findOrFail($id);
+            $qc = QcProdukJadiList::with([
+                'produksiProdukJadi.dataProdukJadi',
+                'produkJadi',
+                'produkSample',
+            ])->findOrFail($id);
 
             if (!$serial) {
                 $serial = $this->generateSerialNumber($qc);
             }
 
             DB::transaction(function () use ($qc, $serial) {
+                $produkJadi = $qc->produkJadi ?? $qc->produksiProdukJadi?->dataProdukJadi;
+
+                if (!$produkJadi) {
+                    throw new \Exception('Master Produk Jadi untuk QC ini tidak ditemukan.');
+                }
+
                 $produk_jadis = ProdukJadis::create([
                     'kode_transaksi' => $qc->kode_list,
                     'tgl_masuk'      => Carbon::now('Asia/Jakarta'),
                     'id_qc_produk_jadi' => $qc->id,
+                    'produksi_produk_jadi_id' => $qc->produksi_produk_jadi_id,
+                    'produk_sample_id' => $qc->produk_sample_id,
                 ]);
 
                 ProdukJadiDetails::create([
                     'produk_jadis_id' => $produk_jadis->id,
-                    'produk_id'      => $qc->produksiProdukJadi->produk_id,
+                    'produk_id'      => $produkJadi->id,
                     'qty'           => $qc->qty,
                     'sisa'          => $qc->qty,
                     'unit_price'    => $qc->unit_price ?? 0,
                     'sub_total'     => $qc->unit_price ? $qc->unit_price * $qc->qty : 0,
                     'serial_number' => $serial,
-                    'nama_produk'    => $qc->produksiProdukJadi->dataProdukJadi->nama_produk,
+                    'nama_produk'    => $produkJadi->nama_produk,
                 ]);
 
                 $qc->update([
@@ -414,7 +427,7 @@ class QcProdukJadiTable extends Component
 
     public function render()
     {
-        $qcList = QcProdukJadiList::with(['produksiProdukJadi','produksiProdukJadi.dataProdukJadi','qc1','qc2'])
+        $qcList = QcProdukJadiList::with(['produksiProdukJadi','produksiProdukJadi.dataProdukJadi','produkJadi','produkSample','qc1','qc2'])
             ->where(function ($query) {
                 $query->where('kode_list', 'like', '%' . $this->search . '%')
                     ->orWhere('mulai_produksi', 'like', '%' . $this->search . '%')
@@ -423,6 +436,9 @@ class QcProdukJadiTable extends Component
                     ->orWhere('id_logger', 'like', '%' . $this->search . '%')
                     ->orWhere('tanggal_masuk_gudang', 'like', '%' . $this->search . '%')
                     ->orWhereHas('produksiProdukJadi.dataProdukJadi', fn($q) => $q->where('nama_produk', 'like', '%' . $this->search . '%'))
+                    ->orWhereHas('produkJadi', fn($q) => $q->where('nama_produk', 'like', '%' . $this->search . '%'))
+                    ->orWhereHas('produkSample', fn($q) => $q->where('nama_produk_sample', 'like', '%' . $this->search . '%')
+                        ->orWhere('kode_produk_sample', 'like', '%' . $this->search . '%'))
                     ->orWhereHas('qc1', fn($q) => $q->where('kode_qc', 'like', '%' . $this->search . '%'))
                     ->orWhereHas('qc2', fn($q) => $q->where('kode_qc', 'like', '%' . $this->search . '%'));
             })

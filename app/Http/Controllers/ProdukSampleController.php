@@ -29,12 +29,17 @@ use App\Models\BahanReturDetails;
 use App\Models\BahanRusakDetails;
 use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
+use App\Models\ProduksiProdukJadi;
+use App\Models\ProdukJadi;
+use App\Models\QcProdukJadiList;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Jobs\SendWhatsAppNotification;
 use App\Models\BahanSetengahjadiDetails;
+use App\Models\QcProdukSetengahJadiList;
+use App\Services\ProdukSampleProductionDetailCopier;
 use Illuminate\Support\Facades\Validator;
 
 class ProdukSampleController extends Controller
@@ -44,7 +49,7 @@ class ProdukSampleController extends Controller
     {
         $this->middleware('permission:lihat-produk-sample', ['only' => ['index']]);
         $this->middleware('permission:selesai-produk-sample', ['only' => ['updateStatus']]);
-        $this->middleware('permission:tambah-produk-sample', ['only' => ['create','store','masukkanKeStok']]);
+        $this->middleware('permission:tambah-produk-sample', ['only' => ['create','store','masukkanKeStok','kirimKeQc']]);
         $this->middleware('permission:edit-produk-sample', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-produk-sample', ['only' => ['destroy']]);
     }
@@ -313,6 +318,12 @@ class ProdukSampleController extends Controller
             $isComplete = false;
         }
 
+        $sudahMasukStok = QcProdukJadiList::where('produk_sample_id', $produkSample->id)
+            ->whereNotNull('tanggal_masuk_gudang')
+            ->exists();
+        $sudahDikirimQc = QcProdukJadiList::where('produk_sample_id', $produkSample->id)->exists();
+        $sudahMasukProduksiProdukJadi = ProduksiProdukJadi::where('produk_sample_id', $produkSample->id)->exists();
+
         return view('pages.produk-sample.edit', [
             'produkSampleId' => $id,
             'bahanProdukSample' => $bahanProdukSample,
@@ -320,7 +331,9 @@ class ProdukSampleController extends Controller
             'units' => $units,
             'existingBahanIds' => $existingBahanIds,
             'isComplete' => $isComplete,
-            'produkJadis' => \App\Models\ProdukJadi::all(),
+            'sudahMasukStok' => $sudahMasukStok,
+            'sudahDikirimQc' => $sudahDikirimQc,
+            'sudahMasukProduksiProdukJadi' => $sudahMasukProduksiProdukJadi,
         ]);
     }
 
@@ -594,46 +607,128 @@ class ProdukSampleController extends Controller
         try {
             $produkSample = ProdukSample::findOrFail($id);
 
-            // Cek apakah sudah pernah dimasukkan ke setengah jadi
-            $sudahAda = BahanSetengahjadi::where('produk_sample_id', $produkSample->id)->exists();
-            if ($sudahAda) {
-                return redirect()->back()->with('error', 'Produk sample ini sudah pernah dimasukkan ke Produk Setengah Jadi.');
+            if ($produkSample->status !== 'Selesai') {
+                return redirect()->back()->with('error', 'Produk sample harus selesai sebelum masuk Produksi Produk Jadi.');
             }
 
-            // Hitung total HPP dari bahan keluar yang sudah disetujui
+            $sudahMasukProduksi = ProduksiProdukJadi::where('produk_sample_id', $produkSample->id)->exists();
+            if ($sudahMasukProduksi) {
+                return redirect()->back()->with('error', 'Produk sample ini sudah pernah masuk Produksi Produk Jadi.');
+            }
+
+            $sudahAda = QcProdukJadiList::where('produk_sample_id', $produkSample->id)->exists();
+            if ($sudahAda) {
+                return redirect()->back()->with('error', 'Produk sample ini sudah pernah dikirim ke QC Produk Jadi.');
+            }
+
+            if ($request->filled('produk_jadi_id')) {
+                $request->validate([
+                    'produk_jadi_id' => 'exists:produk_jadi,id',
+                ]);
+
+                $produkSample->update([
+                    'produk_jadi_id' => $request->produk_jadi_id,
+                ]);
+            }
+
+            if (!$produkSample->produk_jadi_id) {
+                $validatedProdukJadi = $request->validate([
+                    'nama_produk' => 'required|string|max:255',
+                    'sub_solusi' => 'nullable|string|max:255',
+                    'kode_bahan' => 'nullable|string|max:255|unique:produk_jadi,kode_bahan',
+                ]);
+
+                $produkJadi = ProdukJadi::create([
+                    'nama_produk' => $validatedProdukJadi['nama_produk'],
+                    'sub_solusi' => $validatedProdukJadi['sub_solusi'] ?? 'Produk Sample',
+                    'kode_bahan' => $validatedProdukJadi['kode_bahan'] ?? null,
+                ]);
+
+                $produkSample->update([
+                    'produk_jadi_id' => $produkJadi->id,
+                ]);
+
+                $produkSample->refresh();
+            }
+
+            $produkJadi = ProdukJadi::findOrFail($produkSample->produk_jadi_id);
+
+            DB::transaction(function () use ($produkSample, $produkJadi) {
+                $lastProduksiProdukJadi = ProduksiProdukJadi::orderBy('id', 'desc')->first();
+                $lastNumber = $lastProduksiProdukJadi ? intval(substr($lastProduksiProdukJadi->kode_produksi, -5)) : 0;
+                $prefixKodeProduksi = $produkJadi->kode_bahan ?: $produkSample->kode_produk_sample;
+                $kodeProduksi = $prefixKodeProduksi . '-' . str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+
+                $produksiProdukJadi = ProduksiProdukJadi::create([
+                    'produk_sample_id' => $produkSample->id,
+                    'produk_jadi_id' => $produkSample->produk_jadi_id,
+                    'kode_produksi' => $kodeProduksi,
+                    'pengaju' => Auth::user()?->name ?? $produkSample->pengaju,
+                    'jml_produksi' => 1,
+                    'keterangan' => 'Dari Produk Sample ' . $produkSample->kode_produk_sample . ' - ' . $produkSample->keterangan,
+                    'mulai_produksi' => $produkSample->mulai_produk_sample,
+                    'status' => 'Dalam Proses',
+                ]);
+
+                app(ProdukSampleProductionDetailCopier::class)->copyMissingDetailsFromSample($produksiProdukJadi);
+            });
+
+            LogHelper::success('Produk Sample berhasil masuk Produksi Produk Jadi.');
+            return redirect()->back()->with('success', 'Produk Sample berhasil masuk Produksi Produk Jadi.');
+
+        } catch (\Exception $e) {
+            LogHelper::error($e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function kirimKeQc(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'jenis_sn' => 'required|in:Wiring,Non-Wiring,Vendor',
+                'id_bluetooth' => 'nullable|string|max:3',
+                'kode_jenis_unit' => 'required_if:jenis_sn,Wiring,Non-Wiring|nullable|string|max:2',
+                'kode_wiring_unit' => 'required_if:jenis_sn,Wiring|nullable|string|max:3',
+            ]);
+
+            $produkSample = ProdukSample::findOrFail($id);
+
+            if ($produkSample->status !== 'Selesai') {
+                return redirect()->back()->with('error', 'Produk sample harus selesai sebelum dikirim ke QC.');
+            }
+
+            if (BahanSetengahjadi::where('produk_sample_id', $produkSample->id)->exists()) {
+                return redirect()->back()->with('error', 'Produk sample ini sudah masuk ke Produk Setengah Jadi.');
+            }
+
+            if (QcProdukSetengahJadiList::where('produk_sample_id', $produkSample->id)->exists()) {
+                return redirect()->back()->with('error', 'Produk sample ini sudah pernah dikirim ke QC.');
+            }
+
             $totalHpp = BahanKeluarDetails::whereHas('bahanKeluar', function ($q) use ($produkSample) {
                 $q->where('produk_sample_id', $produkSample->id)
                   ->where('status', 'Disetujui');
             })->sum('sub_total');
 
-            $tglMasuk     = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
-            $kodeTransaksi = $produkSample->kode_produk_sample . '-SJ';
-            $serialNumber  = $request->serial_number ?? null;
-
-            DB::beginTransaction();
-
-            $bahanSetengahJadi = BahanSetengahjadi::create([
-                'tgl_masuk'        => $tglMasuk,
-                'kode_transaksi'   => $kodeTransaksi,
+            QcProdukSetengahJadiList::create([
                 'produk_sample_id' => $produkSample->id,
+                'kode_list' => $produkSample->kode_produk_sample . '-QC',
+                'kode_produksi' => $produkSample->kode_produk_sample,
+                'qty' => 1,
+                'unit_price' => $totalHpp,
+                'sub_total' => $totalHpp,
+                'mulai_produksi' => $produkSample->mulai_produk_sample,
+                'selesai_produksi' => $produkSample->selesai_produk_sample ?? now('Asia/Jakarta'),
+                'jenis_sn' => $validated['jenis_sn'],
+                'id_bluetooth' => $validated['id_bluetooth'] ?? '000',
+                'kode_jenis_unit' => $validated['kode_jenis_unit'] ?? null,
+                'kode_wiring_unit' => $validated['kode_wiring_unit'] ?? null,
             ]);
 
-            BahanSetengahjadiDetails::create([
-                'bahan_setengahjadi_id' => $bahanSetengahJadi->id,
-                'nama_bahan'            => $produkSample->nama_produk_sample,
-                'qty'                   => 1,
-                'sisa'                  => 1,
-                'unit_price'            => $totalHpp,
-                'sub_total'             => $totalHpp,
-                'serial_number'         => $serialNumber,
-            ]);
-
-            DB::commit();
-            LogHelper::success('Produk Sample berhasil dimasukkan ke Produk Setengah Jadi.');
-            return redirect()->back()->with('success', 'Produk Sample berhasil dimasukkan ke stok Produk Setengah Jadi.');
-
+            LogHelper::success('Produk Sample berhasil dikirim ke QC Produk Setengah Jadi.');
+            return redirect()->back()->with('success', 'Produk Sample berhasil dikirim ke QC Produk Setengah Jadi.');
         } catch (\Exception $e) {
-            DB::rollBack();
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

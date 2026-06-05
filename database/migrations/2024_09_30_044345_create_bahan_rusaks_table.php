@@ -16,8 +16,8 @@ return new class extends Migration
             $table->dateTime('tgl_pengajuan')->nullable();
             $table->dateTime('tgl_diterima')->nullable();
             $table->string('kode_transaksi')->unique();
-            $table->foreignId('produksi_id')->constrained('produksis')->nullable();
-            $table->foreignId('projek_id')->constrained('projek')->nullable();
+            $table->unsignedBigInteger('produksi_id')->nullable();
+            $table->unsignedBigInteger('projek_id')->nullable();
             $table->string('status');
             $table->timestamps();
         });

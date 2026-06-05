@@ -18,6 +18,7 @@ use App\Models\BahanKeluarDetails;
 use App\Models\ProduksiProdukJadi;
 use Illuminate\Support\Facades\Auth;
 use App\Jobs\SendWhatsAppNotification;
+use App\Services\ProdukSampleProductionDetailCopier;
 use Illuminate\Support\Facades\Validator;
 
 class ProduksiProdukJadiController extends Controller
@@ -254,6 +255,13 @@ class ProduksiProdukJadiController extends Controller
             'produksiProdukJadiDetails.dataProduk', // Tambahkan ini untuk memuat produk
             'bahanKeluar'
         ])->findOrFail($id);
+
+        app(ProdukSampleProductionDetailCopier::class)->copyMissingDetailsFromSample($produksiProdukJadis);
+        $produksiProdukJadis->load([
+            'produksiProdukJadiDetails.dataBahan',
+            'produksiProdukJadiDetails.dataProduk',
+            'bahanKeluar',
+        ]);
         // dd($produksiProdukJadis->produksiProdukJadiDetails);
 
 

@@ -149,6 +149,7 @@ class QcProdukJadiWizard extends Component
                 //  dd($produk);
                 QcProdukJadiList::create([
                     'produksi_produk_jadi_id' => $produksi->id,
+                    'produk_sample_id' => $produksi->produk_sample_id,
                     'kode_list'      => $produk['kode_produksi'] . '-' . $produk['nomor'],
                     'produk_jadi_id'      => $produk['produk_jadi_id'],
                     'qty'           => $produk['qty'],

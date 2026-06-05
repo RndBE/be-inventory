@@ -25,6 +25,11 @@ class QcProdukSetengahJadiList extends Model
         return $this->belongsTo(Produksi::class, 'produksi_id');
     }
 
+    public function produkSample()
+    {
+        return $this->belongsTo(ProdukSample::class, 'produk_sample_id');
+    }
+
     // Relasi ke QC tahap 1
     public function qc1()
     {

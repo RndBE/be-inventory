@@ -51,14 +51,22 @@
                 @elseif ($produkSample->status === 'Selesai')
                     <a href="{{ route('produk-sample.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                     @can('tambah-produk-sample')
-                        <button data-modal-target="masukkan-stok-modal" data-modal-toggle="masukkan-stok-modal"
-                            type="button"
-                            class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 flex items-center gap-1.5">
-                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
-                            </svg>
-                            Masukkan ke Stok
-                        </button>
+                        @if($sudahMasukProduksiProdukJadi ?? false)
+                            <span class="rounded-md bg-blue-100 px-3 py-2 text-sm font-semibold text-blue-700">Sudah Masuk Produksi Produk Jadi</span>
+                        @elseif($sudahMasukStok ?? false)
+                            <span class="rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-700">Sudah Masuk Stok</span>
+                        @elseif($sudahDikirimQc ?? false)
+                            <span class="rounded-md bg-blue-100 px-3 py-2 text-sm font-semibold text-blue-700">Sudah Dikirim ke QC Produk Jadi</span>
+                        @else
+                            <button data-modal-target="masukkan-stok-modal" data-modal-toggle="masukkan-stok-modal"
+                                type="button"
+                                class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 flex items-center gap-1.5">
+                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+                                </svg>
+                                Masukkan ke Stok
+                            </button>
+                        @endif
                     @endcan
 
                 @else
@@ -178,7 +186,7 @@
     </div>
     @include('pages.produk-sample.selesai')
 
-    {{-- Modal Masukkan ke Stok Setengah Jadi --}}
+    {{-- Modal Masukkan ke Produksi Produk Jadi --}}
     <div id="masukkan-stok-modal" tabindex="-1"
         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-full max-h-full"
         style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px);">
@@ -194,7 +202,7 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-base font-bold text-gray-800">Masukkan ke Produk Setengah Jadi</h3>
+                            <h3 class="text-base font-bold text-gray-800">Masukkan ke Produksi Produk Jadi</h3>
                             <p class="text-xs text-gray-500">{{ $produkSample->kode_produk_sample }} — {{ $produkSample->nama_produk_sample }}</p>
                         </div>
                     </div>
@@ -209,24 +217,24 @@
                 {{-- Body Modal --}}
                 <form action="{{ route('produk-sample.masukkanKeStok', $produkSample->id) }}" method="POST">
                     @csrf
-                    <input type="hidden" name="tujuan" value="setengah_jadi">
+                    <input type="hidden" name="tujuan" value="produk_jadi">
 
                     <div class="px-6 py-5 space-y-4">
 
-                        {{-- Serial Number --}}
                         <div>
-                            <label for="serial_number_stok" class="block text-xs font-semibold text-gray-700 mb-1">
-                                Serial Number <span class="text-gray-400 font-normal">(opsional)</span>
+                            <label for="nama_produk_modal" class="block text-xs font-semibold text-gray-700 mb-1">
+                                Nama Produk Jadi
                             </label>
-                            <input type="text" name="serial_number" id="serial_number_stok"
-                                placeholder="Kosongkan jika tidak ada..."
-                                class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                            <input type="text" name="nama_produk" id="nama_produk_modal"
+                                value="{{ old('nama_produk', $produkSample->nama_produk_sample) }}"
+                                class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                                required>
                         </div>
 
                         {{-- Info HPP --}}
                         <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
                             <p class="text-xs text-blue-700">
-                                <strong>Info:</strong> Nilai HPP akan dihitung otomatis dari total bahan keluar yang sudah disetujui untuk produk sample ini.
+                                <strong>Info:</strong> Produk sample akan dibuatkan proses Produksi Produk Jadi. Stok Produk Jadi bertambah setelah produksi selesai, masuk QC, lalu diproses Add to Gudang.
                             </p>
                         </div>
 

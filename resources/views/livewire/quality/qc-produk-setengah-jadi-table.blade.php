@@ -96,7 +96,7 @@
                         <!-- Kode Produksi/List -->
                         <td>
                             {{-- <a href="{{ route('quality-page.qc-produk-setengah-jadi.view', $item->id) }}" class="font-medium">
-                                {{ $item->produksi->kode_produksi ?? '-' }}
+                                {{ $item->produksi?->kode_produksi ?? $item->produkSample?->kode_produk_sample ?? '-' }}
                             </a> --}}
                             <a href="{{ route('quality-page.qc-produk-setengah-jadi.view', $item->id) }}" class="font-medium">
                                 {{ $item->kode_list }}
@@ -121,7 +121,7 @@
 
                         <td>
                             <div class="text-black text-sm">
-                                {{ $item->produksi->dataBahan->nama_bahan }}
+                                {{ $item->produksi?->dataBahan?->nama_bahan ?? $item->produkSample?->nama_produk_sample ?? '-' }}
                             </div>
                             <div class="text-gray-600 text-xs">
                                 {{ $item->serial_number ?? '-' }}

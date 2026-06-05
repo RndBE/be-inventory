@@ -28,25 +28,25 @@ return new class extends Migration
             });
         }
 
-        Schema::table('qc_produk_jadi_list', function (Blueprint $table) {
-            if (!Schema::hasColumn('qc_produk_jadi_list', 'produk_sample_id')) {
+        if (!$this->hasColumn('qc_produk_jadi_list', 'produk_sample_id')) {
+            Schema::table('qc_produk_jadi_list', function (Blueprint $table) {
                 $table->foreignId('produk_sample_id')
                     ->nullable()
                     ->after('produksi_produk_jadi_id')
                     ->constrained('produk_sample')
                     ->nullOnDelete();
-            }
-        });
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('qc_produk_jadi_list', function (Blueprint $table) {
-            if (Schema::hasColumn('qc_produk_jadi_list', 'produk_sample_id')) {
+        if ($this->hasColumn('qc_produk_jadi_list', 'produk_sample_id')) {
+            Schema::table('qc_produk_jadi_list', function (Blueprint $table) {
                 $table->dropForeign(['produk_sample_id']);
                 $table->dropColumn('produk_sample_id');
-            }
-        });
+            });
+        }
 
         if (DB::getDriverName() === 'mysql') {
             Schema::table('qc_produk_jadi_list', function (Blueprint $table) {
@@ -66,5 +66,17 @@ return new class extends Migration
                 $table->unsignedBigInteger('produksi_produk_jadi_id')->nullable(false)->change();
             });
         }
+    }
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        if (DB::getDriverName() !== 'mysql') {
+            return Schema::hasColumn($table, $column);
+        }
+
+        return !empty(DB::select(
+            'select column_name from information_schema.columns where table_schema = database() and table_name = ? and column_name = ? limit 1',
+            [$table, $column]
+        ));
     }
 };

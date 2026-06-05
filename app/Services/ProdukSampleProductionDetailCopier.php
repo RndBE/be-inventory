@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ProduksiProdukJadi;
 use App\Models\ProduksiProdukJadiDetails;
 use App\Models\ProdukSample;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class ProdukSampleProductionDetailCopier
@@ -24,7 +25,7 @@ class ProdukSampleProductionDetailCopier
             return;
         }
 
-        $hasProdukJadisId = Schema::hasColumn('produksi_produk_jadi_details', 'produk_jadis_id');
+        $hasProdukJadisId = $this->hasColumn('produksi_produk_jadi_details', 'produk_jadis_id');
 
         foreach ($produkSample->produkSampleDetails as $detail) {
             $attributes = [
@@ -44,5 +45,17 @@ class ProdukSampleProductionDetailCopier
 
             ProduksiProdukJadiDetails::create($attributes);
         }
+    }
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        if (DB::getDriverName() !== 'mysql') {
+            return Schema::hasColumn($table, $column);
+        }
+
+        return !empty(DB::select(
+            'select column_name from information_schema.columns where table_schema = database() and table_name = ? and column_name = ? limit 1',
+            [$table, $column]
+        ));
     }
 }

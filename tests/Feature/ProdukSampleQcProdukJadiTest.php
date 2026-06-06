@@ -12,10 +12,14 @@ use App\Models\ProduksiProdukJadi;
 use App\Models\ProdukJadi;
 use App\Models\ProdukSample;
 use App\Models\ProdukSampleDetails;
+use App\Models\Qc1ProdukJadi;
 use App\Models\QcProdukJadiList;
+use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ProdukSampleQcProdukJadiTest extends TestCase
@@ -64,6 +68,79 @@ class ProdukSampleQcProdukJadiTest extends TestCase
             $table->decimal('sub_total', 15, 2)->default(0);
             $table->dateTime('tanggal_masuk_gudang')->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('qc_1_produk_jadi', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_qc')->nullable();
+            $table->dateTime('tgl_qc')->nullable();
+            $table->string('petugas_qc')->nullable();
+            $table->unsignedBigInteger('id_produk_jadi_list');
+            $table->enum('grade', ['A', 'B'])->nullable();
+            $table->string('laporan_qc')->nullable();
+            $table->text('catatan')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('qc_2_produk_jadi', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_qc')->nullable();
+            $table->dateTime('tgl_qc')->nullable();
+            $table->string('petugas_qc')->nullable();
+            $table->unsignedBigInteger('id_produk_jadi_list');
+            $table->enum('grade', ['A', 'B'])->nullable();
+            $table->string('laporan_qc')->nullable();
+            $table->text('catatan')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('qc_dokumentasi_produk_jadi', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('qc1_id')->nullable();
+            $table->unsignedBigInteger('qc2_id')->nullable();
+            $table->string('file_path');
+            $table->timestamps();
+        });
+
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+        Schema::create('permissions', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('guard_name');
+            $table->timestamps();
+        });
+
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('guard_name');
+            $table->timestamps();
+        });
+
+        Schema::create('model_has_permissions', function (Blueprint $table) {
+            $table->unsignedBigInteger('permission_id');
+            $table->string('model_type');
+            $table->unsignedBigInteger('model_id');
+        });
+
+        Schema::create('model_has_roles', function (Blueprint $table) {
+            $table->unsignedBigInteger('role_id');
+            $table->string('model_type');
+            $table->unsignedBigInteger('model_id');
+        });
+
+        Schema::create('role_has_permissions', function (Blueprint $table) {
+            $table->unsignedBigInteger('permission_id');
+            $table->unsignedBigInteger('role_id');
         });
 
         Schema::create('produksi_produk_jadi', function (Blueprint $table) {
@@ -419,5 +496,38 @@ class ProdukSampleQcProdukJadiTest extends TestCase
             'produk_jadi_id' => $produkJadi->id,
             'kode_list' => 'LA-00001-1/1',
         ]);
+    }
+
+    public function test_qc_produk_jadi_can_be_saved_without_laporan_qc(): void
+    {
+        $user = User::create([
+            'name' => 'Petugas QC',
+            'email' => 'qc@example.test',
+            'password' => 'password',
+        ]);
+
+        $qcList = QcProdukJadiList::create([
+            'kode_list' => 'PRDJD-QC-001',
+            'produk_jadi_id' => 1,
+            'qty' => 1,
+            'unit_price' => 100000,
+            'sub_total' => 100000,
+        ]);
+
+        $this->actingAs($user);
+        Gate::before(fn () => false);
+
+        Livewire::test(QcProdukJadiTable::class)
+            ->set('grade', 'A')
+            ->set('catatan', 'Laporan menyusul')
+            ->call('simpanQc', $qcList->id, 1)
+            ->assertHasNoErrors(['laporan_qc']);
+
+        $qc = Qc1ProdukJadi::first();
+
+        $this->assertNotNull($qc);
+        $this->assertSame($qcList->id, $qc->id_produk_jadi_list);
+        $this->assertSame('A', $qc->grade);
+        $this->assertNull($qc->laporan_qc);
     }
 }

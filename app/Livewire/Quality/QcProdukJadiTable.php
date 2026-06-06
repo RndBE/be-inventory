@@ -190,7 +190,7 @@ class QcProdukJadiTable extends Component
         try {
             $this->validate([
                 'grade'       => 'required|in:A,B',
-                'laporan_qc'  => 'required|file|mimes:pdf|max:2048',
+                'laporan_qc'  => 'nullable|file|mimes:pdf|max:2048',
                 'catatan'     => 'nullable|string',
                 'dokumentasi' => 'nullable|array',
                 'dokumentasi.*' => 'file|mimes:jpg,jpeg,png,webp|max:4096',

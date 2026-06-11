@@ -71,7 +71,7 @@ class EditPembelianBahanCart extends Component
     public $produksiStatus, $status, $status_finance;
     public $keterangan_pembayaran = [];
     public $pembelianBahans = [];
-    public $jenis_pengajuan, $editingCurrency;
+    public $jenis_pengajuan, $editingCurrency, $currency = 'USD';
     public $statusPembelianBahan = [];
     public $checkedItems = [];
     public $bukti_pembelian, $pembelianId;
@@ -84,7 +84,9 @@ class EditPembelianBahanCart extends Component
         $this->pembelianBahanId = $pembelianBahanId;
         $pembelianBahan = PembelianBahan::findOrFail($pembelianBahanId);
         $this->status_finance = $pembelianBahan->status_finance;
-        $this->jenis_pengajuan = $pembelianBahan->jenis_pengajuan;
+        $parts = explode('|', $pembelianBahan->jenis_pengajuan ?? '');
+        $this->jenis_pengajuan = $parts[0];
+        $this->currency = $parts[1] ?? 'USD';
 
         $this->loadProduksi();
     }
@@ -768,6 +770,7 @@ class EditPembelianBahanCart extends Component
             'cartItems' => $this->cart,
             'pembelianBahanDetails' => $this->pembelianBahanDetails,
             'produksiTotal' => $produksiTotal,
+            'currency' => $this->currency,
         ]);
     }
 }

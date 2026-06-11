@@ -309,8 +309,8 @@
                     <th style="border: 1px solid black;">Nama</th>
                     <th style="border: 1px solid black;">Qty Pengajuan</th>
                     <th style="border: 1px solid black;">Qty Pembelian</th>
-                    <th style="border: 1px solid black;">Harga Satuan (USD)</th>
-                    <th style="border: 1px solid black;width: 20%;">Total Harga (USD)</th>
+                    <th style="border: 1px solid black;">Harga Satuan ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
+                    <th style="border: 1px solid black;width: 20%;">Total Harga ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
                     <th style="border: 1px solid black;">Harga Satuan (Rp)</th>
                     <th style="border: 1px solid black;width: 20%;">Total Harga (Rp)</th>
                     <th style="border: 1px solid black;">Ket</th>
@@ -787,8 +787,8 @@
                     <th style="border: 1px solid black;">Nama</th>
                     <th style="border: 1px solid black;">Spesifikasi</th>
                     <th style="border: 1px solid black;">Qty</th>
-                    <th style="border: 1px solid black;">Harga Satuan (USD)</th>
-                    <th style="border: 1px solid black;">Total Harga (USD)</th>
+                    <th style="border: 1px solid black;">Harga Satuan ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
+                    <th style="border: 1px solid black;">Total Harga ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
                     <th style="border: 1px solid black;">Harga Satuan (Rp)</th>
                     <th style="border: 1px solid black;">Total Harga (Rp)</th>
                     <th style="border: 1px solid black;">Penanggung Jawab Aset</th>

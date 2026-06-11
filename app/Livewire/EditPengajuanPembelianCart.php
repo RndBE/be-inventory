@@ -28,6 +28,7 @@ class EditPengajuanPembelianCart extends Component
     public $unit_price_aset = [];
     public $unit_price_raw = [];
     public $unit_price_usd = [];
+    public $unit_price_usd_aset = [];
     public $unit_price_usd_raw = [];
     public $ongkir = [];
     public $ongkir_raw = [];
@@ -69,7 +70,7 @@ class EditPengajuanPembelianCart extends Component
     public $produksiStatus, $status, $status_finance;
     public $keterangan_pembayaran = [];
     public $pembelianBahans = [];
-    public $jenis_pengajuan, $editingCurrency;
+    public $jenis_pengajuan, $editingCurrency, $currency = 'USD';
     public $statusPembelianBahan = [];
     public $checkedItems = [];
     public $bukti_pembelian;
@@ -81,7 +82,9 @@ class EditPengajuanPembelianCart extends Component
         $this->pembelianBahanId = $pembelianBahanId;
         $pembelianBahan = PembelianBahan::findOrFail($pembelianBahanId);
         $this->status_finance = $pembelianBahan->status_finance;
-        $this->jenis_pengajuan = $pembelianBahan->jenis_pengajuan;
+        $parts = explode('|', $pembelianBahan->jenis_pengajuan ?? '');
+        $this->jenis_pengajuan = $parts[0];
+        $this->currency = $parts[1] ?? 'USD';
 
         $this->loadProduksi();
     }
@@ -182,9 +185,12 @@ class EditPengajuanPembelianCart extends Component
 
                 $unitPrice = $decodedDetails['unit_price'] ?? 0;
                 $unitPriceUSD = $decodedDetailsUSD['unit_price_usd'] ?? 0;
+                $unitPriceUSDAset = $decodedDetailsUSD['unit_price_usd_aset'] ?? 0;
 
                 $bahanKey = $detail->bahan_id ?? $detail->nama_bahan ?? $detail->id;
+                $safeKey = $this->sanitizeKey($detail->nama_bahan ?? (string) $bahanKey);
                 $this->keterangan_pembayaran[$bahanKey] = $detail->keterangan_pembayaran ?? '';
+                $this->keterangan_pembayaran[$safeKey] = $detail->keterangan_pembayaran ?? '';
 
 
                 $this->pembelianBahanDetails[] = [
@@ -197,6 +203,7 @@ class EditPengajuanPembelianCart extends Component
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,
                     'details' => $decodedDetails,
+                    'details_usd' => $decodedDetailsUSD,
                     'keterangan_pembayaran' => $this->keterangan_pembayaran[$bahanKey],
                     'spesifikasi' => $detail->spesifikasi ?? '',
                     'penanggungjawabaset' => $detail->penanggungjawabaset ?? '',
@@ -208,7 +215,9 @@ class EditPengajuanPembelianCart extends Component
                 // $this->unit_price_usd[$detail->bahan_id] = $unitPriceUSD;
                 $this->unit_price[$bahanKey] = $unitPrice;
                 $this->unit_price_aset[$bahanKey] = $unitPrice;
+                $this->unit_price_aset[$safeKey] = $unitPrice;
                 $this->unit_price_usd[$bahanKey] = $unitPriceUSD;
+                $this->unit_price_usd_aset[$safeKey] = $unitPriceUSDAset;
             }
         }
     }
@@ -376,6 +385,21 @@ class EditPengajuanPembelianCart extends Component
         $this->unit_price_raw[$itemBahan] = $this->unit_price_aset[$itemBahan] ?? 0;
     }
 
+    public function editItemPriceImporAset($currency, $itemBahan)
+    {
+        $itemBahan = $this->sanitizeKey($itemBahan);
+
+        if ($currency === 'usd') {
+            $this->editingItemBahan = 'usd_' . $itemBahan;
+            $this->unit_price_usd_raw[$itemBahan] = $this->unit_price_usd_aset[$itemBahan] ?? 0;
+        }
+
+        if ($currency === 'idr') {
+            $this->editingItemBahan = 'idr_' . $itemBahan;
+            $this->unit_price_raw[$itemBahan] = $this->unit_price_aset[$itemBahan] ?? 0;
+        }
+    }
+
     public function editItem($item)
     {
         $this->editingItemId = $item;
@@ -399,6 +423,11 @@ class EditPengajuanPembelianCart extends Component
         $cleaned = str_replace(',', '.', $cleaned);  // Ganti koma jadi titik desimal
 
         return is_numeric($cleaned) ? floatval($cleaned) : 0;
+    }
+
+    public function sanitizeKey($string)
+    {
+        return preg_replace('/[^A-Za-z0-9_]/', '_', $string);
     }
 
     public function formatToRupiahPrice($itemId)
@@ -444,6 +473,29 @@ class EditPengajuanPembelianCart extends Component
         $this->calculateSubTotal($itemBahan);
 
         // Keluar dari mode edit
+        $this->editingItemBahan = null;
+    }
+
+    public function formatToUSDPriceAset($itemBahan)
+    {
+        if (!isset($this->unit_price_usd_raw[$itemBahan])) {
+            return;
+        }
+
+        $rawValue = $this->unit_price_usd_raw[$itemBahan];
+        $cleanValue = str_replace(['$', ' '], '', $rawValue);
+
+        if (strpos($cleanValue, ',') !== false) {
+            $cleanValue = str_replace('.', '', $cleanValue);
+            $cleanValue = str_replace(',', '.', $cleanValue);
+        }
+
+        $parsedValue = is_numeric($cleanValue) ? floatval($cleanValue) : 0;
+
+        $this->unit_price_usd_aset[$itemBahan] = $parsedValue;
+        $this->unit_price_usd_raw[$itemBahan] = number_format($parsedValue, 2, ',', '.');
+
+        $this->calculateSubTotal($itemBahan);
         $this->editingItemBahan = null;
     }
 
@@ -534,20 +586,22 @@ class EditPengajuanPembelianCart extends Component
         // dd($this->keterangan_pembayaran);
         foreach ($this->pembelianBahanDetails as $item) {
             $bahanId = $item['nama_bahan'] ?? null;
-            $unitPrice = $this->unit_price_aset[$bahanId] ?? 0;
-            $unitPriceUSD = $this->unit_price_usd[$bahanId] ?? 0;
-            $subTotal = $item['jml_bahan'] * $unitPrice;
-            $subTotalUSD = $item['jml_bahan'] * $unitPriceUSD;
-            $keteranganPembayaran = $this->keterangan_pembayaran[$bahanId] ?? '';
+            $safeKey = $this->sanitizeKey($bahanId);
+            $unitPrice = $this->unit_price_aset[$safeKey] ?? ($this->unit_price_aset[$bahanId] ?? 0);
+            $unitPriceUSD = $this->unit_price_usd_aset[$safeKey] ?? 0;
+            $qty = $this->qty[$safeKey] ?? ($item['jml_bahan'] ?? 0);
+            $subTotal = $qty * $unitPrice;
+            $subTotalUSD = $qty * $unitPriceUSD;
+            $keteranganPembayaran = $this->keterangan_pembayaran[$safeKey] ?? ($this->keterangan_pembayaran[$bahanId] ?? '');
             $pembelianBahanDetails[] = [
                 'nama_bahan' => $bahanId,
-                'qty' => $this->qty[$bahanId] ?? 0,
-                'jml_bahan' => $item['jml_bahan'],
+                'qty' => $qty,
+                'jml_bahan' => $qty,
                 'details' => [
                     'unit_price' => $unitPrice,
                 ],
                 'details_usd' => [
-                    'unit_price_usd' => $unitPriceUSD,
+                    'unit_price_usd_aset' => $unitPriceUSD,
                 ],
                 'sub_total' => $subTotal,
                 'sub_total_usd' => $subTotalUSD,
@@ -584,6 +638,7 @@ class EditPengajuanPembelianCart extends Component
             'cartItems' => $this->cart,
             'pembelianBahanDetails' => $this->pembelianBahanDetails,
             'produksiTotal' => $produksiTotal,
+            'currency' => $this->currency,
         ]);
     }
 }

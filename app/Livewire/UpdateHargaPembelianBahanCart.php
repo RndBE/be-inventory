@@ -82,7 +82,7 @@ class UpdateHargaPembelianBahanCart extends Component
     public $produksiStatus,$status,$status_finance;
     public $keterangan_pembayaran = [];
     public $pembelianBahans = [];
-    public $jenis_pengajuan;
+    public $jenis_pengajuan, $currency = 'USD';
 
 
     public function mount($pembelianBahanId)
@@ -90,7 +90,9 @@ class UpdateHargaPembelianBahanCart extends Component
         $this->pembelianBahanId = $pembelianBahanId;
         $pembelianBahan = PembelianBahan::findOrFail($pembelianBahanId);
         $this->status_finance = $pembelianBahan->status_finance;
-        $this->jenis_pengajuan = $pembelianBahan->jenis_pengajuan;
+        $parts = explode('|', $pembelianBahan->jenis_pengajuan ?? '');
+        $this->jenis_pengajuan = $parts[0];
+        $this->currency = $parts[1] ?? 'USD';
 
         $this->loadProduksi();
     }
@@ -502,6 +504,7 @@ class UpdateHargaPembelianBahanCart extends Component
             'cartItems' => $this->cart,
             'pembelianBahanDetails' => $this->pembelianBahanDetails,
             'produksiTotal' => $produksiTotal,
+            'currency' => $this->currency,
         ]);
     }
 }

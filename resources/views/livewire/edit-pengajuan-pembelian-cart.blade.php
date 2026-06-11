@@ -129,7 +129,7 @@
                         <tr
                             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td colspan="3"></td>
-                            <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran</strong></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran (USD)</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @php
                                     // Pastikan bahwa variabel-variabel memiliki nilai default jika tidak ada
@@ -172,8 +172,9 @@
 
                         @foreach ($pembelianBahanDetails as $detail)
                             @php
-                                $unitPrice = $unit_price[$detail['nama_bahan']] ?? 0;
-                                $unitPriceUSD = $unit_price_usd[$detail['nama_bahan']] ?? 0;
+                                $idBahan = $detail['bahan']->id ?? null;
+                                $unitPrice = $unit_price[$idBahan] ?? ($detail['details']['unit_price'] ?? 0);
+                                $unitPriceUSD = $unit_price_usd[$idBahan] ?? ($detail['details_usd']['unit_price_usd'] ?? 0);
                                 $jmlBahan = $detail['jml_bahan'] ?? 0;
 
                                 $subTotal = $jmlBahan * $unitPrice;
@@ -345,7 +346,7 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 <span><strong>$</strong> {{ number_format($grandTotalUSD, 2, ',', '.') }}</span>
                             </td>
-                            <td class="px-6 py-4 text-right text-black"></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran (Rp)</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 <span><strong>Rp</strong> {{ number_format($grandTotal, 2, ',', '.') }}</span>
                             </td>
@@ -503,7 +504,7 @@
                         <tr
                             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td colspan="3"></td>
-                            <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran</strong></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran (USD)</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 @php
                                     // Pastikan bahwa variabel-variabel memiliki nilai default jika tidak ada
@@ -551,8 +552,9 @@
 
                         @foreach ($pembelianBahanDetails as $detail)
                             @php
-                                $unitPrice = $unit_price[$detail['nama_bahan']] ?? 0;
-                                $unitPriceUSD = $unit_price_usd[$detail['nama_bahan']] ?? 0;
+                                $safeKey = $this->sanitizeKey($detail['nama_bahan']);
+                                $unitPrice = $unit_price_aset[$safeKey] ?? ($detail['details']['unit_price'] ?? 0);
+                                $unitPriceUSD = $unit_price_usd_aset[$safeKey] ?? ($detail['details_usd']['unit_price_usd_aset'] ?? 0);
                                 $jmlBahan = $detail['jml_bahan'] ?? 0;
 
                                 $subTotal = $jmlBahan * $unitPrice;
@@ -564,7 +566,7 @@
                             @endphp
 
                             <input type="hidden" name="pembelianBahanDetails"
-                                value="{{ json_encode($this->getCartItemsForStorage()) }}">
+                                value="{{ json_encode($this->getCartItemsForAset()) }}">
                             <input type="hidden" name="biaya"
                                 value="{{ json_encode($this->getCartItemsForStorageBiaya()) }}">
                             <tr
@@ -596,19 +598,19 @@
                                     <span>{{ $detail['jml_bahan'] ?? 0 }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                    @if ($editingItemId === 'usd_' . $detail['nama_bahan'])
+                                    @if ($editingItemBahan === 'usd_' . $safeKey)
                                         {{-- @if ($editingItemId === $detail['nama_bahan']) --}}
-                                        <input autofocus wire:model="unit_price_usd_raw.{{ $detail['nama_bahan'] }}"
+                                        <input autofocus wire:model="unit_price_usd_raw.{{ $safeKey }}"
                                             type="number"
                                             class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-right"
                                             placeholder="0"
-                                            wire:blur="formatToUSDPriceAset('{{ $detail['nama_bahan'] }}')"
+                                            wire:blur="formatToUSDPriceAset('{{ $safeKey }}')"
                                             @if ($status_finance === 'Disetujui') disabled @endif />
                                     @else
                                         @if ($status_finance !== 'Disetujui')
-                                            <span>
+                                            <span class="cursor-pointer" wire:click="editItemPriceImporAset('usd', '{{ $safeKey }}')">
                                                 {{ number_format(
-                                                    $unit_price_usd[$detail['nama_bahan']] ?? ($detail['details_usd']['unit_price_usd'] ?? 0),
+                                                    $unit_price_usd_aset[$safeKey] ?? ($detail['details_usd']['unit_price_usd_aset'] ?? 0),
                                                     2,
                                                     ',',
                                                     '.',
@@ -617,7 +619,7 @@
                                         @else
                                             <span>
                                                 {{ number_format(
-                                                    $unit_price_usd[$detail['nama_bahan']] ?? ($detail['details_usd']['unit_price_usd'] ?? 0),
+                                                    $unit_price_usd_aset[$safeKey] ?? ($detail['details_usd']['unit_price_usd_aset'] ?? 0),
                                                     2,
                                                     ',',
                                                     '.',
@@ -630,21 +632,21 @@
                                     <span>{{ number_format($subTotalUSD, 2, ',', '.') }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                    @if ($editingItemId === 'idr_' . $detail['nama_bahan'])
-                                        <input autofocus wire:model="unit_price_raw.{{ $detail['nama_bahan'] }}"
+                                    @if ($editingItemBahan === 'idr_' . $safeKey)
+                                        <input autofocus wire:model="unit_price_raw.{{ $safeKey }}"
                                             type="text"
                                             class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-right"
                                             placeholder="0"
-                                            wire:blur="formatToRupiahPrice('{{ $detail['nama_bahan'] }}')"
+                                            wire:blur="formatToRupiahPriceAset('{{ $safeKey }}')"
                                             @if ($status_finance === 'Disetujui') disabled @endif />
                                     @else
                                         @if ($status_finance !== 'Disetujui')
-                                            <span>
-                                                {{ number_format($unit_price[$detail['nama_bahan']] ?? ($detail['details']['unit_price'] ?? 0), 2, ',', '.') }}
+                                            <span class="cursor-pointer" wire:click="editItemPriceImporAset('idr', '{{ $safeKey }}')">
+                                                {{ number_format($unit_price_aset[$safeKey] ?? ($detail['details']['unit_price'] ?? 0), 2, ',', '.') }}
                                             </span>
                                         @else
                                             <span>
-                                                {{ number_format($unit_price[$detail['nama_bahan']] ?? ($detail['details']['unit_price'] ?? 0), 2, ',', '.') }}
+                                                {{ number_format($unit_price_aset[$safeKey] ?? ($detail['details']['unit_price'] ?? 0), 2, ',', '.') }}
                                             </span>
                                         @endif
                                     @endif
@@ -660,8 +662,8 @@
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                     <div class="flex justify-right items-right">
-                                        <textarea wire:model="keterangan_pembayaran.{{ $detail['nama_bahan'] }}"
-                                            wire:keyup="changeKeterangan('{{ $detail['nama_bahan'] }}')"
+                                        <textarea wire:model="keterangan_pembayaran.{{ $safeKey }}"
+                                            wire:keyup="changeKeteranganAset('{{ $safeKey }}')"
                                             class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                             disabled>{{ $detail['keterangan_pembayaran'] ?? '' }}</textarea>
                                     </div>
@@ -748,7 +750,7 @@
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 <span><strong>$</strong> {{ number_format($grandTotalUSD, 2, ',', '.') }}</span>
                             </td>
-                            <td class="px-6 py-4 text-right text-black"></td>
+                            <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran (Rp)</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 <span><strong>Rp</strong> {{ number_format($grandTotal, 2, ',', '.') }}</span>
                             </td>

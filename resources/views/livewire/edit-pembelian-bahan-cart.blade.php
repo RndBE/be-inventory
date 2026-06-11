@@ -191,8 +191,8 @@
                             <th scope="col" class="px-6 py-3 w-1/5">Nama</th>
                             <th scope="col" class="px-6 py-3 text-center w-0.5">Qty Pengajuan</th>
                             <th scope="col" class="px-6 py-3 text-center w-0.5">Qty Pembelian</th>
-                            <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan (USD)</th>
-                            <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga (USD)</th>
+                            <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
+                            <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan (Rp)</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga (Rp)</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Ket Pembayaran</th>
@@ -417,7 +417,7 @@
                             <td colspan="2"></td>
                             <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                <span><strong>$</strong> {{ number_format($grandTotalUSD, 2, ',', '.') }}</span>
+                                <span><strong>{{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }}</strong> {{ number_format($grandTotalUSD, 2, ',', '.') }}</span>
                             </td>
                             <td class="px-6 py-4 text-right text-black"></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
@@ -756,8 +756,8 @@
                             <th scope="col" class="px-6 py-3 w-1/5">Nama</th>
                             <th scope="col" class="px-6 py-3 w-0.5">Spesifikasi</th>
                             <th scope="col" class="px-6 py-3 text-center w-0.5">QTY</th>
-                            <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan (USD)</th>
-                            <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga (USD)</th>
+                            <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
+                            <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan (Rp)</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga (Rp)</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Penanggung Jawab Aset</th>
@@ -951,7 +951,7 @@
                             <td colspan="3"></td>
                             <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran (USD)</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                <span><strong>$</strong> {{ number_format($grandTotalUSD, 2, ',', '.') }}</span>
+                                <span><strong>{{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }}</strong> {{ number_format($grandTotalUSD, 2, ',', '.') }}</span>
                             </td>
                             <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran (Rp)</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">

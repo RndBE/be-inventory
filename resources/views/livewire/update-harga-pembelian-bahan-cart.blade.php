@@ -168,17 +168,17 @@
                             <th scope="col" class="px-6 py-3 w-1/5">Nama</th>
                             <th scope="col" class="px-6 py-3 text-center w-0.5">Qty Pengajuan</th>
                             <th scope="col" class="px-6 py-3 text-center w-0.5">Qty Pembelian</th>
-                            <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan (USD)</th>
+                            <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">
                                 <div class="flex justify-end items-start">
-                                    <span class="text-right">Harga Satuan (USD)</span>
+                                    <span class="text-right">Harga Satuan ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</span>
                                     <span
                                         class="text-[8px] bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 dark:bg-gray-700 dark:text-blue-400 border border-blue-400">
                                         New
                                     </span>
                                 </div>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga (USD)</th>
+                            <th scope="col" class="px-6 py-3 text-right w-0.5">Total Harga ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">Harga Satuan (Rp)</th>
                             <th scope="col" class="px-6 py-3 text-right w-0.5">
                                 <div class="flex justify-end items-start">
@@ -433,7 +433,7 @@
                             <td colspan="3"></td>
                             <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                <span><strong>$</strong> {{ number_format($grandTotalUSD, 2, ',', '.') }}</span>
+                                <span><strong>{{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }}</strong> {{ number_format($grandTotalUSD, 2, ',', '.') }}</span>
                             </td>
                             <td class="px-6 py-4 text-right text-black"></td>
                             <td class="px-6 py-4 text-right text-black"></td>
@@ -761,15 +761,15 @@
                             <th class="px-6 py-3">Spesifikasi</th>
                             <th class="px-6 py-3 text-center">QTY</th>
 
-                            <th class="px-6 py-3 text-right">Harga Satuan (USD)</th>
+                            <th class="px-6 py-3 text-right">Harga Satuan ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
                             <th class="px-6 py-3 text-right">
                                 <div class="flex justify-end items-start gap-2">
-                                    <span>Harga Satuan (USD)</span>
+                                    <span>Harga Satuan ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</span>
                                     <span
                                         class="text-[8px] bg-blue-100 px-2.5 py-0.5 rounded-full text-blue-800 border border-blue-400">New</span>
                                 </div>
                             </th>
-                            <th class="px-6 py-3 text-right">Total Harga (USD)</th>
+                            <th class="px-6 py-3 text-right">Total Harga ({{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }})</th>
 
                             <th class="px-6 py-3 text-right">Harga Satuan (Rp)</th>
                             <th class="px-6 py-3 text-right">
@@ -919,7 +919,7 @@
                             <td colspan="3"></td>
                             <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran (USD)</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
-                                <strong>$</strong> {{ number_format($grandUSD, 2, ',', '.') }}
+                                <strong>{{ ['USD' => '$', 'EUR' => '€', 'GBP' => '£', 'SGD' => 'S$', 'AUD' => 'A$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency }}</strong> {{ number_format($grandUSD, 2, ',', '.') }}
                             </td>
                             <td class="px-6 py-4 text-right text-black"><strong>Total Anggaran (Rp)</strong></td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">

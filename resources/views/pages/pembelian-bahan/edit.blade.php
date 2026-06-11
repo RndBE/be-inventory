@@ -120,11 +120,11 @@
                                     </label>
                                     <select disabled name="jenis_pengajuan" id="jenis_pengajuan" class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" autofocus required>
                                         <option value="">-- Pilih Jenis Pengajuan --</option>
-                                        <option value="Pembelian Bahan/Barang/Alat Lokal" {{ (old('jenis_pengajuan') ?? $pembelian_bahan->jenis_pengajuan) == 'Pembelian Bahan/Barang/Alat Lokal' ? 'selected' : '' }}>Pembelian Bahan/Barang/Alat Lokal</option>
-                                        <option value="Pembelian Bahan/Barang/Alat Impor" {{ (old('jenis_pengajuan') ?? $pembelian_bahan->jenis_pengajuan) == 'Pembelian Bahan/Barang/Alat Impor' ? 'selected' : '' }}>Pembelian Bahan/Barang/Alat Impor</option>
-                                        <option value="Pembelian Aset" {{ (old('jenis_pengajuan') ?? $pembelian_bahan->jenis_pengajuan) == 'Pembelian Aset' ? 'selected' : '' }}>Pembelian Aset</option>
-                                        <option value="Pembelian Aset Lokal" {{ (old('jenis_pengajuan') ?? $pembelian_bahan->jenis_pengajuan) == 'Pembelian Aset Lokal' ? 'selected' : '' }}>Pembelian Aset Lokal</option>
-                                        <option value="Pembelian Aset Impor" {{ (old('jenis_pengajuan') ?? $pembelian_bahan->jenis_pengajuan) == 'Pembelian Aset Impor' ? 'selected' : '' }}>Pembelian Aset Impor</option>
+                                        <option value="Pembelian Bahan/Barang/Alat Lokal" {{ (old('jenis_pengajuan') ?? $pembelian_bahan->base_jenis_pengajuan) == 'Pembelian Bahan/Barang/Alat Lokal' ? 'selected' : '' }}>Pembelian Bahan/Barang/Alat Lokal</option>
+                                        <option value="Pembelian Bahan/Barang/Alat Impor" {{ (old('jenis_pengajuan') ?? $pembelian_bahan->base_jenis_pengajuan) == 'Pembelian Bahan/Barang/Alat Impor' ? 'selected' : '' }}>Pembelian Bahan/Barang/Alat Impor</option>
+                                        <option value="Pembelian Aset" {{ (old('jenis_pengajuan') ?? $pembelian_bahan->base_jenis_pengajuan) == 'Pembelian Aset' ? 'selected' : '' }}>Pembelian Aset</option>
+                                        <option value="Pembelian Aset Lokal" {{ (old('jenis_pengajuan') ?? $pembelian_bahan->base_jenis_pengajuan) == 'Pembelian Aset Lokal' ? 'selected' : '' }}>Pembelian Aset Lokal</option>
+                                        <option value="Pembelian Aset Impor" {{ (old('jenis_pengajuan') ?? $pembelian_bahan->base_jenis_pengajuan) == 'Pembelian Aset Impor' ? 'selected' : '' }}>Pembelian Aset Impor</option>
                                     </select>
                                 </div>
 

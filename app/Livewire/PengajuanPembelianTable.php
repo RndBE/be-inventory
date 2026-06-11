@@ -16,7 +16,7 @@ class PengajuanPembelianTable extends Component
     public $search = "";
     public $perPage = 25;
     public $id_pembelian_bahan, $status, $gambar, $nama_bahan, $kode_bahan, $jenis_bahan_id, $stok_awal,  $unit_id, $total_stok,  $penempatan, $supplier,
-    $kode_transaksi, $tgl_keluar, $divisi,$link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $ppn, $new_value_today_fee, $status_general_manager, $catatan, $dokumen;
+    $kode_transaksi, $tgl_keluar, $divisi,$link, $pembelianBahanDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $ongkir, $asuransi, $layanan, $jasa_aplikasi, $shipping_cost, $full_amount_fee, $value_today_fee, $shipping_cost_usd, $full_amount_fee_usd, $value_today_fee_usd, $jenis_pengajuan, $new_shipping_cost, $new_full_amount_fee, $new_shipping_cost_usd, $new_full_amount_fee_usd, $ppn, $new_value_today_fee, $new_value_today_fee_usd, $status_general_manager, $catatan, $dokumen;
 
     public $filter = 'semua';
     public $filterDivisi = '';
@@ -61,7 +61,7 @@ class PengajuanPembelianTable extends Component
         $this->kode_transaksi = $Data->kode_transaksi;
         $this->divisi = $Data->divisi;
         $this->status = $Data->status;
-        $this->jenis_pengajuan = $Data->jenis_pengajuan;
+        $this->jenis_pengajuan = $Data->base_jenis_pengajuan;
         $this->pembelianBahanDetails  = $Data->pembelianBahanDetails;
         $this->ongkir = $Data->ongkir;
         $this->asuransi = $Data->asuransi;
@@ -71,14 +71,20 @@ class PengajuanPembelianTable extends Component
         $this->shipping_cost = $Data->shipping_cost;
         $this->full_amount_fee = $Data->full_amount_fee;
         $this->value_today_fee = $Data->value_today_fee;
+        $this->shipping_cost_usd = $Data->shipping_cost_usd;
+        $this->full_amount_fee_usd = $Data->full_amount_fee_usd;
+        $this->value_today_fee_usd = $Data->value_today_fee_usd;
 
         $this->new_shipping_cost = $Data->new_shipping_cost;
         $this->new_full_amount_fee = $Data->new_full_amount_fee;
         $this->new_value_today_fee = $Data->new_value_today_fee;
+        $this->new_shipping_cost_usd = $Data->new_shipping_cost_usd;
+        $this->new_full_amount_fee_usd = $Data->new_full_amount_fee_usd;
+        $this->new_value_today_fee_usd = $Data->new_value_today_fee_usd;
 
         // $this->isDetailOpen = true;
         // Ambil jenis pengajuan
-        $jenis = $Data->jenis_pengajuan;
+        $jenis = $Data->base_jenis_pengajuan;
 
         // Daftar status
         if ($jenis === 'Pembelian Aset' || $jenis === 'Pembelian Aset Lokal' || $jenis === 'Pembelian Aset Impor') {
@@ -206,7 +212,7 @@ class PengajuanPembelianTable extends Component
         $this->kode_transaksi = $Data->kode_transaksi;
         $this->divisi = $Data->divisi;
         $this->status = $Data->status;
-        $this->jenis_pengajuan = $Data->jenis_pengajuan;
+        $this->jenis_pengajuan = $Data->base_jenis_pengajuan;
         $this->pembelianBahanDetails  = $Data->pembelianBahanDetails;
         $this->ongkir = $Data->ongkir;
         $this->asuransi = $Data->asuransi;
@@ -216,10 +222,16 @@ class PengajuanPembelianTable extends Component
         $this->shipping_cost = $Data->shipping_cost;
         $this->full_amount_fee = $Data->full_amount_fee;
         $this->value_today_fee = $Data->value_today_fee;
+        $this->shipping_cost_usd = $Data->shipping_cost_usd;
+        $this->full_amount_fee_usd = $Data->full_amount_fee_usd;
+        $this->value_today_fee_usd = $Data->value_today_fee_usd;
 
         $this->new_shipping_cost = $Data->new_shipping_cost;
         $this->new_full_amount_fee = $Data->new_full_amount_fee;
         $this->new_value_today_fee = $Data->new_value_today_fee;
+        $this->new_shipping_cost_usd = $Data->new_shipping_cost_usd;
+        $this->new_full_amount_fee_usd = $Data->new_full_amount_fee_usd;
+        $this->new_value_today_fee_usd = $Data->new_value_today_fee_usd;
         $this->isShowModalOpen = true;
     }
 

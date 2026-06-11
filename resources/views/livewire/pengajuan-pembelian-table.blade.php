@@ -140,7 +140,7 @@
                                 <div class="text-xs text-gray-500">{{ $pembelian_bahan->divisi }}</div>
                             </td>
                             {{-- <td class="px-6 py-4">{{ $pembelian_bahan->pembelianBahanDetails->sum('jml_bahan') }}</td> --}}
-                            <td class="px-6 py-4">{{ $pembelian_bahan->jenis_pengajuan }}</td>
+                            <td class="px-6 py-4">{{ $pembelian_bahan->base_jenis_pengajuan }}</td>
                             <td class="px-6 py-4 min-w-[500px]">
                                 @php
                                     // use Carbon\Carbon;
@@ -152,7 +152,7 @@
                                     // Tambahkan tanggal pengajuan sebagai awal
                                     $dateList['Pengajuan'] = $pembelian_bahan->tgl_pengajuan;
 
-                                    $jenis = $pembelian_bahan->jenis_pengajuan;
+                                    $jenis = $pembelian_bahan->base_jenis_pengajuan;
 
                                     // Urutan berdasarkan jenis pengajuan
                                     if ($jenis === 'Pembelian Aset'|| $jenis === 'Pembelian Aset Lokal' || $jenis === 'Pembelian Aset Impor') {

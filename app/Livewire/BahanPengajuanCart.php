@@ -23,6 +23,7 @@ class BahanPengajuanCart extends Component
     public $totalharga = 0;
     public $editingItemId = 0;
     public $jenisPengajuan = '';
+    public $currency = 'USD';
     public $showSearchBahanProduksi = false;
 
     protected $listeners = ['bahanSelected' => 'addToCart', 'bahanSetengahJadiSelected' => 'addToCart'];

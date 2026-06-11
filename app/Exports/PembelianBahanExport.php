@@ -139,7 +139,7 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
             }
 
             // Hitung biaya tambahan sesuai jenis pengajuan
-            if ($transaction->jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor') {
+            if ($transaction->base_jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Impor') {
                 $shippingCostDibayarkan = $transaction->new_shipping_cost && $transaction->new_shipping_cost > 0
                     ? $transaction->new_shipping_cost
                     : ($transaction->shipping_cost ?? 0);
@@ -197,7 +197,7 @@ class PembelianBahanExport implements FromArray, WithHeadings, WithStyles
                     $transaction->new_value_today_fee ?? '-',
                     $valueTodayDibayarkan,
                 ];
-            } elseif ($transaction->jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Lokal') {
+            } elseif ($transaction->base_jenis_pengajuan === 'Pembelian Bahan/Barang/Alat Lokal') {
                 $ongkir = $transaction->ongkir ?? 0;
                 $asuransi = $transaction->asuransi ?? 0;
                 $layanan = $transaction->layanan ?? 0;

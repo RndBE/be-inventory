@@ -102,7 +102,8 @@ class PembelianBahanController extends Controller
             $status_finance = $pembelianBahan->status_finance ?? null;
             $status_admin_manager = $pembelianBahan->status_admin_manager ?? null;
             $status_general_manager = $pembelianBahan->status_general_manager ?? null;
-            $jenis_pengajuan = $pembelianBahan->jenis_pengajuan ?? null;
+            $jenis_pengajuan = $pembelianBahan->base_jenis_pengajuan;
+            $currency = $pembelianBahan->currency;
             $shipping_cost = $pembelianBahan->shipping_cost ?? 0;
             $full_amount_fee = $pembelianBahan->full_amount_fee ??  0;
             $value_today_fee = $pembelianBahan->value_today_fee ??  0;
@@ -225,7 +226,8 @@ class PembelianBahanController extends Controller
                 'jasa_aplikasi',
                 'asuransi',
                 'pengisiHargaUser',
-                'tandaTanganPengisiHarga'
+                'tandaTanganPengisiHarga',
+                'currency'
             ));
             return $pdf->stream("pembelian_bahan_{$id}.pdf");
 
@@ -258,7 +260,8 @@ class PembelianBahanController extends Controller
             $status_finance = $pembelianBahan->status_finance ?? null;
             $status_admin_manager = $pembelianBahan->status_admin_manager ?? null;
             $status_general_manager = $pembelianBahan->status_general_manager ?? null;
-            $jenis_pengajuan = $pembelianBahan->jenis_pengajuan ?? null;
+            $jenis_pengajuan = $pembelianBahan->base_jenis_pengajuan;
+            $currency = $pembelianBahan->currency;
             $shipping_cost = $pembelianBahan->shipping_cost ?? 0;
             $full_amount_fee = $pembelianBahan->full_amount_fee ??  0;
             $value_today_fee = $pembelianBahan->value_today_fee ??  0;
@@ -371,7 +374,8 @@ class PembelianBahanController extends Controller
                 'ongkir',
                 'layanan',
                 'jasa_aplikasi',
-                'asuransi'
+                'asuransi',
+                'currency'
             ));
             return $pdf->stream("pembelian_bahan_{$id}.pdf");
 
@@ -783,7 +787,7 @@ class PembelianBahanController extends Controller
             $data->save();
 
             if ($data->status_leader === 'Disetujui') {
-                if ($data->jenis_pengajuan === 'Pembelian Aset' || $data->jenis_pengajuan ===  'Pembelian Aset Lokal' || $data->jenis_pengajuan ===  'Pembelian Aset Impor') {
+                if ($data->base_jenis_pengajuan === 'Pembelian Aset' || $data->base_jenis_pengajuan === 'Pembelian Aset Lokal' || $data->base_jenis_pengajuan === 'Pembelian Aset Impor') {
                     // Kirim notifikasi ke General Affair
                     // $targetUser = User::whereHas('dataJobPosition', function ($query) {
                     //     $query->where('nama', 'General Affair'); // Posisi General Affair

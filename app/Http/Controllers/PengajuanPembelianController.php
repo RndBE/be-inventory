@@ -74,7 +74,8 @@ class PengajuanPembelianController extends Controller
             $status_finance = $pembelianBahan->status_finance ?? null;
             $status_admin_manager = $pembelianBahan->status_admin_manager ?? null;
             $status_general_manager = $pembelianBahan->status_general_manager ?? null;
-            $jenis_pengajuan = $pembelianBahan->jenis_pengajuan ?? null;
+            $jenis_pengajuan = $pembelianBahan->base_jenis_pengajuan;
+            $currency = $pembelianBahan->currency;
             $shipping_cost = $pembelianBahan->shipping_cost ?? 0;
             $full_amount_fee = $pembelianBahan->full_amount_fee ??  0;
             $value_today_fee = $pembelianBahan->value_today_fee ??  0;
@@ -190,6 +191,7 @@ class PengajuanPembelianController extends Controller
                 'ppn',
                 'leaderName',
                 'status',
+                'currency',
                 'jenis_pengajuan',
                 'managerName',
                 'ongkir',
@@ -231,7 +233,8 @@ class PengajuanPembelianController extends Controller
             $status_finance = $pembelianBahan->status_finance ?? null;
             $status_admin_manager = $pembelianBahan->status_admin_manager ?? null;
             $status_general_manager = $pembelianBahan->status_general_manager ?? null;
-            $jenis_pengajuan = $pembelianBahan->jenis_pengajuan ?? null;
+            $jenis_pengajuan = $pembelianBahan->base_jenis_pengajuan;
+            $currency = $pembelianBahan->currency;
             $shipping_cost = $pembelianBahan->shipping_cost ?? 0;
             $full_amount_fee = $pembelianBahan->full_amount_fee ??  0;
             $value_today_fee = $pembelianBahan->value_today_fee ??  0;
@@ -341,6 +344,7 @@ class PengajuanPembelianController extends Controller
                 'ppn',
                 'leaderName',
                 'status',
+                'currency',
                 'jenis_pengajuan',
                 'managerName',
                 'ongkir',
@@ -544,7 +548,9 @@ class PengajuanPembelianController extends Controller
                 'keterangan' => $request->keterangan,
                 'divisi' => $request->divisi,
                 'pengaju' => $user->id,
-                'jenis_pengajuan' => $request->jenis_pengajuan,
+                'jenis_pengajuan' => str_contains($request->jenis_pengajuan ?? '', 'Impor') && $request->currency
+                    ? $request->jenis_pengajuan . '|' . $request->currency
+                    : $request->jenis_pengajuan,
                 // 'status_pengambilan' => 'Belum Diambil',
                 'status' => 'Belum disetujui',
                 'status_leader' => $status_leader,

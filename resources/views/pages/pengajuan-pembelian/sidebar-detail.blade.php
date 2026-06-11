@@ -204,6 +204,7 @@
                                     @if (!empty($this->pembelianBahanDetails))
                                         @php
                                             $totalWithExtras = 0;
+                                            $totalWithExtrasUSD = 0;
                                         @endphp
                                         @foreach($this->pembelianBahanDetails as $detail)
                                             <tr class="flex">
@@ -219,19 +220,28 @@
                                             @php
                                                 $unitPrices = json_decode($detail->details);
                                                 $newUnitPrices = json_decode($detail->new_details);
+                                                $unitPricesUSD = json_decode($detail->details_usd ?? '{}');
+                                                $newUnitPricesUSD = json_decode($detail->new_details_usd ?? '{}');
 
                                                 $unitPrice = $unitPrices->unit_price ?? 0;
                                                 $newUnitPrice = $newUnitPrices->new_unit_price ?? 0;
+                                                $unitPriceUSD = $unitPricesUSD->unit_price_usd ?? 0;
+                                                $newUnitPriceUSD = $newUnitPricesUSD->new_unit_price_usd ?? 0;
                                                 $jmlBahan = $detail->jml_bahan ?? 0;
 
                                                 $finalUnitPrice = $newUnitPrice > 0 ? $newUnitPrice : $unitPrice;
+                                                $finalUnitPriceUSD = $newUnitPriceUSD > 0 ? $newUnitPriceUSD : $unitPriceUSD;
 
                                                 // Hitung subtotal untuk unit lama dan unit baru
                                                 $oldSubTotal = $jmlBahan * $unitPrice;
                                                 $newSubTotal = $jmlBahan * $newUnitPrice;
                                                 $newSubTotalFinal = $jmlBahan * $finalUnitPrice;
+                                                $oldSubTotalUSD = $jmlBahan * $unitPriceUSD;
+                                                $newSubTotalUSD = $jmlBahan * $newUnitPriceUSD;
+                                                $newSubTotalFinalUSD = $jmlBahan * $finalUnitPriceUSD;
 
                                                 $totalWithExtras += $newSubTotalFinal;
+                                                $totalWithExtrasUSD += $newSubTotalFinalUSD;
                                             @endphp
                                             <tr class="flex">
                                                 <td class="min-w-[44px]">{{ $detail->jml_bahan }} x</td>
@@ -264,6 +274,34 @@
                                                         {{ number_format(($detail->jml_bahan) * ($newUnitPrices->new_unit_price ?? 0), 2, ',', '.') }}
                                                     @else
                                                         <span class="invisible"></span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            <tr class="flex text-gray-500">
+                                                <td class="min-w-[44px]">USD</td>
+
+                                                <td class="flex-1">
+                                                    @if($newUnitPricesUSD->new_unit_price_usd ?? false)
+                                                        <span class="line-through text-red-500">$ {{ number_format($unitPriceUSD, 2, ',', '.') }}</span>
+                                                    @else
+                                                        $ {{ number_format($unitPriceUSD, 2, ',', '.') }}
+                                                    @endif
+                                                </td>
+
+                                                <td class="flex-1 pl-3">
+                                                    @if($newUnitPricesUSD->new_unit_price_usd ?? false)
+                                                        $ {{ number_format($newUnitPriceUSD, 2, ',', '.') }}
+                                                    @else
+                                                        <span class="invisible"></span>
+                                                    @endif
+                                                </td>
+
+                                                <td class="w-full text-right">
+                                                    @if($newUnitPricesUSD->new_unit_price_usd ?? false)
+                                                        <span class="line-through text-red-500">$ {{ number_format($oldSubTotalUSD, 2, ',', '.') }}</span>
+                                                        $ {{ number_format($newSubTotalUSD, 2, ',', '.') }}
+                                                    @else
+                                                        $ {{ number_format($oldSubTotalUSD, 2, ',', '.') }}
                                                     @endif
                                                 </td>
                                             </tr>
@@ -307,6 +345,42 @@
                                             </td>
 
                                         </tr>
+                                        <tr class="flex text-gray-500">
+                                            <td class="flex-1 py-1"></td>
+                                            <td class="w-[150px] text-right"><strong>Shipping Cost (USD): </strong></td>
+                                            <td class="w-[150px] text-right">
+                                                @if($new_shipping_cost_usd > 0)
+                                                    <span class="line-through text-red-500">$ {{ number_format($shipping_cost_usd, 2, ',', '.') }}</span>
+                                                    $ {{ number_format($new_shipping_cost_usd, 2, ',', '.') }}
+                                                @else
+                                                    $ {{ number_format($shipping_cost_usd, 2, ',', '.') }}
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr class="flex text-gray-500">
+                                            <td class="flex-1 py-1"></td>
+                                            <td class="w-[150px] text-right"><strong>Full Amount Fee (USD): </strong></td>
+                                            <td class="w-[150px] text-right">
+                                                @if($new_full_amount_fee_usd > 0)
+                                                    <span class="line-through text-red-500">$ {{ number_format($full_amount_fee_usd, 2, ',', '.') }}</span>
+                                                    $ {{ number_format($new_full_amount_fee_usd, 2, ',', '.') }}
+                                                @else
+                                                    $ {{ number_format($full_amount_fee_usd, 2, ',', '.') }}
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr class="flex text-gray-500">
+                                            <td class="flex-1 py-1"></td>
+                                            <td class="w-[150px] text-right"><strong>Value Today Fee (USD): </strong></td>
+                                            <td class="w-[150px] text-right">
+                                                @if($new_value_today_fee_usd > 0)
+                                                    <span class="line-through text-red-500">$ {{ number_format($value_today_fee_usd, 2, ',', '.') }}</span>
+                                                    $ {{ number_format($new_value_today_fee_usd, 2, ',', '.') }}
+                                                @else
+                                                    $ {{ number_format($value_today_fee_usd, 2, ',', '.') }}
+                                                @endif
+                                            </td>
+                                        </tr>
                                         <tr class="flex">
                                             <td class="flex-1 py-1"></td>
                                             <td class="w-[150px] text-right"><strong>Total Harga: </strong></td>
@@ -317,6 +391,18 @@
                                                                 + ($new_value_today_fee > 0 ? $new_value_today_fee : $value_today_fee);
                                                 @endphp
                                                 {{ number_format($finalTotal, 2, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                        <tr class="flex text-gray-500">
+                                            <td class="flex-1 py-1"></td>
+                                            <td class="w-[150px] text-right"><strong>Total Harga (USD): </strong></td>
+                                            <td class="w-[150px] text-right">$
+                                                @php
+                                                    $finalTotalUSD = $totalWithExtrasUSD + ($new_shipping_cost_usd > 0 ? $new_shipping_cost_usd : $shipping_cost_usd)
+                                                                + ($new_full_amount_fee_usd > 0 ? $new_full_amount_fee_usd : $full_amount_fee_usd)
+                                                                + ($new_value_today_fee_usd > 0 ? $new_value_today_fee_usd : $value_today_fee_usd);
+                                                @endphp
+                                                {{ number_format($finalTotalUSD, 2, ',', '.') }}
                                             </td>
                                         </tr>
                                     @else
@@ -492,6 +578,7 @@
                                     @if (!empty($this->pembelianBahanDetails))
                                         @php
                                             $totalWithExtras = 0;
+                                            $totalWithExtrasUSD = 0;
                                         @endphp
                                         @foreach($this->pembelianBahanDetails as $detail)
                                             <tr class="flex">
@@ -507,15 +594,24 @@
                                             @php
                                                 $unitPrices = json_decode($detail->details);
                                                 $newUnitPrices = json_decode($detail->new_details);
+                                                $unitPricesUSD = json_decode($detail->details_usd ?? '{}');
+                                                $newUnitPricesUSD = json_decode($detail->new_details_usd ?? '{}');
                                                 $unitPrice = $unitPrices->unit_price ?? 0;
                                                 $newUnitPrice = $newUnitPrices->new_unit_price ?? 0;
+                                                $unitPriceUSD = $unitPricesUSD->unit_price_usd_aset ?? 0;
+                                                $newUnitPriceUSD = $newUnitPricesUSD->new_unit_price_usd_aset ?? 0;
                                                 $jmlBahan = $detail->jml_bahan ?? 0;
                                                 $finalUnitPrice = $newUnitPrice > 0 ? $newUnitPrice : $unitPrice;
+                                                $finalUnitPriceUSD = $newUnitPriceUSD > 0 ? $newUnitPriceUSD : $unitPriceUSD;
                                                 // Hitung subtotal untuk unit lama dan unit baru
                                                 $oldSubTotal = $jmlBahan * $unitPrice;
                                                 $newSubTotal = $jmlBahan * $newUnitPrice;
                                                 $newSubTotalFinal = $jmlBahan * $finalUnitPrice;
+                                                $oldSubTotalUSD = $jmlBahan * $unitPriceUSD;
+                                                $newSubTotalUSD = $jmlBahan * $newUnitPriceUSD;
+                                                $newSubTotalFinalUSD = $jmlBahan * $finalUnitPriceUSD;
                                                 $totalWithExtras += $newSubTotalFinal;
+                                                $totalWithExtrasUSD += $newSubTotalFinalUSD;
                                             @endphp
                                             <tr class="flex">
                                                 <td class="min-w-[44px]">{{ $detail->jml_bahan }} x</td>
@@ -546,6 +642,31 @@
                                                     @endif
                                                 </td>
                                             </tr>
+                                            <tr class="flex text-gray-500">
+                                                <td class="min-w-[44px]">USD</td>
+                                                <td class="flex-1">
+                                                    @if($newUnitPricesUSD->new_unit_price_usd_aset ?? false)
+                                                        <span class="line-through text-red-500">$ {{ number_format($unitPriceUSD, 2, ',', '.') }}</span>
+                                                    @else
+                                                        $ {{ number_format($unitPriceUSD, 2, ',', '.') }}
+                                                    @endif
+                                                </td>
+                                                <td class="flex-1 pl-3">
+                                                    @if($newUnitPricesUSD->new_unit_price_usd_aset ?? false)
+                                                        $ {{ number_format($newUnitPriceUSD, 2, ',', '.') }}
+                                                    @else
+                                                        <span class="invisible"></span>
+                                                    @endif
+                                                </td>
+                                                <td class="w-full text-right">
+                                                    @if($newUnitPricesUSD->new_unit_price_usd_aset ?? false)
+                                                        <span class="line-through text-red-500">$ {{ number_format($oldSubTotalUSD, 2, ',', '.') }}</span>
+                                                        $ {{ number_format($newSubTotalUSD, 2, ',', '.') }}
+                                                    @else
+                                                        $ {{ number_format($oldSubTotalUSD, 2, ',', '.') }}
+                                                    @endif
+                                                </td>
+                                            </tr>
                                         @endforeach
                                         <tr class="flex">
                                             <td class="flex-1 py-1"></td>
@@ -562,6 +683,21 @@
                                             <td class="w-[150px] text-right"><strong>Value Today Fee: </strong></td>
                                             <td class="w-[150px] text-right">{{ number_format($value_today_fee, 2, ',', '.') }}</td>
                                         </tr>
+                                        <tr class="flex text-gray-500">
+                                            <td class="flex-1 py-1"></td>
+                                            <td class="w-[150px] text-right"><strong>Shipping Cost (USD): </strong></td>
+                                            <td class="w-[150px] text-right">$ {{ number_format($shipping_cost_usd, 2, ',', '.') }}</td>
+                                        </tr>
+                                        <tr class="flex text-gray-500">
+                                            <td class="flex-1 py-1"></td>
+                                            <td class="w-[150px] text-right"><strong>Full Amount Fee (USD): </strong></td>
+                                            <td class="w-[150px] text-right">$ {{ number_format($full_amount_fee_usd, 2, ',', '.') }}</td>
+                                        </tr>
+                                        <tr class="flex text-gray-500">
+                                            <td class="flex-1 py-1"></td>
+                                            <td class="w-[150px] text-right"><strong>Value Today Fee (USD): </strong></td>
+                                            <td class="w-[150px] text-right">$ {{ number_format($value_today_fee_usd, 2, ',', '.') }}</td>
+                                        </tr>
                                         <tr class="flex">
                                             <td class="flex-1 py-1"></td>
                                             <td class="w-[150px] text-right"><strong>Total Harga: </strong></td>
@@ -572,6 +708,18 @@
                                                                 + ($value_today_fee ?? 0);
                                                 @endphp
                                                 {{ number_format($finalTotal, 2, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                        <tr class="flex text-gray-500">
+                                            <td class="flex-1 py-1"></td>
+                                            <td class="w-[150px] text-right"><strong>Total Harga (USD): </strong></td>
+                                            <td class="w-[150px] text-right">$
+                                                @php
+                                                    $finalTotalUSD = $totalWithExtrasUSD + ($shipping_cost_usd ?? 0)
+                                                                + ($full_amount_fee_usd ?? 0)
+                                                                + ($value_today_fee_usd ?? 0);
+                                                @endphp
+                                                {{ number_format($finalTotalUSD, 2, ',', '.') }}
                                             </td>
                                         </tr>
                                     @else

@@ -61,7 +61,7 @@ class PembelianBahanTable extends Component
         $this->kode_transaksi = $Data->kode_transaksi;
         $this->divisi = $Data->divisi;
         $this->status = $Data->status;
-        $this->jenis_pengajuan = $Data->jenis_pengajuan;
+        $this->jenis_pengajuan = $Data->base_jenis_pengajuan;
         $this->pembelianBahanDetails  = $Data->pembelianBahanDetails;
         $this->ongkir = $Data->ongkir;
         $this->asuransi = $Data->asuransi;
@@ -78,7 +78,7 @@ class PembelianBahanTable extends Component
 
         // $this->isDetailOpen = true;
         // Ambil jenis pengajuan
-        $jenis = $Data->jenis_pengajuan;
+        $jenis = $Data->base_jenis_pengajuan;
 
         // Daftar status
         if ($jenis === 'Pembelian Aset' || $jenis === 'Pembelian Aset Lokal' || $jenis === 'Pembelian Aset Impor') {
@@ -201,7 +201,7 @@ class PembelianBahanTable extends Component
         $this->kode_transaksi = $Data->kode_transaksi;
         $this->divisi = $Data->divisi;
         $this->status = $Data->status;
-        $this->jenis_pengajuan = $Data->jenis_pengajuan;
+        $this->jenis_pengajuan = $Data->base_jenis_pengajuan;
         $this->pembelianBahanDetails  = $Data->pembelianBahanDetails;
         $this->ongkir = $Data->ongkir;
         $this->asuransi = $Data->asuransi;
@@ -362,7 +362,7 @@ class PembelianBahanTable extends Component
 
         if ($user->hasRole(['superadmin'])) {
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', [
+                $query->ofJenis([
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
                     'Pembelian Aset',
@@ -374,7 +374,7 @@ class PembelianBahanTable extends Component
         } elseif ($user->hasRole(['hardware manager'])) {
             $pembelian_bahan
                 ->whereIn('divisi', ['RnD', 'Helper', 'Teknisi', 'OP', 'Produksi'])
-                ->whereIn('jenis_pengajuan', [
+                ->ofJenis([
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
                     'Pembelian Aset',
@@ -392,7 +392,7 @@ class PembelianBahanTable extends Component
                         })
 
                         ->orWhere(function ($q) {
-                            $q->whereIn('jenis_pengajuan', [
+                            $q->ofJenis([
                                 'Pembelian Bahan/Barang/Alat Lokal',
                                 'Pembelian Bahan/Barang/Alat Impor',
                                 'Pembelian Aset',
@@ -413,7 +413,7 @@ class PembelianBahanTable extends Component
         ")
                 ->orderBy('tgl_pengajuan', 'desc');
             // $pembelian_bahan->whereIn('divisi', ['RnD', 'Helper', 'Teknisi', 'OP', 'Produksi'])
-            //     ->whereIn('jenis_pengajuan', [
+            //     ->ofJenis([
             //         'Pembelian Bahan/Barang/Alat Lokal',
             //         'Pembelian Bahan/Barang/Alat Impor',
             //         'Pembelian Aset',
@@ -427,7 +427,7 @@ class PembelianBahanTable extends Component
             //         })
             //             // Untuk jenis pengajuan lain → tetap tampil berdasarkan job_level & status_purchasing
             //             ->orWhere(function ($q) {
-            //                 $q->whereIn('jenis_pengajuan', [
+            //                 $q->ofJenis([
             //                     'Pembelian Bahan/Barang/Alat Lokal',
             //                     'Pembelian Bahan/Barang/Alat Impor',
             //                     'Pembelian Aset'
@@ -447,7 +447,7 @@ class PembelianBahanTable extends Component
             //     ->orderBy('tgl_pengajuan', 'desc');
         } elseif ($user->hasRole(['marketing manager'])) {
             $pembelian_bahan->whereIn('divisi', ['Marketing'])
-                ->whereIn('jenis_pengajuan', [
+                ->ofJenis([
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
                     'Pembelian Aset',
@@ -474,7 +474,7 @@ class PembelianBahanTable extends Component
         } elseif ($user->hasRole(['marketing level 3'])) {
             $pembelian_bahan->whereIn('divisi', ['Marketing']);
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', [
+                $query->ofJenis([
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
                     'Pembelian Aset',
@@ -487,7 +487,7 @@ class PembelianBahanTable extends Component
         } elseif ($user->hasRole(['rnd level 3'])) {
             $pembelian_bahan->whereIn('divisi', ['RnD']);
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', [
+                $query->ofJenis([
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
                     'Pembelian Aset',
@@ -500,7 +500,7 @@ class PembelianBahanTable extends Component
         } elseif ($user->hasRole(['teknisi level 3'])) {
             $pembelian_bahan->whereIn('divisi', ['Helper', 'Teknisi']);
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', [
+                $query->ofJenis([
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
                     'Pembelian Aset',
@@ -513,7 +513,7 @@ class PembelianBahanTable extends Component
         } elseif ($user->hasRole(['produksi level 3'])) {
             $pembelian_bahan->whereIn('divisi', ['OP', 'Produksi']);
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', [
+                $query->ofJenis([
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
                     'Pembelian Aset',
@@ -528,7 +528,7 @@ class PembelianBahanTable extends Component
                 if ($user->hasRole('hrd level 3')) {
                     $query->orWhere(function ($q) {
                         $q->whereIn('divisi', ['HSE', 'HRD', 'Helper', 'General Affair'])
-                            ->whereIn('jenis_pengajuan', [
+                            ->ofJenis([
                                 'Pembelian Bahan/Barang/Alat Lokal',
                                 'Pembelian Bahan/Barang/Alat Impor',
                                 'Pembelian Aset',
@@ -539,12 +539,12 @@ class PembelianBahanTable extends Component
                     });
                 } elseif ($user->hasRole('general_affair')) {
                     $query->orWhere(function ($q) {
-                        $q->whereIn('jenis_pengajuan', [
+                        $q->ofJenis([
                             'Pembelian Aset',
                             'Pembelian Aset Lokal',
                             'Pembelian Aset Impor',
                         ])->orWhere(function ($x) {
-                            $x->whereIn('jenis_pengajuan', [
+                            $x->ofJenis([
                                 'Pembelian Bahan/Barang/Alat Lokal',
                                 'Pembelian Bahan/Barang/Alat Impor',
                             ])->whereIn('divisi', [
@@ -563,13 +563,13 @@ class PembelianBahanTable extends Component
                 //         $q->where('status_leader', 'Disetujui')
                 //             ->where('status_general_manager', 'Belum disetujui')
                 //             ->where(function ($sub) {
-                //                 $sub->whereIn('jenis_pengajuan', [
+                //                 $sub->ofJenis([
                 //                     'Pembelian Aset',
                 //                     'Pembelian Aset Lokal',
                 //                     'Pembelian Aset Impor'
                 //                 ])
                 //                     ->orWhere(function ($x) {
-                //                         $x->whereIn('jenis_pengajuan', [
+                //                         $x->ofJenis([
                 //                             'Pembelian Bahan/Barang/Alat Lokal',
                 //                             'Pembelian Bahan/Barang/Alat Impor'
                 //                         ])
@@ -595,7 +595,7 @@ class PembelianBahanTable extends Component
         } elseif ($user->hasRole(['purchasing level 3'])) {
             // $pembelian_bahan->whereIn('divisi', ['Purchasing']);
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', [
+                $query->ofJenis([
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
                     'Pembelian Aset',
@@ -614,7 +614,7 @@ class PembelianBahanTable extends Component
             $pembelian_bahan->orderByRaw("CASE WHEN status_leader = 'Belum disetujui' THEN 0 ELSE 1 END")->orderBy('tgl_pengajuan', 'desc');
         } elseif ($user->hasRole(['purchasing'])) {
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', [
+                $query->ofJenis([
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
                     'Pembelian Aset',
@@ -624,7 +624,7 @@ class PembelianBahanTable extends Component
                 ]);
             })->orderBy('tgl_pengajuan', 'desc');
         } elseif ($user->hasRole(['administrasi'])) {
-            $pembelian_bahan->whereIn('jenis_pengajuan', [
+            $pembelian_bahan->ofJenis([
                 'Pembelian Bahan/Barang/Alat Lokal',
                 'Pembelian Bahan/Barang/Alat Impor',
                 'Pembelian Aset',
@@ -638,7 +638,7 @@ class PembelianBahanTable extends Component
             $pembelian_bahan->orderByRaw("CASE WHEN status_finance = 'Belum disetujui' THEN 0 ELSE 1 END");
         } elseif ($user->hasRole(['administration manager'])) {
             $pembelian_bahan->where(function ($query) {
-                $query->whereIn('jenis_pengajuan', [
+                $query->ofJenis([
                     'Pembelian Bahan/Barang/Alat Lokal',
                     'Pembelian Bahan/Barang/Alat Impor',
                     'Pembelian Aset',
@@ -686,7 +686,11 @@ class PembelianBahanTable extends Component
                 return $query->where('status', 'Belum disetujui');
             })
             ->when($this->filterJenisPengajuan !== 'semua' && $this->filterJenisPengajuan !== null, function ($query) {
-                return $query->where('jenis_pengajuan', $this->filterJenisPengajuan);
+                $type = $this->filterJenisPengajuan;
+                if (str_ends_with($type, 'Impor')) {
+                    return $query->where('jenis_pengajuan', 'LIKE', $type . '%');
+                }
+                return $query->where('jenis_pengajuan', $type);
             });
 
         // Paginate hasil query

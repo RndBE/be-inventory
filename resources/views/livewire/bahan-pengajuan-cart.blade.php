@@ -77,6 +77,25 @@
                 </select>
             </div>
 
+            @if (in_array($jenisPengajuan, ['Pembelian Bahan/Barang/Alat Impor', 'Pembelian Aset Impor']))
+            <div class="flex items-center">
+                <label for="currency" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                    Mata Uang <sup class="text-red-500 text-base">*</sup>
+                </label>
+                <select wire:model="currency" name="currency" id="currency"
+                    class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    required>
+                    <option value="USD">USD (US Dollar)</option>
+                    <option value="EUR">EUR (Euro)</option>
+                    <option value="GBP">GBP (Pound Sterling)</option>
+                    <option value="SGD">SGD (Singapore Dollar)</option>
+                    <option value="AUD">AUD (Australian Dollar)</option>
+                    <option value="JPY">JPY (Japanese Yen)</option>
+                    <option value="CNY">CNY (Chinese Yuan)</option>
+                </select>
+            </div>
+            @endif
+
             <div class="flex items-center">
                 <label for="text" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
                 <div class="relative w-3/4 mr-2">

@@ -147,7 +147,7 @@
                                 <div class="text-xs text-gray-500">{{ $pembelian_bahan->divisi }}</div>
                             </td>
                             {{-- <td class="px-6 py-4">{{ $pembelian_bahan->pembelianBahanDetails->sum('jml_bahan') }}</td> --}}
-                            <td class="px-6 py-4">{{ $pembelian_bahan->jenis_pengajuan }}</td>
+                            <td class="px-6 py-4">{{ $pembelian_bahan->base_jenis_pengajuan }}</td>
                             <td class="px-6 py-4 min-w-[500px]">
                                 @php
                                     // use Carbon\Carbon;
@@ -159,7 +159,7 @@
                                     // Tambahkan tanggal pengajuan sebagai awal
                                     $dateList['Pengajuan'] = $pembelian_bahan->tgl_pengajuan;
 
-                                    $jenis = $pembelian_bahan->jenis_pengajuan;
+                                    $jenis = $pembelian_bahan->base_jenis_pengajuan;
 
                                     // Urutan berdasarkan jenis pengajuan
                                     if (
@@ -423,7 +423,7 @@
                                                     $pembelian_bahan->status_leader == 'Disetujui' &&
                                                         $pembelian_bahan->status_general_manager !== 'Disetujui' &&
                                                         $pembelian_bahan->status_general_manager !== 'Ditolak' &&
-                                                        in_array($pembelian_bahan->jenis_pengajuan, ['Pembelian Aset', 'Pembelian Aset Lokal', 'Pembelian Aset Impor']))
+                                                        in_array($pembelian_bahan->base_jenis_pengajuan, ['Pembelian Aset', 'Pembelian Aset Lokal', 'Pembelian Aset Impor']))
                                                     <button @click.stop
                                                         wire:click="editGMPembelianBahan({{ $pembelian_bahan->id }}, {{ $pembelian_bahans->currentPage() }})"
                                                         class="w-full block px-4 py-2 text-sm text-slate-600 hover:bg-yellow-600 hover:text-white flex items-center"

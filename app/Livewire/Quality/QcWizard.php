@@ -64,7 +64,7 @@ class QcWizard extends Component
     {
         $this->selectedBahanList = session()->get('selected_bahan_list', []);
         $this->supplierList = Supplier::orderBy('nama', 'asc')->get();
-        $this->pembelianList = PembelianBahan::whereIn('jenis_pengajuan', [
+        $this->pembelianList = PembelianBahan::ofJenis([
             'Pembelian Bahan/Barang/Alat Lokal',
             'Pembelian Bahan/Barang/Alat Impor',
         ])

@@ -93,6 +93,13 @@
                                     {{ $projek_rnd->nama_projek_rnd ?? $projek_rnd->dataBahan->nama_bahan ?? null }}
                                 </div>
                                 <div class="text-xs text-gray-500">{{ $projek_rnd->keterangan }}</div>
+                                <div class="mt-1">
+                                    @if($projek_rnd->is_riset_lapangan)
+                                        <span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">Riset Lapangan</span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600">Riset Internal</span>
+                                    @endif
+                                </div>
                             </td>
                             {{-- <td class="px-6 py-3">{{ $projek->produksiDetails->sum('qty') }}</td> --}}
                             <td class="px-6 py-3">{{ $projek_rnd->status }}</td>

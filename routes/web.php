@@ -230,6 +230,10 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('projek-rnd/{projek}/info', [ProjekRndController::class, 'info'])->name('projek-rnd.info');
     Route::post('projek-rnd/{projek}/upload-laporan', [ProjekRndController::class, 'uploadLaporan'])->name('projek-rnd.uploadLaporan');
     Route::get('projek-rnd/{projek}/download-laporan', [ProjekRndController::class, 'downloadLaporan'])->name('projek-rnd.downloadLaporan');
+    Route::post('projek-rnd/{projek}/upload-proposal-riset', [ProjekRndController::class, 'uploadProposalRiset'])->name('projek-rnd.uploadProposalRiset');
+    Route::get('projek-rnd/{projek}/download-proposal-riset', [ProjekRndController::class, 'downloadProposalRiset'])->name('projek-rnd.downloadProposalRiset');
+    Route::post('projek-rnd/{projek}/upload-surat-tugas-riset', [ProjekRndController::class, 'uploadSuratTugasRiset'])->name('projek-rnd.uploadSuratTugasRiset');
+    Route::get('projek-rnd/{projek}/download-surat-tugas-riset', [ProjekRndController::class, 'downloadSuratTugasRiset'])->name('projek-rnd.downloadSuratTugasRiset');
 
 
     Route::resource('pengambilan-bahan', PengambilanBahanController::class);

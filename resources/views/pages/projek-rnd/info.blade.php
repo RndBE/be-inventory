@@ -48,6 +48,11 @@
                             <span class="pr-1">:</span>
                             <span>{{ $projekRnd->pengaju }}</span>
                         </div>
+                        <div class="flex">
+                            <span class="w-40 font-semibold">Jenis Riset</span>
+                            <span class="pr-1">:</span>
+                            <span>{{ $projekRnd->is_riset_lapangan ? 'Riset Lapangan' : 'Riset Internal' }}</span>
+                        </div>
                         <div class="flex items-center">
                             <span class="w-40 font-semibold">Status Akhir</span>
                             <span class="pr-1">:</span>
@@ -63,6 +68,54 @@
                             <span class="px-2 py-0.5 rounded-full text-xs font-semibold border {{ $statusColor }}">
                                 {{ $projekRnd->status ?? '-' }}
                             </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 border-t pt-4">
+                    <h2 class="text-sm font-bold text-gray-800 mb-3">Dokumen Riset</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                        @if($projekRnd->is_riset_lapangan)
+                            <div class="border rounded-lg p-3">
+                                <p class="font-semibold text-gray-700">Proposal Riset</p>
+                                @if($projekRnd->file_proposal_riset)
+                                    <div class="mt-2 flex gap-3">
+                                        <a href="{{ asset('storage/' . $projekRnd->file_proposal_riset) }}" target="_blank" class="text-blue-600 hover:underline">Lihat</a>
+                                        <a href="{{ route('projek-rnd.downloadProposalRiset', $projekRnd->id) }}" class="text-blue-600 hover:underline">Download</a>
+                                    </div>
+                                @else
+                                    <p class="mt-2 text-gray-500">Belum diupload</p>
+                                @endif
+                            </div>
+
+                            <div class="border rounded-lg p-3">
+                                <p class="font-semibold text-gray-700">Surat Tugas Riset Lapangan</p>
+                                @if($projekRnd->file_surat_tugas_riset)
+                                    <div class="mt-2 flex gap-3">
+                                        <a href="{{ asset('storage/' . $projekRnd->file_surat_tugas_riset) }}" target="_blank" class="text-sky-600 hover:underline">Lihat</a>
+                                        <a href="{{ route('projek-rnd.downloadSuratTugasRiset', $projekRnd->id) }}" class="text-sky-600 hover:underline">Download</a>
+                                    </div>
+                                @else
+                                    <p class="mt-2 text-gray-500">Belum diupload</p>
+                                @endif
+                            </div>
+                        @else
+                            <div class="border rounded-lg p-3 md:col-span-2">
+                                <p class="font-semibold text-gray-700">Proposal & Surat Tugas</p>
+                                <p class="mt-2 text-gray-500">Tidak diperlukan karena proyek ini bukan riset lapangan.</p>
+                            </div>
+                        @endif
+
+                        <div class="border rounded-lg p-3">
+                            <p class="font-semibold text-gray-700">Laporan Hasil Riset</p>
+                            @if($projekRnd->file_laporan)
+                                <div class="mt-2 flex gap-3">
+                                    <a href="{{ asset('storage/' . $projekRnd->file_laporan) }}" target="_blank" class="text-green-600 hover:underline">Lihat</a>
+                                    <a href="{{ route('projek-rnd.downloadLaporan', $projekRnd->id) }}" class="text-green-600 hover:underline">Download</a>
+                                </div>
+                            @else
+                                <p class="mt-2 text-gray-500">Belum diupload</p>
+                            @endif
                         </div>
                     </div>
                 </div>

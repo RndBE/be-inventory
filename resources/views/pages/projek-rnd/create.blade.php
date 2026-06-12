@@ -124,6 +124,54 @@
                                             <textarea id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan') }}</textarea>
                                         </div>
 
+                                        <div class="flex items-start">
+                                            <label for="is_riset_lapangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                                Riset Lapangan?
+                                            </label>
+                                            <div class="w-3/4">
+                                                <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                                                    <input type="checkbox" id="is_riset_lapangan" name="is_riset_lapangan" value="1"
+                                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                                        @checked(old('is_riset_lapangan'))>
+                                                    Ya, riset dilakukan ke lapangan
+                                                </label>
+                                                <p class="mt-1 text-xs text-gray-500">Jika dicentang, proposal dan surat tugas riset wajib diupload.</p>
+                                                @error('is_riset_lapangan')
+                                                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div id="dokumen-riset-lapangan" class="hidden space-y-3">
+                                            <div class="flex items-center">
+                                                <label for="file_proposal_riset" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                                    Proposal Riset <sup class="text-red-500 text-base">*</sup>
+                                                </label>
+                                                <div class="w-3/4">
+                                                    <input type="file" name="file_proposal_riset" id="file_proposal_riset" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
+                                                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                                                    <p class="mt-1 text-xs text-gray-400">Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.</p>
+                                                    @error('file_proposal_riset')
+                                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center">
+                                                <label for="file_surat_tugas_riset" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                                    Surat Tugas Riset <sup class="text-red-500 text-base">*</sup>
+                                                </label>
+                                                <div class="w-3/4">
+                                                    <input type="file" name="file_surat_tugas_riset" id="file_surat_tugas_riset" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
+                                                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                                                    <p class="mt-1 text-xs text-gray-400">Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.</p>
+                                                    @error('file_surat_tugas_riset')
+                                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="flex items-center">
                                             <label for="text" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
                                             <div class="relative w-3/4 mr-2">
@@ -158,6 +206,24 @@
                 disableMobile: true,
                 defaultDate: document.querySelector('#datetimepicker').value || null,
             });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const risetLapanganCheckbox = document.getElementById('is_riset_lapangan');
+            const dokumenRisetLapangan = document.getElementById('dokumen-riset-lapangan');
+            const fileProposalRiset = document.getElementById('file_proposal_riset');
+            const fileSuratTugasRiset = document.getElementById('file_surat_tugas_riset');
+
+            function toggleDokumenRisetLapangan() {
+                const isLapangan = risetLapanganCheckbox.checked;
+                dokumenRisetLapangan.classList.toggle('hidden', !isLapangan);
+                fileProposalRiset.required = isLapangan;
+                fileSuratTugasRiset.required = isLapangan;
+            }
+
+            risetLapanganCheckbox.addEventListener('change', toggleDokumenRisetLapangan);
+            toggleDokumenRisetLapangan();
         });
     </script>
 

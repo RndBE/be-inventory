@@ -60,6 +60,10 @@
                     <a href="{{ route('projek-rnd.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
                     <button data-modal-target="upload-laporan-modal" data-modal-toggle="upload-laporan-modal" type="button" class="rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500">Upload Laporan</button>
                 @endif
+                {{-- @if($projek_rnd->is_riset_lapangan)
+                    <button data-modal-target="upload-proposal-riset-modal" data-modal-toggle="upload-proposal-riset-modal" type="button" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">Upload Proposal</button>
+                    <button data-modal-target="upload-surat-tugas-riset-modal" data-modal-toggle="upload-surat-tugas-riset-modal" type="button" class="rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500">Upload Surat Tugas</button>
+                @endif --}}
             </div>
         </div>
     </x-app.secondary-header>
@@ -165,6 +169,37 @@
                                             <textarea id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" {{ $projek_rnd->status === 'Selesai' || $projek_rnd->status === 'Tidak dilanjutkan' ? 'disabled' : '' }}>{{ old('keterangan', $projek_rnd->keterangan) }}</textarea>
                                         </div>
 
+                                        <div class="flex items-start">
+                                            <label for="is_riset_lapangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                                Riset Lapangan?
+                                            </label>
+                                            <div class="w-3/4">
+                                                <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                                                    <input type="checkbox" id="is_riset_lapangan" name="is_riset_lapangan" value="1"
+                                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                                        @checked(old('is_riset_lapangan', $projek_rnd->is_riset_lapangan))
+                                                        {{ $projek_rnd->status === 'Selesai' || $projek_rnd->status === 'Tidak dilanjutkan' ? 'disabled' : '' }}>
+                                                    Ya, riset dilakukan ke lapangan
+                                                </label>
+                                                <p class="mt-1 text-xs text-gray-500">Jika aktif, proposal dan surat tugas riset lapangan dapat diupload melalui tombol di atas setelah disimpan.</p>
+                                                @if($projek_rnd->is_riset_lapangan)
+                                                    <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                                                        @if($projek_rnd->file_proposal_riset)
+                                                            <a href="{{ route('projek-rnd.downloadProposalRiset', $projek_rnd->id) }}" class="text-blue-600 hover:underline">Download proposal saat ini</a>
+                                                        @else
+                                                            <span class="text-gray-500">Proposal belum diupload</span>
+                                                        @endif
+                                                        <span class="text-gray-300">|</span>
+                                                        @if($projek_rnd->file_surat_tugas_riset)
+                                                            <a href="{{ route('projek-rnd.downloadSuratTugasRiset', $projek_rnd->id) }}" class="text-sky-600 hover:underline">Download surat tugas saat ini</a>
+                                                        @else
+                                                            <span class="text-gray-500">Surat tugas belum diupload</span>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+
                                         <div class="flex items-center">
                                             <label for="serial_number" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Serial Number
 
@@ -256,6 +291,92 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal Upload Proposal Riset --}}
+    {{-- <div id="upload-proposal-riset-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-full max-h-full" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-xl shadow-lg dark:bg-gray-700">
+                <button type="button" class="absolute top-3 end-3 text-gray-400 bg-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center" data-modal-hide="upload-proposal-riset-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+                <div class="p-6">
+                    <h3 class="mb-1 text-base font-semibold text-gray-800 text-center">Upload Proposal Riset</h3>
+                    <p class="mb-4 text-sm text-gray-500 text-center">Upload proposal riset lapangan <br><span class="font-medium text-gray-700">{{ $projek_rnd->kode_projek_rnd }}</span></p>
+
+                    @if($projek_rnd->file_proposal_riset)
+                    <div class="mb-4 flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-medium text-blue-700">Proposal tersedia</p>
+                            <a href="{{ route('projek-rnd.downloadProposalRiset', $projek_rnd->id) }}" class="text-xs text-blue-600 hover:underline truncate block">Download file saat ini</a>
+                        </div>
+                    </div>
+                    @endif
+
+                    <form action="{{ route('projek-rnd.uploadProposalRiset', $projek_rnd->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pilih File <sup class="text-red-500">*</sup></label>
+                            <input type="file" name="file_proposal_riset" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
+                                class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                            <p class="mt-1 text-xs text-gray-400">Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.</p>
+                            @error('file_proposal_riset')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button type="button" data-modal-hide="upload-proposal-riset-modal" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Batal</button>
+                            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Upload</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> --}}
+
+    {{-- Modal Upload Surat Tugas Riset --}}
+    {{-- <div id="upload-surat-tugas-riset-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-full max-h-full" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-xl shadow-lg dark:bg-gray-700">
+                <button type="button" class="absolute top-3 end-3 text-gray-400 bg-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center" data-modal-hide="upload-surat-tugas-riset-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+                <div class="p-6">
+                    <h3 class="mb-1 text-base font-semibold text-gray-800 text-center">Upload Surat Tugas Riset</h3>
+                    <p class="mb-4 text-sm text-gray-500 text-center">Upload surat tugas riset lapangan <br><span class="font-medium text-gray-700">{{ $projek_rnd->kode_projek_rnd }}</span></p>
+
+                    @if($projek_rnd->file_surat_tugas_riset)
+                    <div class="mb-4 flex items-center gap-2 p-3 bg-sky-50 border border-sky-200 rounded-lg">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-medium text-sky-700">Surat tugas tersedia</p>
+                            <a href="{{ route('projek-rnd.downloadSuratTugasRiset', $projek_rnd->id) }}" class="text-xs text-sky-600 hover:underline truncate block">Download file saat ini</a>
+                        </div>
+                    </div>
+                    @endif
+
+                    <form action="{{ route('projek-rnd.uploadSuratTugasRiset', $projek_rnd->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pilih File <sup class="text-red-500">*</sup></label>
+                            <input type="file" name="file_surat_tugas_riset" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
+                                class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-sky-600 file:text-white hover:file:bg-sky-700">
+                            <p class="mt-1 text-xs text-gray-400">Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.</p>
+                            @error('file_surat_tugas_riset')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button type="button" data-modal-hide="upload-surat-tugas-riset-modal" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Batal</button>
+                            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-lg hover:bg-sky-700">Upload</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> --}}
     <script>
         // Tombol Simpan biasa (untuk user tanpa permission selesai-projek-rnd)
         const saveButtonOnly = document.getElementById('saveButton');

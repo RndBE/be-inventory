@@ -24,6 +24,7 @@ use App\Models\BahanKeluarDetails;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Jobs\SendWhatsAppNotification;
 use App\Models\BahanSetengahjadiDetails;
@@ -124,13 +125,19 @@ class ProjekRndController extends Controller
                 // 'bahan_id' => $request->bahan_id,
                 'mulai_projek_rnd' => $request->mulai_projek_rnd,
                 'keterangan' => $request->keterangan,
-                'cartItems' => $cartItems
+                'cartItems' => $cartItems,
+                'is_riset_lapangan' => $request->boolean('is_riset_lapangan') ? 1 : 0,
+                'file_proposal_riset' => $request->file('file_proposal_riset'),
+                'file_surat_tugas_riset' => $request->file('file_surat_tugas_riset'),
             ], [
                 'nama_projek_rnd' => 'required',
                 // 'bahan_id' => 'required',
                 'mulai_projek_rnd' => 'required',
                 'keterangan' => 'required',
                 'cartItems' => 'required|array',
+                'is_riset_lapangan' => 'boolean',
+                'file_proposal_riset' => 'required_if:is_riset_lapangan,1|nullable|file|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png|max:10240',
+                'file_surat_tugas_riset' => 'required_if:is_riset_lapangan,1|nullable|file|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png|max:10240',
             ]);
             if ($validator->fails()) {
                 // Flash cart items ke session agar tidak hilang saat redirect back
@@ -188,6 +195,23 @@ class ProjekRndController extends Controller
                 $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
             }
 
+            $isRisetLapangan = $request->boolean('is_riset_lapangan');
+            $fileProposalRiset = null;
+            $fileSuratTugasRiset = null;
+
+            if ($isRisetLapangan) {
+                $fileProposalRiset = $this->storeRisetLapanganDocument(
+                    $request->file('file_proposal_riset'),
+                    'proposal-riset',
+                    'proposal_riset_' . $kode_projek_rnd
+                );
+                $fileSuratTugasRiset = $this->storeRisetLapanganDocument(
+                    $request->file('file_surat_tugas_riset'),
+                    'surat-tugas-riset',
+                    'surat_tugas_riset_' . $kode_projek_rnd
+                );
+            }
+
             $projek_rnd = ProjekRnd::create([
                 'kode_projek_rnd' => $kode_projek_rnd,
                 // 'bahan_id' => $request->bahan_id,
@@ -195,7 +219,10 @@ class ProjekRndController extends Controller
                 'pengaju' => $user->name,
                 'keterangan' => $request->keterangan,
                 'mulai_projek_rnd' => $request->mulai_projek_rnd,
-                'status' => 'Dalam Proses'
+                'status' => 'Dalam Proses',
+                'is_riset_lapangan' => $isRisetLapangan,
+                'file_proposal_riset' => $fileProposalRiset,
+                'file_surat_tugas_riset' => $fileSuratTugasRiset,
             ]);
 
             $bahan_keluar = BahanKeluar::create([
@@ -332,6 +359,7 @@ class ProjekRndController extends Controller
             'nama_projek_rnd' => 'required|string|max:255',
             'keterangan' => 'required|string|max:255', // Validasi keterangan
             'serial_number' => 'nullable|string|max:255',
+            'is_riset_lapangan' => 'nullable|boolean',
         ]);
         try {
             // dd($request->all());
@@ -354,6 +382,7 @@ class ProjekRndController extends Controller
                 'nama_projek_rnd' => $validatedData['nama_projek_rnd'],
                 'keterangan' => $validatedData['keterangan'],
                 'serial_number' => $validatedData['serial_number'],
+                'is_riset_lapangan' => $request->boolean('is_riset_lapangan'),
             ]);
 
             $tujuan = 'Proyek/Riset ' . $projek_rnd->nama_projek_rnd;
@@ -749,16 +778,112 @@ class ProjekRndController extends Controller
         }
     }
 
+    public function uploadProposalRiset(Request $request, $id)
+    {
+        return $this->uploadRisetLapanganDocument(
+            $request,
+            $id,
+            'file_proposal_riset',
+            'file_proposal_riset',
+            'proposal-riset',
+            'Proposal riset',
+            'proposal_riset'
+        );
+    }
+
+    public function uploadSuratTugasRiset(Request $request, $id)
+    {
+        return $this->uploadRisetLapanganDocument(
+            $request,
+            $id,
+            'file_surat_tugas_riset',
+            'file_surat_tugas_riset',
+            'surat-tugas-riset',
+            'Surat tugas riset',
+            'surat_tugas_riset'
+        );
+    }
+
+    public function downloadProposalRiset($id)
+    {
+        return $this->downloadRisetLapanganDocument($id, 'file_proposal_riset', 'Proposal riset');
+    }
+
+    public function downloadSuratTugasRiset($id)
+    {
+        return $this->downloadRisetLapanganDocument($id, 'file_surat_tugas_riset', 'Surat tugas riset');
+    }
+
+    private function uploadRisetLapanganDocument(Request $request, $id, string $inputName, string $columnName, string $directory, string $label, string $filePrefix)
+    {
+        try {
+            $request->validate([
+                $inputName => 'required|file|mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png|max:10240',
+            ], [
+                $inputName . '.required' => $label . ' wajib dipilih.',
+                $inputName . '.mimes' => 'Format file harus PDF, Excel, Word, atau gambar (JPG/PNG).',
+                $inputName . '.max' => 'Ukuran file maksimal 10 MB.',
+            ]);
+
+            $projek_rnd = ProjekRnd::findOrFail($id);
+            if (!$projek_rnd->is_riset_lapangan) {
+                return redirect()->back()->with('error', $label . ' hanya dapat diupload untuk riset lapangan.');
+            }
+
+            if ($projek_rnd->{$columnName} && Storage::disk('public')->exists($projek_rnd->{$columnName})) {
+                Storage::disk('public')->delete($projek_rnd->{$columnName});
+            }
+
+            $filePath = $this->storeRisetLapanganDocument(
+                $request->file($inputName),
+                $directory,
+                $filePrefix . '_' . $projek_rnd->kode_projek_rnd
+            );
+
+            $projek_rnd->update([$columnName => $filePath]);
+
+            LogHelper::success('Berhasil mengupload ' . strtolower($label) . ' Projek RnD!');
+            return redirect()->back()->with('success', $label . ' berhasil diupload.');
+        } catch (\Exception $e) {
+            LogHelper::error($e->getMessage());
+            return redirect()->back()->with('error', 'Gagal mengupload file: ' . $e->getMessage());
+        }
+    }
+
+    private function downloadRisetLapanganDocument($id, string $columnName, string $label)
+    {
+        try {
+            $projek_rnd = ProjekRnd::findOrFail($id);
+
+            if (!$projek_rnd->{$columnName} || !Storage::disk('public')->exists($projek_rnd->{$columnName})) {
+                return redirect()->back()->with('error', $label . ' tidak ditemukan.');
+            }
+
+            return Storage::disk('public')->download($projek_rnd->{$columnName});
+        } catch (\Exception $e) {
+            LogHelper::error($e->getMessage());
+            return redirect()->back()->with('error', 'Gagal mengunduh file: ' . $e->getMessage());
+        }
+    }
+
+    private function storeRisetLapanganDocument($file, string $directory, string $filePrefix): string
+    {
+        $safePrefix = str_replace([' ', '/', '\\'], '_', $filePrefix);
+        $fileName = $safePrefix . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+        return $file->storeAs($directory, $fileName, 'public');
+    }
+
     public function downloadLaporan($id)
     {
         try {
             $projek_rnd = ProjekRnd::findOrFail($id);
 
-            if (!$projek_rnd->file_laporan || !\Illuminate\Support\Facades\Storage::disk('public')->exists($projek_rnd->file_laporan)) {
+            if (!$projek_rnd->file_laporan || !Storage::disk('public')->exists($projek_rnd->file_laporan)) {
                 return redirect()->back()->with('error', 'File laporan tidak ditemukan.');
             }
 
-            return \Illuminate\Support\Facades\Storage::disk('public')->download($projek_rnd->file_laporan);
+            return Storage::disk('public')->download($projek_rnd->file_laporan);
         } catch (\Exception $e) {
             LogHelper::error($e->getMessage());
             return redirect()->back()->with('error', 'Gagal mengunduh file: ' . $e->getMessage());

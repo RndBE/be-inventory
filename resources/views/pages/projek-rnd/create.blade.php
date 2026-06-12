@@ -149,7 +149,7 @@
                                                 </label>
                                                 <div class="w-3/4">
                                                     <input type="file" name="file_proposal_riset" id="file_proposal_riset" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
-                                                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                                                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer file:cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
                                                     <p class="mt-1 text-xs text-gray-400">Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.</p>
                                                     @error('file_proposal_riset')
                                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
@@ -163,7 +163,7 @@
                                                 </label>
                                                 <div class="w-3/4">
                                                     <input type="file" name="file_surat_tugas_riset" id="file_surat_tugas_riset" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
-                                                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                                                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer file:cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
                                                     <p class="mt-1 text-xs text-gray-400">Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.</p>
                                                     @error('file_surat_tugas_riset')
                                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>

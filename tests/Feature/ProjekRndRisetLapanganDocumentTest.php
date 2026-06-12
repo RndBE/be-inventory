@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Controllers\ProjekRndController;
+use App\Models\User;
 use App\Models\ProjekRnd;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
@@ -50,6 +51,28 @@ class ProjekRndRisetLapanganDocumentTest extends TestCase
             $table->text('message')->nullable();
             $table->timestamps();
         });
+
+        Schema::create('job_position', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama');
+            $table->timestamps();
+        });
+
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->unsignedBigInteger('job_position_id')->nullable();
+            $table->integer('job_level')->nullable();
+            $table->string('telephone')->nullable();
+            $table->unsignedBigInteger('atasan_level1_id')->nullable();
+            $table->unsignedBigInteger('atasan_level2_id')->nullable();
+            $table->unsignedBigInteger('atasan_level3_id')->nullable();
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
     }
 
     public function test_upload_proposal_riset_lapangan_updates_project_document_path(): void
@@ -91,6 +114,96 @@ class ProjekRndRisetLapanganDocumentTest extends TestCase
         $projekRnd->refresh();
 
         $this->assertNotNull($projekRnd->file_surat_tugas_riset);
+        Storage::disk('public')->assertExists($projekRnd->file_surat_tugas_riset);
+    }
+
+    public function test_edit_internal_project_to_riset_lapangan_stores_uploaded_documents(): void
+    {
+        Storage::fake('public');
+        $user = User::create([
+            'name' => 'RND User',
+            'email' => 'rnd@example.com',
+            'password' => 'secret',
+            'job_level' => 3,
+        ]);
+        $this->actingAs($user);
+
+        $projekRnd = ProjekRnd::create([
+            'kode_projek_rnd' => 'PJRnD - 00002',
+            'mulai_projek_rnd' => now(),
+            'nama_projek_rnd' => 'Riset Internal Produk',
+            'keterangan' => 'Awalnya internal',
+            'status' => 'Dalam Proses',
+            'is_riset_lapangan' => false,
+        ]);
+
+        $request = Request::create(
+            '/projek-rnd/' . $projekRnd->id,
+            'PUT',
+            [
+                'nama_projek_rnd' => 'Riset Internal Produk',
+                'keterangan' => 'Diubah menjadi riset lapangan',
+                'serial_number' => null,
+                'is_riset_lapangan' => '1',
+            ],
+            [],
+            [
+                'file_proposal_riset' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+                'file_surat_tugas_riset' => UploadedFile::fake()->create('surat-tugas.pdf', 100, 'application/pdf'),
+            ]
+        );
+
+        app(ProjekRndController::class)->update($request, $projekRnd->id);
+
+        $projekRnd->refresh();
+
+        $this->assertTrue((bool) $projekRnd->is_riset_lapangan);
+        $this->assertNotNull($projekRnd->file_proposal_riset);
+        $this->assertNotNull($projekRnd->file_surat_tugas_riset);
+        Storage::disk('public')->assertExists($projekRnd->file_proposal_riset);
+        Storage::disk('public')->assertExists($projekRnd->file_surat_tugas_riset);
+    }
+
+    public function test_edit_riset_lapangan_with_existing_documents_does_not_require_reupload(): void
+    {
+        Storage::fake('public');
+        $user = User::create([
+            'name' => 'RND User',
+            'email' => 'rnd-existing@example.com',
+            'password' => 'secret',
+            'job_level' => 3,
+        ]);
+        $this->actingAs($user);
+
+        Storage::disk('public')->put('proposal-riset/existing-proposal.pdf', 'proposal');
+        Storage::disk('public')->put('surat-tugas-riset/existing-surat.pdf', 'surat tugas');
+
+        $projekRnd = ProjekRnd::create([
+            'kode_projek_rnd' => 'PJRnD - 00003',
+            'mulai_projek_rnd' => now(),
+            'nama_projek_rnd' => 'Riset Lapangan Produk',
+            'keterangan' => 'Sudah punya dokumen',
+            'status' => 'Dalam Proses',
+            'is_riset_lapangan' => true,
+            'file_proposal_riset' => 'proposal-riset/existing-proposal.pdf',
+            'file_surat_tugas_riset' => 'surat-tugas-riset/existing-surat.pdf',
+        ]);
+
+        $request = Request::create('/projek-rnd/' . $projekRnd->id, 'PUT', [
+            'nama_projek_rnd' => 'Riset Lapangan Produk Revisi',
+            'keterangan' => 'Dokumen lama tetap dipakai',
+            'serial_number' => null,
+            'is_riset_lapangan' => '1',
+        ]);
+
+        app(ProjekRndController::class)->update($request, $projekRnd->id);
+
+        $projekRnd->refresh();
+
+        $this->assertTrue((bool) $projekRnd->is_riset_lapangan);
+        $this->assertSame('proposal-riset/existing-proposal.pdf', $projekRnd->file_proposal_riset);
+        $this->assertSame('surat-tugas-riset/existing-surat.pdf', $projekRnd->file_surat_tugas_riset);
+        Storage::disk('public')->assertExists($projekRnd->file_proposal_riset);
         Storage::disk('public')->assertExists($projekRnd->file_surat_tugas_riset);
     }
 

@@ -181,7 +181,7 @@
                                                         {{ $projek_rnd->status === 'Selesai' || $projek_rnd->status === 'Tidak dilanjutkan' ? 'disabled' : '' }}>
                                                     Ya, riset dilakukan ke lapangan
                                                 </label>
-                                                <p class="mt-1 text-xs text-gray-500">Jika aktif, proposal dan surat tugas riset lapangan dapat diupload melalui tombol di atas setelah disimpan.</p>
+                                                <p class="mt-1 text-xs text-gray-500">Jika aktif, upload proposal dan surat tugas riset lapangan akan muncul di bawah.</p>
                                                 @if($projek_rnd->is_riset_lapangan)
                                                     <div class="mt-2 flex flex-wrap gap-2 text-xs">
                                                         @if($projek_rnd->file_proposal_riset)
@@ -197,6 +197,54 @@
                                                         @endif
                                                     </div>
                                                 @endif
+                                            </div>
+                                        </div>
+
+                                        <div id="dokumen-riset-lapangan-edit" class="hidden space-y-3">
+                                            <div class="flex items-center">
+                                                <label for="file_proposal_riset" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                                    Proposal Riset
+                                                    @if(!$projek_rnd->file_proposal_riset)
+                                                        <sup class="text-red-500 text-base">*</sup>
+                                                    @endif
+                                                </label>
+                                                <div class="w-3/4">
+                                                    @if($projek_rnd->file_proposal_riset)
+                                                        <div class="mb-2 text-xs">
+                                                            <span class="text-gray-500">File saat ini:</span>
+                                                            <a href="{{ route('projek-rnd.downloadProposalRiset', $projek_rnd->id) }}" class="text-blue-600 hover:underline">Download proposal</a>
+                                                        </div>
+                                                    @endif
+                                                    <input type="file" name="file_proposal_riset" id="file_proposal_riset" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
+                                                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer file:cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                                                    <p class="mt-1 text-xs text-gray-400">{{ $projek_rnd->file_proposal_riset ? 'Kosongkan jika tidak ingin mengganti file.' : 'Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.' }}</p>
+                                                    @error('file_proposal_riset')
+                                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center">
+                                                <label for="file_surat_tugas_riset" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                                    Surat Tugas Riset
+                                                    @if(!$projek_rnd->file_surat_tugas_riset)
+                                                        <sup class="text-red-500 text-base">*</sup>
+                                                    @endif
+                                                </label>
+                                                <div class="w-3/4">
+                                                    @if($projek_rnd->file_surat_tugas_riset)
+                                                        <div class="mb-2 text-xs">
+                                                            <span class="text-gray-500">File saat ini:</span>
+                                                            <a href="{{ route('projek-rnd.downloadSuratTugasRiset', $projek_rnd->id) }}" class="text-sky-600 hover:underline">Download surat tugas</a>
+                                                        </div>
+                                                    @endif
+                                                    <input type="file" name="file_surat_tugas_riset" id="file_surat_tugas_riset" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
+                                                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer file:cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                                                    <p class="mt-1 text-xs text-gray-400">{{ $projek_rnd->file_surat_tugas_riset ? 'Kosongkan jika tidak ingin mengganti file.' : 'Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.' }}</p>
+                                                    @error('file_surat_tugas_riset')
+                                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
                                             </div>
                                         </div>
 
@@ -270,7 +318,7 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Pilih File <sup class="text-red-500">*</sup></label>
                             <input type="file" name="file_laporan" id="file_laporan" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
-                                class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-600 file:text-white hover:file:bg-yellow-700">
+                                class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer file:cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-600 file:text-white hover:file:bg-yellow-700">
                             <p class="mt-1 text-xs text-gray-400">Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.</p>
                             @error('file_laporan')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -319,7 +367,7 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Pilih File <sup class="text-red-500">*</sup></label>
                             <input type="file" name="file_proposal_riset" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
-                                class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                                class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer file:cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700">
                             <p class="mt-1 text-xs text-gray-400">Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.</p>
                             @error('file_proposal_riset')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -362,7 +410,7 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Pilih File <sup class="text-red-500">*</sup></label>
                             <input type="file" name="file_surat_tugas_riset" accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
-                                class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-sky-600 file:text-white hover:file:bg-sky-700">
+                                class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer file:cursor-pointer bg-gray-50 focus:outline-none file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-sky-600 file:text-white hover:file:bg-sky-700">
                             <p class="mt-1 text-xs text-gray-400">Format: PDF, Excel, Word, JPG, PNG. Maks. 10 MB.</p>
                             @error('file_surat_tugas_riset')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -444,6 +492,34 @@
                 dateFormat: "Y-m-d H:i:S",
                 time_24hr: true // Menggunakan format 24 jam
             });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const risetLapanganCheckbox = document.getElementById('is_riset_lapangan');
+            const dokumenRisetLapangan = document.getElementById('dokumen-riset-lapangan-edit');
+            const fileProposalRiset = document.getElementById('file_proposal_riset');
+            const fileSuratTugasRiset = document.getElementById('file_surat_tugas_riset');
+            const hasProposalRiset = @json((bool) $projek_rnd->file_proposal_riset);
+            const hasSuratTugasRiset = @json((bool) $projek_rnd->file_surat_tugas_riset);
+
+            if (!risetLapanganCheckbox || !dokumenRisetLapangan) return;
+
+            function toggleDokumenRisetLapangan() {
+                const isLapangan = risetLapanganCheckbox.checked;
+                dokumenRisetLapangan.classList.toggle('hidden', !isLapangan);
+
+                if (fileProposalRiset) {
+                    fileProposalRiset.required = isLapangan && !hasProposalRiset;
+                }
+
+                if (fileSuratTugasRiset) {
+                    fileSuratTugasRiset.required = isLapangan && !hasSuratTugasRiset;
+                }
+            }
+
+            risetLapanganCheckbox.addEventListener('change', toggleDokumenRisetLapangan);
+            toggleDokumenRisetLapangan();
         });
     </script>
     <script>

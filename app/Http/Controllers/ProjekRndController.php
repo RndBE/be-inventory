@@ -30,6 +30,7 @@ use App\Jobs\SendWhatsAppNotification;
 use App\Models\BahanSetengahjadiDetails;
 use App\Models\Projek;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class ProjekRndController extends Controller
 {
@@ -355,19 +356,64 @@ class ProjekRndController extends Controller
 
     public function update(Request $request, $id)
     {
-        $validatedData = $request->validate([
-            'nama_projek_rnd' => 'required|string|max:255',
-            'keterangan' => 'required|string|max:255', // Validasi keterangan
-            'serial_number' => 'nullable|string|max:255',
-            'is_riset_lapangan' => 'nullable|boolean',
-        ]);
         try {
             // dd($request->all());
             // $projekRndDetails = json_decode($request->projekRndDetails, true) ?? [];
             $bahanRusak = json_decode($request->bahanRusak, true) ?? [];
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $projek_rnd = ProjekRnd::findOrFail($id);
+            $validatedData = $request->validate([
+                'nama_projek_rnd' => 'required|string|max:255',
+                'keterangan' => 'required|string|max:255', // Validasi keterangan
+                'serial_number' => 'nullable|string|max:255',
+                'is_riset_lapangan' => 'nullable|boolean',
+                'file_proposal_riset' => [
+                    Rule::requiredIf(fn () => $request->boolean('is_riset_lapangan') && !$projek_rnd->file_proposal_riset),
+                    'nullable',
+                    'file',
+                    'mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png',
+                    'max:10240',
+                ],
+                'file_surat_tugas_riset' => [
+                    Rule::requiredIf(fn () => $request->boolean('is_riset_lapangan') && !$projek_rnd->file_surat_tugas_riset),
+                    'nullable',
+                    'file',
+                    'mimes:pdf,xlsx,xls,doc,docx,jpg,jpeg,png',
+                    'max:10240',
+                ],
+            ]);
             // dd($request->projekRndDetails);
+
+            $updateData = [
+                'nama_projek_rnd' => $validatedData['nama_projek_rnd'],
+                'keterangan' => $validatedData['keterangan'],
+                'serial_number' => $validatedData['serial_number'],
+                'is_riset_lapangan' => $request->boolean('is_riset_lapangan'),
+            ];
+
+            if ($request->hasFile('file_proposal_riset')) {
+                if ($projek_rnd->file_proposal_riset && Storage::disk('public')->exists($projek_rnd->file_proposal_riset)) {
+                    Storage::disk('public')->delete($projek_rnd->file_proposal_riset);
+                }
+
+                $updateData['file_proposal_riset'] = $this->storeRisetLapanganDocument(
+                    $request->file('file_proposal_riset'),
+                    'proposal-riset',
+                    'proposal_riset_' . $projek_rnd->kode_projek_rnd
+                );
+            }
+
+            if ($request->hasFile('file_surat_tugas_riset')) {
+                if ($projek_rnd->file_surat_tugas_riset && Storage::disk('public')->exists($projek_rnd->file_surat_tugas_riset)) {
+                    Storage::disk('public')->delete($projek_rnd->file_surat_tugas_riset);
+                }
+
+                $updateData['file_surat_tugas_riset'] = $this->storeRisetLapanganDocument(
+                    $request->file('file_surat_tugas_riset'),
+                    'surat-tugas-riset',
+                    'surat_tugas_riset_' . $projek_rnd->kode_projek_rnd
+                );
+            }
 
             $projeckRndDetails = $request->projekRndDetails;
             if (is_array($projeckRndDetails)) {
@@ -378,12 +424,7 @@ class ProjekRndController extends Controller
                 $projekRndDetails = [];
             }
             // dd($projekRndDetails);
-            $projek_rnd->update([
-                'nama_projek_rnd' => $validatedData['nama_projek_rnd'],
-                'keterangan' => $validatedData['keterangan'],
-                'serial_number' => $validatedData['serial_number'],
-                'is_riset_lapangan' => $request->boolean('is_riset_lapangan'),
-            ]);
+            $projek_rnd->update($updateData);
 
             $tujuan = 'Proyek/Riset ' . $projek_rnd->nama_projek_rnd;
             $user = Auth::user();

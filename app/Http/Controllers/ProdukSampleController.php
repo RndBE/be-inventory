@@ -31,6 +31,7 @@ use App\Models\BahanSetengahjadi;
 use App\Models\BahanKeluarDetails;
 use App\Models\ProduksiProdukJadi;
 use App\Models\ProdukJadi;
+use App\Models\ProdukJadis;
 use App\Models\QcProdukJadiList;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;

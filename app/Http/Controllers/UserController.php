@@ -118,13 +118,15 @@ class UserController extends Controller
         $organizations = Organization::orderBy('nama', 'asc')->get();
         $roles = Role::pluck('name', 'name')->all();
         $userRoles = $user->roles->pluck('name', 'name')->all();
+        $pengajuanViewableUserIds = $user->pengajuanViewableUsers()->pluck('users.id')->all();
         return view('pages.user.edit', [
             'users' => $users,
             'jobpositions' => $jobpositions,
             'organizations' => $organizations,
             'user' => $user,
             'roles' => $roles,
-            'userRoles' => $userRoles
+            'userRoles' => $userRoles,
+            'pengajuanViewableUserIds' => $pengajuanViewableUserIds,
         ]);
     }
 
@@ -145,6 +147,8 @@ class UserController extends Controller
                 'atasan_level3_id' => 'nullable|exists:users,id',
                 'tanda_tangan' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
                 'status' => 'required|in:Aktif,Non-Aktif',
+                'pengajuan_viewable_users' => 'nullable|array',
+                'pengajuan_viewable_users.*' => 'exists:users,id',
             ]);
 
             // Handle file upload for tanda_tangan
@@ -195,6 +199,14 @@ class UserController extends Controller
             }
 
             $user->syncRoles($validated['roles']);
+
+            // Sinkronkan daftar user yang pengajuannya boleh dilihat oleh user ini
+            // (tidak termasuk dirinya sendiri — pengajuan sendiri selalu terlihat).
+            $viewableIds = collect($validated['pengajuan_viewable_users'] ?? [])
+                ->reject(fn ($id) => (int) $id === (int) $user->id)
+                ->values()
+                ->all();
+            $user->pengajuanViewableUsers()->sync($viewableIds);
 
             return redirect()->route('users.index')->with('success', 'User updated successfully with roles!');
         } catch (\Throwable $e) {

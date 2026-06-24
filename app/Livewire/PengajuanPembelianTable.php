@@ -383,8 +383,20 @@ class PengajuanPembelianTable extends Component
             'general_affair',
         ];
 
-        if (!$user->hasAnyRole($rolesCanSeeAll)) {
-            $pembelian_bahan->where('pengaju', $user->id);
+        // Bisa lihat semua pengajuan jika punya role di atas, ATAU punya permission
+        // 'lihat-semua-pengajuan-pembelian' (bisa di-assign langsung ke user tertentu).
+        $canSeeAll = $user->hasAnyRole($rolesCanSeeAll)
+            || $user->can('lihat-semua-pengajuan-pembelian');
+
+        if (!$canSeeAll) {
+            // Selalu boleh lihat pengajuan sendiri, ditambah pengajuan milik user
+            // tertentu yang diatur lewat halaman Edit User (orang tertentu saja).
+            $allowedPengaju = $user->pengajuanViewableUsers()
+                ->pluck('users.id')
+                ->push($user->id)
+                ->all();
+
+            $pembelian_bahan->whereIn('pengaju', $allowedPengaju);
         }
 
         // Filter berdasarkan divisi

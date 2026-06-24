@@ -82,4 +82,12 @@ class User extends Authenticatable
     {
         return $this->belongsTo(JobPosition::class, 'job_position_id');
     }
+
+    /**
+     * User-user yang pengajuan pembeliannya boleh dilihat oleh user ini.
+     */
+    public function pengajuanViewableUsers()
+    {
+        return $this->belongsToMany(User::class, 'pengajuan_pembelian_viewers', 'viewer_id', 'target_id');
+    }
 }

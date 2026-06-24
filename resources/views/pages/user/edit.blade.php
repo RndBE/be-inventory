@@ -179,6 +179,26 @@
                         @enderror
                     </div>
                     <div class="mb-3">
+                        <label class="block mb-1 font-medium text-sm text-gray-700">Boleh Lihat Pengajuan Pembelian Dari</label>
+                        <p class="text-xs text-gray-500 mb-2">Centang user yang pengajuan pembeliannya boleh dilihat user ini. Pengajuan miliknya sendiri selalu terlihat. (Diabaikan jika user sudah punya akses lihat semua.)</p>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md p-3">
+                            @foreach($users as $potentialTarget)
+                                @if($potentialTarget->id !== $user->id)
+                                    <label class="inline-flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            name="pengajuan_viewable_users[]"
+                                            value="{{ $potentialTarget->id }}"
+                                            {{ in_array($potentialTarget->id, old('pengajuan_viewable_users', $pengajuanViewableUserIds)) ? 'checked' : '' }}
+                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                        >
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ $potentialTarget->name }}</span>
+                                    </label>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="mb-3">
                         <label for="tanda_tangan" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Tanda Tangan</label>
                         <div class="mt-2">
                             @if ($user->tanda_tangan)

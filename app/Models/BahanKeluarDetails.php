@@ -16,6 +16,7 @@ class BahanKeluarDetails extends Model
         'bahan_keluar_id',
         'bahan_id',
         'produk_id',
+        'produk_jadis_id',
         'serial_number',
         'qty',
         'jml_bahan',

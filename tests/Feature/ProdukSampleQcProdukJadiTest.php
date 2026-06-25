@@ -222,6 +222,14 @@ class ProdukSampleQcProdukJadiTest extends TestCase
         Schema::create('bahan_keluar_details', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('bahan_keluar_id');
+            $table->unsignedBigInteger('bahan_id')->nullable();
+            $table->unsignedBigInteger('produk_id')->nullable();
+            $table->unsignedBigInteger('produk_jadis_id')->nullable();
+            $table->string('serial_number')->nullable();
+            $table->decimal('qty', 15, 2)->default(0)->nullable();
+            $table->decimal('jml_bahan', 15, 2)->default(0)->nullable();
+            $table->decimal('used_materials', 15, 2)->default(0)->nullable();
+            $table->text('details')->nullable();
             $table->decimal('sub_total', 15, 2)->default(0);
             $table->timestamps();
         });
@@ -238,6 +246,31 @@ class ProdukSampleQcProdukJadiTest extends TestCase
             $table->text('message')->nullable();
             $table->timestamps();
         });
+    }
+
+    public function test_bahan_keluar_detail_keeps_produk_jadi_detail_id_for_sample_origin_stock(): void
+    {
+        $bahanKeluar = BahanKeluar::create([
+            'kode_transaksi' => 'KBK - 00010 PJPro',
+            'status' => 'Belum disetujui',
+        ]);
+
+        $detail = BahanKeluarDetails::create([
+            'bahan_keluar_id' => $bahanKeluar->id,
+            'bahan_id' => null,
+            'produk_id' => null,
+            'produk_jadis_id' => 42,
+            'serial_number' => 'SAMPLE-JADI-001',
+            'qty' => 1,
+            'jml_bahan' => 1,
+            'used_materials' => 0,
+            'details' => json_encode([
+                ['qty' => 1, 'unit_price' => 175000, 'serial_number' => 'SAMPLE-JADI-001'],
+            ]),
+            'sub_total' => 175000,
+        ]);
+
+        $this->assertSame(42, $detail->refresh()->produk_jadis_id);
     }
 
     public function test_finished_produk_sample_creates_produk_jadi_and_is_sent_to_produksi_produk_jadi(): void

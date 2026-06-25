@@ -38,7 +38,7 @@ class ProduksiController extends Controller
     public function __construct()
     {
         $this->middleware('permission:lihat-proses-produksi', ['only' => ['index']]);
-        $this->middleware('permission:selesai-proses-produksi', ['only' => ['updateStatus']]);
+        $this->middleware('permission:selesai-proses-produksi', ['only' => ['updateStatus', 'keluarkanSebagian']]);
         $this->middleware('permission:tambah-proses-produksi', ['only' => ['create','store']]);
         $this->middleware('permission:edit-proses-produksi', ['only' => ['update','edit']]);
         $this->middleware('permission:hapus-proses-produksi', ['only' => ['destroy']]);
@@ -56,6 +56,9 @@ class ProduksiController extends Controller
     {
         $produksi = Produksi::with([
             'dataBahan',
+            'qcSetengahJadiList' => function ($query) {
+                $query->orderBy('created_at', 'asc');
+            },
             'bahanKeluar',
             'bahanKeluar.dataUser',
             'bahanKeluar.bahanKeluarDetails' => function ($query) {
@@ -629,6 +632,32 @@ class ProduksiController extends Controller
         }catch(Throwable $e){
             LogHelper::error($e->getMessage());
             return view('pages.utility.404');
+        }
+    }
+
+    // Buka produksi yang masih berjalan agar unit yang sudah jadi bisa dikeluarkan
+    // ke QC secara bertahap, tanpa harus menunggu seluruh jumlah produksi selesai.
+    public function keluarkanSebagian($id)
+    {
+        try {
+            $produksi = Produksi::findOrFail($id);
+
+            if ($produksi->status === 'Selesai') {
+                return redirect()->back()->with('error', 'Produksi sudah selesai, tidak perlu dikeluarkan sebagian.');
+            }
+
+            if (empty($produksi->kode_produksi)) {
+                return redirect()->back()->with('error', 'Kode produksi belum ada. Lengkapi produksi terlebih dahulu.');
+            }
+
+            $produksi->status = 'Sebagian';
+            $produksi->save();
+
+            LogHelper::success('Produksi dibuka untuk pengeluaran bertahap (Sebagian)!');
+            return redirect()->back()->with('success', 'Produksi siap dikeluarkan sebagian. Silakan proses unit yang sudah jadi di QC Produk Setengah Jadi.');
+        } catch (Throwable $e) {
+            LogHelper::error($e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 

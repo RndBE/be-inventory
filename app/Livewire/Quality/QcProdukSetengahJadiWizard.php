@@ -34,7 +34,9 @@ class QcProdukSetengahJadiWizard extends Component
 
     public function mount()
     {
-        $this->produksiList = Produksi::where('status', 'Selesai')->get();
+        // Produksi yang sudah "Selesai" atau dibuka untuk pengeluaran bertahap ("Sebagian")
+        // boleh diproses di QC, sehingga unit yang sudah jadi bisa dikeluarkan duluan.
+        $this->produksiList = Produksi::whereIn('status', ['Sebagian', 'Selesai'])->get();
     }
 
     public function getFilteredProduksiSetengahJadiListProperty()
@@ -184,6 +186,19 @@ class QcProdukSetengahJadiWizard extends Component
                 ]);
 
                 $existingKodeList[] = $produk['kode_list'];
+            }
+
+            // Perbarui status produksi sesuai progres pengeluaran ke QC.
+            // Semua unit sudah masuk QC -> "Selesai". Sebagian -> tetap "Sebagian".
+            // Produksi yang sudah ditandai "Selesai" manual tidak diturunkan.
+            $totalDikeluarkan = QcProdukSetengahJadiList::where('produksi_id', $produksi->id)->count();
+            if ($totalDikeluarkan >= $produksi->jml_produksi) {
+                $produksi->update([
+                    'status' => 'Selesai',
+                    'selesai_produksi' => $produksi->selesai_produksi ?? now('Asia/Jakarta'),
+                ]);
+            } elseif ($produksi->status !== 'Selesai') {
+                $produksi->update(['status' => 'Sebagian']);
             }
 
             DB::commit();

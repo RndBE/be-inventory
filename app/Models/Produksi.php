@@ -17,6 +17,11 @@ class Produksi extends Model
         return $this->hasMany(ProduksiDetails::class, 'produksi_id', 'id');
     }
 
+    public function qcSetengahJadiList()
+    {
+        return $this->hasMany(QcProdukSetengahJadiList::class, 'produksi_id', 'id');
+    }
+
     public function bahanKeluar()
     {
         return $this->hasMany(BahanKeluar::class, 'produksi_id', 'id');

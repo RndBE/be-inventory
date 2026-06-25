@@ -179,6 +179,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
 
     Route::resource('produksis', ProduksiController::class);
     Route::put('produksis/{produksi}/selesai', [ProduksiController::class, 'updateStatus'])->name('produksis.updateStatus');
+    Route::put('produksis/{produksi}/keluarkan-sebagian', [ProduksiController::class, 'keluarkanSebagian'])->name('produksis.keluarkanSebagian');
     Route::get('produksis-export/{produksi_id}', [ProduksiController::class, 'export'])->name('produksis.export');
     Route::get('produksis/{produksi}/info', [ProduksiController::class, 'info'])->name('produksis.info');
 

@@ -58,6 +58,65 @@
 
 
         </div>
+
+        @php
+            $qcUnits = $produksi->qcSetengahJadiList ?? collect();
+            $totalKeluar = $qcUnits->count();
+            $totalGudang = $qcUnits->whereNotNull('tanggal_masuk_gudang')->count();
+        @endphp
+        <div class="bg-white shadow rounded-lg p-6 mb-6 border">
+            <div class="flex flex-wrap justify-between items-center border-b pb-3 gap-3">
+                <h2 class="text-lg font-bold text-gray-800">Rekap Pengeluaran ke QC</h2>
+                <div class="text-sm text-gray-600">
+                    <span class="font-semibold">{{ $totalKeluar }}</span>/{{ $produksi->jml_produksi }} unit dikeluarkan
+                    &middot; <span class="font-semibold">{{ $totalGudang }}</span> sudah masuk gudang
+                </div>
+            </div>
+
+            <div class="mt-4 overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100 text-gray-700">
+                        <tr>
+                            <th class="px-3 py-2 border text-left">No</th>
+                            <th class="px-3 py-2 border text-left">Kode List</th>
+                            <th class="px-3 py-2 border text-left">Serial Number</th>
+                            <th class="px-3 py-2 border text-center">Qty</th>
+                            <th class="px-3 py-2 border text-center">Tgl Dikeluarkan ke QC</th>
+                            <th class="px-3 py-2 border text-center">Tgl Masuk Gudang</th>
+                            <th class="px-3 py-2 border text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($qcUnits as $i => $unit)
+                            <tr>
+                                <td class="px-3 py-2 border">{{ $i + 1 }}</td>
+                                <td class="px-3 py-2 border">{{ $unit->kode_list ?? '-' }}</td>
+                                <td class="px-3 py-2 border">{{ $unit->serial_number ?? '-' }}</td>
+                                <td class="px-3 py-2 border text-center">{{ $unit->qty }}</td>
+                                <td class="px-3 py-2 border text-center">
+                                    {{ $unit->created_at ? \Carbon\Carbon::parse($unit->created_at)->translatedFormat('d F Y') : '-' }}
+                                </td>
+                                <td class="px-3 py-2 border text-center">
+                                    {{ $unit->tanggal_masuk_gudang ? \Carbon\Carbon::parse($unit->tanggal_masuk_gudang)->translatedFormat('d F Y H:i') : '-' }}
+                                </td>
+                                <td class="px-3 py-2 border text-center">
+                                    @if($unit->tanggal_masuk_gudang)
+                                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded border border-green-400">Masuk Gudang</span>
+                                    @else
+                                        <span class="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded border border-amber-400">Di QC</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-3 py-4 border text-center text-gray-500">Belum ada unit yang dikeluarkan ke QC</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="bg-white shadow rounded-lg p-6 border">
             <div class="flex flex-wrap justify-between items-center border-b pb-3 gap-3">
                 <h2 class="text-lg font-bold text-gray-800">Detail Bahan Keluar</h2>

@@ -32,7 +32,9 @@ class ProduksiTable extends Component
 
     public function render()
     {
-        $produksis = Produksi::with(['produksiDetails', 'bahanKeluar'])->orderBy('id', 'desc')
+        $produksis = Produksi::with(['produksiDetails', 'bahanKeluar'])
+        ->withCount('qcSetengahJadiList')
+        ->orderBy('id', 'desc')
         ->where(function ($query) {
             $query->where('mulai_produksi', 'like', '%' . $this->search . '%')
                 ->orWhere('selesai_produksi', 'like', '%' . $this->search . '%')

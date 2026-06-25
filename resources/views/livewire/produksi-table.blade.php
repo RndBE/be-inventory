@@ -110,7 +110,19 @@
                         {{-- <td class="px-6 py-3">{{ $produksi->jenis_produksi }}</td> --}}
                         <td class="px-6 py-3"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $produksi->jml_produksi }}</span></td>
                         {{-- <td class="px-6 py-3">{{ $produksi->produksiDetails->sum('qty') }}</td> --}}
-                        <td class="px-6 py-3">{{ $produksi->status }}</td>
+                        <td class="px-6 py-3">
+                            @php
+                                $statusClass = match($produksi->status) {
+                                    'Selesai' => 'bg-blue-100 text-blue-800 border border-blue-400 dark:bg-gray-700 dark:text-blue-400',
+                                    'Sebagian' => 'bg-amber-100 text-amber-800 border border-amber-400 dark:bg-gray-700 dark:text-amber-400',
+                                    default => 'bg-gray-100 text-gray-800 border border-gray-400 dark:bg-gray-700 dark:text-gray-300',
+                                };
+                            @endphp
+                            <span class="text-xs font-medium px-2.5 py-0.5 rounded {{ $statusClass }}">{{ $produksi->status }}</span>
+                            @if(in_array($produksi->status, ['Sebagian', 'Selesai']))
+                                <div class="text-xs text-gray-500 mt-1">{{ $produksi->qc_setengah_jadi_list_count }}/{{ $produksi->jml_produksi }} dikeluarkan ke QC</div>
+                            @endif
+                        </td>
                         {{-- <td class="px-6 py-3">Rp {{ number_format($produksi->produksiDetails->sum('sub_total'), 2, ',', '.') }}</td> --}}
                         <td class="px-6 py-4">
                             <div class="row flex space-x-2">

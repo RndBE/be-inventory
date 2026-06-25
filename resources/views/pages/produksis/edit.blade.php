@@ -42,6 +42,11 @@
                     <a href="{{ route('produksis.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >Kembali</a>
                     <button id="saveButton" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Simpan</button>
                     @can('selesai-proses-produksi')
+                        @if($produksi->status === 'Dalam proses' && $produksi->kode_produksi)
+                            <button data-modal-target="keluarkan-sebagian-modal" data-modal-toggle="keluarkan-sebagian-modal" class="rounded-md bg-amber-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500" type="button">
+                                Keluarkan Sebagian
+                            </button>
+                        @endif
                         @if($isComplete && $produksi->kode_produksi)
                             <button data-modal-target="selesai-modal" data-modal-toggle="selesai-modal" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" type="button">
                                 Selesai
@@ -212,6 +217,9 @@
         </div>
     </div>
     @include('pages.produksis.selesai')
+    @if($produksi->status === 'Dalam proses' && $produksi->kode_produksi)
+        @include('pages.produksis.keluarkan-sebagian-modal')
+    @endif
     <script>
         document.getElementById('saveButton').addEventListener('click', function() {
             document.getElementById('produksiForm').submit();

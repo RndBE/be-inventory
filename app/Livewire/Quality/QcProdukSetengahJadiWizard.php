@@ -78,13 +78,24 @@ class QcProdukSetengahJadiWizard extends Component
                     $totalSubTotal = $produksi->produksiDetails->sum('sub_total');
                     // Harga per 1 produk (dibagi jumlah produksi)
                     $unitPrice = $produksi->jml_produksi > 0 ? $totalSubTotal / $produksi->jml_produksi : 0;
+
+                    // Nomor unit kumulatif per produk (tidak reset): lanjut dari total jumlah
+                    // produksi produk yang sama di batch-batch sebelumnya.
+                    // Pakai jml_produksi (bukan jumlah yang sudah di-QC) agar nomornya stabil
+                    // walau pengeluaran ke QC dilakukan bertahap.
+                    $offsetNomor = (int) Produksi::where('bahan_id', $produksi->bahan_id)
+                        ->where('id', '<', $produksi->id)
+                        ->sum('jml_produksi');
+
                     foreach (range(1, $produksi->jml_produksi) as $i) {
-                        $kodeList = ($produksi->kode_produksi ?? '') . '-' . ($i . '/' . $produksi->jml_produksi);
+                        $nomorUnit = $offsetNomor + $i;
+                        // Akhiran = nomor unit kumulatif (mis. PRD-20260625160433-11)
+                        $kodeList = ($produksi->kode_produksi ?? '') . '-' . $nomorUnit;
 
                         $this->selectedProdukList[] = [
                             'bahan_id'      => $produksi->dataBahan->id,
                             'nama_bahan'    => $produksi->dataBahan->nama_bahan ?? '',
-                            'nomor'         => $i . '/' . $produksi->jml_produksi,
+                            'nomor'         => $nomorUnit,
                             // 'kode_produksi' => $produksi->kode_produksi ?? '',
                             'kode_list'       => $kodeList,
                             'mulai_produksi' => $produksi->mulai_produksi ?? '',

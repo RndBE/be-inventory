@@ -222,20 +222,13 @@ class DashboardController extends Controller
                 return \Carbon\Carbon::parse($item->tgl_pengajuan)->format('Y-m-d');
             })
             ->map(function ($group) {
-                $totals = [
+                return $this->summarizePembelianTotals($group, [
                     'Pembelian Bahan/Barang/Alat Lokal' => 0,
                     'Pembelian Bahan/Barang/Alat Impor' => 0,
                     'Pembelian Aset' => 0,
                     'Pembelian Aset Lokal' => 0,
                     'Pembelian Aset Impor' => 0,
-                ];
-
-                foreach ($group as $pembelian) {
-                    $subTotal = $pembelian->pembelianBahanDetails->sum('sub_total');
-                    $totals[$pembelian->jenis_pengajuan] += $subTotal;
-                }
-
-                return $totals;
+                ]);
             });
 
         // Format untuk ApexCharts (series per jenis, data pasangan [tanggal, nilai])
@@ -263,20 +256,11 @@ class DashboardController extends Controller
             });
 
             return $byDate->map(function ($items) {
-                $totals = [
+                return $this->summarizePembelianTotals($items, [
                     'Pembelian Bahan/Barang/Alat Lokal' => 0,
                     'Pembelian Bahan/Barang/Alat Impor' => 0,
                     'Pembelian Aset' => 0,
-                ];
-
-                foreach ($items as $p) {
-                    $subTotal = $p->pembelianBahanDetails->sum('sub_total');
-                    if (isset($totals[$p->jenis_pengajuan])) {
-                        $totals[$p->jenis_pengajuan] += $subTotal;
-                    }
-                }
-
-                return $totals;
+                ]);
             });
         });
 
@@ -285,6 +269,29 @@ class DashboardController extends Controller
 
         return view('pages/dashboard/dashboard', compact('totalBahan', 'totalJenisBahan', 'totalProdukProduksi', 'totalProdukJadi', 'totalSupplier', 'totalSatuanUnit', 'totalPembelianBahan', 'dates', 'chartDataMasuk', 'chartDataKeluar','availableYears', 'year', 'period', 'totalPengajuanBahanKeluar','totalPengajuanBahanRetur','totalPengajuanBahanRusak', 'chartLabels', 'chartData','prosesProduksi','projeks','projeks_rnd', 'bahanSisaTerbanyak','bahanSisaPalingSedikit', 'chartTotalQty',
         'bahanRusakLabels', 'bahanRusakData', 'lokal', 'impor', 'aset', 'pembelianDivisi'));
+    }
+
+    public function summarizePembelianTotals($pembelians, ?array $totals = null): array
+    {
+        $totals ??= [
+            'Pembelian Bahan/Barang/Alat Lokal' => 0,
+            'Pembelian Bahan/Barang/Alat Impor' => 0,
+            'Pembelian Aset' => 0,
+            'Pembelian Aset Lokal' => 0,
+            'Pembelian Aset Impor' => 0,
+        ];
+
+        foreach ($pembelians as $pembelian) {
+            $jenisPengajuan = $pembelian->base_jenis_pengajuan;
+
+            if (!array_key_exists($jenisPengajuan, $totals)) {
+                continue;
+            }
+
+            $totals[$jenisPengajuan] += $pembelian->pembelianBahanDetails->sum('sub_total');
+        }
+
+        return $totals;
     }
 
     /**

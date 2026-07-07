@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\BahanSetengahjadiDetails;
 use App\Exports\BahanSetengahjadisExport;
+use App\Exports\ProdukJadisExport;
 
 class ProdukJadisController extends Controller
 {
@@ -37,8 +38,8 @@ class ProdukJadisController extends Controller
         $companyName = "PT ARTA TEKNOLOGI COMUNINDO";
 
         return Excel::download(
-    new BahanSetengahjadisExport($startDate, $endDate, $companyName),
-    'laporan_bahan_setengahjadi.xlsx',
+    new ProdukJadisExport($startDate, $endDate, $companyName),
+    'laporan_produk_jadi.xlsx',
     \Maatwebsite\Excel\Excel::XLSX,
     ['charts' => true] // <== penting
 );

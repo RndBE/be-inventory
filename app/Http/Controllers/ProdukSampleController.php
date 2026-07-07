@@ -18,7 +18,7 @@ use App\Models\BahanKeluar;
 
 use App\Models\ProdukSample;
 use Illuminate\Http\Request;
-use App\Exports\ProjekExport;
+use App\Exports\ProdukSampleExport;
 use App\Models\ProjekDetails;
 use App\Models\DetailProduksi;
 use App\Models\ProdukProduksi;
@@ -108,9 +108,9 @@ class ProdukSampleController extends Controller
 
     public function export($produkSample_id)
     {
-        $produkSample = Projek::findOrFail($produkSample_id);
-        $fileName = 'HPP_Project_' . $produkSample->nama_projek . '_be-inventory.xlsx';
-        return Excel::download(new ProjekExport($produkSample_id), $fileName);
+        $produkSample = ProdukSample::findOrFail($produkSample_id);
+        $fileName = 'HPP_Produk_Sample_' . $produkSample->nama_produk_sample . '_be-inventory.xlsx';
+        return Excel::download(new ProdukSampleExport($produkSample_id), $fileName);
     }
 
     public function index()

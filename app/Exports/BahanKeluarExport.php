@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use Carbon\Carbon;
 use App\Models\BahanKeluar;
+use App\Services\ProductFlowService;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -16,11 +17,13 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
 {
     protected $startDate;
     protected $endDate;
+    protected ProductFlowService $flowService;
 
     public function __construct($startDate, $endDate)
     {
         $this->startDate = $startDate;
         $this->endDate   = $endDate;
+        $this->flowService = new ProductFlowService();
     }
 
     public function array(): array
@@ -47,13 +50,20 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
             'Kuantitas',
             'Jumlah Harga',
             'Project / Tujuan',
+            'Jenis Item',
+            'Kode Sumber',
+            'Asal Flow',
+            'Serial Number Flow',
+            'Tujuan Flow',
+            'Kode Tujuan',
+            'Status Flow',
         ];
 
         // ── Query data ───────────────────────────────────────────────
         $transactions = BahanKeluar::with([
                 'bahanKeluarDetails.dataBahan',
-                'bahanKeluarDetails.dataProduk',
-                'bahanKeluarDetails.dataProdukJadi',
+                'bahanKeluarDetails.dataProduk.bahanSetengahjadi',
+                'bahanKeluarDetails.dataProdukJadi.ProdukJadis',
                 'dataUser',
             ])
             ->where('status', 'Disetujui')
@@ -90,12 +100,15 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                 $transaction->kode_transaksi,
                 '— ' . ($transaction->keterangan ?? '-') . ' —',
                 '', '', '',
+                '', '', '', '', '', '', '',
             ];
 
             $transactionTotal = 0;
             $transactionQty   = 0;
 
             foreach ($transaction->bahanKeluarDetails as $detail) {
+                $detail->setRelation('bahanKeluar', $transaction);
+
                 // Ambil nama bahan dari relasi yang tersedia
                 if ($detail->bahan_id && $detail->dataBahan) {
                     $namaBahan = $detail->dataBahan->nama_bahan ?? '-';
@@ -123,14 +136,15 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                     $detail->qty ?? 0,    // H: Kuantitas
                     $subTotal,             // I: Jumlah Harga
                     $transaction->keterangan ?? '-',
+                    ...$this->flowService->values($this->flowService->forBahanKeluarDetail($detail)),
                 ];
             }
 
             // ── Baris "Total Item" (di bawah kolom Kuantitas / H) ────
-            $data[] = ['', '', '', '', '', '', 'Total Item', $transactionQty, '', ''];
+            $data[] = ['', '', '', '', '', '', 'Total Item', $transactionQty, '', '', '', '', '', '', '', '', ''];
 
             // ── Baris "Subtotal" (di bawah kolom Jumlah Harga / I) ───
-            $data[] = ['', '', '', '', '', '', 'Subtotal', '', $transactionTotal, ''];
+            $data[] = ['', '', '', '', '', '', 'Subtotal', '', $transactionTotal, '', '', '', '', '', '', '', ''];
         }
 
         return $data;
@@ -143,7 +157,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
 
     public function styles(Worksheet $sheet)
     {
-        $lastCol = 'J'; // 10 kolom A–J
+        $lastCol = 'Q'; // 17 kolom A-Q
 
         // ── Judul & Periode ──────────────────────────────────────────
         $sheet->mergeCells("A1:{$lastCol}1");

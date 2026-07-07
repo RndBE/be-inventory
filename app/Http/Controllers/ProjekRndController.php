@@ -16,6 +16,7 @@ use App\Models\ProdukJadis;
 use Illuminate\Http\Request;
 use App\Models\ProdukProduksi;
 use App\Exports\ProjekRndExport;
+use App\Exports\ProjekRndRekapExport;
 use App\Models\BahanReturDetails;
 use App\Models\BahanRusakDetails;
 use App\Models\ProjekRndDetails;
@@ -100,6 +101,13 @@ class ProjekRndController extends Controller
         $projek_rnd = ProjekRnd::findOrFail($projek_rnd_id);
         $fileName = 'HPP_Projek_Rnd_' . 'Riset' . $projek_rnd->nama_projek_rnd . '_be-inventory.xlsx';
         return Excel::download(new ProjekRndExport($projek_rnd_id), $fileName);
+    }
+
+    public function exportAll(Request $request)
+    {
+        $search = $request->query('search');
+        $fileName = 'Rekap_Proyek_Rnd_' . now()->setTimezone('Asia/Jakarta')->format('Ymd_His') . '_be-inventory.xlsx';
+        return Excel::download(new ProjekRndRekapExport($search), $fileName);
     }
 
     public function index()

@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use Carbon\Carbon;
 use App\Models\ProjekRnd;
+use App\Services\ProductFlowService;
 use PhpOffice\PhpSpreadsheet\Style\Font;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -19,10 +20,12 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyles, WithTitle
 {
     protected $projek_rnd_id;
+    protected ProductFlowService $flowService;
 
     public function __construct($projek_rnd_id)
     {
         $this->projek_rnd_id = $projek_rnd_id;
+        $this->flowService = new ProductFlowService();
     }
 
     public function array(): array
@@ -30,13 +33,13 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
         $data = [];
         $totalQty = 0;
         $totalSubTotal = 0;
-        $projek_rnd = ProjekRnd::with('projekRndDetails.dataBahan', 'projekRndDetails.dataBahan.dataUnit')->findOrFail($this->projek_rnd_id);
+        $projek_rnd = ProjekRnd::with('projekRndDetails.dataBahan', 'projekRndDetails.dataBahan.dataUnit', 'projekRndDetails.dataProduk.bahanSetengahjadi')->findOrFail($this->projek_rnd_id);
 
         $formattedStartDate = Carbon::parse($projek_rnd->mulai_projek_rnd)->format('d F Y');
         $formattedEndDate = Carbon::parse($projek_rnd->selesai_projek_rnd)->format('d F Y');
 
-        $data[] = ['PT ARTA TEKNOLOGI COMUNINDO', '', '', '', '', '', ''];
-        $data[] = ['HPP PROYEK RnD', '', '', '', '', '', ''];
+        $data[] = ['PT ARTA TEKNOLOGI COMUNINDO', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['HPP PROYEK RnD', '', '', '', '', '', '', '', '', '', '', '', '', ''];
         $data[] = [''];
 
         $data[] = ['Kode Proyek', '', ': '.$projek_rnd->kode_projek_rnd];
@@ -45,9 +48,11 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
         $data[] = ['Masa Pekerjaan', '', ': '.$formattedStartDate . ' - ' . $formattedEndDate];
         $data[] = [''];
 
-        $data[] = ['No', 'Nama Barang/Bahan', 'Qty', 'Satuan', 'Harga Satuan', 'Total', 'Keterangan'];
+        $data[] = ['No', 'Nama Barang/Bahan', 'Qty', 'Satuan', 'Harga Satuan', 'Total', 'Keterangan', 'Jenis Item', 'Kode Sumber', 'Asal Flow', 'Serial Number Flow', 'Tujuan Flow', 'Kode Tujuan', 'Status Flow'];
 
         foreach ($projek_rnd->projekRndDetails as $index => $detail) {
+            $detail->setRelation('projekRnd', $projek_rnd);
+
             $detailsArray = json_decode($detail->details, true) ?? [];
             $detailsFormatted = [];
 
@@ -65,6 +70,7 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
                 $formattedDetailsString,
                 $detail->sub_total,
                 $detail->keterangan_penanggungjawab ?? '-',
+                ...$this->flowService->values($this->flowService->forProjekRndDetail($detail)),
             ];
 
             $totalQty += $detail->qty;
@@ -79,7 +85,7 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
             '',
             '',
             $totalSubTotal,
-            '',
+            '', '', '', '', '', '', '', '',
         ];
 
         return $data;
@@ -97,21 +103,21 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
         $sheet->getStyle('A1:A2')->getFont()->setSize(12);
         $sheet->getStyle('A1:A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->mergeCells('A1:G1');
-        $sheet->mergeCells('A2:G2');
+        $sheet->mergeCells('A1:N1');
+        $sheet->mergeCells('A2:N2');
 
         $sheet->mergeCells('A4:B4');
         $sheet->mergeCells('A5:B5');
         $sheet->mergeCells('A6:B6');
         $sheet->mergeCells('A7:B7');
 
-        $sheet->mergeCells('C4:G4');
-        $sheet->mergeCells('C5:G5');
-        $sheet->mergeCells('C6:G6');
-        $sheet->mergeCells('C7:G7');
+        $sheet->mergeCells('C4:N4');
+        $sheet->mergeCells('C5:N5');
+        $sheet->mergeCells('C6:N6');
+        $sheet->mergeCells('C7:N7');
 
-        $sheet->getStyle('A9:G9')->getFont()->setBold(true);
-        $sheet->getStyle('A9:G9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A9:N9')->getFont()->setBold(true);
+        $sheet->getStyle('A9:N9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $lastRow = $sheet->getHighestRow();
 
@@ -131,10 +137,10 @@ class ProjekRndExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
             ],
         ];
 
-        $sheet->getStyle('A9:G' . $lastRow)->applyFromArray($borderStyle);
+        $sheet->getStyle('A9:N' . $lastRow)->applyFromArray($borderStyle);
 
         $sheet->mergeCells('A' . $lastRow . ':B' . $lastRow);
-        $sheet->getStyle('A' . $lastRow . ':G' . $lastRow)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $lastRow . ':N' . $lastRow)->getFont()->setBold(true);
         $sheet->getStyle('A' . $lastRow . ':B' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
 

@@ -25,7 +25,7 @@
             </div>
             <!-- Modal body -->
             <div class="pt-0 p-5">
-                <form action="{{ route('bahan-setengahjadis-export.export') }}" method="GET">
+                <form action="{{ route('produk-jadi-export.export') }}" method="GET">
                     @csrf
                     <div class="mb-4"> <!-- Added margin-bottom -->
                         <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900">Tanggal Awal</label>

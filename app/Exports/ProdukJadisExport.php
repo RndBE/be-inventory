@@ -3,11 +3,9 @@
 namespace App\Exports;
 
 use Carbon\Carbon;
-use App\Models\Bahan;
-use App\Models\PurchaseDetail;
-use App\Models\BahanSetengahjadi;
+use App\Models\ProdukJadis;
+use App\Models\ProdukJadiDetails;
 use App\Models\BahanKeluarDetails;
-use App\Models\BahanSetengahjadiDetails;
 use App\Services\ProductFlowService;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -26,7 +24,7 @@ use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
 
-class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, WithEvents, WithCharts
+class ProdukJadisExport implements FromArray, WithHeadings, WithStyles, WithEvents, WithCharts
 {
     protected $startDate;
     protected $endDate;
@@ -67,7 +65,7 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
 
         $formattedPeriod = "Periode $this->startDay-$this->endDay $this->monthYear";
 
-        $data[] = ["LAPORAN STOK PRODUK " . $this->companyName];
+        $data[] = ["LAPORAN STOK PRODUK JADI " . $this->companyName];
         $data[] = ["Periode: " . $formattedPeriod];
 
         // Header baris ke-3
@@ -94,12 +92,12 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
         }
         $data[] = array_merge([], [], [], [], [], [], $dateNames, ['', '', '', '', '', '']);
 
-        $produk = BahanSetengahjadi::with(['bahanSetengahjadiDetails'])->get();
+        $produk = ProdukJadis::with(['ProdukJadiDetails'])->get();
 
         $allDetails = [];
 
         foreach ($produk as $item) {
-            foreach ($item->bahanSetengahjadiDetails as $detail) {
+            foreach ($item->ProdukJadiDetails as $detail) {
                 $allDetails[] = [
                     'item'   => $item,
                     'detail' => $detail
@@ -107,9 +105,9 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
             }
         }
 
-        // Urutkan berdasarkan nama_bahan (abjad A-Z)
+        // Urutkan berdasarkan nama_produk (abjad A-Z)
         usort($allDetails, function ($a, $b) {
-            return strcmp($a['detail']->nama_bahan, $b['detail']->nama_bahan);
+            return strcmp($a['detail']->nama_produk, $b['detail']->nama_produk);
         });
 
         $transactionMap = [];
@@ -119,7 +117,7 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
         foreach ($allDetails as $entry) {
             $item = $entry['item'];
             $detail = $entry['detail'];
-            $detail->setRelation('bahanSetengahjadi', $item);
+            $detail->setRelation('ProdukJadis', $item);
 
             $kode = $item->kode_transaksi;
             $serial = $detail->serial_number;
@@ -134,7 +132,7 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
             $row = [
                 null, // no: akan diisi nanti setelah merge
                 $kode,
-                $detail->nama_bahan,
+                $detail->nama_produk,
                 $serial ? ' ' . $serial : '-',
                 "Pcs",
                 $stokAwal
@@ -143,13 +141,13 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
             for ($day = $this->startDay; $day <= $this->endDay; $day++) {
                 $tanggal = Carbon::create(null, $this->startMonth, $day)->toDateString();
 
-                $stokMasuk = BahanSetengahjadiDetails::whereHas('bahanSetengahjadi', function ($query) use ($tanggal) {
+                $stokMasuk = ProdukJadiDetails::whereHas('ProdukJadis', function ($query) use ($tanggal) {
                     $query->whereDate('tgl_masuk', $tanggal);
                 })
                 ->where('id', $detail->id)
                 ->sum('qty');
 
-                $hargaBeli = BahanSetengahjadiDetails::whereHas('bahanSetengahjadi', function ($query) use ($tanggal) {
+                $hargaBeli = ProdukJadiDetails::whereHas('ProdukJadis', function ($query) use ($tanggal) {
                     $query->whereDate('tgl_masuk', $tanggal);
                 })
                 ->where('id', $detail->id)
@@ -159,8 +157,7 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
                 $stokKeluar = BahanKeluarDetails::whereHas('bahanKeluar', function ($query) use ($tanggal) {
                     $query->whereDate('tgl_keluar', $tanggal)->where('status', 'Disetujui');
                 })
-                ->where('produk_id', $item->id)
-                ->where('serial_number', $serial)
+                ->where('produk_jadis_id', $detail->id)
                 ->sum('qty');
 
                 $row[] = $stokMasuk;
@@ -173,7 +170,7 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
 
             $hargaFormatted = $detail->unit_price ? number_format($detail->unit_price, 2, ',', '.') : '';
             $row[] = $hargaFormatted;
-            $row = array_merge($row, $this->flowService->compactValues($this->flowService->forBahanSetengahjadiDetail($detail)));
+            $row = array_merge($row, $this->flowService->compactValues($this->flowService->forProdukJadiDetail($detail)));
 
             $data[] = $row;
             $transactionMap[$kode]['end'] = $rowIndex;
@@ -196,20 +193,17 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
             $no++;
         }
 
-        // dd($row);
-
-
         return $data;
     }
 
 
 
-    private function getSisaStokAkhir($bahanId, $endDate, $serial = null)
+    private function getSisaStokAkhir($produkJadiId, $endDate, $serial = null)
     {
-        $query = BahanSetengahjadiDetails::whereHas('bahanSetengahjadi', function ($q) use ($endDate) {
+        $query = ProdukJadiDetails::whereHas('ProdukJadis', function ($q) use ($endDate) {
             $q->whereDate('tgl_masuk', '<=', $endDate);
         })
-        ->where('bahan_setengahjadi_id', $bahanId);
+        ->where('produk_jadis_id', $produkJadiId);
 
         if ($serial) {
             $query->where('serial_number', $serial);
@@ -220,19 +214,19 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
 
 
 
-    private function getPreviousDayStokAkhir($bahanId, $startDate)
+    private function getPreviousDayStokAkhir($produkJadiId, $startDate)
     {
-        // Ambil total pembelian s.d. sebelum startDate
-        $totalMasuk = BahanSetengahjadiDetails::whereHas('bahanSetengahjadi', function ($query) use ($startDate) {
+        // Ambil total masuk s.d. sebelum startDate
+        $totalMasuk = ProdukJadiDetails::whereHas('ProdukJadis', function ($query) use ($startDate) {
             $query->whereDate('tgl_masuk', '<', $startDate);
         })
-        ->where('bahan_setengahjadi_id', $bahanId)
-        ->orderBy('bahan_setengahjadi_id')
+        ->where('produk_jadis_id', $produkJadiId)
+        ->orderBy('produk_jadis_id')
         ->get(['qty', 'sisa']);
 
         $totalMasukQty = $totalMasuk->sum('qty');
 
-        // Simulasi FIFO: stok awal adalah stok masuk sebelum startDate, dikurangi pemakaian setelah startDate
+        // Simulasi FIFO: stok awal adalah stok masuk sebelum startDate
         $stokAwal = $totalMasukQty;
 
         return $stokAwal > 0 ? $stokAwal : 0;
@@ -381,25 +375,6 @@ class BahanSetengahjadisExport implements FromArray, WithHeadings, WithStyles, W
             $this->produkSummary = [];
             return;
         }
-
-        // Merge Kode Transaksi dan Nomor jika memiliki baris lebih dari 1
-        foreach ($sheet->toArray() as $row) {
-            if (!isset($row[2]) || !isset($row[$this->stokAkhirColIndex])) continue;
-
-            $namaProduk = $row[2];
-            $stokAkhirRaw = $row[$this->stokAkhirColIndex];
-
-            $stokAkhir = is_numeric(str_replace(['.', ','], '', $stokAkhirRaw))
-                ? (int) str_replace(['.', ','], '', $stokAkhirRaw)
-                : (int) $stokAkhirRaw;
-
-            if (!isset($this->produkSummary[$namaProduk])) {
-                $this->produkSummary[$namaProduk] = 0;
-            }
-
-            $this->produkSummary[$namaProduk] += $stokAkhir;
-        }
-
 
         // Hitung total stok akhir per produk
         $this->produkSummary = [];

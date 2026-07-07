@@ -210,6 +210,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('bahan-setengahjadis', BahanSetengahjadiController::class);
     Route::get('bahan-setengahjadis-export', [BahanSetengahjadiController::class, 'export'])->name('bahan-setengahjadis-export.export');
     Route::resource('produk-jadi', ProdukJadisController::class);
+    Route::get('produk-jadi-export', [ProdukJadisController::class, 'export'])->name('produk-jadi-export.export');
 
     Route::resource('produk-produksis', ProdukProduksiController::class);
     Route::get('/produk-produksis/pdf/{id}', [ProdukProduksiController::class, 'downloadPdf'])->name('produk-produksis.downloadPdf');
@@ -228,6 +229,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('projek-rnd', ProjekRndController::class);
     Route::put('projek-rnd/{projek}/selesai', [ProjekRndController::class, 'updateStatus'])->name('projek-rnd.updateStatus');
     Route::get('projek-rnd-export/{projek_rnd_id}', [ProjekRndController::class, 'export'])->name('projek-rnd.export');
+    Route::get('projek-rnd-export-all', [ProjekRndController::class, 'exportAll'])->name('projek-rnd.exportAll');
     Route::get('projek-rnd/{projek}/info', [ProjekRndController::class, 'info'])->name('projek-rnd.info');
     Route::post('projek-rnd/{projek}/upload-laporan', [ProjekRndController::class, 'uploadLaporan'])->name('projek-rnd.uploadLaporan');
     Route::get('projek-rnd/{projek}/download-laporan', [ProjekRndController::class, 'downloadLaporan'])->name('projek-rnd.downloadLaporan');

@@ -44,12 +44,12 @@ class CountSidebar
             } elseif ($user->hasRole(['teknisi level 3', 'teknisi', 'op', 'produksi'])) {
                 $bahanKeluarQuery->whereIn('divisi', ['Teknisi', 'OP', 'Produksi']);
                 $bahanPembelianBahanQuery->whereIn('divisi', ['Teknisi', 'OP', 'Produksi']);
-            } elseif ($user->hasRole(['marketing manager', 'marketing', 'marketing level 3'])) {
-                $bahanKeluarQuery->where('divisi', 'Marketing');
-                $bahanPembelianBahanQuery->where('divisi', 'Marketing');
-            } elseif ($user->hasRole(['software manager', 'software', 'publikasi'])) {
-                $bahanKeluarQuery->whereIn('divisi', ['Software', 'Publikasi']);
-                $bahanPembelianBahanQuery->whereIn('divisi', ['Software', 'Publikasi']);
+            } elseif ($user->hasRole(['marketing manager', 'marketing', 'marketing level 3', 'publikasi'])) {
+                $bahanKeluarQuery->whereIn('divisi', ['Marketing', 'publikasi']);
+                $bahanPembelianBahanQuery->whereIn('divisi', ['Marketing', 'publikasi']);
+            } elseif ($user->hasRole(['software manager', 'software'])) {
+                $bahanKeluarQuery->whereIn('divisi', ['Software']);
+                $bahanPembelianBahanQuery->whereIn('divisi', ['Software']);
             } elseif ($user->hasRole(['hse'])) {
                 $bahanKeluarQuery->where('divisi', 'HSE');
                 $bahanPembelianBahanQuery->where('divisi', 'HSE');

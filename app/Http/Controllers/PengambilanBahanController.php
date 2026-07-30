@@ -188,7 +188,8 @@ class PengambilanBahanController extends Controller
                     $response = Http::withHeaders([
                         'x-api-key' => env('WHATSAPP_API_KEY'),
                         'Content-Type' => 'application/json',
-                    ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                    // ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                    ])->post('http://127.0.0.1:3000/client/sendMessage/beacon', [
                         'chatId' => "{$targetPhone}@c.us",
                         'contentType' => 'string',
                         'content' => $message,
@@ -367,7 +368,8 @@ class PengambilanBahanController extends Controller
                         $response = Http::withHeaders([
                             'x-api-key' => env('WHATSAPP_API_KEY'),
                             'Content-Type' => 'application/json',
-                        ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                        // ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                        ])->post('http://127.0.0.1:3000/client/sendMessage/beacon', [
                             'chatId' => "{$targetPhone}@c.us",
                             'contentType' => 'string',
                             'content' => $message,
@@ -431,7 +433,8 @@ class PengambilanBahanController extends Controller
                         $response = Http::withHeaders([
                             'x-api-key' => env('WHATSAPP_API_KEY'),
                             'Content-Type' => 'application/json',
-                        ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                        // ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                        ])->post('http://127.0.0.1:3000/client/sendMessage/beacon', [
                             'chatId' => "{$targetPhone}@c.us",
                             'contentType' => 'string',
                             'content' => $message,
@@ -496,7 +499,8 @@ class PengambilanBahanController extends Controller
                         $response = Http::withHeaders([
                             'x-api-key' => env('WHATSAPP_API_KEY'),
                             'Content-Type' => 'application/json',
-                        ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                        // ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                        ])->post('http://127.0.0.1:3000/client/sendMessage/beacon', [
                             'chatId' => "{$targetPhone}@c.us",
                             'contentType' => 'string',
                             'content' => $message,

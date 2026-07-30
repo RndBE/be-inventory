@@ -482,7 +482,8 @@ class PengajuanController extends Controller
                             'x-api-key' => env('WHATSAPP_API_KEY'),
                             'Content-Type' => 'application/json',
                         // ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                        ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                        // ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                        ])->post('http://127.0.0.1:3000/client/sendMessage/beacon', [
                             'chatId' => "{$targetPhone}@c.us",
                             'contentType' => 'string',
                             'content' => $message,
@@ -546,7 +547,8 @@ class PengajuanController extends Controller
                         'x-api-key' => env('WHATSAPP_API_KEY'),
                         'Content-Type' => 'application/json',
                     // ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                    ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                    // ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                    ])->post('http://127.0.0.1:3000/client/sendMessage/beacon', [
                         'chatId' => '6281127006443@c.us',
                         'contentType' => 'string',
                         'content' => $message,
@@ -607,7 +609,8 @@ class PengajuanController extends Controller
                         'x-api-key' => env('WHATSAPP_API_KEY'),
                         'Content-Type' => 'application/json',
                     // ])->post('http://103.82.241.100:3000/client/sendMessage/beacon', [
-                    ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                    // ])->post('http://72.60.78.159:3000/client/sendMessage/beacon', [
+                    ])->post('http://127.0.0.1:3000/client/sendMessage/beacon', [
                         'chatId' => '6281127006443@c.us',
                         'contentType' => 'string',
                         'content' => $message,

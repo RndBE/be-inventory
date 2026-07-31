@@ -30,6 +30,9 @@
                             <option value="Ditolak" {{ $status_direktur === 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
                         </select>
                     </div>
+                    @include('components.approval-kendala-field', [
+                        'value' => $stockOpname->kendalaApproval('Direktur')
+                    ])
 
                     <button type="submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800">Simpan</button>
                 </form>

@@ -143,6 +143,11 @@
                                 @else
                                     <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $stock_opname->status_finance }}</span>
                                 @endif
+                                @if ($stock_opname->kendalaApproval('Finance'))
+                                    <div class="mt-1 text-xs text-amber-700">
+                                        Kendala: {{ $stock_opname->kendalaApproval('Finance') }}
+                                    </div>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 @if ($stock_opname->status_direktur == 'Belum disetujui')
@@ -151,6 +156,11 @@
                                     <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-green-400 border border-green-100">{{ $stock_opname->status_direktur }}</span>
                                 @else
                                     <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $stock_opname->status_direktur }}</span>
+                                @endif
+                                @if ($stock_opname->kendalaApproval('Direktur'))
+                                    <div class="mt-1 text-xs text-amber-700">
+                                        Kendala: {{ $stock_opname->kendalaApproval('Direktur') }}
+                                    </div>
                                 @endif
                             </td>
                             <td class="px-6 py-4">

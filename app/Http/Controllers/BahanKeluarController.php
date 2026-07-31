@@ -15,6 +15,7 @@ use App\Models\ProdukSample;
 use App\Models\StokProduksi;
 use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
+use App\Models\ApprovalKendala;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -261,7 +262,7 @@ public function downloadPdf(int $id)
     {
         $units = Unit::all();
 
-        $bahan_keluar = BahanKeluar::with(['bahanKeluarDetails'])->findOrFail($id);
+        $bahan_keluar = BahanKeluar::with(['bahanKeluarDetails', 'approvalKendalas'])->findOrFail($id);
 
         return view('pages.bahan-keluars.edit', [
             'bahanKeluarId' => $id,
@@ -275,6 +276,7 @@ public function downloadPdf(int $id)
         // dd($request->all());
         $validatedData = $request->validate([
             'bahanKeluarDetails' => 'required|string',
+            'kendala' => 'nullable|string|max:2000',
         ]);
         $bahanKeluarDetails = json_decode($validatedData['bahanKeluarDetails'], true);
         if (!is_array($bahanKeluarDetails)) {
@@ -368,6 +370,7 @@ public function downloadPdf(int $id)
             // Jika id ditemukan maka simpan status dan tgl_keluar di tabel bahan_keluars
             $bahanKeluar->status = 'Disetujui';
             $bahanKeluar->tgl_keluar = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $this->saveApprovalKendala((int) $id, 'Purchasing', $bahanKeluar->status, $request);
             $bahanKeluar->save();
             // Ambil data bahan_keluar_details
             $details = BahanKeluarDetails::where('bahan_keluar_id', $id)->get();
@@ -1193,6 +1196,7 @@ public function downloadPdf(int $id)
     {
         $validated = $request->validate([
             'status_leader' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+            'kendala' => 'nullable|string|max:2000',
         ]);
         try {
             DB::beginTransaction();
@@ -1204,6 +1208,7 @@ public function downloadPdf(int $id)
             ])->findOrFail($id);
 
             $data->status_leader = $validated['status_leader'];
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Leader', $data->status_leader, $request);
             $data->save();
 
             if ($data->status_leader === 'Disetujui') {
@@ -1227,7 +1232,7 @@ public function downloadPdf(int $id)
                 $pengajuPhone = $data->dataUser->telephone;
                 if ($pengajuPhone) {
                     $message = "Halo {$data->dataUser->name},\n\n";
-                    $message .= "Status pengajuan bahan Anda dengan Kode Transaksi {$data->kode_transaksi} telah disetujui oleh Leader.\n\n";
+                    $message .= "Status pengajuan bahan Anda dengan Kode Transaksi {$data->kode_transaksi} telah disetujui oleh Leader.{$kendalaMessage}\n\n";
 
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
                     SendWhatsAppApproveLeader::dispatch($pengajuPhone, $message);
@@ -1249,6 +1254,7 @@ public function downloadPdf(int $id)
                     $message .= "Project: {$data->tujuan}\n";
                     $message .= "Divisi: {$data->divisi}\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\n\n";
+                    $message .= $kendalaMessage ? "{$kendalaMessage}\n\n" : '';
                     $message .= "Silakan buat pengajuan bahan keluar ulang jika diperlukan.\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
@@ -1269,8 +1275,19 @@ public function downloadPdf(int $id)
         }
     }
 
+    private function saveApprovalKendala(int $id, string $role, ?string $status, Request $request): string
+    {
+        $note = ApprovalKendala::saveFor('bahan_keluar', $id, $role, $status, $request->input('kendala'), auth()->id());
+
+        return $note ? "\nKendala: {$note->kendala}" : '';
+    }
+
     public function tolakPurchasing(Request $request, int $id)
     {
+        $request->validate([
+            'kendala' => 'nullable|string|max:2000',
+        ]);
+
         try {
             DB::beginTransaction();
 
@@ -1284,6 +1301,7 @@ public function downloadPdf(int $id)
             // Ubah status jadi Ditolak
             $bahanKeluar->status = 'Ditolak';
             $bahanKeluar->status_pengambilan = 'Ditolak';
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Purchasing', $bahanKeluar->status, $request);
             $bahanKeluar->save();
 
             // Kirim notifikasi WA ke pengaju
@@ -1294,6 +1312,7 @@ public function downloadPdf(int $id)
                 $message .= "Project: {$bahanKeluar->tujuan}\n";
                 $message .= "Divisi: {$bahanKeluar->divisi}\n";
                 $message .= "Tgl Pengajuan: {$bahanKeluar->tgl_pengajuan}\n\n";
+                $message .= $kendalaMessage ? "{$kendalaMessage}\n\n" : '';
                 $message .= "Silakan buat pengajuan bahan keluar ulang jika diperlukan.\n\n";
                 $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 

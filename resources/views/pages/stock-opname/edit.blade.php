@@ -119,6 +119,21 @@
                                     <textarea id="keterangan" name="keterangan" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" @if($stockOpname->status_selesai === 'Selesai') disabled @endif>{{ $stockOpname->keterangan }}</textarea>
                                 </div>
 
+                                @php($stockOpnameKendalas = [
+                                    'Finance' => $stockOpname->kendalaApproval('Finance'),
+                                    'Direktur' => $stockOpname->kendalaApproval('Direktur'),
+                                ])
+                                @if (collect($stockOpnameKendalas)->filter()->isNotEmpty())
+                                    <div class="sm:col-span-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                                        <div class="font-semibold mb-1">Kendala Approval</div>
+                                        @foreach ($stockOpnameKendalas as $role => $kendala)
+                                            @if ($kendala)
+                                                <div>{{ $role }}: {{ $kendala }}</div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @endif
+
 
                                 <div class="flex items-center">
                                     @role('administrasi|superadmin')

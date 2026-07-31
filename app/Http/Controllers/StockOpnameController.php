@@ -10,6 +10,7 @@ use App\Models\Purchase;
 use App\Helpers\LogHelper;
 use App\Models\BahanRetur;
 use App\Models\BahanKeluar;
+use App\Models\ApprovalKendala;
 use App\Models\StockOpname;
 use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
@@ -274,7 +275,7 @@ class StockOpnameController extends Controller
      */
     public function edit($id)
     {
-        $stockOpname = StockOpname::with('stockOpnameDetails')->findOrFail($id);
+        $stockOpname = StockOpname::with('stockOpnameDetails', 'approvalKendalas')->findOrFail($id);
 
         $bahans = Bahan::whereHas('jenisBahan', function($query) {
             $query->where('nama', 'Produksi');
@@ -452,6 +453,7 @@ class StockOpnameController extends Controller
     {
         $validated = $request->validate([
             'status_finance' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+            'kendala' => 'nullable|string|max:2000',
         ]);
         try {
             DB::beginTransaction();
@@ -461,6 +463,7 @@ class StockOpnameController extends Controller
             ])->findOrFail($id);
 
             $data->status_finance = $validated['status_finance'];
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Finance', $data->status_finance, $request);
             if ($validated['status_finance'] === 'Disetujui') {
                 $data->tgl_approve_finance = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');  // isi dengan waktu saat ini
             } else {
@@ -477,7 +480,7 @@ class StockOpnameController extends Controller
                 //dd($targetPhone);
                 if ($targetPhone) {
                     $message = "Halo {$data->pengajuUser->name},\n\n";
-                    $message .= "Pengajuan stock opname dengan nomor referensi {$data->nomor_referensi} telah disetujui divisi finance.\n\n";
+                    $message .= "Pengajuan stock opname dengan nomor referensi {$data->nomor_referensi} telah disetujui divisi finance.{$kendalaMessage}\n\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->pengajuUser->name}\nKeterangan: {$data->keterangan}\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
                     SendWhatsAppApproveLeader::dispatch($targetPhone, $message);
@@ -501,6 +504,7 @@ class StockOpnameController extends Controller
     {
         $validated = $request->validate([
             'status_direktur' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
+            'kendala' => 'nullable|string|max:2000',
         ]);
         try {
             DB::beginTransaction();
@@ -510,6 +514,7 @@ class StockOpnameController extends Controller
             ])->findOrFail($id);
 
             $data->status_direktur = $validated['status_direktur'];
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Direktur', $data->status_direktur, $request);
             if ($validated['status_direktur'] === 'Disetujui') {
                 $data->tgl_approve_direktur = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');  // isi dengan waktu saat ini
                 $data->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
@@ -528,7 +533,7 @@ class StockOpnameController extends Controller
                 //dd($targetPhone);
                 if ($targetPhone) {
                     $message = "Halo {$data->pengajuUser->name},\n\n";
-                    $message .= "Pengajuan stock opname dengan nomor referensi {$data->nomor_referensi} telah disetujui direktur.\n\n";
+                    $message .= "Pengajuan stock opname dengan nomor referensi {$data->nomor_referensi} telah disetujui direktur.{$kendalaMessage}\n\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->pengajuUser->name}\nKeterangan: {$data->keterangan}\n\n";
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
                     SendWhatsAppApproveLeader::dispatch($targetPhone, $message);
@@ -546,6 +551,13 @@ class StockOpnameController extends Controller
             LogHelper::error($errorMessage);
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
+    }
+
+    private function saveApprovalKendala(int $id, string $role, ?string $status, Request $request): string
+    {
+        $note = ApprovalKendala::saveFor('stock_opname', $id, $role, $status, $request->input('kendala'), Auth::id());
+
+        return $note ? "\nKendala: {$note->kendala}" : '';
     }
 
     // public function selesaiStockOpname($id)

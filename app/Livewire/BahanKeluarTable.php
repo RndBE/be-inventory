@@ -101,7 +101,7 @@ class BahanKeluarTable extends Component
     {
         $user = Auth::user();
 
-        $bahan_keluars = BahanKeluar::with('dataUser', 'bahanKeluarDetails', 'produksiS', 'produkJadiDetails')
+        $bahan_keluars = BahanKeluar::with('dataUser', 'bahanKeluarDetails', 'produksiS', 'produkJadiDetails', 'approvalKendalas')
             ->orderBy('id', 'desc');
 
         if ($user->hasRole(['superadmin', 'administrasi', 'purchasing'])) {

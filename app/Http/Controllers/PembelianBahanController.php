@@ -15,6 +15,7 @@ use App\Models\BahanKeluar;
 use App\Models\StokProduksi;
 use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
+use App\Models\ApprovalKendala;
 use App\Models\PembelianBahan;
 use App\Models\PurchaseDetail;
 use App\Models\ProduksiDetails;
@@ -714,6 +715,7 @@ class PembelianBahanController extends Controller
         $validated = $request->validate([
             'status_leader' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
             'catatan' => 'nullable|string',
+            'kendala' => 'nullable|string|max:2000',
         ]);
         try {
             DB::beginTransaction();
@@ -734,6 +736,7 @@ class PembelianBahanController extends Controller
 
             $data->status_leader = $validated['status_leader'];
             $data->tgl_approve_leader = $tgl_approve_leader;
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Leader', $data->status_leader, $request);
             // $data->leader_approval_by = $leaderUser->id ?? null;
 
             $pengajuan = null;
@@ -819,7 +822,7 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$recipientName},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}{$kendalaMessage}\n\n";
                 $message .= "\nPesan Otomatis:\n";
                 $message .= "https://inventory.beacontelemetry.com/";
 
@@ -845,6 +848,7 @@ class PembelianBahanController extends Controller
         $validated = $request->validate([
             'status_general_manager' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
             'catatan' => 'nullable|string',
+            'kendala' => 'nullable|string|max:2000',
         ]);
         try {
             DB::beginTransaction();
@@ -859,6 +863,7 @@ class PembelianBahanController extends Controller
 
             $data->status_general_manager = $validated['status_general_manager'];
             $data->tgl_approve_general_manager = $tgl_approve_general_manager;
+            $kendalaMessage = $this->saveApprovalKendala($id, 'General Affair', $data->status_general_manager, $request);
 
             $pengajuan = null;
             if ($data->pengajuan_id) {
@@ -922,7 +927,7 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}{$kendalaMessage}\n\n";
                 $message .= "\nPesan Otomatis:\n";
                 $message .= "https://inventory.beacontelemetry.com/";
 
@@ -948,6 +953,7 @@ class PembelianBahanController extends Controller
         $validated = $request->validate([
             'status_purchasing' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
             'catatan' => 'nullable|string',
+            'kendala' => 'nullable|string|max:2000',
         ]);
         try {
             DB::beginTransaction();
@@ -962,6 +968,7 @@ class PembelianBahanController extends Controller
 
             $data->status_purchasing = $validated['status_purchasing'];
             $data->tgl_approve_purchasing = $tgl_approve_purchasing;
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Purchasing', $data->status_purchasing, $request);
 
             $pengajuan = null;
             if ($data->pengajuan_id) {
@@ -1126,7 +1133,7 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}{$kendalaMessage}\n\n";
                 $message .= "\nPesan Otomatis:\n";
                 $message .= "https://inventory.beacontelemetry.com/";
 
@@ -1152,6 +1159,7 @@ class PembelianBahanController extends Controller
         $validated = $request->validate([
             'status_manager' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
             'catatan' => 'nullable|string',
+            'kendala' => 'nullable|string|max:2000',
         ]);
         try {
             DB::beginTransaction();
@@ -1165,6 +1173,7 @@ class PembelianBahanController extends Controller
 
             $data->status_manager = $validated['status_manager'];
             $data->tgl_approve_manager = $tgl_approve_manager;
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Manager', $data->status_manager, $request);
 
             $pengajuan = null;
             if ($data->pengajuan_id) {
@@ -1223,7 +1232,7 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}{$kendalaMessage}\n\n";
                 $message .= "\nPesan Otomatis:\n";
                 $message .= "https://inventory.beacontelemetry.com/";
 
@@ -1249,6 +1258,7 @@ class PembelianBahanController extends Controller
         $validated = $request->validate([
             'status_finance' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
             'catatan' => 'nullable|string',
+            'kendala' => 'nullable|string|max:2000',
         ]);
         try {
             DB::beginTransaction();
@@ -1262,6 +1272,7 @@ class PembelianBahanController extends Controller
 
             $data->status_finance = $validated['status_finance'];
             $data->tgl_approve_finance = $tgl_approve_finance;
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Finance', $data->status_finance, $request);
 
             $pengajuan = null;
             if ($data->pengajuan_id) {
@@ -1302,7 +1313,7 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}{$kendalaMessage}\n\n";
 
                 $message .= "\nPesan Otomatis:\n";
                 $message .= "https://inventory.beacontelemetry.com/";
@@ -1329,6 +1340,7 @@ class PembelianBahanController extends Controller
         $validated = $request->validate([
             'status_admin_manager' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
             'catatan' => 'nullable|string',
+            'kendala' => 'nullable|string|max:2000',
         ]);
         try {
             DB::beginTransaction();
@@ -1342,6 +1354,7 @@ class PembelianBahanController extends Controller
 
             $data->status_admin_manager = $validated['status_admin_manager'];
             $data->tgl_approve_admin_manager = $tgl_approve_admin_manager;
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Manager Admin', $data->status_admin_manager, $request);
 
             $pengajuan = null;
             if ($data->pengajuan_id) {
@@ -1380,7 +1393,7 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}{$kendalaMessage}\n\n";
                 $message .= "\nPesan Otomatis:\n";
                 $message .= "https://inventory.beacontelemetry.com/";
 
@@ -1475,6 +1488,7 @@ class PembelianBahanController extends Controller
         $validated = $request->validate([
             'status' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
             'catatan' => 'nullable|string',
+            'kendala' => 'nullable|string|max:2000',
         ]);
 
         try {
@@ -1489,6 +1503,7 @@ class PembelianBahanController extends Controller
 
             $data->status = $validated['status'];
             $data->tgl_approve_direktur = $tgl_approve_direktur;
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Direktur', $data->status, $request);
 
             $pengajuan = null;
             if ($data->pengajuan_id) {
@@ -1635,7 +1650,7 @@ class PembelianBahanController extends Controller
                     default => "dalam status yang tidak dikenal.",
                 };
                 $message = "Halo {$data->dataUser->name},\n\n";
-                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}\n\n";
+                $message .= "Status pengajuan pembelian bahan Anda dengan Kode Transaksi {$data->kode_transaksi} {$statusMessage} {$data->catatan}{$kendalaMessage}\n\n";
                 $message .= "\nPesan Otomatis:\n";
                 $message .= "https://inventory.beacontelemetry.com/";
 
@@ -1654,6 +1669,13 @@ class PembelianBahanController extends Controller
             LogHelper::error($errorMessage);
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
+    }
+
+    private function saveApprovalKendala(int $id, string $role, ?string $status, Request $request): string
+    {
+        $note = ApprovalKendala::saveFor('pembelian_bahan', $id, $role, $status, $request->input('kendala'), Auth::id());
+
+        return $note ? "\nKendala: {$note->kendala}" : '';
     }
 
     private function resolvePurchasingUser($tglPengajuan = null)

@@ -22,6 +22,21 @@ class PembelianBahan extends Model
         return $this->hasMany(PembelianBahanDetails::class, 'pembelian_bahan_id');
     }
 
+    public function approvalKendalas()
+    {
+        return $this->hasMany(ApprovalKendala::class, 'module_id')
+            ->where('module', 'pembelian_bahan');
+    }
+
+    public function kendalaApproval(string $role): ?string
+    {
+        $notes = $this->relationLoaded('approvalKendalas')
+            ? $this->approvalKendalas
+            : $this->approvalKendalas()->get();
+
+        return optional($notes->firstWhere('approval_role', $role))->kendala;
+    }
+
     public function produksiS()
     {
         return $this->hasOne(Produksi::class, 'bahan_keluar_id');

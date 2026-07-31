@@ -358,7 +358,7 @@ class PembelianBahanTable extends Component
         $user = Auth::user();
 
         // Default: Urutkan berdasarkan tanggal pengajuan DESC
-        $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails');
+        $pembelian_bahan = PembelianBahan::with('dataUser', 'pembelianBahanDetails', 'approvalKendalas');
 
         if ($user->hasRole(['superadmin'])) {
             $pembelian_bahan->where(function ($query) {

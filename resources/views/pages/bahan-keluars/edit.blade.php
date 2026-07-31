@@ -134,6 +134,20 @@
                                     <textarea disabled id="keterangan" name="keterangan" class="w-3/4 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan', $bahan_keluar->keterangan) }}</textarea>
                                 </div>
 
+                                @if($bahan_keluar->status === 'Belum disetujui')
+                                    <div class="sm:col-span-2">
+                                        @include('components.approval-kendala-field', [
+                                            'value' => $bahan_keluar->kendalaApproval('Purchasing'),
+                                            'fieldId' => 'kendala_purchasing'
+                                        ])
+                                    </div>
+                                @elseif($bahan_keluar->kendalaApproval('Purchasing'))
+                                    <div class="sm:col-span-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                                        <span class="font-semibold">Kendala Purchasing:</span>
+                                        {{ $bahan_keluar->kendalaApproval('Purchasing') }}
+                                    </div>
+                                @endif
+
                                 <div class="flex items-center">
                                     <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
                                     <div class="relative w-3/4 mr-2">
@@ -187,6 +201,10 @@
                 <form method="POST" action="{{ route('bahan-keluars.tolakPurchasing', $bahan_keluar->id) }}">
                     @csrf
                     @method('PUT')
+                    @include('components.approval-kendala-field', [
+                        'value' => $bahan_keluar->kendalaApproval('Purchasing'),
+                        'fieldId' => 'kendala_tolak_purchasing'
+                    ])
                     <button type="submit"
                         class="rounded-md px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700">
                         Ya, Tolak Pengajuan

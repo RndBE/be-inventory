@@ -79,7 +79,7 @@ class BahanStockOpnameTable extends Component
     public function render()
     {
         // Dasar query
-        $query = StockOpname::with('stockOpnameDetails')->orderBy('id', 'desc');
+        $query = StockOpname::with('stockOpnameDetails', 'approvalKendalas')->orderBy('id', 'desc');
 
         // Filter berdasarkan role
         if (!Auth::user()->hasRole(['administrasi','superadmin'])) {

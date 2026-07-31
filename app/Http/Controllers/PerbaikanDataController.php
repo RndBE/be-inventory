@@ -8,6 +8,7 @@ use App\Helpers\LogHelper;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\LaporanProyek;
+use App\Models\ApprovalKendala;
 use App\Models\PerbaikanData;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -215,6 +216,7 @@ class PerbaikanDataController extends Controller
         $validated = $request->validate([
             'status' => 'required|string',
             'catatan' => 'nullable|string',
+            'kendala' => 'nullable|string|max:2000',
         ]);
 
         try {
@@ -226,6 +228,7 @@ class PerbaikanDataController extends Controller
             // Update status dan tanggal perubahan
             $data->status = $validated['status'];
             $data->tgl_diubah = $tgl_diubah;
+            $kendalaMessage = $this->saveApprovalKendala($id, 'Approval', $data->status, $request);
 
             // Jika ditolak, tambahkan catatan
             if ($data->status === 'Ditolak') {
@@ -257,6 +260,7 @@ class PerbaikanDataController extends Controller
                 // Format pesan WA
                 $message = "Halo *{$recipientName}*, \n\n";
                 $message .= "Pengajuan perbaikan data Anda dengan *Kode Pengajuan* *{$data->kode_pengajuan}* {$statusMessage}\n\n";
+                $message .= $kendalaMessage ? "{$kendalaMessage}\n\n" : '';
                 $message .= "Tanggal update: {$tgl_diubah}\n\n";
                 $message .= "_Pesan otomatis dari sistem Inventory_\n";
                 $message .= "https://inventory.beacontelemetry.com/";
@@ -281,6 +285,13 @@ class PerbaikanDataController extends Controller
             LogHelper::error($errorMessage);
             return redirect()->back()->with('error', "Terjadi kesalahan: $errorMessage");
         }
+    }
+
+    private function saveApprovalKendala(int $id, string $role, ?string $status, Request $request): string
+    {
+        $note = ApprovalKendala::saveFor('perbaikan_data', $id, $role, $status, $request->input('kendala'), Auth::id());
+
+        return $note ? "\nKendala: {$note->kendala}" : '';
     }
 
 

@@ -21,4 +21,19 @@ class PerbaikanData extends Model
         return $this->hasMany(LampiranPerbaikanData::class, 'perbaikan_data_id');
     }
 
+    public function approvalKendalas()
+    {
+        return $this->hasMany(ApprovalKendala::class, 'module_id')
+            ->where('module', 'perbaikan_data');
+    }
+
+    public function kendalaApproval(string $role): ?string
+    {
+        $notes = $this->relationLoaded('approvalKendalas')
+            ? $this->approvalKendalas
+            : $this->approvalKendalas()->get();
+
+        return optional($notes->firstWhere('approval_role', $role))->kendala;
+    }
+
 }

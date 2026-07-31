@@ -179,6 +179,11 @@
                                     <span
                                         class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $bahan_keluar->status_leader }}</span>
                                 @endif
+                                @if ($bahan_keluar->kendalaApproval('Leader'))
+                                    <div class="mt-1 text-xs text-amber-700">
+                                        Kendala: {{ $bahan_keluar->kendalaApproval('Leader') }}
+                                    </div>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 @if ($bahan_keluar->status == 'Belum disetujui')
@@ -191,6 +196,11 @@
                                 @else
                                     <span
                                         class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $bahan_keluar->status }}</span>
+                                @endif
+                                @if ($bahan_keluar->kendalaApproval('Purchasing'))
+                                    <div class="mt-1 text-xs text-amber-700">
+                                        Kendala Purchasing: {{ $bahan_keluar->kendalaApproval('Purchasing') }}
+                                    </div>
                                 @endif
                             </td>
                             <td class="px-6 py-4">

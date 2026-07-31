@@ -376,7 +376,7 @@ class PengajuanPembelianTable extends Component
     {
         $user = Auth::user();
 
-        $pembelian_bahan = PembelianBahan::with(['dataUser', 'pembelianBahanDetails'])->orderBy('id', 'desc');
+        $pembelian_bahan = PembelianBahan::with(['dataUser', 'pembelianBahanDetails', 'approvalKendalas'])->orderBy('id', 'desc');
 
         $rolesCanSeeAll = [
             'superadmin',

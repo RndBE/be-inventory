@@ -134,6 +134,11 @@
                                         {{ $perbaikanData->status ?? 'Tidak Diketahui' }}
                                     </span>
                             @endswitch
+                            @if ($perbaikanData->kendalaApproval('Approval'))
+                                <div class="mt-1 text-xs text-amber-700">
+                                    Kendala: {{ $perbaikanData->kendalaApproval('Approval') }}
+                                </div>
+                            @endif
                         </td>
 
                         <td class="px-6 py-3 flex space-x-2">

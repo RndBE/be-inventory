@@ -117,12 +117,7 @@ class PengajuanPembelianController extends Controller
                 $leaderName = $pembelianBahan->dataUser->name;
             }
 
-            $purchasingUser = cache()->remember('purchasing_user', 60, function () {
-                return User::where('job_level', 3)
-                    ->whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'Purchasing');
-                    })->first();
-            });
+            $purchasingUser = $this->resolvePurchasingUser($pembelianBahan->tgl_pengajuan ?? null);
 
             $pengisiHargaUser = cache()->remember('pengisi_harga_user_' . $pembelianBahan->pengisi_harga, 60, function () use ($pembelianBahan) {
                 return User::where('name', $pembelianBahan->pengisi_harga)->first();
@@ -143,9 +138,7 @@ class PengajuanPembelianController extends Controller
 
             $tandaTanganGeneral = $generalUser->tanda_tangan ?? null;
 
-            $financeUser = cache()->remember('finance_user', 60, function () {
-                return User::where('name', 'LINA WIDIASTUTI')->first();
-            });
+            $financeUser = $this->resolveFinanceUser($pembelianBahan->tgl_pengajuan ?? null);
             $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
             $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
@@ -276,12 +269,7 @@ class PengajuanPembelianController extends Controller
                 $leaderName = $pembelianBahan->dataUser->name;
             }
 
-            $purchasingUser = cache()->remember('purchasing_user', 60, function () {
-                return User::where('job_level', 3)
-                    ->whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'Purchasing');
-                    })->first();
-            });
+            $purchasingUser = $this->resolvePurchasingUser($pembelianBahan->tgl_pengajuan ?? null);
 
             $generalUser = cache()->remember('general_user', 60, function () {
                 return User::where('job_level', 3)
@@ -296,9 +284,7 @@ class PengajuanPembelianController extends Controller
 
             $tandaTanganGeneral = $generalUser->tanda_tangan ?? null;
 
-            $financeUser = cache()->remember('finance_user', 60, function () {
-                return User::where('name', 'LINA WIDIASTUTI')->first();
-            });
+            $financeUser = $this->resolveFinanceUser($pembelianBahan->tgl_pengajuan ?? null);
             $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
             $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
@@ -415,9 +401,7 @@ class PengajuanPembelianController extends Controller
                 $prefix = 'PB-';
             }
 
-            $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
-                $query->where('nama', 'Purchasing');
-            })->where('job_level', 3)->first();
+            $purchasingUser = $this->resolvePurchasingUser($tgl_pengajuan);
 
             $generalAffairUser = User::whereHas('roles', function ($query) {
                 $query->where('name', 'general_affair');
@@ -709,6 +693,37 @@ class PengajuanPembelianController extends Controller
             LogHelper::error($errorMessage);
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
+    }
+
+    private function resolvePurchasingUser($tglPengajuan = null)
+    {
+        if ($tglPengajuan && strtotime((string) $tglPengajuan) >= strtotime('2026-07-31 00:00:00')) {
+            return cache()->remember('purchasing_user_lina', 60, function () {
+                return User::where('name', 'LINA WIDIASTUTI')->first();
+            });
+        }
+
+        return cache()->remember('purchasing_user_legacy', 60, function () {
+            // Format lama untuk data sebelum 2026-07-31 WIB.
+            return User::where('job_level', 3)
+                ->whereHas('dataJobPosition', function ($query) {
+                    $query->where('nama', 'Purchasing');
+                })->first();
+        });
+    }
+
+    private function resolveFinanceUser($tglPengajuan = null)
+    {
+        if ($tglPengajuan && strtotime((string) $tglPengajuan) >= strtotime('2026-07-31 00:00:00')) {
+            return cache()->remember('finance_user_maritza', 60, function () {
+                return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+            });
+        }
+
+        return cache()->remember('finance_user_legacy', 60, function () {
+            // Format lama untuk data sebelum 2026-07-31 WIB.
+            return User::where('name', 'LINA WIDIASTUTI')->first();
+        });
     }
 
     public function destroy(Request $request, string $id)

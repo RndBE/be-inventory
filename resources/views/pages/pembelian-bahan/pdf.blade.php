@@ -1050,7 +1050,7 @@
         <table style="width: 100%;border-collapse: collapse;padding-top:10;">
             <tr style="text-align: left; vertical-align: top;">
                 <td colspan="2" style=" text-align: center;"><strong>Pengaju</strong></td>
-                <td colspan="2" style=" text-align: center;"><strong>Leader Purchasing</strong></td>
+                <td colspan="2" style=" text-align: center;"><strong>{{ $pembelianBahan->tgl_pengajuan && strtotime((string) $pembelianBahan->tgl_pengajuan) >= strtotime('2026-07-31 00:00:00') ? 'Purchasing' : 'Leader Purchasing' }}</strong></td>
                 {{-- <td style=" text-align: center;"><strong>Purchasing</strong></td> --}}
                 {{-- <td colspan="2" style=" text-align: center;"><strong>Manager</strong></td> --}}
             </tr>

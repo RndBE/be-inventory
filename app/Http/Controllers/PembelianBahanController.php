@@ -145,12 +145,7 @@ class PembelianBahanController extends Controller
                 $leaderName = $pembelianBahan->dataUser->name;
             }
 
-            $purchasingUser = cache()->remember('purchasing_user', 60, function () {
-                return User::where('job_level', 3)
-                    ->whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'Purchasing');
-                    })->first();
-            });
+            $purchasingUser = $this->resolvePurchasingUser($pembelianBahan->tgl_pengajuan ?? null);
 
             $pengisiHargaUser = cache()->remember('pengisi_harga_user_' . $pembelianBahan->pengisi_harga, 60, function () use ($pembelianBahan) {
                 return User::where('name', $pembelianBahan->pengisi_harga)->first();
@@ -171,9 +166,7 @@ class PembelianBahanController extends Controller
 
             $tandaTanganGeneral = $generalUser->tanda_tangan ?? null;
 
-            $financeUser = cache()->remember('finance_user', 60, function () {
-                return User::where('name', 'LINA WIDIASTUTI')->first();
-            });
+            $financeUser = $this->resolveFinanceUser($pembelianBahan->tgl_pengajuan ?? null);
             $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
             $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
@@ -303,12 +296,7 @@ class PembelianBahanController extends Controller
                 $leaderName = $pembelianBahan->dataUser->name;
             }
 
-            $purchasingUser = cache()->remember('purchasing_user', 60, function () {
-                return User::where('job_level', 3)
-                    ->whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'Purchasing');
-                    })->first();
-            });
+            $purchasingUser = $this->resolvePurchasingUser($pembelianBahan->tgl_pengajuan ?? null);
 
             $generalUser = cache()->remember('general_user', 60, function () {
                 return User::whereHas('roles', function ($query) {
@@ -321,9 +309,7 @@ class PembelianBahanController extends Controller
 
             $tandaTanganGeneral = $generalUser->tanda_tangan ?? null;
 
-            $financeUser = cache()->remember('finance_user', 60, function () {
-                return User::where('name', 'LINA WIDIASTUTI')->first();
-            });
+            $financeUser = $this->resolveFinanceUser($pembelianBahan->tgl_pengajuan ?? null);
             $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
             $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
@@ -801,9 +787,7 @@ class PembelianBahanController extends Controller
                     $targetRole = "General Affair";
                 } else {
                     // Kirim notifikasi ke Purchasing
-                    $targetUser = User::whereHas('dataJobPosition', function ($query) {
-                        $query->where('nama', 'Purchasing');
-                    })->where('job_level', 3)->first();
+                    $targetUser = $this->resolvePurchasingUser($data->tgl_pengajuan ?? null);
                     $targetRole = "Purchasing";
                 }
 
@@ -911,9 +895,7 @@ class PembelianBahanController extends Controller
             $data->save();
 
             if ($data->status_general_manager === 'Disetujui') {
-                $purchasingUsers = User::whereHas('dataJobPosition', function ($query) {
-                    $query->where('nama', 'Purchasing');
-                })->where('job_level', 3)->first();
+                $purchasingUsers = $this->resolvePurchasingUser($data->tgl_pengajuan ?? null);
 
                 $targetPhone = $purchasingUsers->telephone;
                 $recipientName = $purchasingUsers->name;
@@ -1017,7 +999,7 @@ class PembelianBahanController extends Controller
                 if ($data->dataUser->job_level == 4) {
                     if ($data->dataUser->atasan_level3_id === null && $data->dataUser->atasan_level2_id === null) {
                         // Job level 4 tanpa atasan level 3 dan 2, kirim notifikasi ke Finance
-                        $financeUser = User::where('name', 'LINA WIDIASTUTI')->first();
+                        $financeUser = $this->resolveFinanceUser($data->tgl_pengajuan ?? null);
                         $recipientName = $financeUser;
                         if ($financeUser && $financeUser->telephone) {
                             $targetPhone = $financeUser->telephone;
@@ -1033,7 +1015,7 @@ class PembelianBahanController extends Controller
                         }
                     } elseif ($data->dataUser->atasan_level3_id && $data->dataUser->atasan_level2_id === null) {
                         // Job level 4 tanpa atasan level 3 dan 2, kirim notifikasi ke Finance
-                        $financeUser = User::where('name', 'LINA WIDIASTUTI')->first();
+                        $financeUser = $this->resolveFinanceUser($data->tgl_pengajuan ?? null);
                         $recipientName = $financeUser;
                         if ($financeUser && $financeUser->telephone) {
                             $targetPhone = $financeUser->telephone;
@@ -1067,7 +1049,7 @@ class PembelianBahanController extends Controller
                 } elseif ($data->dataUser->job_level == 3) {
                     if ($data->dataUser->atasan_level3_id === null && $data->dataUser->atasan_level2_id === null) {
                         // Job level 4 tanpa atasan level 3 dan 2, kirim notifikasi ke Finance
-                        $financeUser = User::where('name', 'LINA WIDIASTUTI')->first();
+                        $financeUser = $this->resolveFinanceUser($data->tgl_pengajuan ?? null);
                         $recipientName = $financeUser;
                         if ($financeUser && $financeUser->telephone) {
                             $targetPhone = $financeUser->telephone;
@@ -1083,7 +1065,7 @@ class PembelianBahanController extends Controller
                         }
                     } elseif ($data->dataUser->atasan_level3_id && $data->dataUser->atasan_level2_id === null) {
                         // Job level 4 tanpa atasan level 3 dan 2, kirim notifikasi ke Finance
-                        $financeUser = User::where('name', 'LINA WIDIASTUTI')->first();
+                        $financeUser = $this->resolveFinanceUser($data->tgl_pengajuan ?? null);
                         $recipientName = $financeUser;
                         if ($financeUser && $financeUser->telephone) {
                             $targetPhone = $financeUser->telephone;
@@ -1215,7 +1197,7 @@ class PembelianBahanController extends Controller
             $data->save();
 
             if ($data->status_manager === 'Disetujui') {
-                $financeUser = User::where('name', 'LINA WIDIASTUTI')->first();
+                $financeUser = $this->resolveFinanceUser($data->tgl_pengajuan ?? null);
                 $recipientName = $financeUser->name;
                 if ($financeUser && $financeUser->telephone) {
                     $targetPhone = $financeUser->telephone;
@@ -1672,6 +1654,37 @@ class PembelianBahanController extends Controller
             LogHelper::error($errorMessage);
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
+    }
+
+    private function resolvePurchasingUser($tglPengajuan = null)
+    {
+        if ($tglPengajuan && strtotime((string) $tglPengajuan) >= strtotime('2026-07-31 00:00:00')) {
+            return cache()->remember('purchasing_user_lina', 60, function () {
+                return User::where('name', 'LINA WIDIASTUTI')->first();
+            });
+        }
+
+        return cache()->remember('purchasing_user_legacy', 60, function () {
+            // Format lama untuk data sebelum 2026-07-31 WIB.
+            return User::where('job_level', 3)
+                ->whereHas('dataJobPosition', function ($query) {
+                    $query->where('nama', 'Purchasing');
+                })->first();
+        });
+    }
+
+    private function resolveFinanceUser($tglPengajuan = null)
+    {
+        if ($tglPengajuan && strtotime((string) $tglPengajuan) >= strtotime('2026-07-31 00:00:00')) {
+            return cache()->remember('finance_user_maritza', 60, function () {
+                return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+            });
+        }
+
+        return cache()->remember('finance_user_legacy', 60, function () {
+            // Format lama untuk data sebelum 2026-07-31 WIB.
+            return User::where('name', 'LINA WIDIASTUTI')->first();
+        });
     }
 
     public function destroy(Request $request, string $id)

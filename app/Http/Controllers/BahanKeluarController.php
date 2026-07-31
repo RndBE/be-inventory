@@ -200,12 +200,7 @@ public function downloadPdf(int $id)
             $leaderName = $managerName;
         }
 
-        $purchasingUser = cache()->remember('purchasing_user', 60, function () {
-            return User::where('job_level', 3)
-                ->whereHas('dataJobPosition', function ($query) {
-                    $query->where('nama', 'Purchasing');
-                })->first();
-        });
+        $purchasingUser = $this->resolvePurchasingUser($bahanKeluar->tgl_pengajuan ?? null);
 
         $hardwareManager = cache()->remember('hardware_manager', 60, function () {
             return User::where('job_level', 2)
@@ -217,9 +212,7 @@ public function downloadPdf(int $id)
         $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
         $namaManager           = $hardwareManager->name ?? null;
 
-        $financeUser = cache()->remember('finance_user', 60, function () {
-            return User::where('name', 'LINA WIDIASTUTI')->first();
-        });
+        $financeUser = $this->resolveFinanceUser($bahanKeluar->tgl_pengajuan ?? null);
         $tandaTanganFinance = $financeUser->tanda_tangan ?? null;
 
         $adminManagerceUser = cache()->remember('admin_manager_user', 60, function () {
@@ -1215,9 +1208,7 @@ public function downloadPdf(int $id)
 
             if ($data->status_leader === 'Disetujui') {
 
-                $purchasingUsers = User::whereHas('dataJobPosition', function ($query) {
-                    $query->where('nama', 'Purchasing');
-                })->where('job_level', 3)->first();
+                $purchasingUsers = $this->resolvePurchasingUser($data->tgl_pengajuan ?? null);
 
                 $targetPhone = $purchasingUsers->telephone;
                 //dd($targetPhone);
@@ -1350,6 +1341,37 @@ public function downloadPdf(int $id)
             LogHelper::error("Error updating status pengambilan: " . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengubah status.');
         }
+    }
+
+    private function resolvePurchasingUser($tglPengajuan = null)
+    {
+        if ($tglPengajuan && strtotime((string) $tglPengajuan) >= strtotime('2026-07-31 00:00:00')) {
+            return cache()->remember('purchasing_user_lina', 60, function () {
+                return User::where('name', 'LINA WIDIASTUTI')->first();
+            });
+        }
+
+        return cache()->remember('purchasing_user_legacy', 60, function () {
+            // Format lama untuk data sebelum 2026-07-31 WIB.
+            return User::where('job_level', 3)
+                ->whereHas('dataJobPosition', function ($query) {
+                    $query->where('nama', 'Purchasing');
+                })->first();
+        });
+    }
+
+    private function resolveFinanceUser($tglPengajuan = null)
+    {
+        if ($tglPengajuan && strtotime((string) $tglPengajuan) >= strtotime('2026-07-31 00:00:00')) {
+            return cache()->remember('finance_user_maritza', 60, function () {
+                return User::where('name', 'MARITZA ISYAURA PUTRI RIZMA')->first();
+            });
+        }
+
+        return cache()->remember('finance_user_legacy', 60, function () {
+            // Format lama untuk data sebelum 2026-07-31 WIB.
+            return User::where('name', 'LINA WIDIASTUTI')->first();
+        });
     }
 
     public function destroy(string $id)

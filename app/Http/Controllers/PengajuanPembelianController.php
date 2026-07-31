@@ -401,13 +401,12 @@ class PengajuanPembelianController extends Controller
                 $prefix = 'PB-';
             }
 
+            $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
             $purchasingUser = $this->resolvePurchasingUser($tgl_pengajuan);
 
             $generalAffairUser = User::whereHas('roles', function ($query) {
                 $query->where('name', 'general_affair');
             })->first();
-
-            $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
             // Buat kode transaksi berdasarkan jenis pengajuan
             $lastTransaksi = PembelianBahan::latest()->first();
@@ -547,7 +546,7 @@ class PengajuanPembelianController extends Controller
                         'pembelian_bahan_id' => $pembelian_bahan->id,
                         'nama_bahan' => $item['nama_bahan'],
                         'qty' => 0,
-                        'jml_bahan' => $item['jml_bahan'],
+                        'jml_bahan' => $this->normalizeDecimal($item['jml_bahan'] ?? 0),
                         'used_materials' => 0,
                         'spesifikasi' => $item['spesifikasi'],
                         'penanggungjawabaset' => $item['penanggungjawabaset'],
@@ -560,9 +559,9 @@ class PengajuanPembelianController extends Controller
                     PembelianBahanDetails::create([
                         'pembelian_bahan_id' => $pembelian_bahan->id,
                         'bahan_id' => $item['id'],
-                        'qty' => $item['qty'],
-                        'jml_bahan' => $item['jml_bahan'],
-                        'qty_pengajuan' => $item['qty_pengajuan'],
+                        'qty' => $this->normalizeDecimal($item['qty'] ?? 0),
+                        'jml_bahan' => $this->normalizeDecimal($item['jml_bahan'] ?? 0),
+                        'qty_pengajuan' => $this->normalizeDecimal($item['qty_pengajuan'] ?? 0),
                         'used_materials' => 0,
                         'details' => json_encode($item['details']),
                         'sub_total' => $item['sub_total'],
@@ -693,6 +692,17 @@ class PengajuanPembelianController extends Controller
             LogHelper::error($errorMessage);
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
+    }
+
+    private function normalizeDecimal($value)
+    {
+        if ($value === null || $value === '') {
+            return 0;
+        }
+
+        $normalized = str_replace(',', '.', (string) $value);
+
+        return is_numeric($normalized) ? (float) $normalized : 0;
     }
 
     private function resolvePurchasingUser($tglPengajuan = null)

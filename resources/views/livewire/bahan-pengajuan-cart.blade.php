@@ -162,10 +162,10 @@
                                             <div class="flex justify-center items-center">
                                                 <input
                                                     value="{{ old('qty_pengajuan.' . $item->id, $qty_pengajuan[$item->id] ?? 0) }}"
-                                                    type="number" wire:model="qty_pengajuan.{{ $item->id }}"
+                                                    type="text" inputmode="decimal" wire:model="qty_pengajuan.{{ $item->id }}"
                                                     wire:keyup="updateQuantity({{ $item->id }})"
                                                     class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                                    placeholder="0" min="0" required />
+                                                    placeholder="0" required />
                                             </div>
                                         </td>
                                         <td class="px-6 py-4">
@@ -240,10 +240,10 @@
                                             <div class="flex justify-center items-center">
                                                 <input
                                                     value="{{ old('qty_pengajuan.' . $item->id, $qty_pengajuan[$item->id] ?? 0) }}"
-                                                    type="number" wire:model="qty_pengajuan.{{ $item->id }}"
+                                                    type="text" inputmode="decimal" wire:model="qty_pengajuan.{{ $item->id }}"
                                                     wire:keyup="updateQuantity({{ $item->id }})"
                                                     class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                                    placeholder="0" min="0" required />
+                                                    placeholder="0" required />
                                             </div>
                                         </td>
                                         <td class="px-6 py-4">

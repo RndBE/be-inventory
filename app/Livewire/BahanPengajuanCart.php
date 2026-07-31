@@ -135,6 +135,7 @@ class BahanPengajuanCart extends Component
     {
         $requestedQty = $this->qty_pengajuan[$itemId] ?? 0;
         $item = Bahan::find($itemId);
+        $this->saveCartToSession();
     }
 
     public function editItem($itemId)
@@ -165,9 +166,9 @@ class BahanPengajuanCart extends Component
             $itemId = $item->id;
             $items[] = [
                 'id' => $itemId,
-                'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
-                'qty_pengajuan' => isset($this->qty_pengajuan[$itemId]) ? $this->qty_pengajuan[$itemId] : 0,
-                'jml_bahan' => isset($this->jml_bahan[$itemId]) ? $this->jml_bahan[$itemId] : 0,
+                'qty' => isset($this->qty[$itemId]) ? $this->normalizeDecimal($this->qty[$itemId]) : 0,
+                'qty_pengajuan' => isset($this->qty_pengajuan[$itemId]) ? $this->normalizeDecimal($this->qty_pengajuan[$itemId]) : 0,
+                'jml_bahan' => isset($this->jml_bahan[$itemId]) ? $this->normalizeDecimal($this->jml_bahan[$itemId]) : 0,
                 'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
                 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
                 'spesifikasi' => isset($this->spesifikasi[$itemId]) ? $this->spesifikasi[$itemId] : 0,
@@ -185,12 +186,23 @@ class BahanPengajuanCart extends Component
             $itemsAset[] = [
                 'nama_bahan' => $item['nama_bahan'] ?? '',
                 'spesifikasi' => $item['spesifikasi'] ?? '',
-                'jml_bahan' => $item['jml_bahan'] ?? 0,
+                'jml_bahan' => $this->normalizeDecimal($item['jml_bahan'] ?? 0),
                 'penanggungjawabaset' => $item['penanggungjawabaset'] ?? '',
                 'alasan' => $item['alasan'] ?? '',
             ];
         }
         return $itemsAset;
+    }
+
+    private function normalizeDecimal($value)
+    {
+        if ($value === null || $value === '') {
+            return 0;
+        }
+
+        $normalized = str_replace(',', '.', (string) $value);
+
+        return is_numeric($normalized) ? (float) $normalized : 0;
     }
 
 

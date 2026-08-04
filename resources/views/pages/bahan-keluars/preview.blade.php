@@ -169,13 +169,31 @@
                         </tr>
                         <tr>
                             <td style="text-align: center; width: 25%;">
-                                <div style="height: 80px; width: 150px;"></div>
+                                @if($tandaTanganPengaju)
+                                    <img src="{{ asset('storage/' . $tandaTanganPengaju) }}"
+                                        alt="Tanda Tangan Pengaju"
+                                        style="height: 80px; width: 150px; object-fit: contain; display: inline-block;">
+                                @else
+                                    <div style="height: 80px; width: 150px;"></div>
+                                @endif
                             </td>
                             <td colspan="2" style="text-align: center; width: 25%;">
-                                <div style="height: 80px; width: 150px;"></div>
+                                @if($bahanKeluar->status === 'Disetujui' && $tandaTanganPurchasing)
+                                    <img src="{{ asset('storage/' . $tandaTanganPurchasing) }}"
+                                        alt="Tanda Tangan Purchasing"
+                                        style="height: 80px; width: 150px; object-fit: contain; display: inline-block;">
+                                @else
+                                    <div style="height: 80px; width: 150px;"></div>
+                                @endif
                             </td>
                             <td style="text-align: center; width: 25%;">
-                                <div style="height: 80px; width: 150px;"></div>
+                                @if($bahanKeluar->status_leader === 'Disetujui' && $tandaTanganLeader)
+                                    <img src="{{ asset('storage/' . $tandaTanganLeader) }}"
+                                        alt="Tanda Tangan Leader"
+                                        style="height: 80px; width: 150px; object-fit: contain; display: inline-block;">
+                                @else
+                                    <div style="height: 80px; width: 150px;"></div>
+                                @endif
                             </td>
                         </tr>
 
@@ -183,7 +201,7 @@
                             <td style="text-align: center;">
                                 {{ $bahanKeluar->dataUser->name ?? null }}
                             </td>
-                            <td colspan="2" style="text-align: center;">{{ $purchasingUser->name }}</td>
+                            <td colspan="2" style="text-align: center;">{{ $purchasingUser->name ?? '' }}</td>
                             <td style="text-align: center;">{{ $leaderName ?? '' }}</td>
                         </tr>
 

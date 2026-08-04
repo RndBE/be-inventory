@@ -226,6 +226,35 @@ class PeminjamanAset extends Model
     }
 
     /**
+     * Boleh membuka layar approval sama sekali.
+     *
+     * Permission saja tidak cukup. Permission dipegang per-role, sementara
+     * jenjang tersimpan per-user di job_level — sehingga staf level 4 yang
+     * sedivisi dengan leader-nya ikut kebagian permission role yang sama dan
+     * melihat menu Approval yang, bagi mereka, selalu kosong: scopeTerlihatOleh
+     * tidak memberi level 4 jenjang di bawah, dan beradaDiGarisKomando() selalu
+     * menolak mereka karena tidak ada yang menjadikan mereka atasan.
+     *
+     * Batas job_level TIDAK boleh berdiri sendiri: akun Super Admin justru
+     * ber-job_level 4, begitu juga sebagian pemegang GA/HRD. Karena itu
+     * pemegang izin lintas-divisi diperiksa lebih dulu dan dilepas dari batas
+     * jenjang — kalau dibalik urutannya, superadmin kehilangan menunya sendiri.
+     */
+    public static function bolehBukaLayarApproval($user): bool
+    {
+        if (!$user || !$user->can('lihat-approval-peminjaman-aset')) {
+            return false;
+        }
+
+        if (static::bolehLihatSemuaPengajuan($user)) {
+            return true;
+        }
+
+        // Manager (2) dan leader (3) memutus; staf (4) tidak pernah.
+        return (int) $user->job_level <= 3;
+    }
+
+    /**
      * Batasi ke pengajuan yang boleh dilihat user ini.
      *
      * Berjenjang mengikuti kolom job_level, sama seperti alur pembelian bahan:

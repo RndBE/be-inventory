@@ -75,6 +75,12 @@ class PeminjamanAsetController extends Controller
      */
     public function approval()
     {
+        // Middleware di constructor hanya memeriksa permission-nya. Batas jenjang
+        // diperiksa di sini karena middleware 'permission:' tidak bisa membaca
+        // job_level. Tanpa baris ini, staf level 4 yang sedivisi dengan leader
+        // tetap bisa membuka layarnya lewat URL walau menunya disembunyikan.
+        abort_unless(PeminjamanAset::bolehBukaLayarApproval(Auth::user()), 403);
+
         return view('pages.peminjaman-aset.approval');
     }
 

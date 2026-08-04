@@ -382,10 +382,27 @@
                 // ditampilkan — kalau tetap disebut, grupnya bisa muncul kosong.
                 $bolehDataAset = $penggunaAset->hasAnyRole(['superadmin', 'sekretaris', 'general_affair'])
                     && ($penggunaAset->can('lihat-rekap-aset') || $penggunaAset->can('lihat-pergerakan-aset'));
+                // Bukan @can: layar approval menuntut permission DAN jenjang
+                // job_level, dan aturan gabungannya hanya hidup di satu tempat
+                // (PeminjamanAset::bolehBukaLayarApproval) supaya menu di sini
+                // tidak pernah menampilkan pintu yang controller-nya menolak.
+                $bolehApprovalPeminjaman = \App\Models\PeminjamanAset::bolehBukaLayarApproval($penggunaAset);
+                // BAST menyangkut data offboarding (alasan keluar, tanggal efektif,
+                // jabatan terdahulu), jadi menunya dibatasi ke pihak yang memang
+                // mengurusnya. Permission-nya sengaja TIDAK dicabut dari role lain:
+                // penyaringan per-baris di SerahTerimaAsetTable sudah membatasi
+                // mereka ke dokumen sendiri, dan mencabutnya akan menutup akses
+                // karyawan ke BAST atas namanya sendiri.
+                //
+                // 'hrd level 3' ikut disebut supaya pemegangnya tetap melihat menu
+                // walau suatu saat role 'hrd'-nya dilepas — dia tetap pemegang
+                // tambah- & selesaikan-serah-terima-aset.
+                $bolehSerahTerimaAset = $penggunaAset->hasAnyRole(['superadmin', 'general_affair', 'hrd', 'hrd level 3'])
+                    && $penggunaAset->can('lihat-serah-terima-aset');
                 $tampilkanGrupAset = $bolehDataAset
                     || $penggunaAset->can('lihat-peminjaman-aset')
-                    || $penggunaAset->can('lihat-approval-peminjaman-aset')
-                    || $penggunaAset->can('lihat-serah-terima-aset');
+                    || $bolehApprovalPeminjaman
+                    || $bolehSerahTerimaAset;
             @endphp
             @if($tampilkanGrupAset)
             <div>
@@ -430,7 +447,7 @@
                         </li>
                     @endcan
 
-                    @can('lihat-serah-terima-aset')
+                    @if($bolehSerahTerimaAset)
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['serah-terima-aset'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['serah-terima-aset'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('serah-terima-aset.index') }}">
                                 <div class="flex items-center">
@@ -439,9 +456,9 @@
                                     </div>
                             </a>
                         </li>
-                    @endcan
+                    @endif
 
-                    @can('lihat-approval-peminjaman-aset')
+                    @if($bolehApprovalPeminjaman)
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['approval-peminjaman-aset'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['approval-peminjaman-aset'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('peminjaman-aset.approval-index') }}">
                                 {{-- Badge dipisah & shrink-0 supaya tidak ikut terpotong `truncate` milik <a> --}}
@@ -458,7 +475,7 @@
                                     </div>
                             </a>
                         </li>
-                    @endcan
+                    @endif
                 </ul>
             </div>
             @endif

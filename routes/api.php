@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\BahanSearchController;
 use App\Http\Controllers\API\DashboardApiController;
 use App\Http\Controllers\Api\QcProdukJadiController;
 use App\Http\Controllers\Api\UserApiController;
+use App\Http\Controllers\Api\AsetKaryawanApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,11 @@ Route::middleware(['inventory_api_token'])->group(function () {
     Route::prefix('whatsapp')->group(function () {
         Route::get('/users', [UserApiController::class, 'index']);
         Route::get('/users/by-phone', [UserApiController::class, 'findByPhone']);
+    });
+
+    // HRIS - aset yang sedang dipegang karyawan, untuk halaman detail karyawan.
+    Route::prefix('hris')->group(function () {
+        Route::get('/aset-karyawan', [AsetKaryawanApiController::class, 'byEmail']);
     });
 });
 

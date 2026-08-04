@@ -177,15 +177,12 @@
     {{-- Gambar Aset --}}
     <div class="asset-image">
         @php
-            $fileId = null;
-            if ($rekap_aset->link_gambar && strpos($rekap_aset->link_gambar, '/d/') !== false) {
-                $fileId = explode('/d/', $rekap_aset->link_gambar)[1];
-                $fileId = explode('/', $fileId)[0];
-            }
+            // Satu sumber penguraian untuk semua tempat — lihat GoogleDriveHelper.
+            $thumbnail = \App\Helpers\GoogleDriveHelper::thumbnail($rekap_aset->link_gambar, 400);
         @endphp
-        @if($fileId)
-            <img src="https://drive.google.com/thumbnail?id={{ $fileId }}&sz=w400"
-                 alt="Foto Aset"
+        @if($thumbnail)
+            <img src="{{ $thumbnail }}"
+                 alt="Foto aset {{ $rekap_aset->nomor_aset }}"
                  onerror="this.parentElement.innerHTML='<div class=\'no-image\'><svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'/></svg><span>Gambar tidak tersedia</span></div>'">
         @else
             <div class="no-image">
@@ -244,6 +241,37 @@
             </div>
         </div>
 
+        {{-- PIC Pemegang Aset --}}
+        <div class="info-row">
+            <div class="info-icon icon-blue">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+            <div class="info-content">
+                <div class="info-label">PIC Pemegang Aset</div>
+                <div class="info-value">
+                    {{ $rekap_aset->dataPic->name ?? '-' }}
+                    @if($rekap_aset->dataPic && $rekap_aset->dataPic->dataJobPosition)
+                        <span style="color:#64748b; font-weight:500;"> / {{ $rekap_aset->dataPic->dataJobPosition->nama }}</span>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- Ruangan --}}
+        <div class="info-row">
+            <div class="info-icon icon-purple">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+            <div class="info-content">
+                <div class="info-label">Ruangan / Lokasi</div>
+                <div class="info-value">{{ $rekap_aset->dataRuangan->nama_ruangan ?? '-' }}</div>
+            </div>
+        </div>
+
         {{-- Tahun Perolehan --}}
         <div class="info-row">
             <div class="info-icon icon-orange">
@@ -255,6 +283,31 @@
                 <div class="info-label">Tahun Perolehan</div>
                 <div class="info-value">
                     {{ $rekap_aset->tgl_perolehan ? \Carbon\Carbon::parse($rekap_aset->tgl_perolehan)->format('Y') : '-' }}
+                </div>
+            </div>
+        </div>
+
+        {{-- Status Peminjaman --}}
+        <div class="info-row">
+            <div class="info-icon icon-orange">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div class="info-content">
+                <div class="info-label">Status Peminjaman</div>
+                <div class="info-value">
+                    @if($rekap_aset->peminjamanAktif)
+                        <span class="badge badge-rusak">Sedang Dipinjam</span>
+                        <div style="margin-top:6px; font-size:13px; font-weight:500; color:#64748b;">
+                            {{ $rekap_aset->peminjamanAktif->peminjamanAset->dataUser->name ?? '-' }}
+                            @if($rekap_aset->peminjamanAktif->peminjamanAset->tgl_pinjam)
+                                <br>Dipinjam sejak: {{ $rekap_aset->peminjamanAktif->peminjamanAset->tgl_pinjam }}
+                            @endif
+                        </div>
+                    @else
+                        <span class="badge badge-baik">Tersedia</span>
+                    @endif
                 </div>
             </div>
         </div>

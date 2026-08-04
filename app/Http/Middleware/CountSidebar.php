@@ -8,6 +8,8 @@ use App\Models\BahanRusak;
 use App\Models\BahanKeluar;
 use Illuminate\Http\Request;
 use App\Models\PembelianBahan;
+use App\Models\PeminjamanAset;
+use App\Helpers\DivisiHelper;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -30,36 +32,14 @@ class CountSidebar
             $bahanKeluarQuery = BahanKeluar::query();
             $bahanPembelianBahanQuery = PembelianBahan::query();
 
-            if ($user->hasRole(['superadmin', 'administrasi', 'purchasing'])) {
-                // Akses semua data
-            } elseif ($user->hasRole(['hardware manager'])) {
-                $bahanKeluarQuery->whereIn('divisi', ['RnD', 'Purchasing', 'Helper', 'Teknisi', 'OP', 'Produksi']);
-                $bahanPembelianBahanQuery->whereIn('divisi', ['RnD', 'Purchasing', 'Helper', 'Teknisi', 'OP', 'Produksi']);
-            } elseif ($user->hasRole(['rnd', 'rnd level 3'])) {
-                $bahanKeluarQuery->where('divisi', 'RnD');
-                $bahanPembelianBahanQuery->where('divisi', 'RnD');
-            } elseif ($user->hasRole(['purchasing level 3', 'helper'])) {
-                $bahanKeluarQuery->whereIn('divisi', ['Purchasing', 'Helper']);
-                $bahanPembelianBahanQuery->whereIn('divisi', ['Purchasing', 'Helper']);
-            } elseif ($user->hasRole(['teknisi level 3', 'teknisi', 'op', 'produksi'])) {
-                $bahanKeluarQuery->whereIn('divisi', ['Teknisi', 'OP', 'Produksi']);
-                $bahanPembelianBahanQuery->whereIn('divisi', ['Teknisi', 'OP', 'Produksi']);
-            } elseif ($user->hasRole(['marketing manager', 'marketing', 'marketing level 3', 'publikasi'])) {
-                $bahanKeluarQuery->whereIn('divisi', ['Marketing', 'publikasi']);
-                $bahanPembelianBahanQuery->whereIn('divisi', ['Marketing', 'publikasi']);
-            } elseif ($user->hasRole(['software manager', 'software'])) {
-                $bahanKeluarQuery->whereIn('divisi', ['Software']);
-                $bahanPembelianBahanQuery->whereIn('divisi', ['Software']);
-            } elseif ($user->hasRole(['hse'])) {
-                $bahanKeluarQuery->where('divisi', 'HSE');
-                $bahanPembelianBahanQuery->where('divisi', 'HSE');
-            } elseif ($user->hasRole(['sekretaris'])) {
-                $bahanKeluarQuery->where('divisi', 'Sekretaris');
-                $bahanPembelianBahanQuery->where('divisi', 'Sekretaris');
-            } elseif ($user->hasRole('administrasi')) {
-                $bahanKeluarQuery->whereIn('divisi', ['HSE', 'Sekretaris', 'Administrasi']);
-                $bahanPembelianBahanQuery->whereIn('divisi', ['HSE', 'Sekretaris', 'Administrasi']);
+            // Cakupan divisi diambil dari DivisiHelper supaya aturannya cuma ada di satu tempat.
+            $divisi = DivisiHelper::divisiUntuk($user);
+
+            if ($divisi !== null) {
+                $bahanKeluarQuery->whereIn('divisi', $divisi);
+                $bahanPembelianBahanQuery->whereIn('divisi', $divisi);
             }
+
             $jumlahBahanKeluar = $bahanKeluarQuery->where('status', 'Belum disetujui')->count();
             $jumlahPembelianBahan = $bahanPembelianBahanQuery->where('status', 'Belum disetujui')->count();
         }
@@ -68,6 +48,7 @@ class CountSidebar
 
         $jumlahBahanRusak = BahanRusak::where('status', 'Belum disetujui')->count();
         $jumlahBahanRetur = BahanRetur::where('status', 'Belum disetujui')->count();
+        $jumlahPeminjamanAset = $this->hitungPeminjamanMenungguSaya($user);
         // $jumlahBahanKeluar = BahanKeluar::where('status', 'Belum disetujui')->count();
 
 
@@ -76,7 +57,53 @@ class CountSidebar
         view()->share('jumlahBahanRetur', $jumlahBahanRetur);
         view()->share('jumlahBahanKeluar', $jumlahBahanKeluar);
         view()->share('jumlahPembelianBahan', $jumlahPembelianBahan);
+        view()->share('jumlahPeminjamanAset', $jumlahPeminjamanAset);
 
         return $next($request);
+    }
+
+    /**
+     * Jumlah pengajuan peminjaman aset yang menunggu persetujuan user ini.
+     * Leader & Manager dihitung dari hierarki atasan pengaju, General Affair dari role.
+     */
+    private function hitungPeminjamanMenungguSaya($user): int
+    {
+        if (!$user) {
+            return 0;
+        }
+
+        $query = PeminjamanAset::where('status', '!=', 'Ditolak')->where('status_hrd', '!=', 'Ditolak');
+
+        // HRD: yang sudah lolos GA dan menunggu diketahui
+        if ($user->can('approve-hrd-peminjaman-aset') && !$user->hasRole('superadmin')) {
+            return (int) $query->where('status', 'Disetujui')->where('status_hrd', 'Belum disetujui')->count();
+        }
+
+        if ($user->hasRole(['superadmin', 'general_affair'])) {
+            return (int) $query->where(function ($q) {
+                $q->where('status', 'Belum disetujui')
+                    ->orWhere(function ($sub) {
+                        $sub->where('status', 'Disetujui')->where('status_hrd', 'Belum disetujui');
+                    });
+            })->count();
+        }
+
+        return (int) $query->where(function ($outer) use ($user) {
+            // Menunggu approval saya sebagai Leader
+            $outer->where(function ($q) use ($user) {
+                $q->where('status_leader', 'Belum disetujui')
+                    ->whereHas('dataUser', function ($sub) use ($user) {
+                        $sub->where('atasan_level3_id', $user->id);
+                    });
+            })
+            // Menunggu approval saya sebagai Manager
+            ->orWhere(function ($q) use ($user) {
+                $q->where('status_leader', 'Disetujui')
+                    ->where('status_manager', 'Belum disetujui')
+                    ->whereHas('dataUser', function ($sub) use ($user) {
+                        $sub->where('atasan_level2_id', $user->id);
+                    });
+            });
+        })->count();
     }
 }

@@ -4,23 +4,25 @@
     class="fixed inset-0 flex items-center justify-center z-50 w-full h-full"
     style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);"
     @keydown.escape.window="isOpen = false; $wire.closeModal();"
-    x-transition:enter="transition ease-out duration-900"
+    x-transition:enter="transition ease-out duration-300"
     x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100"
-    x-transition:leave="transition ease-in duration-900"
+    x-transition:leave="transition ease-in duration-300"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0">
     <div class="relative p-4 w-full max-w-md max-h-full" x-show="isOpen"
         @click.outside="isOpen = false; $wire.closeModal();"
-        x-transition:enter="transition ease-out duration-900 transform"
+        x-transition:enter="transition ease-out duration-300 transform"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition ease-in duration-900 transform"
+        x-transition:leave="transition ease-in duration-300 transform"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95">
 
         <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-            <button wire:click="closeModal" type="button" @click="isOpen = false; $wire.closeModal();" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            {{-- Cukup wire:click; @click yang juga memanggil $wire.closeModal()
+                 membuatnya terpanggil dua kali, dan isOpen sudah ikut lewat @entangle. --}}
+            <button wire:click="closeModal" type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
                 <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                 </svg>

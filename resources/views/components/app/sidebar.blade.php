@@ -64,11 +64,31 @@
                 </h3>
                 <ul class="mt-3">
                     <!-- Data Master -->
-                    <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['datamaster'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif" x-data="{ open: {{ in_array(Request::segment(1), ['datamaster']) ? 1 : 0 }} }">
-                        <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['datamaster'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
+                    @php
+                        // Segmen URL setiap anak submenu ini. Dipakai supaya submenu-nya
+                        // terbuka sendiri dan ikut tersorot saat salah satu anaknya
+                        // sedang dibuka. Sebelumnya hanya 'datamaster' yang dicek —
+                        // padahal tidak ada anak yang beralamat di situ, sehingga
+                        // membuka Barang Aset pun submenunya tetap tertutup dan item
+                        // aktifnya tersembunyi.
+                        $segmenDataMaster = [
+                            'datamaster', 'barang-aset', 'ruangan', 'bahan', 'jenis-bahan',
+                            'unit', 'supplier', 'produk-produksis', 'produk-jadis', 'kontrak',
+                        ];
+                        $diDataMaster = in_array(Request::segment(1), $segmenDataMaster);
+
+                        // Dipisah dari $diDataMaster, dan sengaja hanya mengecek
+                        // 'datamaster' — sama seperti submenu Transaksi. Yang menandai
+                        // halaman aktif cukup teks anaknya yang memerah; kalau baris
+                        // induknya juga ikut berlatar merah dan ikonnya memerah,
+                        // Data Master jadi terlihat berbeda dari Transaksi.
+                        $sorotDataMaster = in_array(Request::segment(1), ['datamaster']);
+                    @endphp
+                    <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if($sorotDataMaster){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif" x-data="{ open: {{ $diDataMaster ? 1 : 0 }} }">
+                        <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!$sorotDataMaster){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <svg class="shrink-0 fill-current @if(in_array(Request::segment(1), ['datamaster'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" width="22"  height="22" viewBox="0 0 24 24">
+                                    <svg class="shrink-0 fill-current @if($sorotDataMaster){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" width="22"  height="22" viewBox="0 0 24 24">
                                         <path d="M12 7.205c4.418 0 8-1.165 8-2.602C20 3.165 16.418 2 12 2S4 3.165 4 4.603c0 1.437 3.582 2.602 8 2.602ZM12 22c4.963 0 8-1.686 8-2.603v-4.404c-.052.032-.112.06-.165.09a7.75 7.75 0 0 1-.745.387c-.193.088-.394.173-.6.253-.063.024-.124.05-.189.073a18.934 18.934 0 0 1-6.3.998c-2.135.027-4.26-.31-6.3-.998-.065-.024-.126-.05-.189-.073a10.143 10.143 0 0 1-.852-.373 7.75 7.75 0 0 1-.493-.267c-.053-.03-.113-.058-.165-.09v4.404C4 20.315 7.037 22 12 22Zm7.09-13.928a9.91 9.91 0 0 1-.6.253c-.063.025-.124.05-.189.074a18.935 18.935 0 0 1-6.3.998c-2.135.027-4.26-.31-6.3-.998-.065-.024-.126-.05-.189-.074a10.163 10.163 0 0 1-.852-.372 7.816 7.816 0 0 1-.493-.268c-.055-.03-.115-.058-.167-.09V12c0 .917 3.037 2.603 8 2.603s8-1.686 8-2.603V7.596c-.052.031-.112.059-.165.09a7.816 7.816 0 0 1-.745.386Z"/>
                                     </svg>
 
@@ -77,14 +97,14 @@
 
                                 <!-- Icon -->
                                 <div class="flex shrink-0 ml-2 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                    <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 @if(in_array(Request::segment(1), ['datamaster'])){{ 'rotate-180' }}@endif" :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                    <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 @if($diDataMaster){{ 'rotate-180' }}@endif" :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                         <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                                     </svg>
                                 </div>
                             </div>
                         </a>
                         <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
-                            <ul class="pl-8 mt-1 @if(!in_array(Request::segment(1), ['datamaster'])){{ 'hidden' }}@endif" :class="open ? '!block' : 'hidden'">
+                            <ul class="pl-8 mt-1 @if(!$diDataMaster){{ 'hidden' }}@endif" :class="open ? '!block' : 'hidden'">
                                 @can('lihat-barang')
                                     <li class="mb-1 last:mb-0">
                                         <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('barang-aset.index')){{ '!text-[#B40404]' }}@endif" href="{{ route('barang-aset.index') }}">
@@ -92,6 +112,20 @@
                                         </a>
                                     </li>
                                 @endcan
+                                {{-- Pindah dari grup Aset. Pembatasan role-nya dipertahankan
+                                     apa adanya: sebelum ini hanya superadmin & general_affair
+                                     yang melihatnya, dan memindahkan menu tidak boleh
+                                     sekalian memberi akses baru ke 10 role lain yang
+                                     kebetulan juga punya permission lihat-ruangan. --}}
+                                @role('superadmin|sekretaris|general_affair')
+                                    @can('lihat-ruangan')
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('ruangan.index')){{ '!text-[#B40404]' }}@endif" href="{{ route('ruangan.index') }}">
+                                                <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Ruangan Aset</span>
+                                            </a>
+                                        </li>
+                                    @endcan
+                                @endrole
                                 @can('lihat-bahan')
                                     <li class="mb-1 last:mb-0">
                                         <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('bahan.index')){{ '!text-[#B40404]' }}@endif" href="{{ route('bahan.index') }}">
@@ -147,11 +181,24 @@
                     <!-- Transaksi -->
                     {{-- @role('superadmin|purchasing|purchasing level 3|rnd level 3|teknisi level 3|marketing level 3|administrasi|admin|direksi|marketing manager|administration manager|hardware manager|software manager|sekretaris|general_affair') --}}
                     @if(Gate::allows('lihat-menu-transaksi'))
-                    <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['transaksi'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif" x-data="{ open: {{ in_array(Request::segment(1), ['transaksi']) ? 1 : 0 }} }">
-                        <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['transaksi'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
+                    @php
+                        // Segmen URL ketiga anak submenu ini, supaya submenunya terbuka
+                        // sendiri saat salah satu anaknya dibuka. Tanpa ini, membuka
+                        // Bahan Masuk membuat submenunya tetap tertutup dan item yang
+                        // sedang aktif tersembunyi. Pola sama dengan Data Master.
+                        $segmenTransaksi = ['transaksi', 'purchases', 'bahan-keluars', 'pengajuan-pembelian-bahan'];
+                        $diTransaksi = in_array(Request::segment(1), $segmenTransaksi);
+
+                        // Sorotan baris induk sengaja dipisah dan hanya mengecek
+                        // 'transaksi': penanda halaman aktif cukup teks anaknya yang
+                        // memerah, bukan latar dan ikon induknya juga.
+                        $sorotTransaksi = in_array(Request::segment(1), ['transaksi']);
+                    @endphp
+                    <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if($sorotTransaksi){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif" x-data="{ open: {{ $diTransaksi ? 1 : 0 }} }">
+                        <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!$sorotTransaksi){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <svg class="shrink-0 fill-current @if(in_array(Request::segment(1), ['transaksi'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="22"  height="22" fill="none" viewBox="0 0 24 24">
+                                    <svg class="shrink-0 fill-current @if($sorotTransaksi){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" aria-hidden="true"  xmlns="http://www.w3.org/2000/svg" width="22"  height="22" fill="none" viewBox="0 0 24 24">
                                         <path d="M12.268 6A2 2 0 0 0 14 9h1v1a2 2 0 0 0 3.04 1.708l-.311 1.496a1 1 0 0 1-.979.796H8.605l.208 1H16a3 3 0 1 1-2.83 2h-2.34a3 3 0 1 1-4.009-1.76L4.686 5H4a1 1 0 0 1 0-2h1.5a1 1 0 0 1 .979.796L6.939 6h5.329Z"/>
                                         <path d="M18 4a1 1 0 1 0-2 0v2h-2a1 1 0 1 0 0 2h2v2a1 1 0 1 0 2 0V8h2a1 1 0 1 0 0-2h-2V4Z"/>
                                     </svg>
@@ -166,14 +213,14 @@
                                 </div>
                                 <!-- Icon -->
                                 <div class="flex shrink-0 ml-2 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                    <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 @if(in_array(Request::segment(1), ['transaksi'])){{ 'rotate-180' }}@endif" :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                    <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 @if($diTransaksi){{ 'rotate-180' }}@endif" :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                         <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                                     </svg>
                                 </div>
                             </div>
                         </a>
                         <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
-                            <ul class="pl-8 mt-1 @if(!in_array(Request::segment(1), ['transaksi'])){{ 'hidden' }}@endif" :class="open ? '!block' : 'hidden'">
+                            <ul class="pl-8 mt-1 @if(!$diTransaksi){{ 'hidden' }}@endif" :class="open ? '!block' : 'hidden'">
                                 @can('lihat-bahan-masuk')
                                     <li class="mb-1 last:mb-0">
                                         <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('purchases.index')){{ '!text-[#B40404]' }}@endif" href="{{ route('purchases.index') }}">
@@ -298,7 +345,7 @@
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['pengajuans'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['pengajuans.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('pengajuans.index') }}">
                                 <div class="flex items-center">
-                                    <svg  class="shrink-0 fill-current @if(in_array(Request::segment(1), ['pengajuans'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list-check">
+                                    <svg  class="shrink-0 @if(in_array(Request::segment(1), ['pengajuans'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list-check">
                                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3.5 5.5l1.5 1.5l2.5 -2.5" /><path d="M3.5 11.5l1.5 1.5l2.5 -2.5" />
                                         <path d="M3.5 17.5l1.5 1.5l2.5 -2.5" /><path d="M11 6l9 0" /><path d="M11 12l9 0" /><path d="M11 18l9 0" />
                                     </svg>
@@ -313,7 +360,7 @@
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['pengajuan-pembelian'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['pengajuan-pembelian.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('pengajuan-pembelian.index') }}">
                                 <div class="flex items-center">
-                                    <svg  class="shrink-0 fill-current @if(in_array(Request::segment(1), ['pengajuan-pembelian'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list-check">
+                                    <svg  class="shrink-0 @if(in_array(Request::segment(1), ['pengajuan-pembelian'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list-check">
                                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3.5 5.5l1.5 1.5l2.5 -2.5" /><path d="M3.5 11.5l1.5 1.5l2.5 -2.5" />
                                         <path d="M3.5 17.5l1.5 1.5l2.5 -2.5" /><path d="M11 6l9 0" /><path d="M11 12l9 0" /><path d="M11 18l9 0" />
                                     </svg>
@@ -325,26 +372,96 @@
                 </ul>
             </div>
             <!-- Aset -->
-            @role('superadmin|sekretaris|general_affair')
+            @php
+                $penggunaAset = auth()->user();
+                // Rekapitulasi & Pergerakan tetap dibatasi role seperti semula,
+                // supaya tidak ada role yang tiba-tiba mendapat akses baru.
+                //
+                // lihat-ruangan tidak lagi disebut di sini: menunya sudah pindah ke
+                // submenu Data Master, jadi tidak boleh lagi menjadi alasan grup Aset
+                // ditampilkan — kalau tetap disebut, grupnya bisa muncul kosong.
+                $bolehDataAset = $penggunaAset->hasAnyRole(['superadmin', 'sekretaris', 'general_affair'])
+                    && ($penggunaAset->can('lihat-rekap-aset') || $penggunaAset->can('lihat-pergerakan-aset'));
+                $tampilkanGrupAset = $bolehDataAset
+                    || $penggunaAset->can('lihat-peminjaman-aset')
+                    || $penggunaAset->can('lihat-approval-peminjaman-aset')
+                    || $penggunaAset->can('lihat-serah-terima-aset');
+            @endphp
+            @if($tampilkanGrupAset)
             <div>
                 <h3 class="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
-                    <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>
+                    <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">&bull;&bull;&bull;</span>
                     <span class="lg:hidden lg:sidebar-expanded:block 2xl:block">Aset</span>
                 </h3>
                 <ul class="mt-3">
-                    @can('lihat-rekap-aset')
+                    @role('superadmin|sekretaris|general_affair')
+                        @can('lihat-rekap-aset')
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['rekap-aset'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
-                            <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['rekap-aset.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('rekap-aset.index') }}">
+                            <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['rekap-aset'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('rekap-aset.index') }}">
                                 <div class="flex items-center">
-                                    <svg class="shrink-0 fill-current @if(in_array(Request::segment(1), ['rekap-aset'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-server-spark"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19 22.5a4.75 4.75 0 0 1 3.5 -3.5a4.75 4.75 0 0 1 -3.5 -3.5a4.75 4.75 0 0 1 -3.5 3.5a4.75 4.75 0 0 1 3.5 3.5" /><path d="M3 7a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" /><path d="M12 20h-6a3 3 0 0 1 -3 -3v-2a3 3 0 0 1 3 -3h10.5" /><path d="M7 8v.01" /><path d="M7 16v.01" /></svg>
-                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Rekapitulasi Aset</span>
-                                </div>
+                                        <svg class="shrink-0 @if(in_array(Request::segment(1), ['rekap-aset'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19 22.5a4.75 4.75 0 0 1 3.5 -3.5a4.75 4.75 0 0 1 -3.5 -3.5a4.75 4.75 0 0 1 -3.5 3.5a4.75 4.75 0 0 1 3.5 3.5" /><path d="M3 7a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" /><path d="M12 20h-6a3 3 0 0 1 -3 -3v-2a3 3 0 0 1 3 -3h10.5" /><path d="M7 8v.01" /><path d="M7 16v.01" /></svg>
+                                        <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Rekapitulasi Aset</span>
+                                    </div>
+                            </a>
+                        </li>
+                        @endcan
+                        {{-- Ruangan Aset dipindah ke submenu Data Master: isinya data
+                             acuan (kode, nama, keterangan), bukan transaksi aset. --}}
+                        @can('lihat-pergerakan-aset')
+                        <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['pergerakan-aset'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
+                            <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['pergerakan-aset'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('pergerakan-aset.index') }}">
+                                <div class="flex items-center">
+                                        <svg class="shrink-0 @if(in_array(Request::segment(1), ['pergerakan-aset'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7h11" /><path d="M11 4l3 3l-3 3" /><path d="M21 17h-11" /><path d="M13 20l-3 -3l3 -3" /></svg>
+                                        <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Pergerakan Aset</span>
+                                    </div>
+                            </a>
+                        </li>
+                        @endcan
+                    @endrole
+
+                    @can('lihat-peminjaman-aset')
+                        <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['peminjaman-aset'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
+                            <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['peminjaman-aset'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('peminjaman-aset.index') }}">
+                                <div class="flex items-center">
+                                        <svg class="shrink-0 @if(in_array(Request::segment(1), ['peminjaman-aset'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 9l3 3l-3 3" /><path d="M13 15l3 0" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /></svg>
+                                        <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Pengajuan Peminjaman</span>
+                                    </div>
+                            </a>
+                        </li>
+                    @endcan
+
+                    @can('lihat-serah-terima-aset')
+                        <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['serah-terima-aset'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
+                            <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['serah-terima-aset'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('serah-terima-aset.index') }}">
+                                <div class="flex items-center">
+                                        <svg class="shrink-0 @if(in_array(Request::segment(1), ['serah-terima-aset'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 8v-3a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-5.5" /><path d="M3 13.5l3 -1.5l3 1.5" /><path d="M6 12v6" /><path d="M3 17.5l3 1.5l3 -1.5" /></svg>
+                                        <span class="text-sm font-medium ml-4 truncate lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Serah Terima Aset</span>
+                                    </div>
+                            </a>
+                        </li>
+                    @endcan
+
+                    @can('lihat-approval-peminjaman-aset')
+                        <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['approval-peminjaman-aset'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
+                            <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['approval-peminjaman-aset'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('peminjaman-aset.approval-index') }}">
+                                {{-- Badge dipisah & shrink-0 supaya tidak ikut terpotong `truncate` milik <a> --}}
+                                <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center min-w-0">
+                                        <svg class="shrink-0 @if(in_array(Request::segment(1), ['approval-peminjaman-aset'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 12l2 2l4 -4" /><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3" /></svg>
+                                        <span class="text-sm font-medium ml-4 truncate lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Approval Peminjaman</span>
+                                    </div>
+                                        @if(!empty($jumlahPeminjamanAset))
+                                            <div class="flex shrink-0 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                                                <span class="inline-flex items-center justify-center h-4 px-1 text-xs font-semibold text-black rounded-full" style="background-color: #f1b1b1">{{ $jumlahPeminjamanAset }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
                             </a>
                         </li>
                     @endcan
                 </ul>
             </div>
-            @endrole
+            @endif
             <!-- Pengambilan -->
             <div>
                 <h3 class="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
@@ -356,7 +473,7 @@
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['pengambilan-bahan'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['pengambilan-bahan.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('pengambilan-bahan.index') }}">
                                 <div class="flex items-center">
-                                    <svg  class="shrink-0 fill-current @if(in_array(Request::segment(1), ['pengambilan-bahan'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list-check">
+                                    <svg  class="shrink-0 @if(in_array(Request::segment(1), ['pengambilan-bahan'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list-check">
                                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3.5 5.5l1.5 1.5l2.5 -2.5" /><path d="M3.5 11.5l1.5 1.5l2.5 -2.5" />
                                         <path d="M3.5 17.5l1.5 1.5l2.5 -2.5" /><path d="M11 6l9 0" /><path d="M11 12l9 0" /><path d="M11 18l9 0" />
                                     </svg>
@@ -404,7 +521,7 @@
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['produksi-produk-jadi'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['produksi-produk-jadi.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('produksi-produk-jadi.index') }}">
                                 <div class="flex items-center">
-                                    <svg class="shrink-0 fill-current @if(in_array(Request::segment(1), ['produksi-produk-jadi'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" width="22"  height="22" viewBox="0 0 48 48"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"><path d="M7.291 24.18c.204 2.53 2.202 4.39 4.738 4.532C14.663 28.859 18.595 29 24 29s9.337-.14 11.971-.288c2.536-.142 4.534-2.001 4.738-4.532c.158-1.968.291-4.668.291-8.18s-.133-6.211-.291-8.18c-.204-2.53-2.202-4.39-4.738-4.532C33.337 3.141 29.405 3 24 3s-9.337.14-11.971.288C9.493 3.43 7.495 5.29 7.29 7.821C7.133 9.789 7 12.488 7 16s.133 6.212.291 8.18"/><path d="M3.002 37.405c.043 4.493 3.813 7.37 8.305 7.47C14.436 44.944 18.629 45 24 45s9.564-.056 12.693-.125c4.492-.1 8.262-2.977 8.305-7.47a45 45 0 0 0 0-.81c-.043-4.493-3.813-7.37-8.305-7.47A579 579 0 0 0 24 29c-5.37 0-9.564.056-12.693.125c-4.492.1-8.262 2.977-8.305 7.47a42 42 0 0 0 0 .81"/><path d="M15 37a3 3 0 1 1-6 0a3 3 0 1 1 6 0m12 0a3 3 0 1 1-6 0a3 3 0 1 1 6 0m12 0a3 3 0 1 1-6 0a3 3 0 1 1 6 0M28.958 3.046a188 188 0 0 1-.34 7.3a.987.987 0 0 1-1.52.764l-2.83-1.797a.5.5 0 0 0-.537 0l-2.83 1.797a.987.987 0 0 1-1.519-.765c-.11-1.667-.267-4.4-.341-7.3M35 23h-8m8-5h-5"/></g></svg>
+                                    <svg class="shrink-0 @if(in_array(Request::segment(1), ['produksi-produk-jadi'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" width="22"  height="22" viewBox="0 0 48 48"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"><path d="M7.291 24.18c.204 2.53 2.202 4.39 4.738 4.532C14.663 28.859 18.595 29 24 29s9.337-.14 11.971-.288c2.536-.142 4.534-2.001 4.738-4.532c.158-1.968.291-4.668.291-8.18s-.133-6.211-.291-8.18c-.204-2.53-2.202-4.39-4.738-4.532C33.337 3.141 29.405 3 24 3s-9.337.14-11.971.288C9.493 3.43 7.495 5.29 7.29 7.821C7.133 9.789 7 12.488 7 16s.133 6.212.291 8.18"/><path d="M3.002 37.405c.043 4.493 3.813 7.37 8.305 7.47C14.436 44.944 18.629 45 24 45s9.564-.056 12.693-.125c4.492-.1 8.262-2.977 8.305-7.47a45 45 0 0 0 0-.81c-.043-4.493-3.813-7.37-8.305-7.47A579 579 0 0 0 24 29c-5.37 0-9.564.056-12.693.125c-4.492.1-8.262 2.977-8.305 7.47a42 42 0 0 0 0 .81"/><path d="M15 37a3 3 0 1 1-6 0a3 3 0 1 1 6 0m12 0a3 3 0 1 1-6 0a3 3 0 1 1 6 0m12 0a3 3 0 1 1-6 0a3 3 0 1 1 6 0M28.958 3.046a188 188 0 0 1-.34 7.3a.987.987 0 0 1-1.52.764l-2.83-1.797a.5.5 0 0 0-.537 0l-2.83 1.797a.987.987 0 0 1-1.519-.765c-.11-1.667-.267-4.4-.341-7.3M35 23h-8m8-5h-5"/></g></svg>
                                     <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Produksi Produk Jadi</span>
                                 </div>
                             </a>
@@ -437,7 +554,7 @@
                         <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['produk-sample'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['produk-sample.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('produk-sample.index') }}">
                                 <div class="flex items-center">
-                                    <svg  xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="shrink-0 fill-current icon icon-tabler icons-tabler-outline icon-tabler-bookmark-plus @if(in_array(Request::segment(1), ['produk-sample'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 17l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v5" /><path d="M16 19h6" /><path d="M19 16v6" /></svg>
+                                    <svg  xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="shrink-0 icon icon-tabler icons-tabler-outline icon-tabler-bookmark-plus @if(in_array(Request::segment(1), ['produk-sample'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 17l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v5" /><path d="M16 19h6" /><path d="M19 16v6" /></svg>
                                     <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Produk Sample</span>
                                 </div>
                             </a>

@@ -61,6 +61,9 @@ class UserController extends Controller
                 'job_level' => 'nullable|string|max:100',
                 'email' => 'required|email|max:255|unique:users,email',
                 'telephone' => 'nullable|string|max:20',
+                // Dicetak di blok PIHAK KEDUA pada BAST. Tidak unique: formatnya
+                // milik HRIS dan belum tentu tunggal di sistem ini.
+                'nomor_id' => 'nullable|string|max:100',
                 'password' => 'required|string|min:8|max:20',
                 'roles' => 'required|array',
                 'atasan_level1_id' => 'nullable|exists:users,id',
@@ -90,6 +93,7 @@ class UserController extends Controller
                 'job_level' => $validated['job_level'] ?? null,
                 'email' => $validated['email'],
                 'telephone' => $validated['telephone'] ?? null,
+                'nomor_id' => $validated['nomor_id'] ?? null,
                 'password' => Hash::make($validated['password']),
                 'atasan_level1_id' => $validated['atasan_level1_id'] ?? null,
                 'atasan_level2_id' => $validated['atasan_level2_id'] ?? null,
@@ -140,6 +144,9 @@ class UserController extends Controller
                 'job_level' => 'nullable',
                 'email' => 'required|email|max:255|unique:users,email,' . $user->id,
                 'telephone' => 'nullable|string|max:20',
+                // Dicetak di blok PIHAK KEDUA pada BAST. Tidak unique: formatnya
+                // milik HRIS dan belum tentu tunggal di sistem ini.
+                'nomor_id' => 'nullable|string|max:100',
                 'password' => 'nullable|string|min:8|max:20',
                 'roles' => 'required|array',
                 'atasan_level1_id' => 'nullable|exists:users,id',
@@ -176,6 +183,11 @@ class UserController extends Controller
                 'job_level' => $validated['job_level'] ?? $user->job_level,
                 'email' => $validated['email'],
                 'telephone' => $validated['telephone'] ?? $user->telephone,
+                // array_key_exists, bukan ?? : mengosongkan nomor ID harus benar-benar
+                // menghapusnya, bukan diam-diam mengembalikan nilai lama.
+                'nomor_id' => array_key_exists('nomor_id', $validated)
+                    ? ($validated['nomor_id'] ?: null)
+                    : $user->nomor_id,
                 // 'atasan_level1_id' => $validated['atasan_level1_id'] ?? $user->atasan_level1_id,
                 // 'atasan_level2_id' => $validated['atasan_level2_id'] ?? $user->atasan_level2_id,
                 // 'atasan_level3_id' => $validated['atasan_level3_id'] ?? $user->atasan_level3_id,

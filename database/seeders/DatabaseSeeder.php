@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             JenisBahanTableSeeder::class,
             UnitTableSeeder::class,
             BahanTableSeeder::class,
+            RuanganTableSeeder::class,
         ]);
     }
 }

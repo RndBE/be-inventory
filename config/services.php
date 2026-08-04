@@ -36,5 +36,23 @@ return [
         'secret_key' => env('RECAPTCHA_SECRET_KEY'),
     ],
 
+    /*
+     * HRIS — sumber data identitas pegawai (nomor ID, jabatan, divisi).
+     *
+     * Dipakai saat Berita Acara Serah Terima Aset dibuat, untuk membekukan
+     * identitas kedua pihak di dokumennya. Tidak pernah dipanggil saat mencetak:
+     * dokumen yang sudah terbit harus tetap sama, dan pencetakan tidak boleh
+     * gagal gara-gara HRIS sedang tak bisa dihubungi.
+     *
+     * timeout sengaja pendek. Pembuatan BAST adalah aksi yang ditunggu pengguna
+     * di depan layar, dan kegagalannya sudah ditangani dengan jatuh ke data
+     * inventory — menunggu lama tidak memberi manfaat apa pun.
+     */
+    'hris' => [
+        'url' => env('HRIS_URL'),
+        'key' => env('HRIS_API_KEY'),
+        'timeout' => env('HRIS_TIMEOUT', 5),
+    ],
+
 
 ];

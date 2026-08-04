@@ -31,12 +31,25 @@
                         <div class="mt-2">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file">Upload file</label>
                             <input name="file" required class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file" type="file">
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">Format file xlsx, xls, csv</p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">Format file xlsx, xls, csv (maksimal 10 MB)</p>
+                            <a href="{{ route('rekap-aset.template-import') }}"
+                                class="mt-3 inline-flex items-center gap-1.5 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
+                                </svg>
+                                Unduh template Excel
+                            </a>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Worksheet opname juga bisa diunggah langsung. Kolom PIC yang berisi
+                                <em>jabatan</em> tidak diterjemahkan ke orang — penanggung jawab &amp; pemegang
+                                hanya terisi kalau nilainya cocok dengan nama user. Sisanya dibiarkan kosong
+                                dan jumlahnya dilaporkan setelah import, untuk dilengkapi lewat form edit.
+                            </p>
                         </div>
                     </div>
 
                     <div>
-                        <button type="submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800">Upload</button>
+                        <button type="submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800">Upload & Import</button>
                     </div>
                 </form>
 

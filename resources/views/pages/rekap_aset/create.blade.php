@@ -39,7 +39,9 @@
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
                 <a href="{{ route('rekap-aset.index') }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Kembali</a>
-                <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
+                {{-- form="asetForm" menghubungkan tombol ini ke <form> di badan halaman
+                     secara native, jadi submit-nya tidak lagi bergantung skrip. --}}
+                <button id="saveButton" type="submit" form="asetForm" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-400">Simpan</button>
             </div>
         </div>
     </x-app.secondary-header>
@@ -66,6 +68,18 @@
                             <div class="mt-2">
                                 <input value="{{ old('serial_number') }}" type="text" name="serial_number" id="serial_number" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" placeholder="SN-XXXXXXXXXX">
                                 @error('serial_number')
+                                    <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            </div>
+
+                            {{-- Merek/Tipe dicetak di kolom "Merek/Tipe" pada Berita Acara
+                                 Serah Terima Aset, jadi sebaiknya diisi walau tidak wajib. --}}
+                            <div class="sm:col-span-2">
+                            <label for="merek" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Merek / Tipe</label>
+                            <div class="mt-2">
+                                <input value="{{ old('merek') }}" type="text" name="merek" id="merek" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" placeholder="mis. Lenovo ThinkPad E14">
+                                @error('merek')
                                     <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -117,7 +131,16 @@
                             <div class="sm:col-span-2">
                                 <label for="jumlah_aset" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Jumlah Aset</label>
                                 <div class="mt-2">
-                                    <input value="{{ old('jumlah_aset') }}" type="number" name="jumlah_aset" id="jumlah_aset" autocomplete="address-level2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                    {{-- Dikunci ke 1, bukan sekadar terisi 1. Satu baris rekap aset
+                                         mewakili satu unit bernomor sendiri, dan nilai ini ikut
+                                         DICETAK sebagai kolom jumlah di BAST. Selama masih bisa
+                                         diisi bebas, dokumen bisa menyatakan "5 unit" untuk satu
+                                         nomor aset — sementara sistem tetap menghitungnya satu. --}}
+                                    <input value="1" type="number" disabled id="jumlah_aset" class="block w-full rounded-md border-0 bg-gray-100 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 sm:text-sm sm:leading-6">
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        Selalu 1 — satu baris mewakili satu unit dengan nomor asetnya sendiri.
+                                        Untuk beberapa unit, buat satu baris per unit.
+                                    </p>
                                     @error('jumlah_aset')
                                         <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
                                     @enderror
@@ -165,7 +188,40 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label for="jumlah_aset" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Keterangan</label>
+                                <label for="pic_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">PIC Pemegang Aset</label>
+                                <div class="mt-2">
+                                    <select id="pic_id" name="pic_id" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                                        <option value="">Pilih PIC Pemegang Aset</option>
+                                        @foreach($dataUser as $user)
+                                            <option value="{{ $user->id }}" {{ old('pic_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('pic_id')
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="ruangan_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Ruangan / Lokasi Aset</label>
+                                <div class="mt-2">
+                                    <select id="ruangan_id" name="ruangan_id" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                                        <option value="">Pilih Ruangan</option>
+                                        @foreach($dataRuangan as $ruangan)
+                                            <option value="{{ $ruangan->id }}" {{ old('ruangan_id') == $ruangan->id ? 'selected' : '' }}>{{ $ruangan->nama_ruangan }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('ruangan_id')
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                {{-- for="keterangan", bukan "jumlah_aset": label ini sebelumnya
+                                     menunjuk kolom lain, jadi mengkliknya memindahkan fokus ke
+                                     Jumlah Aset. --}}
+                                <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Keterangan</label>
                                 <div class="mt-2">
                                     <textarea id="keterangan" name="keterangan" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">{{ old('keterangan') }}</textarea>
                                     @error('keterangan')
@@ -182,19 +238,11 @@
 
     </div>
 </x-app-layout>
-<script>
-    setTimeout(function() {
-        const errorMessages = document.querySelectorAll('.error-message');
-        errorMessages.forEach(function(message) {
-            message.style.display = 'none';
-        });
-    }, 3000);
-</script>
-<script>
-    document.getElementById('saveButton').addEventListener('click', function() {
-        document.getElementById('asetForm').submit();
-    });
-</script>
+{{-- Skrip yang menyembunyikan .error-message setelah 3 detik dibuang. Pesan
+     validasi per-field justru dibutuhkan selama pengguna membetulkan isiannya;
+     menghilangkannya memaksa dia mengirim ulang form hanya untuk tahu kolom mana
+     yang salah. --}}
+<x-app.kirim-sekali form="asetForm" />
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         flatpickr("#datetimepicker", {

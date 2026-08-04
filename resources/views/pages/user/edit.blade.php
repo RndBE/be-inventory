@@ -90,6 +90,23 @@
                             ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2
                             focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                     </div>
+                    {{-- Nomor identitas pegawai, dicetak di blok PIHAK KEDUA pada
+                         Berita Acara Serah Terima Aset. Cukup diisi untuk pemegang
+                         role HRD & General Affair.
+
+                         Mengubahnya di sini tidak mengubah BAST yang sudah terbit —
+                         nomornya dibekukan di dokumen saat BAST dibuat. --}}
+                    <div class="mb-3">
+                        <label for="nomor_id">Nomor ID Pegawai</label>
+                        <input type="text" name="nomor_id" value="{{ old('nomor_id', $user->nomor_id) }}"
+                            placeholder="mis. 003/HRDCS/II/2026"
+                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm
+                            ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2
+                            focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                        @error('nomor_id')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
                     <div class="mb-3">
                         <label for="password">Password</label>
                         <input type="password" name="password"

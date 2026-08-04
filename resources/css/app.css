@@ -13,4 +13,11 @@
     input[type='file']::-webkit-file-upload-button {
         cursor: pointer;
     }
+
+    /* Wajib ada untuk x-cloak. Tanpa aturan ini, atribut x-cloak tidak berefek
+       apa pun: semua dropdown dan modal sekejap terlihat saat halaman dimuat,
+       sampai Alpine selesai berjalan dan menghapus atributnya. */
+    [x-cloak] {
+        display: none !important;
+    }
 }

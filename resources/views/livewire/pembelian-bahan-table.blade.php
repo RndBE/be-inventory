@@ -234,7 +234,9 @@
                                 <table class="w-full text-sm text-left border-collapse">
                                     <tbody>
                                         @foreach ($statusList as $role => $status)
-                                            @php($kendala = $pembelian_bahan->kendalaApproval($role))
+                                            @php
+                                                $kendala = $pembelian_bahan->kendalaApproval($role);
+                                            @endphp
                                             <tr class="border-b border-gray-200 hover:bg-gray-50">
                                                 <td class="py-2 px-3 text-gray-700 font-medium">{{ $role }}
                                                 </td>

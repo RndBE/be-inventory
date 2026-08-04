@@ -37,6 +37,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\ProjekRndController;
 use App\Http\Controllers\RekapAsetController;
+use App\Http\Controllers\PergerakanAsetController;
+use App\Http\Controllers\RuanganController;
+use App\Http\Controllers\PeminjamanAsetController;
+use App\Http\Controllers\SerahTerimaAsetController;
+use App\Http\Controllers\BuktiAsetController;
 use App\Http\Controllers\BahanReturController;
 use App\Http\Controllers\BahanRusakController;
 use App\Http\Controllers\BarangAsetController;
@@ -126,9 +131,41 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('bahan-export-saldo', [BahanController::class, 'exportSaldoPersediaan'])->name('bahan.export-saldo');
 
     Route::resource('barang-aset', BarangAsetController::class);
-    Route::resource('rekap-aset', RekapAsetController::class);
+    Route::resource('ruangan', RuanganController::class);
     Route::post('rekap-aset/import', [RekapAsetController::class, 'import'])->name('rekap-aset.import');
+    Route::get('rekap-aset-template-import', [RekapAsetController::class, 'templateImport'])->name('rekap-aset.template-import');
+    Route::resource('rekap-aset', RekapAsetController::class);
     Route::get('rekap-aset/{id}/label', [RekapAsetController::class, 'label'])->name('rekap-aset.label');
+    Route::post('rekap-aset/pengembalian-manajemen', [RekapAsetController::class, 'pengembalianManajemen'])
+        ->name('rekap-aset.pengembalian-manajemen');
+
+    // Hanya index: halaman pemantauan yang murni baca, tidak ada aksi tulis.
+    Route::get('pergerakan-aset', [PergerakanAsetController::class, 'index'])->name('pergerakan-aset.index');
+
+    Route::get('approval-peminjaman-aset', [PeminjamanAsetController::class, 'approval'])->name('peminjaman-aset.approval-index');
+    // Tanpa destroy: pengajuan peminjaman aset adalah arsip, tidak boleh dihapus siapa pun.
+    Route::resource('peminjaman-aset', PeminjamanAsetController::class)->only(['index', 'create', 'store', 'edit', 'update']);
+    Route::post('peminjaman-aset/{id}/approval/{tahap}', [PeminjamanAsetController::class, 'updateApproval'])
+        ->whereIn('tahap', ['leader', 'manager', 'ga', 'hrd'])
+        ->name('peminjaman-aset.approval');
+    // Satu pengajuan sekali kirim: aset mana saja yang dikembalikan dipilih di modal.
+    Route::post('peminjaman-aset/{id}/pengembalian', [PeminjamanAsetController::class, 'pengembalian'])
+        ->name('peminjaman-aset.pengembalian');
+
+    // Berita Acara Serah Terima Aset (offboarding karyawan)
+    Route::resource('serah-terima-aset', SerahTerimaAsetController::class)->only(['index', 'create', 'store']);
+    Route::post('serah-terima-aset/{id}/selesaikan', [SerahTerimaAsetController::class, 'selesaikan'])
+        ->name('serah-terima-aset.selesaikan');
+    Route::get('serah-terima-aset/{id}/pdf', [SerahTerimaAsetController::class, 'downloadPdf'])
+        ->name('serah-terima-aset.pdf');
+
+    // Bukti foto serah terima aset. Berkasnya ada di disk 'local' (di luar public/)
+    // dan hanya keluar lewat sini, supaya haknya bisa diperiksa per-record —
+    // sebelumnya semuanya terbuka tanpa login lewat asset('storage/…').
+    Route::get('bukti-aset/peminjaman/{id}', [BuktiAsetController::class, 'peminjaman'])
+        ->whereNumber('id')->name('bukti-aset.peminjaman');
+    Route::get('bukti-aset/manajemen/{id}', [BuktiAsetController::class, 'manajemen'])
+        ->whereNumber('id')->name('bukti-aset.manajemen');
 
     Route::resource('supplier', SupplierController::class);
     Route::get('supplier-export', [SupplierController::class, 'export'])->name('supplier.export');

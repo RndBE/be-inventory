@@ -145,8 +145,6 @@
                         ?? $detail->dataProdukJadi?->nama_produk
                         ?? $detail->dataProdukJadi?->dataProduk?->nama_produk
                         ?? 'Data tidak tersedia';
-                    $jumlahProduksi = (float) ($produksiProdukJadi->jml_produksi ?: 1);
-                    $minUnitProduksi = (float) $detail->qty / $jumlahProduksi;
                 @endphp
                 <tr>
                     <td class="center">{{ $index + 1 }}</td>
@@ -157,7 +155,7 @@
                             ({{ $detail->serial_number }})
                         @endif
                     </td>
-                    <td class="center">{{ number_format($minUnitProduksi, 2, '.', '') }}</td>
+                    <td class="center">{{ $produksiProdukJadi->jml_produksi ?? 0 }}</td>
                 </tr>
             @empty
                 <tr>

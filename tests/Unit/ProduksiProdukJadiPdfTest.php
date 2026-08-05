@@ -40,7 +40,7 @@ class ProduksiProdukJadiPdfTest extends TestCase
     }
 
     #[Test]
-    public function pdf_memuat_identitas_produk_dan_jumlah_produksi(): void
+    public function pdf_memuat_identitas_jumlah_produksi_dan_qty_bahan(): void
     {
         $view = $this->contents('resources/views/pages/produksi-produk-jadi/pdf.blade.php');
 
@@ -48,9 +48,11 @@ class ProduksiProdukJadiPdfTest extends TestCase
         $this->assertStringContainsString('$produksiProdukJadi->dataProdukJadi->nama_produk', $view);
         $this->assertStringContainsString('$produksiProdukJadi->keterangan', $view);
         $this->assertStringContainsString('Kode Bahan', $view);
-        $this->assertStringContainsString('Unit/Produksi', $view);
+        $this->assertStringContainsString('Jumlah Produksi', $view);
         $this->assertStringContainsString('$produksiProdukJadi->jml_produksi ?? 0', $view);
-        $this->assertStringNotContainsString('$detail->qty / $jumlahProduksi', $view);
+        $this->assertStringContainsString('<th style="width: 16%;">Qty</th>', $view);
+        $this->assertStringContainsString('$detail->qty ?? 0', $view);
+        $this->assertStringNotContainsString('Unit/Produksi', $view);
     }
 
     #[Test]

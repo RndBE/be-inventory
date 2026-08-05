@@ -122,6 +122,10 @@
             <td class="label">Keterangan</td>
             <td>: {{ $produksiProdukJadi->keterangan ?? '-' }}</td>
         </tr>
+        <tr>
+            <td class="label">Jumlah Produksi</td>
+            <td>: {{ $produksiProdukJadi->jml_produksi ?? 0 }}</td>
+        </tr>
     </table>
 
     <table class="materials">
@@ -130,7 +134,7 @@
                 <th style="width: 7%;">No</th>
                 <th style="width: 22%;">Kode Bahan</th>
                 <th>Nama</th>
-                <th style="width: 16%;">Min<br>Unit/Produksi</th>
+                <th style="width: 16%;">Qty</th>
             </tr>
         </thead>
         <tbody>
@@ -155,7 +159,7 @@
                             ({{ $detail->serial_number }})
                         @endif
                     </td>
-                    <td class="center">{{ $produksiProdukJadi->jml_produksi ?? 0 }}</td>
+                    <td class="center">{{ $detail->qty ?? 0 }}</td>
                 </tr>
             @empty
                 <tr>

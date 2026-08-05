@@ -143,13 +143,25 @@
         </tr>
         <tr>
             <td style="text-align: center; width: 25%;">
-                <div style="height: 80px; width: 150px;"></div>
+                <div style="height: 80px; width: 150px;">
+                    @if ($tandaTanganPengaju)
+                        <img src="{{ public_path('storage/' . $tandaTanganPengaju) }}" alt="Tanda Tangan Pengaju" style="height: 80px; width: 150px; object-fit: contain;">
+                    @endif
+                </div>
             </td>
             <td colspan="2" style="text-align: center; width: 25%;">
-                <div style="height: 80px; width: 150px;"></div>
+                <div style="height: 80px; width: 150px;">
+                    @if ($bahanRetur->status === 'Disetujui' && $tandaTanganPurchasing)
+                        <img src="{{ public_path('storage/' . $tandaTanganPurchasing) }}" alt="Tanda Tangan Purchasing" style="height: 80px; width: 150px; object-fit: contain;">
+                    @endif
+                </div>
             </td>
             <td style="text-align: center; width: 25%;">
-                <div style="height: 80px; width: 150px;"></div>
+                <div style="height: 80px; width: 150px;">
+                    @if ($bahanRetur->status === 'Disetujui' && $tandaTanganManager)
+                        <img src="{{ public_path('storage/' . $tandaTanganManager) }}" alt="Tanda Tangan Manager" style="height: 80px; width: 150px; object-fit: contain;">
+                    @endif
+                </div>
             </td>
         </tr>
 
@@ -207,7 +219,12 @@
         <tr style="text-align: left; vertical-align: top;">
             <td style="text-align: center;"></td>
             <td style="text-align: center;"></td>
-            <td colspan="2" style="text-align: center;">Tgl Retur: </td>
+            <td colspan="2" style="text-align: center;">
+                Tgl Retur:
+                @if ($bahanRetur->status === 'Disetujui' && $bahanRetur->tgl_diterima)
+                    {{ \Carbon\Carbon::parse($bahanRetur->tgl_diterima)->timezone('Asia/Jakarta')->format('d/m/Y H:i') }}
+                @endif
+            </td>
         </tr>
     </table>
 

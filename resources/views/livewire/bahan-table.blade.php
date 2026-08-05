@@ -24,6 +24,14 @@
             </div>
         </div>
     @endif
+    @if ($errors->any())
+        <div class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
+            <div>
+                <strong class="font-bold">Error!</strong>
+                <span class="font-medium">{{ $errors->first() }}</span>
+            </div>
+        </div>
+    @endif
     <div class="sm:flex sm:justify-between sm:items-center mb-2">
         <div class="mb-4 sm:mb-0">
             <h6 class="text-4xl text-gray-800 dark:text-gray-100 font-bold">Bahan</h6>
@@ -77,13 +85,13 @@
                     @include('livewire.dataperpage')
                 </li>
                 <li class="m-1">
-                    @can('export-bahan')
-                        <a href="{{ route('bahan.export') }}" class="mt-2 block w-fit rounded-md py-1.5 px-2 bg-green-600 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">
-                            <svg class="w-[18px] h-[22px] text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10V4a1 1 0 0 0-1-1H9.914a1 1 0 0 0-.707.293L5.293 7.207A1 1 0 0 0 5 7.914V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2M10 3v4a1 1 0 0 1-1 1H5m5 6h9m0 0-2-2m2 2-2 2"/>
-                            </svg>
-                        </a>
-                    @endcan
+                    @php
+                        $canImportBahan = auth()->user()->can('tambah-bahan') && auth()->user()->can('edit-bahan');
+                        $canExportBahan = auth()->user()->can('export-bahan');
+                    @endphp
+                    @if ($canImportBahan || $canExportBahan)
+                        @include('pages.bahan.import', compact('canImportBahan', 'canExportBahan'))
+                    @endif
                 </li>
                 {{-- <li class="m-1">
                     @can('edit-bahan')

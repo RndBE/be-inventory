@@ -18,6 +18,7 @@ use App\Models\BahanKeluarDetails;
 use App\Models\ProduksiProdukJadi;
 use Illuminate\Support\Facades\Auth;
 use App\Jobs\SendWhatsAppNotification;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ProdukSampleProductionDetailCopier;
 use Illuminate\Support\Facades\Validator;
 
@@ -26,7 +27,7 @@ class ProduksiProdukJadiController extends Controller
 
     public function __construct()
     {
-        $this->middleware('permission:lihat-proses-produksi', ['only' => ['index']]);
+        $this->middleware('permission:lihat-proses-produksi', ['only' => ['index', 'downloadPdf']]);
         $this->middleware('permission:selesai-proses-produksi', ['only' => ['updateStatus']]);
         $this->middleware('permission:tambah-proses-produksi', ['only' => ['create','store']]);
         $this->middleware('permission:edit-proses-produksi', ['only' => ['update','edit']]);
@@ -55,6 +56,52 @@ class ProduksiProdukJadiController extends Controller
         // dd($produksi);
 
         return view('pages.produksi-produk-jadi.info', compact('produksi'));
+    }
+
+    public function downloadPdf(int $id)
+    {
+        try {
+            $produksiProdukJadi = ProduksiProdukJadi::with('dataProdukJadi')->findOrFail($id);
+
+            if ($produksiProdukJadi->status !== 'Selesai') {
+                return redirect()->back()->with('error', 'PDF hanya tersedia untuk produksi produk jadi yang sudah selesai.');
+            }
+
+            app(ProdukSampleProductionDetailCopier::class)->copyMissingDetailsFromSample($produksiProdukJadi);
+
+            $produksiProdukJadi->load([
+                'produksiProdukJadiDetails.dataBahan',
+                'produksiProdukJadiDetails.dataProduk.dataBahan',
+                'produksiProdukJadiDetails.dataProdukJadi.dataProduk',
+            ]);
+
+            $sortedDetails = $produksiProdukJadi->produksiProdukJadiDetails
+                ->sortBy(function ($detail) {
+                    return strtolower(
+                        $detail->dataBahan?->nama_bahan
+                        ?? $detail->dataProduk?->nama_bahan
+                        ?? $detail->dataProdukJadi?->nama_produk
+                        ?? $detail->dataProdukJadi?->dataProduk?->nama_produk
+                        ?? ''
+                    );
+                })
+                ->values();
+
+            $produksiProdukJadi->setRelation('produksiProdukJadiDetails', $sortedDetails);
+
+            $pdf = Pdf::loadView(
+                'pages.produksi-produk-jadi.pdf',
+                compact('produksiProdukJadi')
+            )->setPaper('letter', 'portrait');
+
+            LogHelper::success("Berhasil generating PDF for ProduksiProdukJadi ID {$id}!");
+
+            return $pdf->stream("BahanProduksiProdukJadi_{$id}.pdf");
+        } catch (\Exception $e) {
+            LogHelper::error("Error generating PDF for ProduksiProdukJadi ID {$id}: ".$e->getMessage());
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat membuka PDF produksi produk jadi.');
+        }
     }
 
 

@@ -66,6 +66,7 @@ class BahanReturController extends Controller
 
             $pengaju = null;
             $atasanLevel2 = null;
+            $pengajuUser = null;
 
             if ($bahanRetur->produksiS) {
                 $pengaju = $bahanRetur->produksiS->pengaju ?? null;
@@ -86,10 +87,10 @@ class BahanReturController extends Controller
             }
 
             if ($pengaju) {
-                $user = User::where('name', $pengaju)->first();
+                $pengajuUser = User::where('name', $pengaju)->first();
 
-                if ($user && $user->atasanLevel2) {
-                    $atasanLevel2 = $user->atasanLevel2->name;
+                if ($pengajuUser && $pengajuUser->atasanLevel2) {
+                    $atasanLevel2 = $pengajuUser->atasanLevel2->name;
                 }
             }
 
@@ -102,7 +103,9 @@ class BahanReturController extends Controller
                     })->first();
             });
 
+            $tandaTanganPengaju = $pengajuUser?->tanda_tangan;
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+            $tandaTanganManager = $pengajuUser?->atasanLevel2?->tanda_tangan;
             $namaManager = $hardwareManager->name ?? null;
 
             $financeUser = $this->resolveFinanceUser($bahanRetur->tgl_pengajuan ?? null);
@@ -123,7 +126,10 @@ class BahanReturController extends Controller
                 'adminManagerceUser',
                 'atasanLevel2',
                 'namaManager',
-                'hasProduk'
+                'hasProduk',
+                'tandaTanganPengaju',
+                'tandaTanganPurchasing',
+                'tandaTanganManager'
             ))->setPaper('letter', 'portrait');
             return $pdf->stream("bahan_retur_{$id}.pdf");
 

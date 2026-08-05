@@ -49,17 +49,12 @@ class BahanRusakController extends Controller
                 );
             })->isNotEmpty();
 
-
-            $tandaTanganPengaju = $bahanRusak->dataUser->tanda_tangan ?? null;
-
-            $tandaTanganLeader = null;
-            $tandaTanganManager = $bahanRusak->dataUser->atasanLevel2->tanda_tangan ?? null;
-            $tandaTanganDirektur = $bahanRusak->dataUser->atasanLevel1->tanda_tangan ?? null;
-
             // Default null
             $pengaju = null;
             $divisi = null;
             $tujuan = null;
+            $atasanLevel2 = null;
+            $pengajuUser = null;
 
             if ($bahanRusak->produksiS) {
                 $pengaju = $bahanRusak->produksiS->pengaju ?? null;
@@ -89,11 +84,11 @@ class BahanRusakController extends Controller
 
             if ($pengaju) {
                 // Cari user berdasarkan nama
-                $user = User::where('name', $pengaju)->first();
+                $pengajuUser = User::where('name', $pengaju)->first();
 
-                if ($user && $user->atasanLevel2) {
-                    $atasanLevel2 = $user->atasanLevel2->name;
-                    $divisi = $user->dataJobPosition->nama ?? $user->divisi ?? null;
+                if ($pengajuUser && $pengajuUser->atasanLevel2) {
+                    $atasanLevel2 = $pengajuUser->atasanLevel2->name;
+                    $divisi = $pengajuUser->dataJobPosition->nama ?? $pengajuUser->divisi ?? null;
                 }
             }
 
@@ -106,7 +101,9 @@ class BahanRusakController extends Controller
                     })->first();
             });
 
+            $tandaTanganPengaju = $pengajuUser?->tanda_tangan;
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
+            $tandaTanganManager = $pengajuUser?->atasanLevel2?->tanda_tangan;
             $namaManager = $hardwareManager->name ?? null;
 
             $financeUser = $this->resolveFinanceUser($bahanRusak->tgl_pengajuan ?? null);
@@ -129,7 +126,10 @@ class BahanRusakController extends Controller
                 'adminManagerceUser',
                 'atasanLevel2',
                 'namaManager',
-                'hasProduk'
+                'hasProduk',
+                'tandaTanganPengaju',
+                'tandaTanganPurchasing',
+                'tandaTanganManager'
             ))->setPaper('letter', 'portrait');
             return $pdf->stream("bahan_rusak_{$id}.pdf");
 
@@ -567,7 +567,9 @@ class BahanRusakController extends Controller
             }
             // Update status bahan rusak
             $bahanRusak->status = $validated['status'];
-            $bahanRusak->tgl_diterima = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+            $bahanRusak->tgl_diterima = $validated['status'] === 'Disetujui'
+                ? now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s')
+                : null;
             $bahanRusak->save();
             DB::commit();
             LogHelper::success('Berhasil Mengubah Status Bahan Rusak!');

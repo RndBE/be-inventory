@@ -124,6 +124,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('/bahan', [BahanController::class, 'index'])->name('bahan.index');
     Route::get('/bahan/create', [BahanController::class, 'create'])->name('bahan.create');
     Route::post('/bahan/store', [BahanController::class, 'store'])->name('bahan.store');
+    Route::post('/bahan/import', [BahanController::class, 'import'])->name('bahan.import');
     Route::get('/bahan/{id}/edit', [BahanController::class, 'edit'])->name('bahan.edit');
     Route::put('/bahan/{id}', [BahanController::class, 'update'])->name('bahan.update');
     Route::delete('/bahan/{id}', [BahanController::class, 'destroy'])->name('bahan.destroy');
@@ -223,6 +224,7 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::resource('produksi-produk-jadi', ProduksiProdukJadiController::class);
     Route::put('produksi-produk-jadi/{produksi}/selesai', [ProduksiProdukJadiController::class, 'updateStatus'])->name('produksi-produk-jadi.updateStatus');
     Route::get('produksi-produk-jadi/{produksi}/info', [ProduksiProdukJadiController::class, 'info'])->name('produksi-produk-jadi.info');
+    Route::get('produksi-produk-jadi/{produksi}/pdf', [ProduksiProdukJadiController::class, 'downloadPdf'])->name('produksi-produk-jadi.downloadPdf');
 
     Route::resource('projeks', ProjekController::class);
     Route::put('projeks/{projek}/selesai', [ProjekController::class, 'updateStatus'])->name('projeks.updateStatus');

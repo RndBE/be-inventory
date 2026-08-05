@@ -3,20 +3,18 @@
 namespace App\Exports;
 
 use App\Models\Bahan;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Drawing;
-use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class BahansExport implements FromCollection, WithHeadings, WithStyles, WithEvents
+class BahansExport implements FromCollection, WithEvents, WithHeadings, WithStyles
 {
     public function collection()
     {
-        return Bahan::with('jenisBahan', 'dataUnit')
+        return Bahan::with('jenisBahan', 'dataUnit', 'suppliers')
             ->orderBy('nama_bahan') // ✅ Urutkan berdasarkan abjad nama_bahan
             ->get()
             ->map(function ($item) {
@@ -26,10 +24,11 @@ class BahansExport implements FromCollection, WithHeadings, WithStyles, WithEven
                     'jenis_bahan_id' => $item->jenisBahan->nama ?? 'N/A',
                     'unit_id' => $item->dataUnit->nama ?? 'N/A',
                     'penempatan' => $item->penempatan,
+                    'status' => $item->status,
+                    'supplier' => $item->suppliers->pluck('nama')->implode(', '),
                 ];
             });
     }
-
 
     public function headings(): array
     {
@@ -39,6 +38,8 @@ class BahansExport implements FromCollection, WithHeadings, WithStyles, WithEven
             'Jenis Bahan',
             'Satuan Unit',
             'Penempatan',
+            'Status',
+            'Supplier',
         ];
     }
 
@@ -65,12 +66,11 @@ class BahansExport implements FromCollection, WithHeadings, WithStyles, WithEven
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
-                foreach (range('A', 'F') as $column) {
+            AfterSheet::class => function (AfterSheet $event) {
+                foreach (range('A', 'G') as $column) {
                     $event->sheet->getDelegate()->getColumnDimension($column)->setAutoSize(true);
                 }
             },
         ];
     }
 }
-

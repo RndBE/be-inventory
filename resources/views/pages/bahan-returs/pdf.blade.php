@@ -143,23 +143,23 @@
         </tr>
         <tr>
             <td style="text-align: center; width: 25%;">
-                <div style="height: 80px; width: 150px;">
+                <div style="height: 65px; width: 150px; margin: 0 auto;">
                     @if ($tandaTanganPengaju)
-                        <img src="{{ public_path('storage/' . $tandaTanganPengaju) }}" alt="Tanda Tangan Pengaju" style="height: 80px; width: 150px; object-fit: contain;">
+                        <img src="{{ $tandaTanganPengaju }}" alt="Tanda Tangan Pengaju" style="display: block; height: 58px; width: 150px; margin: 7px auto 0;">
                     @endif
                 </div>
             </td>
             <td colspan="2" style="text-align: center; width: 25%;">
-                <div style="height: 80px; width: 150px;">
+                <div style="height: 65px; width: 150px; margin: 0 auto;">
                     @if ($bahanRetur->status === 'Disetujui' && $tandaTanganPurchasing)
-                        <img src="{{ public_path('storage/' . $tandaTanganPurchasing) }}" alt="Tanda Tangan Purchasing" style="height: 80px; width: 150px; object-fit: contain;">
+                        <img src="{{ $tandaTanganPurchasing }}" alt="Tanda Tangan Purchasing" style="display: block; height: 58px; width: 150px; margin: 7px auto 0;">
                     @endif
                 </div>
             </td>
             <td style="text-align: center; width: 25%;">
-                <div style="height: 80px; width: 150px;">
+                <div style="height: 65px; width: 150px; margin: 0 auto;">
                     @if ($bahanRetur->status === 'Disetujui' && $tandaTanganManager)
-                        <img src="{{ public_path('storage/' . $tandaTanganManager) }}" alt="Tanda Tangan Manager" style="height: 80px; width: 150px; object-fit: contain;">
+                        <img src="{{ $tandaTanganManager }}" alt="Tanda Tangan Manager" style="display: block; height: 58px; width: 150px; margin: 7px auto 0;">
                     @endif
                 </div>
             </td>

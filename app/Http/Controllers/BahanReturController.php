@@ -6,6 +6,7 @@ use Throwable;
 use App\Models\User;
 use App\Models\Purchase;
 use App\Helpers\LogHelper;
+use App\Helpers\PdfSignatureHelper;
 use App\Models\BahanRetur;
 use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
@@ -103,9 +104,9 @@ class BahanReturController extends Controller
                     })->first();
             });
 
-            $tandaTanganPengaju = $pengajuUser?->tanda_tangan;
-            $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
-            $tandaTanganManager = $pengajuUser?->atasanLevel2?->tanda_tangan;
+            $tandaTanganPengaju = PdfSignatureHelper::normalize($pengajuUser?->tanda_tangan);
+            $tandaTanganPurchasing = PdfSignatureHelper::normalize($purchasingUser?->tanda_tangan);
+            $tandaTanganManager = PdfSignatureHelper::normalize($pengajuUser?->atasanLevel2?->tanda_tangan);
             $namaManager = $hardwareManager->name ?? null;
 
             $financeUser = $this->resolveFinanceUser($bahanRetur->tgl_pengajuan ?? null);

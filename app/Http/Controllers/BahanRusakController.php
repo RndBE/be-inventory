@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Throwable;
 use App\Models\User;
 use App\Helpers\LogHelper;
+use App\Helpers\PdfSignatureHelper;
 use App\Models\BahanRusak;
 use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
@@ -101,9 +102,9 @@ class BahanRusakController extends Controller
                     })->first();
             });
 
-            $tandaTanganPengaju = $pengajuUser?->tanda_tangan;
-            $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
-            $tandaTanganManager = $pengajuUser?->atasanLevel2?->tanda_tangan;
+            $tandaTanganPengaju = PdfSignatureHelper::normalize($pengajuUser?->tanda_tangan);
+            $tandaTanganPurchasing = PdfSignatureHelper::normalize($purchasingUser?->tanda_tangan);
+            $tandaTanganManager = PdfSignatureHelper::normalize($pengajuUser?->atasanLevel2?->tanda_tangan);
             $namaManager = $hardwareManager->name ?? null;
 
             $financeUser = $this->resolveFinanceUser($bahanRusak->tgl_pengajuan ?? null);

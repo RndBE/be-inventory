@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Helpers\PdfSignatureHelper;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Compilers\BladeCompiler;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -47,9 +48,11 @@ class BahanReturRusakPdfSignatureTest extends TestCase
         string $viewPath,
         string $recordVariable
     ): void {
+        $controller = $this->contents($controllerPath);
         $view = $this->contents($viewPath);
 
-        $this->assertStringContainsString('public_path(\'storage/\' . $tandaTanganPengaju)', $view);
+        $this->assertStringContainsString('src="{{ $tandaTanganPengaju }}"', $view);
+        $this->assertStringContainsString('PdfSignatureHelper::normalize', $controller);
         $this->assertStringContainsString(
             "@if ({$recordVariable}->status === 'Disetujui' && \$tandaTanganPurchasing)",
             $view
@@ -95,6 +98,40 @@ class BahanReturRusakPdfSignatureTest extends TestCase
         $controller = $this->contents('app/Http/Controllers/BahanRusakController.php');
 
         $this->assertStringNotContainsString('$bahanRusak->dataUser', $controller);
+    }
+
+    #[Test]
+    public function gambar_tanda_tangan_dipangkas_dan_ditempatkan_pada_kanvas_seragam(): void
+    {
+        if (!function_exists('imagecreatetruecolor')) {
+            $this->markTestSkipped('Ekstensi GD tidak tersedia.');
+        }
+
+        $sourcePath = tempnam(sys_get_temp_dir(), 'signature_');
+        $source = imagecreatetruecolor(600, 360);
+        imagesavealpha($source, true);
+        $transparent = imagecolorallocatealpha($source, 255, 255, 255, 127);
+        imagefill($source, 0, 0, $transparent);
+        $ink = imagecolorallocatealpha($source, 0, 0, 0, 0);
+        imagesetthickness($source, 8);
+        imageline($source, 240, 130, 360, 220, $ink);
+        imagepng($source, $sourcePath);
+        imagedestroy($source);
+
+        try {
+            $dataUri = PdfSignatureHelper::normalizeFile($sourcePath);
+
+            $this->assertNotNull($dataUri);
+            $this->assertStringStartsWith('data:image/png;base64,', $dataUri);
+
+            $normalized = base64_decode(substr($dataUri, strlen('data:image/png;base64,')), true);
+            $size = getimagesizefromstring($normalized);
+
+            $this->assertSame(360, $size[0]);
+            $this->assertSame(140, $size[1]);
+        } finally {
+            @unlink($sourcePath);
+        }
     }
 
     #[Test]

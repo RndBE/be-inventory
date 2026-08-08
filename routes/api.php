@@ -15,6 +15,7 @@ use App\Http\Controllers\API\DashboardApiController;
 use App\Http\Controllers\Api\QcProdukJadiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Api\AsetKaryawanApiController;
+use App\Http\Controllers\Api\HargaModalCrmController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +44,13 @@ Route::middleware(['inventory_api_token'])->group(function () {
     Route::prefix('hris')->group(function () {
         Route::get('/aset-karyawan', [AsetKaryawanApiController::class, 'byEmail']);
     });
+});
+
+// CRM - harga modal produk. Pakai key sendiri, bukan inventory_api_token, karena
+// yang dibuka di sini HPP dan pencabutannya harus bisa berdiri sendiri.
+Route::middleware(['crm_api_token'])->prefix('crm')->group(function () {
+    Route::get('/harga-modal', [HargaModalCrmController::class, 'index']);
+    Route::get('/harga-modal/rincian', [HargaModalCrmController::class, 'rincian']);
 });
 
 

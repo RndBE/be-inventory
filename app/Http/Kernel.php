@@ -73,5 +73,6 @@ class Kernel extends HttpKernel
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         'inventory_api_token' => \App\Http\Middleware\InventoryApiToken::class,
+        'crm_api_token' => \App\Http\Middleware\CrmApiToken::class,
     ];
 }

@@ -2,12 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\MengelolaLinkGambarProduk;
 use App\Models\ProdukJadis;
+use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class ProdukJadisTable extends Component
 {
+    use MengelolaLinkGambarProduk;
     use WithPagination;
     public $search = "";
     public $perPage = 15;
@@ -33,6 +36,11 @@ class ProdukJadisTable extends Component
     public function deleteProdukJadis(int $id)
     {
         $this->id_produk_jadis = $id;
+    }
+
+    protected function cariUntukLinkGambar(int $id): ?Model
+    {
+        return ProdukJadis::find($id);
     }
 
     public function updatingSearch()

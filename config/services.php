@@ -54,5 +54,15 @@ return [
         'timeout' => env('HRIS_TIMEOUT', 5),
     ],
 
+    /*
+     * CRM — konsumen data harga modal produk.
+     *
+     * Key-nya sengaja terpisah dari INVENTORY_API_KEY milik HRIS dan WhatsApp.
+     * Endpoint CRM membuka HPP, jadi kalau key-nya bocor harus bisa dicabut
+     * tanpa ikut mematikan integrasi lain.
+     */
+    'crm' => [
+        'key' => env('CRM_API_KEY'),
+    ],
 
 ];

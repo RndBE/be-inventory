@@ -2,12 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\MengelolaLinkGambarProduk;
 use App\Models\BahanSetengahjadi;
+use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class BahanSetengahjadiTabel extends Component
 {
+    use MengelolaLinkGambarProduk;
     use WithPagination;
     public $search = "";
     public $perPage = 15;
@@ -33,6 +36,11 @@ class BahanSetengahjadiTabel extends Component
     public function deleteBahanSetengahjadis(int $id)
     {
         $this->id_bahanSetengahjadis = $id;
+    }
+
+    protected function cariUntukLinkGambar(int $id): ?Model
+    {
+        return BahanSetengahjadi::find($id);
     }
 
     public function updatingSearch()

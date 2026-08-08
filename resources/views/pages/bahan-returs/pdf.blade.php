@@ -152,7 +152,7 @@
             <td colspan="2" style="text-align: center; width: 25%;">
                 <div style="height: 65px; width: 150px; margin: 0 auto;">
                     @if ($bahanRetur->status === 'Disetujui' && $tandaTanganPurchasing)
-                        <img src="{{ $tandaTanganPurchasing }}" alt="Tanda Tangan Purchasing" style="display: block; height: 58px; width: 150px; margin: 7px auto 0;">
+                         <img src="{{ $tandaTanganPurchasing }}" alt="Tanda Tangan Purchasing" style="display: block; height: 58px; width: 150px; margin: 7px auto 0;">
                     @endif
                 </div>
             </td>

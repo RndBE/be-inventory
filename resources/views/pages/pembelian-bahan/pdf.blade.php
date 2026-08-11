@@ -1056,14 +1056,9 @@
             </tr>
             <tr>
                 <td colspan="2" style="text-align: center; width: 25%;">
-                    {{-- @if ($tandaTanganPengaju)
-                        <img src="{{ public_path('storage/' . $tandaTanganPengaju) }}" alt="Tanda Tangan Pengaju" style="height: 80px; width: 150px; object-fit: contain;">
-                    @else
-                    <div style="height: 80px; width: 150px;"></div>
-                    @endif --}}
-                    @if ($tandaTanganPengisiHarga)
-                        <img src="{{ public_path('storage/' . $tandaTanganPengisiHarga) }}"
-                            alt="Tanda Tangan Pengisi Harga" style="height: 80px; width: 150px; object-fit: contain;">
+                    @if ($tandaTanganPengaju)
+                        <img src="{{ public_path('storage/' . $tandaTanganPengaju) }}" alt="Tanda Tangan Pengaju"
+                            style="height: 80px; width: 150px; object-fit: contain;">
                     @else
                         <div style="height: 80px; width: 150px;"></div>
                     @endif
@@ -1099,8 +1094,7 @@
 
             <tr style="text-align: left; vertical-align: top;">
                 <td colspan="2" style="text-align: center;">
-                    {{-- {{ $pembelianBahan->dataUser->name ?? null }} --}}
-                    {{ $pengisiHargaUser->name ?? null }}
+                    {{ $pembelianBahan->dataUser->name ?? null }}
                 </td>
                 <td colspan="2" style="text-align: center;">
                     {{-- {{ $leaderName ?? '' }} --}}
@@ -1116,11 +1110,8 @@
 
             <tr style="text-align: left; vertical-align: top;">
                 <td colspan="2" style="text-align: center;">
-                    {{ $pembelianBahan->tgl_isi_harga ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_isi_harga)->translatedFormat('d F Y') . ')' : '' }}
-                </td>
-                {{-- <td style="text-align: center;">
                     {{ $pembelianBahan->tgl_pengajuan ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_pengajuan)->translatedFormat('d F Y') . ')' : '' }}
-                </td> --}}
+                </td>
                 <td colspan="2" style="text-align: center;">
                     {{ $pembelianBahan->tgl_approve_purchasing ? '(' . \Carbon\Carbon::parse($pembelianBahan->tgl_approve_purchasing)->translatedFormat('d F Y') . ')' : '' }}
                 </td>

@@ -598,6 +598,11 @@ class PengajuanPembelianController extends Controller
                 'status' => 'Belum disetujui',
                 'status_leader' => $status_leader,
                 'status_manager' => $status_manager,
+                // Tahap yang otomatis disetujui saat submit tetap dicap waktu,
+                // supaya kolom selisih waktu di tabel approval tidak kosong dan
+                // tahap sesudahnya punya titik pembanding.
+                'tgl_approve_leader' => $status_leader === 'Disetujui' ? $tgl_pengajuan : null,
+                'tgl_approve_manager' => $status_manager === 'Disetujui' ? $tgl_pengajuan : null,
             ]);
 
             if ($jenisPengajuan === 'Pembelian Aset Lokal' || $jenisPengajuan === 'Pembelian Aset Impor') {
@@ -843,6 +848,11 @@ class PengajuanPembelianController extends Controller
             $pengaju->atasan_level3_id ?? null,
             $pengaju->atasan_level2_id ?? null
         );
+        // Cap waktu ikut status: terisi bila otomatis disetujui, dikosongkan lagi
+        // bila slot Leader kembali menunggu approver baru.
+        $pembelianBahan->tgl_approve_leader = $pembelianBahan->status_leader === 'Disetujui'
+            ? now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s')
+            : null;
         $pembelianBahan->save();
 
         // Approver slot Leader berubah, jadi kabari yang sekarang kebagian.

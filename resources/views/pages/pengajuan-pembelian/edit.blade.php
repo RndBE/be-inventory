@@ -157,15 +157,15 @@
                                         <div class="w-3/4">
                                             <div class="flex items-center gap-6">
                                                 @foreach (['Produksi', 'Riset'] as $kategori)
-                                                    <label class="inline-flex items-center {{ $kategoriBisaDiubah ? 'cursor-pointer' : 'cursor-not-allowed' }}">
+                                                    <label class="inline-flex items-center {{ $kategoriBisaDiubah ? 'cursor-pointer' : 'cursor-default' }}">
                                                         {{-- form="kategoriForm" menyambungkan radio ini ke form
                                                              kategori di atas, bukan ke form harga di sekitarnya. --}}
                                                         <input type="radio" form="kategoriForm" name="kategori_pengajuan"
                                                             value="{{ $kategori }}"
-                                                            class="text-indigo-600 border-gray-300 focus:ring-indigo-600"
+                                                            class="{{ $kategoriBisaDiubah ? 'text-indigo-600 border-gray-300 focus:ring-indigo-600' : 'text-gray-400 bg-gray-100 border-gray-300' }}"
                                                             {{ $kategoriTerpilih === $kategori ? 'checked' : '' }}
                                                             {{ $kategoriBisaDiubah ? '' : 'disabled' }}>
-                                                        <span class="ml-2 text-sm text-gray-900 dark:text-gray-300">{{ $kategori }}</span>
+                                                        <span class="ml-2 text-sm {{ $kategoriBisaDiubah ? 'text-gray-900 dark:text-gray-300' : 'text-gray-400' }}">{{ $kategori }}</span>
                                                     </label>
                                                 @endforeach
                                             </div>

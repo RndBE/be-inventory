@@ -18,6 +18,11 @@
         <div class="flex items-center space-x-3">
             <div class="p-1 flex items-center justify-end gap-x-2">
                 <a href="{{ url()->previous() }}" type="button" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">Kembali</a>
+                {{-- Tombol ini menyimpan kategori Produksi/Riset. Formnya ada di
+                     dalam kartu di bawah, disambung lewat atribut form="". --}}
+                @if ($pembelian_bahan->pakaiKategoriPengajuan() && $pembelian_bahan->kategoriMasihBisaDiubah())
+                    <button type="submit" form="kategoriForm" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
+                @endif
                 {{-- @if($pembelian_bahan->status_finance === 'Belum disetujui')
                     <button id="saveButton" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Simpan</button>
                 @endif --}}
@@ -60,6 +65,22 @@
         </div>
 
         <div class="w-full bg-white border border-gray-200 rounded-lg p-4 shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
+            @php
+                $kategoriTerpilih = old('kategori_pengajuan', $pembelian_bahan->kategori_pengajuan ?? 'Produksi');
+                $kategoriBisaDiubah = $pembelian_bahan->kategoriMasihBisaDiubah();
+            @endphp
+            {{-- Kategori punya form sendiri supaya menggantinya tidak ikut menulis
+                 harga & biaya. Form ini sengaja kosong: radio-nya tetap tampil di
+                 barisan field bawah, disambung lewat atribut form="kategoriForm"
+                 (form HTML tidak boleh bersarang). --}}
+            @if ($pembelian_bahan->pakaiKategoriPengajuan())
+                <form id="kategoriForm" action="{{ route('pengajuan-pembelian.updateKategori', $pembelian_bahan->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="page" value="{{ request('page') }}">
+                </form>
+            @endif
+
             <form action="{{ route('pengajuan-pembelian.update', $pembelian_bahan->id) }}" method="POST" enctype="multipart/form-data" id="produksiForm">
                 @csrf
                 @method('PUT')
@@ -128,6 +149,37 @@
                                     </select>
                                 </div>
 
+                                @if ($pembelian_bahan->pakaiKategoriPengajuan())
+                                    <div class="flex items-center">
+                                        <label class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                                            Kategori <sup class="text-red-500 text-base">*</sup>
+                                        </label>
+                                        <div class="w-3/4">
+                                            <div class="flex items-center gap-6">
+                                                @foreach (['Produksi', 'Riset'] as $kategori)
+                                                    <label class="inline-flex items-center {{ $kategoriBisaDiubah ? 'cursor-pointer' : 'cursor-not-allowed' }}">
+                                                        {{-- form="kategoriForm" menyambungkan radio ini ke form
+                                                             kategori di atas, bukan ke form harga di sekitarnya. --}}
+                                                        <input type="radio" form="kategoriForm" name="kategori_pengajuan"
+                                                            value="{{ $kategori }}"
+                                                            class="text-indigo-600 border-gray-300 focus:ring-indigo-600"
+                                                            {{ $kategoriTerpilih === $kategori ? 'checked' : '' }}
+                                                            {{ $kategoriBisaDiubah ? '' : 'disabled' }}>
+                                                        <span class="ml-2 text-sm text-gray-900 dark:text-gray-300">{{ $kategori }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                            <p class="mt-1 text-xs text-gray-500">
+                                                @if ($kategoriBisaDiubah)
+                                                    Produksi: approval Leader lalu Manager. Riset: langsung ke Manager tanpa approval Leader.
+                                                @else
+                                                    Kategori tidak bisa diubah karena approval sudah berjalan.
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                @endif
+
                                 <div class="flex items-center">
                                     <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4"></label>
                                     <div class="relative w-3/4 mr-2">
@@ -147,7 +199,9 @@
     </div>
     {{-- @include('pages.pengajuan.selesai') --}}
     <script>
-        document.getElementById('saveButton').addEventListener('click', function() {
+        // Tombol Simpan form harga sedang dimatikan (lihat header), jadi listener
+        // hanya dipasang kalau tombolnya memang ada.
+        document.getElementById('saveButton')?.addEventListener('click', function() {
             document.getElementById('produksiForm').submit();
         });
     </script>

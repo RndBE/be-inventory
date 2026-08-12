@@ -98,13 +98,15 @@ class PengajuanPembelianController extends Controller
             $tandaTanganManager = $pembelianBahan->dataUser->atasanLevel2->tanda_tangan ?? null;
             $tandaTanganDirektur = $pembelianBahan->dataUser->atasanLevel1->tanda_tangan ?? null;
 
-            if ($pembelianBahan->dataUser->atasanLevel3) {
-                $tandaTanganLeader = $pembelianBahan->dataUser->atasanLevel3->tanda_tangan ?? null;
-            } elseif ($pembelianBahan->dataUser->atasanLevel2) {
-                $tandaTanganLeader = $pembelianBahan->dataUser->atasanLevel2->tanda_tangan ?? null;
+            // Kategori Riset: slot Leader diputus Manager (atasan level 2), jadi
+            // nama & tanda tangannya yang muncul di kolom Leader.
+            $approverLeader = $pembelianBahan->approverLeader();
+
+            if ($approverLeader) {
+                $tandaTanganLeader = $approverLeader->tanda_tangan ?? null;
             }
 
-            $leaderName = $pembelianBahan->dataUser->atasanLevel3 ? $pembelianBahan->dataUser->atasanLevel3->name : null;
+            $leaderName = $approverLeader->name ?? null;
             $managerName = $pembelianBahan->dataUser->atasanLevel2 ? $pembelianBahan->dataUser->atasanLevel2->name : null;
             $direkturName = $pembelianBahan->dataUser->atasanLevel1 ? $pembelianBahan->dataUser->atasanLevel1->name : null;
 
@@ -112,7 +114,17 @@ class PengajuanPembelianController extends Controller
                 $leaderName = $managerName;
             }
 
-            if ($pembelianBahan->dataUser->job_level == 3) {
+            $jobLevelPengaju = $pembelianBahan->dataUser->job_level;
+
+            if ($jobLevelPengaju !== null && (int) $jobLevelPengaju <= 2) {
+                // Pengaju setingkat Manager: slot Leader & Manager miliknya sendiri.
+                $tandaTanganLeader = $tandaTanganPengaju;
+                $leaderName = $pembelianBahan->dataUser->name;
+                $tandaTanganManager = $tandaTanganPengaju;
+                $managerName = $pembelianBahan->dataUser->name;
+            } elseif ((int) $jobLevelPengaju === 3 && ! $pembelianBahan->leaderDiputusManager()) {
+                // job_level 3 adalah Leader-nya sendiri — kecuali kategori Riset,
+                // yang slot Leader-nya justru diputus Manager.
                 $tandaTanganLeader = $tandaTanganPengaju;
                 $leaderName = $pembelianBahan->dataUser->name;
             }
@@ -250,13 +262,15 @@ class PengajuanPembelianController extends Controller
             $tandaTanganManager = $pembelianBahan->dataUser->atasanLevel2->tanda_tangan ?? null;
             $tandaTanganDirektur = $pembelianBahan->dataUser->atasanLevel1->tanda_tangan ?? null;
 
-            if ($pembelianBahan->dataUser->atasanLevel3) {
-                $tandaTanganLeader = $pembelianBahan->dataUser->atasanLevel3->tanda_tangan ?? null;
-            } elseif ($pembelianBahan->dataUser->atasanLevel2) {
-                $tandaTanganLeader = $pembelianBahan->dataUser->atasanLevel2->tanda_tangan ?? null;
+            // Kategori Riset: slot Leader diputus Manager (atasan level 2), jadi
+            // nama & tanda tangannya yang muncul di kolom Leader.
+            $approverLeader = $pembelianBahan->approverLeader();
+
+            if ($approverLeader) {
+                $tandaTanganLeader = $approverLeader->tanda_tangan ?? null;
             }
 
-            $leaderName = $pembelianBahan->dataUser->atasanLevel3 ? $pembelianBahan->dataUser->atasanLevel3->name : null;
+            $leaderName = $approverLeader->name ?? null;
             $managerName = $pembelianBahan->dataUser->atasanLevel2 ? $pembelianBahan->dataUser->atasanLevel2->name : null;
             $direkturName = $pembelianBahan->dataUser->atasanLevel1 ? $pembelianBahan->dataUser->atasanLevel1->name : null;
 
@@ -264,7 +278,17 @@ class PengajuanPembelianController extends Controller
                 $leaderName = $managerName;
             }
 
-            if ($pembelianBahan->dataUser->job_level == 3) {
+            $jobLevelPengaju = $pembelianBahan->dataUser->job_level;
+
+            if ($jobLevelPengaju !== null && (int) $jobLevelPengaju <= 2) {
+                // Pengaju setingkat Manager: slot Leader & Manager miliknya sendiri.
+                $tandaTanganLeader = $tandaTanganPengaju;
+                $leaderName = $pembelianBahan->dataUser->name;
+                $tandaTanganManager = $tandaTanganPengaju;
+                $managerName = $pembelianBahan->dataUser->name;
+            } elseif ((int) $jobLevelPengaju === 3 && ! $pembelianBahan->leaderDiputusManager()) {
+                // job_level 3 adalah Leader-nya sendiri — kecuali kategori Riset,
+                // yang slot Leader-nya justru diputus Manager.
                 $tandaTanganLeader = $tandaTanganPengaju;
                 $leaderName = $pembelianBahan->dataUser->name;
             }
@@ -368,6 +392,7 @@ class PengajuanPembelianController extends Controller
                 'project' => $request->project,
                 'keterangan' => $request->keterangan,
                 'jenis_pengajuan' => $request->jenis_pengajuan,
+                'kategori_pengajuan' => $request->kategori_pengajuan,
                 'cartItems' => $cartItems,
                 'itemsAset' => $itemsAset,
             ], [
@@ -375,6 +400,7 @@ class PengajuanPembelianController extends Controller
                 'project' => 'required',
                 'keterangan' => 'required',
                 'jenis_pengajuan' => 'required',
+                'kategori_pengajuan' => 'nullable|in:' . PembelianBahan::KATEGORI_PRODUKSI . ',' . PembelianBahan::KATEGORI_RISET,
                 'cartItems' => 'nullable|array',
                 'itemsAset' => 'nullable|array',
             ]);
@@ -386,6 +412,13 @@ class PengajuanPembelianController extends Controller
             $tujuan = $request->project;
             $user = Auth::user();
             $jenisPengajuan = $request->jenis_pengajuan;
+
+            // Kategori hanya berlaku untuk Pembelian Bahan/Barang/Alat; jenis Aset
+            // memakai alur General Affair sehingga kolomnya dibiarkan null.
+            $pakaiKategori = in_array($jenisPengajuan, PembelianBahan::JENIS_PAKAI_KATEGORI, true);
+            $kategoriPengajuan = $pakaiKategori
+                ? ($request->kategori_pengajuan ?: PembelianBahan::KATEGORI_PRODUKSI)
+                : null;
 
             // dd($jenisPengajuan);
 
@@ -414,7 +447,33 @@ class PengajuanPembelianController extends Controller
             $kode_transaksi = $prefix . date('Ymd') . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
             if ($jenisPengajuan === 'Pembelian Bahan/Barang/Alat Lokal' || $jenisPengajuan === 'Pembelian Bahan/Barang/Alat Impor') {
-                if ($user->job_level == 3 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
+                if ($user->job_level !== null && (int) $user->job_level <= 2) {
+                    // Pengaju sudah setingkat Manager, jadi slot Leader & Manager
+                    // adalah dirinya sendiri — sejalan dengan job_level 3 yang slot
+                    // Leader-nya otomatis disetujui. Berlaku untuk kedua kategori.
+                    $status_leader = 'Disetujui';
+                    $status_manager = 'Disetujui';
+                    $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                    $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+                } elseif ($kategoriPengajuan === PembelianBahan::KATEGORI_RISET) {
+                    // Riset: atasan level 3 dilewati, slot Leader diputus Manager
+                    // (atasan level 2). Tidak ada tahap yang di-auto-approve.
+                    $status_leader = PembelianBahan::statusLeaderAwal(
+                        $kategoriPengajuan,
+                        $user->atasan_level3_id,
+                        $user->atasan_level2_id
+                    );
+                    $status_manager = $user->atasan_level2_id === null ? 'Disetujui' : 'Belum disetujui';
+
+                    if ($user->atasan_level2_id === null) {
+                        // Tidak ada Manager: langsung ke Purchasing.
+                        $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
+                        $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+                    } else {
+                        $targetPhone = $user->atasanLevel2 ? $user->atasanLevel2->telephone : null;
+                        $recipientName = $user->atasanLevel2 ? $user->atasanLevel2->name : 'Manager';
+                    }
+                } elseif ($user->job_level == 3 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
                     // Job level 3 dan atasan_level3_id null, atasan_level2_id null
                     $status_leader = 'Disetujui';
                     $status_manager = 'Disetujui'; // Menunggu approval manager
@@ -534,6 +593,7 @@ class PengajuanPembelianController extends Controller
                 'jenis_pengajuan' => str_contains($request->jenis_pengajuan ?? '', 'Impor') && $request->currency
                     ? $request->jenis_pengajuan . '|' . $request->currency
                     : $request->jenis_pengajuan,
+                'kategori_pengajuan' => $kategoriPengajuan,
                 // 'status_pengambilan' => 'Belum Diambil',
                 'status' => 'Belum disetujui',
                 'status_leader' => $status_leader,
@@ -692,6 +752,123 @@ class PengajuanPembelianController extends Controller
             LogHelper::error($errorMessage);
             return redirect()->back()->with('error', "Terjadi kesalahan. Pesan error: $errorMessage");
         }
+    }
+
+    /**
+     * Simpan toggle kategori Produksi/Riset. Berdiri sendiri, terpisah dari
+     * update() yang mengurus harga & biaya, supaya mengganti kategori tidak ikut
+     * menimpa harga yang belum diisi.
+     */
+    public function updateKategori(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'kategori_pengajuan' => 'required|in:' . PembelianBahan::KATEGORI_PRODUKSI . ',' . PembelianBahan::KATEGORI_RISET,
+        ]);
+
+        $page = $request->input('page', 1);
+
+        try {
+            $pembelianBahan = PembelianBahan::findOrFail($id);
+
+            // Halaman edit menampilkan bag error validasi, bukan session('error'),
+            // jadi pesan gagal dikirim lewat withErrors supaya terlihat.
+            if (! $pembelianBahan->pakaiKategoriPengajuan()) {
+                return redirect()->back()->withErrors(['error' => 'Jenis pengajuan ini tidak memakai kategori Produksi/Riset.']);
+            }
+
+            if (! $pembelianBahan->kategoriMasihBisaDiubah()) {
+                return redirect()->back()->withErrors(['error' => 'Kategori tidak bisa diubah karena approval sudah berjalan.']);
+            }
+
+            DB::beginTransaction();
+            $this->ubahKategoriPengajuan($id, $validated['kategori_pengajuan']);
+            DB::commit();
+
+            LogHelper::success('Kategori pengajuan pembelian berhasil diubah.');
+
+            return redirect()->route('pengajuan-pembelian.index', ['page' => $page])
+                ->with('success', 'Kategori pengajuan berhasil diubah menjadi ' . $validated['kategori_pengajuan'] . '.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            LogHelper::error($e->getMessage());
+
+            return redirect()->back()->withErrors(['error' => 'Terjadi kesalahan saat mengubah kategori: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Pindah kategori Produksi <-> Riset pada pengajuan Bahan/Barang/Alat.
+     *
+     * Riset melewati approval Leader, Produksi memakainya kembali, jadi
+     * status_leader ikut dihitung ulang. Hanya berlaku selama Manager belum
+     * memutus apa pun; setelah itu kategori dibiarkan apa adanya supaya riwayat
+     * approval tidak berubah di belakang approver.
+     */
+    private function ubahKategoriPengajuan(string $id, ?string $kategori): void
+    {
+        if ($kategori === null) {
+            return;
+        }
+
+        $pembelianBahan = PembelianBahan::with(['dataUser.atasanLevel2', 'dataUser.atasanLevel3'])->find($id);
+
+        if (! $pembelianBahan || ! $pembelianBahan->kategoriMasihBisaDiubah()) {
+            return;
+        }
+
+        // Data sebelum kolom kategori ada bernilai null dan tampil sebagai
+        // 'Produksi' di form. Menyimpan tanpa mengganti pilihan berarti kategori
+        // tidak berubah: cukup diisi, status approval jangan disentuh — kalau
+        // dihitung ulang, approval Leader yang sudah jatuh bisa balik menggantung.
+        $kategoriSekarang = $pembelianBahan->kategori_pengajuan ?? PembelianBahan::KATEGORI_PRODUKSI;
+
+        if ($kategoriSekarang === $kategori) {
+            if ($pembelianBahan->kategori_pengajuan === null) {
+                $pembelianBahan->kategori_pengajuan = $kategori;
+                $pembelianBahan->save();
+            }
+
+            return;
+        }
+
+        $pengaju = $pembelianBahan->dataUser;
+
+        // Hanya slot Leader yang dihitung ulang: pindah kategori memindah siapa
+        // yang berhak memutusnya, sehingga approval lama di slot itu batal.
+        // status_manager sengaja tidak disentuh — tahap itu jalan setelah
+        // Purchasing dan bisa saja sudah diputus orang lain.
+        $pembelianBahan->kategori_pengajuan = $kategori;
+        $pembelianBahan->status_leader = PembelianBahan::statusLeaderAwal(
+            $kategori,
+            $pengaju->atasan_level3_id ?? null,
+            $pengaju->atasan_level2_id ?? null
+        );
+        $pembelianBahan->save();
+
+        // Approver slot Leader berubah, jadi kabari yang sekarang kebagian.
+        if ($pembelianBahan->status_leader === 'Belum disetujui') {
+            $targetUser = $pembelianBahan->approverLeader();
+            $targetRole = $pembelianBahan->leaderDiputusManager() ? 'Manager' : 'Leader';
+        } else {
+            $targetUser = $this->resolvePurchasingUser($pembelianBahan->tgl_pengajuan ?? null);
+            $targetRole = 'Purchasing';
+        }
+
+        $targetPhone = $targetUser->telephone ?? null;
+
+        if (! $targetPhone) {
+            LogHelper::error('No valid phone number found for WhatsApp notification.');
+
+            return;
+        }
+
+        $recipientName = $targetUser->name;
+        $message = "Halo {$recipientName},\n\n";
+        $message .= "Pengajuan pembelian bahan dengan kode transaksi {$pembelianBahan->kode_transaksi} kini berkategori *{$kategori}* dan memerlukan persetujuan Anda sebagai {$targetRole}.\n\n";
+        $message .= "Tgl Pengajuan: {$pembelianBahan->tgl_pengajuan}\nPengaju: {$pengaju->name}\nDivisi: {$pembelianBahan->divisi}\nProject: {$pembelianBahan->tujuan}\nKeterangan: {$pembelianBahan->keterangan}\n\n";
+        $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
+
+        SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
     }
 
     private function normalizeDecimal($value)

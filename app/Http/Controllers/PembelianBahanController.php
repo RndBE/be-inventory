@@ -127,13 +127,15 @@ class PembelianBahanController extends Controller
             $tandaTanganManager = $pembelianBahan->dataUser->atasanLevel2->tanda_tangan ?? null;
             $tandaTanganDirektur = $pembelianBahan->dataUser->atasanLevel1->tanda_tangan ?? null;
 
-            if ($pembelianBahan->dataUser->atasanLevel3) {
-                $tandaTanganLeader = $pembelianBahan->dataUser->atasanLevel3->tanda_tangan ?? null;
-            } elseif ($pembelianBahan->dataUser->atasanLevel2) {
-                $tandaTanganLeader = $pembelianBahan->dataUser->atasanLevel2->tanda_tangan ?? null;
+            // Kategori Riset: slot Leader diputus Manager (atasan level 2), jadi
+            // nama & tanda tangannya yang muncul di kolom Leader.
+            $approverLeader = $pembelianBahan->approverLeader();
+
+            if ($approverLeader) {
+                $tandaTanganLeader = $approverLeader->tanda_tangan ?? null;
             }
 
-            $leaderName = $pembelianBahan->dataUser->atasanLevel3 ? $pembelianBahan->dataUser->atasanLevel3->name : null;
+            $leaderName = $approverLeader->name ?? null;
             $managerName = $pembelianBahan->dataUser->atasanLevel2 ? $pembelianBahan->dataUser->atasanLevel2->name : null;
             $direkturName = $pembelianBahan->dataUser->atasanLevel1 ? $pembelianBahan->dataUser->atasanLevel1->name : null;
 
@@ -141,7 +143,17 @@ class PembelianBahanController extends Controller
                 $leaderName = $managerName;
             }
 
-            if ($pembelianBahan->dataUser->job_level == 3) {
+            $jobLevelPengaju = $pembelianBahan->dataUser->job_level;
+
+            if ($jobLevelPengaju !== null && (int) $jobLevelPengaju <= 2) {
+                // Pengaju setingkat Manager: slot Leader & Manager miliknya sendiri.
+                $tandaTanganLeader = $tandaTanganPengaju;
+                $leaderName = $pembelianBahan->dataUser->name;
+                $tandaTanganManager = $tandaTanganPengaju;
+                $managerName = $pembelianBahan->dataUser->name;
+            } elseif ((int) $jobLevelPengaju === 3 && ! $pembelianBahan->leaderDiputusManager()) {
+                // job_level 3 adalah Leader-nya sendiri — kecuali kategori Riset,
+                // yang slot Leader-nya justru diputus Manager.
                 $tandaTanganLeader = $tandaTanganPengaju;
                 $leaderName = $pembelianBahan->dataUser->name;
             }
@@ -278,13 +290,15 @@ class PembelianBahanController extends Controller
             $tandaTanganManager = $pembelianBahan->dataUser->atasanLevel2->tanda_tangan ?? null;
             $tandaTanganDirektur = $pembelianBahan->dataUser->atasanLevel1->tanda_tangan ?? null;
 
-            if ($pembelianBahan->dataUser->atasanLevel3) {
-                $tandaTanganLeader = $pembelianBahan->dataUser->atasanLevel3->tanda_tangan ?? null;
-            } elseif ($pembelianBahan->dataUser->atasanLevel2) {
-                $tandaTanganLeader = $pembelianBahan->dataUser->atasanLevel2->tanda_tangan ?? null;
+            // Kategori Riset: slot Leader diputus Manager (atasan level 2), jadi
+            // nama & tanda tangannya yang muncul di kolom Leader.
+            $approverLeader = $pembelianBahan->approverLeader();
+
+            if ($approverLeader) {
+                $tandaTanganLeader = $approverLeader->tanda_tangan ?? null;
             }
 
-            $leaderName = $pembelianBahan->dataUser->atasanLevel3 ? $pembelianBahan->dataUser->atasanLevel3->name : null;
+            $leaderName = $approverLeader->name ?? null;
             $managerName = $pembelianBahan->dataUser->atasanLevel2 ? $pembelianBahan->dataUser->atasanLevel2->name : null;
             $direkturName = $pembelianBahan->dataUser->atasanLevel1 ? $pembelianBahan->dataUser->atasanLevel1->name : null;
 
@@ -292,7 +306,17 @@ class PembelianBahanController extends Controller
                 $leaderName = $managerName;
             }
 
-            if ($pembelianBahan->dataUser->job_level == 3) {
+            $jobLevelPengaju = $pembelianBahan->dataUser->job_level;
+
+            if ($jobLevelPengaju !== null && (int) $jobLevelPengaju <= 2) {
+                // Pengaju setingkat Manager: slot Leader & Manager miliknya sendiri.
+                $tandaTanganLeader = $tandaTanganPengaju;
+                $leaderName = $pembelianBahan->dataUser->name;
+                $tandaTanganManager = $tandaTanganPengaju;
+                $managerName = $pembelianBahan->dataUser->name;
+            } elseif ((int) $jobLevelPengaju === 3 && ! $pembelianBahan->leaderDiputusManager()) {
+                // job_level 3 adalah Leader-nya sendiri — kecuali kategori Riset,
+                // yang slot Leader-nya justru diputus Manager.
                 $tandaTanganLeader = $tandaTanganPengaju;
                 $leaderName = $pembelianBahan->dataUser->name;
             }
@@ -726,10 +750,8 @@ class PembelianBahanController extends Controller
                 'pembelianBahanDetails.dataBahan.dataUnit',
             ])->findOrFail($id);
 
-            $leaderUser = null;
-            if ($data->dataUser) {
-                $leaderUser = $data->dataUser->atasanLevel3 ?? $data->dataUser->atasanLevel2 ?? null;
-            }
+            // Pada kategori Riset, slot Leader diputus Manager (atasan level 2).
+            $leaderUser = $data->approverLeader();
             $leaderName = $leaderUser->name ?? 'Leader';
 
             $tgl_approve_leader = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');

@@ -12,6 +12,92 @@ class PembelianBahan extends Model
     protected $table = 'pembelian_bahan';
     protected $guarded = [];
 
+    public const KATEGORI_PRODUKSI = 'Produksi';
+    public const KATEGORI_RISET = 'Riset';
+
+    /**
+     * Jenis pengajuan yang memakai toggle kategori Produksi/Riset. Jenis Aset
+     * punya alur sendiri (General Affair), jadi tidak ikut.
+     */
+    public const JENIS_PAKAI_KATEGORI = [
+        'Pembelian Bahan/Barang/Alat Lokal',
+        'Pembelian Bahan/Barang/Alat Impor',
+    ];
+
+    /**
+     * Siapa pemilik id approval Leader menurut kategori.
+     *
+     * Riset tidak melewati tahap Leader: yang memutus adalah Manager (atasan
+     * level 2), berdiri di slot Leader. Produksi tetap ke atasan level 3, dengan
+     * Manager sebagai pengganti bila level 3 kosong — pola lama.
+     *
+     * Sengaja menerima id atasan, bukan model User, supaya bisa diuji tanpa
+     * database.
+     */
+    public static function approverLeaderId(?string $kategori, ?int $atasanLevel3Id, ?int $atasanLevel2Id): ?int
+    {
+        if ($kategori === self::KATEGORI_RISET) {
+            return $atasanLevel2Id;
+        }
+
+        return $atasanLevel3Id ?? $atasanLevel2Id;
+    }
+
+    /**
+     * Status awal slot Leader. Tanpa approver sama sekali, tahap ini otomatis
+     * 'Disetujui' — mengikuti pola alur pengajuan lama.
+     */
+    public static function statusLeaderAwal(?string $kategori, ?int $atasanLevel3Id, ?int $atasanLevel2Id): string
+    {
+        return self::approverLeaderId($kategori, $atasanLevel3Id, $atasanLevel2Id) === null
+            ? 'Disetujui'
+            : 'Belum disetujui';
+    }
+
+    public function pakaiKategoriPengajuan(): bool
+    {
+        return in_array($this->base_jenis_pengajuan, self::JENIS_PAKAI_KATEGORI, true);
+    }
+
+    /**
+     * Pada kategori Riset, slot Leader diputus Manager (atasan level 2), bukan
+     * atasan level 3.
+     */
+    public function leaderDiputusManager(): bool
+    {
+        return $this->pakaiKategoriPengajuan() && $this->kategori_pengajuan === self::KATEGORI_RISET;
+    }
+
+    /**
+     * User yang berhak memutus slot Leader — dipakai untuk notifikasi, nama, dan
+     * tanda tangan di PDF.
+     */
+    public function approverLeader(): ?User
+    {
+        $pengaju = $this->dataUser;
+
+        if (! $pengaju) {
+            return null;
+        }
+
+        return $this->leaderDiputusManager()
+            ? $pengaju->atasanLevel2
+            : ($pengaju->atasanLevel3 ?? $pengaju->atasanLevel2);
+    }
+
+    /**
+     * Kategori masih boleh diubah selama Purchasing belum memutus dan belum ada
+     * penolakan. Mengubah kategori memindah approver slot Leader, jadi batasnya
+     * dipasang sebelum Purchasing supaya harga belum ikut diproses.
+     */
+    public function kategoriMasihBisaDiubah(): bool
+    {
+        return $this->pakaiKategoriPengajuan()
+            && ($this->status_purchasing ?? 'Belum disetujui') === 'Belum disetujui'
+            && $this->status_leader !== 'Ditolak'
+            && ($this->status ?? 'Belum disetujui') !== 'Ditolak';
+    }
+
     public function dataUser()
     {
         return $this->belongsTo(User::class, 'pengaju');

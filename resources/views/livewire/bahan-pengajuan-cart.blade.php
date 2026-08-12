@@ -77,6 +77,26 @@
                 </select>
             </div>
 
+            @if (in_array($jenisPengajuan, ['Pembelian Bahan/Barang/Alat Lokal', 'Pembelian Bahan/Barang/Alat Impor']))
+            <div class="flex items-center">
+                <label class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
+                    Kategori <sup class="text-red-500 text-base">*</sup>
+                </label>
+                <div class="w-3/4">
+                    <div class="flex items-center gap-6">
+                        @foreach (['Produksi', 'Riset'] as $kategori)
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="radio" name="kategori_pengajuan" value="{{ $kategori }}"
+                                    wire:model="kategoriPengajuan"
+                                    class="text-indigo-600 border-gray-300 focus:ring-indigo-600">
+                                <span class="ml-2 text-sm text-gray-900 dark:text-gray-300">{{ $kategori }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endif
+
             @if (in_array($jenisPengajuan, ['Pembelian Bahan/Barang/Alat Impor', 'Pembelian Aset Impor']))
             <div class="flex items-center">
                 <label for="currency" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">

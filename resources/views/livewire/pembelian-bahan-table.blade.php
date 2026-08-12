@@ -406,8 +406,11 @@
                                                     $loginUser = Auth::user();
                                                     $isAtasanLevel3 = $pengaju?->atasan_level3_id == $loginUser->id;
                                                     $isAtasanLevel2 = $pengaju?->atasan_level2_id == $loginUser->id;
+                                                    // Kategori Riset: slot Leader hanya boleh diputus Manager
+                                                    // (atasan level 2), atasan level 3 dilewati.
+                                                    $leaderDiputusManager = $pembelian_bahan->leaderDiputusManager();
                                                 @endphp
-                                                @if ($isAtasanLevel3 || (!$pengaju?->atasan_level3_id && $isAtasanLevel2))
+                                                @if ($leaderDiputusManager ? $isAtasanLevel2 : ($isAtasanLevel3 || (!$pengaju?->atasan_level3_id && $isAtasanLevel2)))
                                                     @if ($pembelian_bahan->status_leader !== 'Disetujui' && $pembelian_bahan->status_leader !== 'Ditolak')
                                                         <button @click.stop
                                                             wire:click="editLeaderPembelianBahan({{ $pembelian_bahan->id }}, {{ $pembelian_bahans->currentPage() }})"

@@ -228,7 +228,11 @@
                                         } else {
                                             $timeDiffs[$key] = null;
                                         }
-                                        $previousDate = $date;
+
+                                        // Tahap yang disetujui otomatis tidak selalu punya cap waktu.
+                                        // Pegang tanggal terakhir yang ada supaya satu kolom kosong
+                                        // tidak ikut mengosongkan selisih tahap-tahap sesudahnya.
+                                        $previousDate = $date ?: $previousDate;
                                     }
                                 @endphp
                                 <table class="w-full text-sm text-left border-collapse">

@@ -817,7 +817,7 @@ class PembelianBahanController extends Controller
                 }
 
                 $targetPhone = $targetUser->telephone ?? null;
-                $recipientName = $targetUser->name;
+                $recipientName = $targetUser->name ?? $targetRole;
 
                 // dd($targetPhone);
                 //dd($targetPhone);
@@ -924,8 +924,8 @@ class PembelianBahanController extends Controller
             if ($data->status_general_manager === 'Disetujui') {
                 $purchasingUsers = $this->resolvePurchasingUser($data->tgl_pengajuan ?? null);
 
-                $targetPhone = $purchasingUsers->telephone;
-                $recipientName = $purchasingUsers->name;
+                $targetPhone = $purchasingUsers->telephone ?? null;
+                $recipientName = $purchasingUsers->name ?? 'Purchasing';
                 //dd($targetPhone);
                 if ($targetPhone) {
                     $message = "Halo {$purchasingUsers->name},\n\n";
@@ -1061,8 +1061,8 @@ class PembelianBahanController extends Controller
                     } else {
                         // Kirim notifikasi ke atasan level 2/manager
                         $managerUser = $data->dataUser->atasanLevel2;
-                        $recipientName = $managerUser->name;
                         if ($managerUser && $managerUser->telephone) {
+                            $recipientName = $managerUser->name;
                             $targetPhone = $managerUser->telephone;
                             $message = "Halo {$managerUser->name},\n\n";
                             $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Manager.\n\n";
@@ -1111,8 +1111,8 @@ class PembelianBahanController extends Controller
                     } else {
                         // Kirim notifikasi ke atasan level 2/manager
                         $managerUser = $data->dataUser->atasanLevel2;
-                        $recipientName = $managerUser->name;
                         if ($managerUser && $managerUser->telephone) {
+                            $recipientName = $managerUser->name;
                             $targetPhone = $managerUser->telephone;
                             $message = "Halo {$managerUser->name},\n\n";
                             $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Manager.\n\n";
@@ -1126,10 +1126,15 @@ class PembelianBahanController extends Controller
                         }
                     }
                 } else {
-                    // Kirim notifikasi ke atasan level 2/manager
+                    // Job level selain 3 & 4 — mis. pengaju yang sudah setingkat
+                    // Manager. Kalau dia tidak punya atasan level 2, tahap Manager
+                    // memang sudah otomatis disetujui, jadi giliran berikutnya
+                    // Finance. Sebelumnya baris ini membaca ->name lebih dulu dan
+                    // meledak "Attempt to read property name on null".
                     $managerUser = $data->dataUser->atasanLevel2;
-                    $recipientName = $managerUser->name;
+
                     if ($managerUser && $managerUser->telephone) {
+                        $recipientName = $managerUser->name;
                         $targetPhone = $managerUser->telephone;
                         $message = "Halo {$managerUser->name},\n\n";
                         $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Manager.\n\n";
@@ -1138,8 +1143,24 @@ class PembelianBahanController extends Controller
                         $message .= "https://inventory.beacontelemetry.com/";
 
                         SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
-                    } else {
+                    } elseif ($managerUser) {
                         LogHelper::error('No valid phone number found for Manager notification.');
+                    } else {
+                        $financeUser = $this->resolveFinanceUser($data->tgl_pengajuan ?? null);
+
+                        if ($financeUser && $financeUser->telephone) {
+                            $recipientName = $financeUser->name;
+                            $targetPhone = $financeUser->telephone;
+                            $message = "Halo {$financeUser->name},\n\n";
+                            $message .= "Pengajuan pembelian bahan dengan kode transaksi {$data->kode_transaksi} memerlukan persetujuan Anda sebagai Finance.\n\n";
+                            $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\nPengaju: {$data->dataUser->name}\nDivisi: {$data->divisi}\nProject: {$data->tujuan}\nKeterangan: {$data->keterangan}\n\n";
+                            $message .= "\nPesan Otomatis:\n";
+                            $message .= "https://inventory.beacontelemetry.com/";
+
+                            SendWhatsAppNotification::dispatch($targetPhone, $message, $recipientName);
+                        } else {
+                            LogHelper::error('No valid phone number found for Finance notification.');
+                        }
                     }
                 }
             }
@@ -1229,7 +1250,7 @@ class PembelianBahanController extends Controller
 
             if ($data->status_manager === 'Disetujui') {
                 $financeUser = $this->resolveFinanceUser($data->tgl_pengajuan ?? null);
-                $recipientName = $financeUser->name;
+                $recipientName = $financeUser->name ?? 'Finance';
                 if ($financeUser && $financeUser->telephone) {
                     $targetPhone = $financeUser->telephone;
                     $message = "Halo {$financeUser->name},\n\n";

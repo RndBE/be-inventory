@@ -41,6 +41,12 @@ class KalkulasiRestockProdukJadiTable extends Component
         $this->showResult = false;
     }
 
+    public function selectProduct($id)
+    {
+        $this->selectedProductId = $id;
+        $this->addSelectedProduct();
+    }
+
     public function addSelectedProduct()
     {
         $id = (int) $this->selectedProductId;
@@ -213,9 +219,21 @@ class KalkulasiRestockProdukJadiTable extends Component
             ->whereIn('bahan_id', $this->selectedIds)
             ->get();
 
+        // Opsi untuk dropdown searchable (difilter di sisi client oleh Alpine)
+        $productOptions = $items
+            ->filter(fn($produk) => $produk->dataBahan)
+            ->map(fn($produk) => [
+                'id'    => $produk->dataBahan->id,
+                'label' => $produk->dataBahan->nama_bahan,
+                'kode'  => $produk->dataBahan->kode_bahan ?? '',
+            ])
+            ->unique('id')
+            ->values();
+
         return view('livewire.kalkulasi-restock-produk-jadi-table', [
             'items' => $items,
             'selectedProducts' => $selectedProducts,
+            'productOptions' => $productOptions,
         ]);
     }
 }

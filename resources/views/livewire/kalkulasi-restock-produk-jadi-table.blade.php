@@ -61,21 +61,109 @@
 
     <div class="w-full bg-white border border-gray-200 rounded-lg p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <div class="flex items-center">
-            <label for="product_number_id" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">
+            <label for="product_number_search" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">
                 Product Number
                 <sup class="text-red-500 text-base">*</sup>
             </label>
-            <select id="product_number_id"
-                wire:model="selectedProductId"
-                wire:change="addSelectedProduct"
-                class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 block rounded-md border-0 py-1.5 w-3/4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                <option value="">-- Pilih Product Number --</option>
-                @foreach($items as $produk)
-                    @if($produk->dataBahan)
-                        <option value="{{ $produk->dataBahan->id }}">{{ $produk->dataBahan->nama_bahan }}</option>
-                    @endif
-                @endforeach
-            </select>
+
+            {{-- Dropdown searchable (filter di sisi client) --}}
+            <div class="relative w-3/4"
+                x-data="{
+                    open: false,
+                    query: '',
+                    activeIndex: 0,
+                    options: [],
+                    selectedIds: [],
+                    get filtered() {
+                        const q = this.query.toLowerCase().trim();
+                        if (!q) return this.options;
+                        return this.options.filter(o =>
+                            (o.label || '').toLowerCase().includes(q) ||
+                            (o.kode || '').toLowerCase().includes(q)
+                        );
+                    },
+                    openDropdown() {
+                        this.open = true;
+                        this.activeIndex = 0;
+                        this.$nextTick(() => this.$refs.search?.focus());
+                    },
+                    close() {
+                        this.open = false;
+                        this.query = '';
+                        this.activeIndex = 0;
+                    },
+                    scrollToActive() {
+                        this.$nextTick(() => this.$refs.list?.querySelector('[data-active=\'true\']')?.scrollIntoView({ block: 'nearest' }));
+                    },
+                    moveDown() {
+                        if (this.activeIndex < this.filtered.length - 1) this.activeIndex++;
+                        this.scrollToActive();
+                    },
+                    moveUp() {
+                        if (this.activeIndex > 0) this.activeIndex--;
+                        this.scrollToActive();
+                    },
+                    pick(option) {
+                        if (!option) return;
+                        $wire.selectProduct(option.id);
+                        this.close();
+                    },
+                    pickActive() {
+                        this.pick(this.filtered[this.activeIndex]);
+                    }
+                }"
+                @click.away="close()"
+                @keydown.escape.prevent.stop="close()">
+
+                {{-- Sync opsi Alpine dengan data Livewire tiap re-render --}}
+                <div x-effect="options = @js($productOptions);
+                               selectedIds = @js(array_map('intval', $selectedIds));
+                               if (activeIndex >= filtered.length) activeIndex = 0;"></div>
+
+                {{-- Trigger --}}
+                <button type="button"
+                    id="product_number_search"
+                    @click="open ? close() : openDropdown()"
+                    class="dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 flex w-full items-center justify-between rounded-md border-0 py-1.5 px-3 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                    <span class="text-gray-500 dark:text-gray-400">-- Pilih Product Number --</span>
+                    <svg class="w-4 h-4 transform transition-transform duration-200" :class="{ 'rotate-180': open }"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                {{-- Panel --}}
+                <div x-show="open" x-cloak
+                    class="absolute z-20 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg dark:bg-gray-700 dark:border-gray-600">
+                    <input type="text"
+                        x-ref="search"
+                        x-model="query"
+                        @input="activeIndex = 0"
+                        @keydown.arrow-down.prevent="moveDown()"
+                        @keydown.arrow-up.prevent="moveUp()"
+                        @keydown.enter.prevent="pickActive()"
+                        placeholder="Cari Product Number ..."
+                        class="w-full rounded-t-md border-0 border-b border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-0 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:placeholder-gray-400">
+
+                    <ul x-ref="list" class="max-h-60 overflow-y-auto py-1 m-0">
+                        <template x-for="(option, index) in filtered" :key="option.id">
+                            <li :data-active="activeIndex === index"
+                                @mouseenter="activeIndex = index"
+                                @click="pick(option)"
+                                class="cursor-pointer px-3 py-2 text-sm flex items-center justify-between gap-2"
+                                :class="activeIndex === index
+                                    ? 'bg-red-50 text-red-700 dark:bg-gray-600 dark:text-white'
+                                    : 'text-gray-700 dark:text-gray-200'">
+                                <span x-text="option.label"></span>
+                                <span x-show="selectedIds.includes(option.id)"
+                                    class="text-xs font-semibold text-green-600 whitespace-nowrap">Sudah dipilih</span>
+                            </li>
+                        </template>
+                        <li x-show="filtered.length === 0"
+                            class="px-3 py-2 text-sm text-gray-400">Tidak ditemukan</li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
         @if($selectedProducts->isNotEmpty())

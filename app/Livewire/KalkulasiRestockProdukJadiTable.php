@@ -11,7 +11,6 @@ class KalkulasiRestockProdukJadiTable extends Component
 {
     use WithPagination;
 
-    public $search = "";
     public $perPage = 15;
 
     public $selectedIds = [];
@@ -20,11 +19,6 @@ class KalkulasiRestockProdukJadiTable extends Component
     public $selectedSummary = [];
     public $kalkulasiResult = [];
     public $showResult = false;
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
 
     public function toggleItem(int $id)
     {
@@ -41,7 +35,7 @@ class KalkulasiRestockProdukJadiTable extends Component
         $this->showResult = false;
     }
 
-    public function selectProduct($id)
+    public function selectProduct(int $id)
     {
         $this->selectedProductId = $id;
         $this->addSelectedProduct();
@@ -207,11 +201,9 @@ class KalkulasiRestockProdukJadiTable extends Component
 
     public function render()
     {
+        // Semua Product Number dimuat sekali; pencarian dilakukan di dropdown (Alpine, sisi client)
         $items = ProdukProduksi::with('dataBahan')
-            ->whereHas('dataBahan', function ($query) {
-                $query->where('nama_bahan', 'like', '%' . $this->search . '%')
-                    ->orWhere('kode_bahan', 'like', '%' . $this->search . '%');
-            })
+            ->whereHas('dataBahan')
             ->orderBy('id', 'desc')
             ->get();
 

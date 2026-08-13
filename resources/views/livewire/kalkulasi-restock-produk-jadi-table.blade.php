@@ -50,14 +50,11 @@
 
     @if(!$showResult)
     {{-- ====== SECTION: PILIH PRODUCT NUMBER ====== --}}
-    <div class="mb-4 flex flex-wrap gap-2 items-center justify-between">
-        <div class="flex gap-2 flex-wrap items-center">
-            @include('livewire.searchdata')
-        </div>
-        @if(!empty($selectedIds))
+    @if(!empty($selectedIds))
+        <div class="mb-4 flex flex-wrap gap-2 items-center justify-end">
             <span class="text-sm text-gray-600">Dipilih: <strong>{{ count($selectedIds) }}</strong> Product Number</span>
-        @endif
-    </div>
+        </div>
+    @endif
 
     <div class="w-full bg-white border border-gray-200 rounded-lg p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <div class="flex items-center">

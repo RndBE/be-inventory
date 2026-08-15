@@ -183,7 +183,9 @@ public function downloadPdf(int $id)
             return !empty($detail->dataProdukJadi) && !empty($detail->dataProdukJadi->id);
         })->isNotEmpty();
 
-        $tandaTanganPengaju   = $bahanKeluar->dataUser->tanda_tangan ?? null;
+        // Kolom "Pengambil" ditandatangani manual saat barang diambil, jadi
+        // tanda tangan digital pengaju sengaja tidak dipakai di sini.
+        $tandaTanganPengaju   = null;
         $tandaTanganLeader    = null;
         $tandaTanganManager   = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
         $tandaTanganDirektur  = $bahanKeluar->dataUser->atasanLevel1->tanda_tangan ?? null;

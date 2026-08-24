@@ -115,7 +115,7 @@
                         <th scope="col" class="px-6 py-3">Total Item</th>
                         <th scope="col" class="px-6 py-3">Total Harga</th>
                         <th scope="col" class="px-6 py-3">Status Pengambilan</th>
-                        <th scope="col" class="px-6 py-3">Status Leader/Manager</th>
+                        <th scope="col" class="px-6 py-3">Status Approval</th>
                         <th scope="col" class="px-6 py-3">Status Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
@@ -168,9 +168,6 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">
-                                <div class="mb-1 text-xs font-medium text-gray-500">
-                                    {{ $bahan_keluar->approvalAwalRole() }}{{ $bahan_keluar->leaderDiputusManager() ? ' (RnD)' : '' }}
-                                </div>
                                 @if ($bahan_keluar->status_leader == 'Belum disetujui')
                                     {{-- <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status_leader }}</span> --}}
                                     <span

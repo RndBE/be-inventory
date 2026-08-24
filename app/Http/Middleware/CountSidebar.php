@@ -36,7 +36,15 @@ class CountSidebar
             $divisi = DivisiHelper::divisiUntuk($user);
 
             if ($divisi !== null) {
-                $bahanKeluarQuery->whereIn('divisi', $divisi);
+                $bahanKeluarQuery->where(function ($query) use ($divisi, $user) {
+                    $query->whereIn('divisi', $divisi);
+
+                    // Data Proyek RnD lama dapat menyimpan job position pengaju
+                    // sebagai divisi; Manager tetap harus melihat pengajuannya.
+                    if ($user->hasRole('hardware manager')) {
+                        $query->orWhereNotNull('projek_rnd_id');
+                    }
+                });
                 $bahanPembelianBahanQuery->whereIn('divisi', $divisi);
             }
 

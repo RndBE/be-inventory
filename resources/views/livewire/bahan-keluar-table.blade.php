@@ -115,7 +115,7 @@
                         <th scope="col" class="px-6 py-3">Total Item</th>
                         <th scope="col" class="px-6 py-3">Total Harga</th>
                         <th scope="col" class="px-6 py-3">Status Pengambilan</th>
-                        <th scope="col" class="px-6 py-3">Status Leader</th>
+                        <th scope="col" class="px-6 py-3">Status Leader/Manager</th>
                         <th scope="col" class="px-6 py-3">Status Pengajuan</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
@@ -168,6 +168,9 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">
+                                <div class="mb-1 text-xs font-medium text-gray-500">
+                                    {{ $bahan_keluar->approvalAwalRole() }}{{ $bahan_keluar->leaderDiputusManager() ? ' (RnD)' : '' }}
+                                </div>
                                 @if ($bahan_keluar->status_leader == 'Belum disetujui')
                                     {{-- <span class="bg-blue-100 me-2 px-2.5 py-0.5 rounded-full text-blue-800 text-xs font-medium dark:bg-gray-700 dark:text-blue-400 border border-blue-400">{{ $bahan_keluar->status_leader }}</span> --}}
                                     <span
@@ -179,9 +182,9 @@
                                     <span
                                         class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-red-400 border border-red-100">{{ $bahan_keluar->status_leader }}</span>
                                 @endif
-                                @if ($bahan_keluar->kendalaApproval('Leader'))
+                                @if ($bahan_keluar->kendalaApproval($bahan_keluar->approvalAwalRole()))
                                     <div class="mt-1 text-xs text-amber-700">
-                                        Kendala: {{ $bahan_keluar->kendalaApproval('Leader') }}
+                                        Kendala: {{ $bahan_keluar->kendalaApproval($bahan_keluar->approvalAwalRole()) }}
                                     </div>
                                 @endif
                             </td>
@@ -296,13 +299,14 @@
                                             $loginUser = Auth::user();
                                             $isAtasanLevel3 = $pengaju?->atasan_level3_id == $loginUser->id;
                                             $isAtasanLevel2 = $pengaju?->atasan_level2_id == $loginUser->id;
+                                            $diputusManager = $bahan_keluar->leaderDiputusManager();
                                         @endphp
 
-                                        @if ($isAtasanLevel3 || (!$pengaju?->atasan_level3_id && $isAtasanLevel2))
+                                        @if ($diputusManager ? $isAtasanLevel2 : ($isAtasanLevel3 || (!$pengaju?->atasan_level3_id && $isAtasanLevel2)))
                                             @if ($bahan_keluar->status_leader !== 'Disetujui' && $bahan_keluar->status_leader !== 'Ditolak')
                                                 <button wire:click="editBahanKeluar({{ $bahan_keluar->id }})"
                                                     class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
-                                                    Approve Leader
+                                                    Approve {{ $diputusManager ? 'Manager' : 'Leader' }}
                                                 </button>
                                             @endif
                                         @endif

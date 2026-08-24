@@ -41,16 +41,16 @@
                     @csrf
                     {{ method_field('PUT') }}
                     <div>
-                        <label for="status_leader" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status Leader</label>
+                        <label for="status_leader" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status {{ $approvalAwalRole }}</label>
                         <select wire:model="status_leader" name="status_leader" id="status_leader" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
-                            <option value="" disabled>Pilih Status leader</option>
+                            <option value="" disabled>Pilih Status {{ $approvalAwalRole }}</option>
                             <option value="Belum disetujui" {{ $status_leader === 'Belum disetujui' ? 'selected' : '' }}>Belum disetujui</option>
                             <option value="Disetujui" {{ $status_leader === 'Disetujui' ? 'selected' : '' }}>Disetujui</option>
                             <option value="Ditolak" {{ $status_leader === 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
                         </select>
                     </div>
                     @include('components.approval-kendala-field', [
-                        'value' => \App\Models\ApprovalKendala::getKendala('bahan_keluar', (int) $id_bahan_keluars, 'Leader')
+                        'value' => \App\Models\ApprovalKendala::getKendala('bahan_keluar', (int) $id_bahan_keluars, $approvalAwalRole)
                     ])
 
                     <button type="submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800">Simpan</button>

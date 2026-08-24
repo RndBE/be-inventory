@@ -12,6 +12,53 @@ class BahanKeluar extends Model
     protected $table = 'bahan_keluars';
     protected $guarded = [];
 
+    /**
+     * Pemilik slot approval awal Bahan Keluar.
+     *
+     * Proyek RnD tidak mempunyai tahap Leader, sehingga atasan level 2
+     * (Manager) langsung memutus slot yang secara historis disimpan pada
+     * kolom status_leader. Transaksi lain tetap memakai Leader dan jatuh ke
+     * Manager hanya ketika atasan level 3 tidak tersedia.
+     */
+    public static function approverLeaderId(bool $projekRnd, ?int $atasanLevel3Id, ?int $atasanLevel2Id): ?int
+    {
+        if ($projekRnd) {
+            return $atasanLevel2Id;
+        }
+
+        return $atasanLevel3Id ?? $atasanLevel2Id;
+    }
+
+    public static function statusLeaderAwal(bool $projekRnd, ?int $atasanLevel3Id, ?int $atasanLevel2Id): string
+    {
+        return self::approverLeaderId($projekRnd, $atasanLevel3Id, $atasanLevel2Id) === null
+            ? 'Disetujui'
+            : 'Belum disetujui';
+    }
+
+    public function leaderDiputusManager(): bool
+    {
+        return $this->projek_rnd_id !== null;
+    }
+
+    public function approvalAwalRole(): string
+    {
+        return $this->leaderDiputusManager() ? 'Manager' : 'Leader';
+    }
+
+    public function approverLeader(): ?User
+    {
+        $pengaju = $this->dataUser;
+
+        if (!$pengaju) {
+            return null;
+        }
+
+        return $this->leaderDiputusManager()
+            ? $pengaju->atasanLevel2
+            : ($pengaju->atasanLevel3 ?? $pengaju->atasanLevel2);
+    }
+
     public function dataUser()
     {
         return $this->belongsTo(User::class, 'pengaju', 'id');

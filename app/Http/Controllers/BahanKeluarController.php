@@ -190,18 +190,11 @@ public function downloadPdf(int $id)
         $tandaTanganManager   = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
         $tandaTanganDirektur  = $bahanKeluar->dataUser->atasanLevel1->tanda_tangan ?? null;
 
-        if ($bahanKeluar->dataUser->atasanLevel3) {
-            $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel3->tanda_tangan ?? null;
-        } elseif ($bahanKeluar->dataUser->atasanLevel2) {
-            $tandaTanganLeader = $bahanKeluar->dataUser->atasanLevel2->tanda_tangan ?? null;
-        }
-
-        $leaderName  = $bahanKeluar->dataUser->atasanLevel3 ? $bahanKeluar->dataUser->atasanLevel3->name : null;
+        $approverAwal = $bahanKeluar->approverLeader();
+        $tandaTanganLeader = $approverAwal?->tanda_tangan;
+        $leaderName = $approverAwal?->name;
         $managerName = $bahanKeluar->dataUser->atasanLevel2 ? $bahanKeluar->dataUser->atasanLevel2->name : null;
-
-        if (!$leaderName && $managerName) {
-            $leaderName = $managerName;
-        }
+        $approvalAwalRole = $bahanKeluar->approvalAwalRole();
 
         $purchasingUser = $this->resolvePurchasingUser($bahanKeluar->tgl_pengajuan ?? null);
 
@@ -237,6 +230,7 @@ public function downloadPdf(int $id)
             'tandaTanganPurchasing',
             'tandaTanganLeader',
             'leaderName',
+            'approvalAwalRole',
             'managerName',
             'namaManager',
             'hasProduk',
@@ -1203,17 +1197,23 @@ public function downloadPdf(int $id)
             'status_leader' => 'required|string|in:Belum disetujui,Disetujui,Ditolak',
             'kendala' => 'nullable|string|max:2000',
         ]);
+
+        $data = BahanKeluar::with([
+            'dataUser.atasanLevel1',
+            'dataUser.atasanLevel2',
+            'dataUser.atasanLevel3',
+            'bahanKeluarDetails.dataBahan.dataUnit',
+        ])->findOrFail($id);
+
+        $approvalRole = $data->approvalAwalRole();
+        $approver = $data->approverLeader();
+        abort_unless($approver && (int) $approver->id === (int) auth()->id(), 403);
+
         try {
             DB::beginTransaction();
-            $data = BahanKeluar::with([
-                'dataUser.atasanLevel1',
-                'dataUser.atasanLevel2',
-                'dataUser.atasanLevel3',
-                'bahanKeluarDetails.dataBahan.dataUnit',
-            ])->findOrFail($id);
 
             $data->status_leader = $validated['status_leader'];
-            $kendalaMessage = $this->saveApprovalKendala($id, 'Leader', $data->status_leader, $request);
+            $kendalaMessage = $this->saveApprovalKendala($id, $approvalRole, $data->status_leader, $request);
             $data->save();
 
             if ($data->status_leader === 'Disetujui') {
@@ -1237,7 +1237,7 @@ public function downloadPdf(int $id)
                 $pengajuPhone = $data->dataUser->telephone;
                 if ($pengajuPhone) {
                     $message = "Halo {$data->dataUser->name},\n\n";
-                    $message .= "Status pengajuan bahan Anda dengan Kode Transaksi {$data->kode_transaksi} telah disetujui oleh Leader.{$kendalaMessage}\n\n";
+                    $message .= "Status pengajuan bahan Anda dengan Kode Transaksi {$data->kode_transaksi} telah disetujui oleh {$approvalRole}.{$kendalaMessage}\n\n";
 
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
                     SendWhatsAppApproveLeader::dispatch($pengajuPhone, $message);
@@ -1255,7 +1255,7 @@ public function downloadPdf(int $id)
                 $pengaju = $data->dataUser;
                 if ($pengaju && $pengaju->telephone) {
                     $message = "Halo {$pengaju->name},\n\n";
-                    $message .= "Pengajuan bahan keluar Anda dengan kode transaksi *{$data->kode_transaksi}* telah *DITOLAK* oleh Leader.\n\n";
+                    $message .= "Pengajuan bahan keluar Anda dengan kode transaksi *{$data->kode_transaksi}* telah *DITOLAK* oleh {$approvalRole}.\n\n";
                     $message .= "Project: {$data->tujuan}\n";
                     $message .= "Divisi: {$data->divisi}\n";
                     $message .= "Tgl Pengajuan: {$data->tgl_pengajuan}\n\n";
@@ -1264,14 +1264,14 @@ public function downloadPdf(int $id)
                     $message .= "Pesan Otomatis:\nhttps://inventory.beacontelemetry.com/";
 
                     SendWhatsAppNotification::dispatch($pengaju->telephone, $message, $pengaju->name);
-                    LogHelper::success("Notifikasi penolakan (Leader) dikirim ke: {$pengaju->telephone}");
+                    LogHelper::success("Notifikasi penolakan ({$approvalRole}) dikirim ke: {$pengaju->telephone}");
                 } else {
                     LogHelper::error('No valid phone number found for WhatsApp notification (tolak leader).');
                 }
             }
             DB::commit();
-            LogHelper::success("Status approval leader berhasil diubah.");
-            return redirect()->route('bahan-keluars.index')->with('success', 'Status approval leader berhasil diubah.');
+            LogHelper::success("Status approval {$approvalRole} berhasil diubah.");
+            return redirect()->route('bahan-keluars.index')->with('success', "Status approval {$approvalRole} berhasil diubah.");
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMessage = $e->getMessage();

@@ -14,6 +14,7 @@ class BahanKeluarTable extends Component
     public $perPage = 25;
     public $id_bahan_keluars, $status,
         $kode_transaksi, $tgl_keluar, $divisi, $bahanKeluarDetails, $status_pengambilan, $status_leader, $status_purchasing, $status_manager, $status_finance, $status_admin_manager, $tujuan;
+    public $approvalAwalRole = 'Leader';
     public $filter = 'semua';
     public $totalHarga;
     public $isShowModalOpen = false;
@@ -72,6 +73,7 @@ class BahanKeluarTable extends Component
         $this->status_manager = $Data->status_manager;
         $this->status_finance = $Data->status_finance;
         $this->status_admin_manager = $Data->status_admin_manager;
+        $this->approvalAwalRole = $Data->approvalAwalRole();
         $this->isApproveLeaderModalOpen = true;
     }
 
@@ -106,7 +108,10 @@ class BahanKeluarTable extends Component
 
         if ($user->hasRole(['superadmin', 'administrasi', 'purchasing'])) {
         } elseif ($user->hasRole(['hardware manager'])) {
-            $bahan_keluars->whereIn('divisi', ['RnD', 'Helper', 'Teknisi', 'OP', 'Produksi', 'Engineer']);
+            $bahan_keluars->where(function ($query) {
+                $query->whereIn('divisi', ['RnD', 'Helper', 'Teknisi', 'OP', 'Produksi', 'Engineer', 'Hardware'])
+                    ->orWhereNotNull('projek_rnd_id');
+            });
         } elseif ($user->hasRole(['rnd level 3'])) {
             $bahan_keluars->whereIn('divisi', ['RnD']);
         } elseif ($user->hasRole(['purchasing level 3', 'helper'])) {

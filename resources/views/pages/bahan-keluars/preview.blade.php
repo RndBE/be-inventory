@@ -165,7 +165,7 @@
                         <tr style="text-align: left; vertical-align: top;">
                             <td style=" text-align: center;"><strong>Pengambil</strong></td>
                             <td colspan="2" style=" text-align: center;"><strong>Purchasing</strong></td>
-                            <td style=" text-align: center;"><strong>Leader</strong></td>
+                            <td style=" text-align: center;"><strong>{{ $approvalAwalRole }}</strong></td>
                         </tr>
                         <tr>
                             <td style="text-align: center; width: 25%;">
@@ -189,7 +189,7 @@
                             <td style="text-align: center; width: 25%;">
                                 @if($bahanKeluar->status_leader === 'Disetujui' && $tandaTanganLeader)
                                     <img src="{{ asset('storage/' . $tandaTanganLeader) }}"
-                                        alt="Tanda Tangan Leader"
+                                        alt="Tanda Tangan {{ $approvalAwalRole }}"
                                         style="height: 80px; width: 150px; object-fit: contain; display: inline-block;">
                                 @else
                                     <div style="height: 80px; width: 150px;"></div>

@@ -159,10 +159,6 @@ class ProjekRndController extends Controller
             $tujuan = 'Proyek/Riset ' . $request->nama_projek_rnd;
             $user = Auth::user();
 
-            $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
-                $query->where('nama', 'Purchasing');
-            })->where('job_level', 3)->first();
-
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
             $new_transaction_number = ($lastTransaction ? intval(substr($lastTransaction->kode_transaksi, 6)) : 0) + 1;
             $kode_transaksi = 'KBK - ' . str_pad($new_transaction_number, 5, '0', STR_PAD_LEFT) . ' PJRnD';
@@ -173,36 +169,15 @@ class ProjekRndController extends Controller
             $kode_projek_rnd = 'PJRnD - ' . str_pad($new_transaction_number_produksi, 5, '0', STR_PAD_LEFT);
             // dd($kode_projek_rnd);
 
-            if ($user->job_level == 3 && $user->atasan_level3_id === null) {
-                // Job level 3 dan atasan_level3_id null
-                $status_leader = 'Disetujui';
-                // Kirim notifikasi ke Purchasing
-                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
-                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
-            } elseif ($user->job_level == 4 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
-                // Job level 4 dan atasan_level3_id, atasan_level2_id null
-                $status_leader = 'Disetujui';
-                // Kirim notifikasi ke Purchasing
-                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
-                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
-            } elseif ($user->job_level == 4 && $user->atasan_level3_id === null) {
-                // Job level 4 dan atasan_level3_id null
-                $status_leader = 'Belum disetujui';
-                // Kirim notifikasi ke atasan level 2
-                $targetPhone = $user->atasanLevel2 ? $user->atasanLevel2->telephone : null;
-                $recipientName = $user->atasanLevel2 ? $user->atasanLevel2->name : 'Manager';
-            } elseif ($user->job_level == 4) {
-                // Job level 4 dan atasan_level3_id tidak null
-                $status_leader = 'Belum disetujui';
-                // Kirim notifikasi ke atasan level 3
-                $targetPhone = $user->atasanLevel3 ? $user->atasanLevel3->telephone : null;
-                $recipientName = $user->atasanLevel3 ? $user->atasanLevel3->name : 'Leader';
-            } else {
-                // Job level lainnya, kirim ke Purchasing
-                $status_leader = 'Belum disetujui';
-                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
-                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            $manager = $user->atasanLevel2;
+            if (!$manager) {
+                throw new \RuntimeException('Atasan Manager (level 2) pengaju Proyek RnD belum dikonfigurasi.');
             }
+
+            // Proyek RnD langsung diputus Manager; tidak melewati Leader.
+            $status_leader = 'Belum disetujui';
+            $targetPhone = $manager->telephone;
+            $recipientName = $manager->name;
 
             $isRisetLapangan = $request->boolean('is_riset_lapangan');
             $fileProposalRiset = null;
@@ -240,7 +215,7 @@ class ProjekRndController extends Controller
                 'tgl_pengajuan' => $tgl_pengajuan,
                 'tujuan' => $tujuan,
                 'keterangan' => $request->keterangan,
-                'divisi' => $user->dataJobPosition->nama,
+                'divisi' => 'RnD',
                 'pengaju' => $user->id,
                 'status_pengambilan' => 'Belum Diambil',
                 'status' => 'Belum disetujui',
@@ -437,10 +412,6 @@ class ProjekRndController extends Controller
             $tujuan = 'Proyek/Riset ' . $projek_rnd->nama_projek_rnd;
             $user = Auth::user();
 
-            $purchasingUser = User::whereHas('dataJobPosition', function ($query) {
-                $query->where('nama', 'Purchasing');
-            })->where('job_level', 3)->first();
-
             $lastTransaction = BahanKeluar::orderByRaw('CAST(SUBSTRING(kode_transaksi, 7) AS UNSIGNED) DESC')->first();
             if ($lastTransaction) {
                 $last_transaction_number = intval(substr($lastTransaction->kode_transaksi, 6));
@@ -452,36 +423,15 @@ class ProjekRndController extends Controller
             $kode_transaksi = 'KBK - ' . $formatted_number . ' PJRnD';
             $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
-            if ($user->job_level == 3 && $user->atasan_level3_id === null) {
-                // Job level 3 dan atasan_level3_id null
-                $status_leader = 'Disetujui';
-                // Kirim notifikasi ke Purchasing
-                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
-                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
-            } elseif ($user->job_level == 4 && $user->atasan_level3_id === null && $user->atasan_level2_id === null) {
-                // Job level 4 dan atasan_level3_id, atasan_level2_id null
-                $status_leader = 'Disetujui';
-                // Kirim notifikasi ke Purchasing
-                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
-                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
-            } elseif ($user->job_level == 4 && $user->atasan_level3_id === null) {
-                // Job level 4 dan atasan_level3_id null
-                $status_leader = 'Belum disetujui';
-                // Kirim notifikasi ke atasan level 2
-                $targetPhone = $user->atasanLevel2 ? $user->atasanLevel2->telephone : null;
-                $recipientName = $user->atasanLevel2 ? $user->atasanLevel2->name : 'Manager';
-            } elseif ($user->job_level == 4) {
-                // Job level 4 dan atasan_level3_id tidak null
-                $status_leader = 'Belum disetujui';
-                // Kirim notifikasi ke atasan level 3
-                $targetPhone = $user->atasanLevel3 ? $user->atasanLevel3->telephone : null;
-                $recipientName = $user->atasanLevel3 ? $user->atasanLevel3->name : 'Leader';
-            } else {
-                // Job level lainnya, kirim ke Purchasing
-                $status_leader = 'Belum disetujui';
-                $targetPhone = $purchasingUser ? $purchasingUser->telephone : null;
-                $recipientName = $purchasingUser ? $purchasingUser->name : 'Purchasing';
+            $manager = $user->atasanLevel2;
+            if (!$manager) {
+                throw new \RuntimeException('Atasan Manager (level 2) pengaju Proyek RnD belum dikonfigurasi.');
             }
+
+            // Penambahan bahan pada Proyek RnD juga langsung diputus Manager.
+            $status_leader = 'Belum disetujui';
+            $targetPhone = $manager->telephone;
+            $recipientName = $manager->name;
 
             $projekRndDetails = is_array($request->projekRndDetails)
                 ? $request->projekRndDetails
@@ -541,7 +491,7 @@ class ProjekRndController extends Controller
                     'tgl_pengajuan' => $tgl_pengajuan,
                     'tujuan' => $tujuan,
                     'keterangan' => $projek_rnd->keterangan,
-                    'divisi' => $user->dataJobPosition->nama,
+                    'divisi' => 'RnD',
                     'pengaju' => $user->id,
                     'status_pengambilan' => 'Belum Diambil',
                     'status' => 'Belum disetujui',

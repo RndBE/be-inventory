@@ -33,7 +33,7 @@ class DivisiHelper
         }
 
         if ($user->hasRole(['hardware manager'])) {
-            return ['RnD', 'Purchasing', 'Helper', 'Teknisi', 'OP', 'Produksi'];
+            return ['RnD', 'Purchasing', 'Helper', 'Teknisi', 'OP', 'Produksi', 'Engineer', 'Hardware'];
         }
 
         if ($user->hasRole(['rnd', 'rnd level 3'])) {

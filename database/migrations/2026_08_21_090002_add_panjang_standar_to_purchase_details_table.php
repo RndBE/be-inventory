@@ -1,8 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Ledger stok siap menyimpan bahan batangan dalam cm.
@@ -35,20 +34,58 @@ use Illuminate\Support\Facades\Schema;
  * digit, jauh di bawah batas baru, sehingga tidak ada baris yang terpotong.
  * Lihat down() untuk konsekuensinya saat rollback.
  */
+/**
+ * Catatan kompatibilitas: introspeksi skema Laravel 11 tidak dipakai di sini.
+ *
+ * `Schema::hasColumn()`, `Schema::hasTable()`, dan `->change()` di Laravel 11
+ * membaca `information_schema.columns` beserta kolom `generation_expression`,
+ * yang baru ada sejak MySQL 5.7 dan MariaDB 10.2. Server produksi memakai versi
+ * yang lebih tua, jadi migration ini langsung gagal di sana dengan
+ * "Unknown column 'generation_expression' in 'field list'" - sebelum satu pun
+ * ALTER dijalankan.
+ *
+ * Karena itu pemeriksaan kolom memakai query `information_schema` seadanya
+ * (COUNT saja) dan perubahan tipe memakai ALTER TABLE mentah. Keduanya jalan di
+ * versi lama maupun baru, dan tidak ada yang hilang: `change()` di Laravel pun
+ * pada akhirnya menulis ALTER TABLE yang sama.
+ */
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('purchase_details', function (Blueprint $table) {
-            if (! Schema::hasColumn('purchase_details', 'panjang_standar')) {
-                $table->integer('panjang_standar')->nullable()->after('bahan_id');
-            }
-        });
+        if (! $this->punyaKolom('purchase_details', 'panjang_standar')) {
+            DB::statement('alter table `purchase_details` add `panjang_standar` int null after `bahan_id`');
+        }
 
-        Schema::table('purchase_details', function (Blueprint $table) {
-            $table->decimal('unit_price', 15, 4)->change();
-        });
+        DB::statement('alter table `purchase_details` modify `unit_price` decimal(15,4) not null');
     }
+
+    /**
+     * Apakah tabel ini punya kolom tersebut.
+     *
+     * Menggantikan Schema::hasColumn() - lihat catatan kompatibilitas di atas.
+     */
+    private function punyaKolom(string $tabel, string $kolom): bool
+    {
+        return (int) DB::selectOne(
+            'select count(*) as jumlah from information_schema.columns
+             where table_schema = database() and table_name = ? and column_name = ?',
+            [$tabel, $kolom]
+        )->jumlah > 0;
+    }
+
+    /**
+     * Apakah tabelnya ada. Menggantikan Schema::hasTable().
+     */
+    private function punyaTabel(string $tabel): bool
+    {
+        return (int) DB::selectOne(
+            'select count(*) as jumlah from information_schema.tables
+             where table_schema = database() and table_name = ?',
+            [$tabel]
+        )->jumlah > 0;
+    }
+
 
     /**
      * Dikembalikan ke decimal(20,2), bukan ke integer seperti tertulis di
@@ -65,12 +102,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('purchase_details', function (Blueprint $table) {
-            $table->decimal('unit_price', 20, 2)->change();
-        });
+        DB::statement('alter table `purchase_details` modify `unit_price` decimal(20,2) not null');
 
-        Schema::table('purchase_details', function (Blueprint $table) {
-            $table->dropColumn('panjang_standar');
-        });
+        if ($this->punyaKolom('purchase_details', 'panjang_standar')) {
+            DB::statement('alter table `purchase_details` drop column `panjang_standar`');
+        }
     }
 };

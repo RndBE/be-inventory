@@ -116,8 +116,14 @@
                                     <label for="keterangan" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">
                                         Keterangan <sup class="text-red-500 text-base">*</sup>
                                     </label>
-                                    <textarea id="keterangan" name="keterangan" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" @if($stockOpname->status_selesai === 'Selesai') disabled @endif>{{ $stockOpname->keterangan }}</textarea>
+                                    <textarea id="keterangan" name="keterangan" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" @if($stockOpname->status_selesai === 'Selesai') disabled @endif>{{ old('keterangan', $stockOpname->keterangan) }}</textarea>
                                 </div>
+                                {{-- Tanpa blok ini, penolakan validasi keterangan tidak kelihatan sama
+                                     sekali: halaman cuma balik ke form dan seluruh perubahan hilang,
+                                     termasuk kolom hasil audit. --}}
+                                @error('keterangan')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
 
                                 @php($stockOpnameKendalas = [
                                     'Finance' => $stockOpname->kendalaApproval('Finance'),

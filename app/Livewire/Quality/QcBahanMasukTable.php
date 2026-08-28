@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Livewire\Component;
 use App\Models\Purchase;
 use App\Helpers\LogHelper;
+use App\Helpers\SatuanBahanHelper;
 use App\Models\QcBahanMasuk;
 use Livewire\WithPagination;
 use App\Models\PurchaseDetail;
@@ -104,16 +105,23 @@ class QcBahanMasukTable extends Component
                 'id_qc_bahan_masuk'     => $qc->id_qc_bahan_masuk,
             ]);
 
-            // Simpan detail pembelian dari QC details yang valid
+            // Simpan detail pembelian dari QC details yang valid.
+            //
+            // Dokumen QC tetap berbicara dalam satuan yang dipakai petugasnya —
+            // biasanya batang, sama dengan angka di invoice supplier, tapi bisa
+            // cm kalau kiriman panjangnya tidak standar. Satuannya terekam di
+            // `satuan_input`; konversi ke satuan ledger baru terjadi di
+            // catatLot, jadi tidak ada tabel pembelian atau QC yang perlu ikut
+            // berubah satuannya. Baris QC lama tidak punya kolom itu, dan
+            // angkanya memang jumlah batang, jadi default-nya batang.
             foreach ($validDetails as $detail) {
-                PurchaseDetail::create([
+                PurchaseDetail::catatLot([
                     'purchase_id' => $purchase->id,
                     'bahan_id'    => $detail->bahan_id,
                     'qty'         => $detail->fisik_baik,
-                    'sisa'        => $detail->fisik_baik,
                     'unit_price'  => $detail->unit_price,
                     'sub_total'   => $detail->sub_total,
-                ]);
+                ], $detail->satuan_input ?: SatuanBahanHelper::SATUAN_BATANG);
             }
 
             LogHelper::success('Berhasil Menambahkan List Bahan Di QC Bahan Masuk Ke Transaksi Bahan Masuk!');

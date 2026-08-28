@@ -115,7 +115,9 @@
                             Data tidak tersedia
                         @endif
                     </td>
-                    <td style="border: 1px solid black;text-align: center;">{{ $detail->qty }}</td>
+                    {{-- Bahan batangan qty-nya tersimpan dalam cm; qtyTampil() menuliskannya
+                         kembali sebagai batang supaya tidak terbaca jumlah barang. --}}
+                    <td style="border: 1px solid black;text-align: center;">{{ $detail->qtyTampil() }}</td>
                     <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama ?? 'Pcs' }}</td>
                 </tr>
                 @php

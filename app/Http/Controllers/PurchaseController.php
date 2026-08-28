@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use App\Models\Bahan;
 use App\Models\Purchase;
 use App\Helpers\LogHelper;
+use App\Helpers\SatuanBahanHelper;
 use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
 use App\Exports\PurchasesExport;
@@ -83,6 +84,7 @@ class PurchaseController extends Controller
                 'cartItems.*.qty' => 'required',
                 'cartItems.*.unit_price' => 'required',
                 'cartItems.*.sub_total' => 'required',
+                'cartItems.*.satuan' => 'nullable|in:batang,cm',
             ]);
             if ($validator->fails()) {
                 return redirect()->back()->withErrors($validator)->withInput();
@@ -95,14 +97,18 @@ class PurchaseController extends Controller
             $purchase->no_invoice = $request->no_invoice;
             $purchase->save();
             foreach ($cartItems as $item) {
-                PurchaseDetail::create([
+                // Satuan dikirim keranjang per baris: bahan batangan bisa dicatat
+                // per batang atau per cm, karena kiriman supplier tidak selalu
+                // pas sepanjang panjang standar. Default batang menjaga baris
+                // tanpa satuan (bahan biasa, atau kiriman lama) tetap sama
+                // perilakunya. catatLot yang mengonversi ke satuan ledger.
+                PurchaseDetail::catatLot([
                     'purchase_id' => $purchase->id,
                     'bahan_id' => $item['id'],
                     'qty' => $item['qty'],
-                    'sisa' => $item['qty'],
                     'unit_price' => $item['unit_price'],
                     'sub_total' => $item['sub_total'],
-                ]);
+                ], $item['satuan'] ?? SatuanBahanHelper::SATUAN_BATANG);
             }
             LogHelper::success('Berhasil Menambahkan Transaksi Bahan Masuk!');
             return redirect()->route('purchases.index')->with('success', 'Berhasil Menambahkan Transaksi Bahan Masuk!');

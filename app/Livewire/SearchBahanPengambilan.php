@@ -41,6 +41,11 @@ class SearchBahanPengambilan extends Component
                 'kode' => $bahan->kode_bahan,
                 'stok' => $bahan->purchaseDetails->sum('sisa'),
                 'unit' => $bahan->dataUnit->nama ?? 'N/A',
+                // Dibawa di payload supaya keranjang bisa menentukan perlu
+                // tidaknya pilihan satuan tanpa query ulang. Komponen ini jadi
+                // sumber untuk dua keranjang sekaligus: bahan masuk dan
+                // pengambilan bahan.
+                'panjang_standar' => $bahan->panjang_standar,
                 'type' => 'bahan',
             ];
 
@@ -74,6 +79,13 @@ class SearchBahanPengambilan extends Component
                     'supplier' => $bahan->suppliers->isNotEmpty() ? $bahan->suppliers->pluck('nama')->implode(', ') : '-',
                     'stok' => $bahan->purchaseDetails->sum('sisa'),
                     'unit' => optional($bahan->dataUnit)->nama ?? '-',
+                    // Bahan batangan menyimpan stoknya dalam cm, jadi angkanya
+                    // ditampilkan lewat label ini biar tidak terbaca sebagai
+                    // jumlah barang. Null berarti bahan biasa.
+                    'panjang_standar' => $bahan->panjang_standar,
+                    'stok_label' => $bahan->panjang_standar
+                        ? $bahan->formatQty($bahan->purchaseDetails->sum('sisa'))
+                        : null,
                 ];
             });
 

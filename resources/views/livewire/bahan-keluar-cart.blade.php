@@ -15,7 +15,17 @@
                         <input type="hidden" name="cartItems" value="{{ json_encode($this->getCartItemsForStorage()) }}">
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
+                            @php
+                                // Bahan batangan stoknya tersimpan dalam cm. Tanpa pilihan satuan,
+                                // "2" akan terbaca 2 cm padahal maksudnya 2 batang.
+                                $panjangStandarKeluar = $this->panjangStandarUntuk($item->id);
+                            @endphp
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                                {{ $item->nama_bahan }}
+                                @if($panjangStandarKeluar)
+                                    <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">1 {{ $item->unit ?: 'Batang' }} = {{ $panjangStandarKeluar }} cm &middot; sisa {{ $item->stok_label }}</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
                                     <button wire:click="decreaseQuantity({{ $item->id }})"
@@ -38,7 +48,24 @@
                                         <span class="sr-only">Increase Quantity</span>
                                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/></svg>
                                     </button>
+
+                                    @if($panjangStandarKeluar)
+                                        <select wire:model="satuan.{{ $item->id }}"
+                                            wire:change="updateSatuan({{ $item->id }})"
+                                            class="ml-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                            <option value="batang">{{ $item->unit ?: 'Batang' }}</option>
+                                            <option value="cm">cm</option>
+                                        </select>
+                                    @elseif($item->unit ?? false)
+                                        <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">{{ $item->unit }}</span>
+                                    @endif
                                 </div>
+
+                                @if($panjangStandarKeluar)
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        keluar {{ number_format($this->qtyDasar($item->id), 0, ',', '.') }} cm &middot; maks {{ rtrim(rtrim(number_format($this->maksInput($item->id, $item->stok ?? 0), 2, ',', '.'), '0'), ',') }} {{ $this->labelSatuanUntuk($item->id) }}
+                                    </p>
+                                @endif
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"><span><strong>Rp.</strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span></td>
                             <td class="px-6 py-4">

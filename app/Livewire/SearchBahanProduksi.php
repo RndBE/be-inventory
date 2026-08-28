@@ -45,6 +45,12 @@ class SearchBahanProduksi extends Component
                     'nama' => $bahan->nama_bahan,
                     'kode' => $bahan->kode_bahan,
                     'stok' => $bahan->purchaseDetails->sum('sisa'),
+                    // Bahan batangan menyimpan stoknya dalam cm, jadi angka
+                    // mentahnya menyesatkan kalau dibaca sebagai jumlah barang.
+                    // Null berarti bahan biasa dan tampilannya tidak berubah.
+                    'stok_label' => $bahan->panjang_standar
+                        ? $bahan->formatQty($bahan->purchaseDetails->sum('sisa'))
+                        : null,
                     'unit' => optional($bahan->dataUnit)->nama ?? 'N/A',
                 ];
             });
@@ -115,6 +121,12 @@ class SearchBahanProduksi extends Component
                     'nama' => $bahan->nama_bahan,
                     'kode' => $bahan->kode_bahan,
                     'stok' => $bahan->purchaseDetails->sum('sisa'),
+                    // Bahan batangan menyimpan stoknya dalam cm, jadi angka
+                    // mentahnya menyesatkan kalau dibaca sebagai jumlah barang.
+                    // Null berarti bahan biasa dan tampilannya tidak berubah.
+                    'stok_label' => $bahan->panjang_standar
+                        ? $bahan->formatQty($bahan->purchaseDetails->sum('sisa'))
+                        : null,
                     'unit' => $bahan->dataUnit->nama ?? 'N/A',
                     'type' => 'bahan',
                 ];

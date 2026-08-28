@@ -55,7 +55,7 @@
                                     <span>{!! nl2br(e($detail['spesifikasi'] ?? '')) !!}</span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                                    <span>{{ $detail['qty_pengajuan'] ?? 0 }}</span>
+                                    <span>{{ $detail['qty_pengajuan'] ?? 0 }} {{ $this->labelSatuanPengajuan($detail) }}</span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
                                     @if($editingJmlId === $detail['bahan']->id)
@@ -72,13 +72,16 @@
                                             wire:blur="updateJmlBahan({{ $detail['pembelian_bahan_id'] }}, {{ $detail['bahan']->id }})"
                                             @if($status_finance === 'Disetujui') disabled @endif
                                         />
+                                        @if($this->labelSatuanPengajuan($detail) !== '')
+                                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">dalam {{ $this->labelSatuanPengajuan($detail) }}</span>
+                                        @endif
                                     @else
                                         @if($status_finance !== 'Disetujui')
                                             <span class="cursor-pointer" wire:click="editItemJmlBahan({{ $detail['bahan']->id }})">
-                                                {{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }}
+                                                {{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }} {{ $this->labelSatuanPengajuan($detail) }}
                                             </span>
                                         @else
-                                            <span>{{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }}</span>
+                                            <span>{{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }} {{ $this->labelSatuanPengajuan($detail) }}</span>
                                         @endif
                                     @endif
                                 </td>
@@ -241,7 +244,7 @@
                                         {{ $detail['bahan']->nama_bahan }}
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                                    <span>{{ $detail['qty_pengajuan'] ?? 0 }}</span>
+                                    <span>{{ $detail['qty_pengajuan'] ?? 0 }} {{ $this->labelSatuanPengajuan($detail) }}</span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
                                     @if($editingJmlId === $detail['bahan']->id)
@@ -258,13 +261,16 @@
                                             wire:blur="updateJmlBahan({{ $detail['pembelian_bahan_id'] }}, {{ $detail['bahan']->id }})"
                                             @if($status_finance === 'Disetujui') disabled @endif
                                         />
+                                        @if($this->labelSatuanPengajuan($detail) !== '')
+                                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">dalam {{ $this->labelSatuanPengajuan($detail) }}</span>
+                                        @endif
                                     @else
                                         @if($status_finance !== 'Disetujui')
                                             <span class="cursor-pointer" wire:click="editItemJmlBahan({{ $detail['bahan']->id }})">
-                                                {{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }}
+                                                {{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }} {{ $this->labelSatuanPengajuan($detail) }}
                                             </span>
                                         @else
-                                            <span>{{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }}</span>
+                                            <span>{{ $jml_bahan[$detail['bahan']->id] ?? ($detail['jml_bahan'] ?? 0) }} {{ $this->labelSatuanPengajuan($detail) }}</span>
                                         @endif
                                     @endif
                                 </td>
@@ -472,7 +478,7 @@
                                     <span>{!! nl2br(e($detail['spesifikasi'] ?? '')) !!}</span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                                    <span>{{ $detail['jml_bahan'] ?? 0 }}</span>
+                                    <span>{{ $detail['jml_bahan'] ?? 0 }} {{ $this->labelSatuanPengajuan($detail) }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                     @php
@@ -632,7 +638,7 @@
                                     <span>{!! nl2br(e($detail['spesifikasi'] ?? '')) !!}</span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                                    <span>{{ $detail['jml_bahan'] ?? 0 }}</span>
+                                    <span>{{ $detail['jml_bahan'] ?? 0 }} {{ $this->labelSatuanPengajuan($detail) }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                     @php
@@ -798,7 +804,7 @@
                                     <span>{!! nl2br(e($detail['spesifikasi'] ?? '')) !!}</span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
-                                    <span>{{ $detail['jml_bahan'] ?? 0 }}</span>
+                                    <span>{{ $detail['jml_bahan'] ?? 0 }} {{ $this->labelSatuanPengajuan($detail) }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                     @php

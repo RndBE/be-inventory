@@ -254,6 +254,12 @@ class ProjekController extends Controller
                 $groupedItems[$key]['qty'] += $item['qty'] ?? 0;
                 $groupedItems[$key]['jml_bahan'] += $item['jml_bahan'] ?? 0;
                 $groupedItems[$key]['sub_total'] += $item['sub_total'] ?? 0;
+                // Jejak satuan input ikut dibawa lewat pengelompokan: `qty` di atas
+                // sudah dalam satuan dasar (cm untuk bahan batangan), sedangkan dua
+                // kolom ini merekam angka apa adanya yang diketik user supaya riwayat
+                // dan cetakan bisa menampilkannya kembali.
+                $groupedItems[$key]['qty_input'] = ($groupedItems[$key]['qty_input'] ?? 0) + ($item['qty_input'] ?? 0);
+                $groupedItems[$key]['satuan_input'] = $item['satuan_input'] ?? ($groupedItems[$key]['satuan_input'] ?? null);
             }
 
             // Save items to BahanKeluarDetails and ProjekDetails
@@ -265,6 +271,8 @@ class ProjekController extends Controller
                     'produk_jadis_id' => $details['produk_jadis_id'],
                     'serial_number' => $details['serial_number'],
                     'qty' => $details['qty'],
+                    'qty_input' => $details['qty_input'] ?? null,
+                    'satuan_input' => $details['satuan_input'] ?? null,
                     'jml_bahan' => $details['jml_bahan'],
                     'used_materials' => 0,
                     'details' => json_encode($details['details']),
@@ -464,6 +472,8 @@ class ProjekController extends Controller
                         'produk_jadis_id' => $details['produk_jadis_id'],
                         'serial_number' => $details['serial_number'],
                         'qty' => $details['qty'],
+                        'qty_input' => $details['qty_input'] ?? null,
+                        'satuan_input' => $details['satuan_input'] ?? null,
                         'jml_bahan' => $details['jml_bahan'],
                         'used_materials' => 0,
                         'details' => json_encode($details['details']),
@@ -512,7 +522,7 @@ class ProjekController extends Controller
                     $unit_price = $item['unit_price'] ?? 0;
                     $sub_total = $qtyRusak * $unit_price;
 
-                    BahanRusakDetails::create([
+                    BahanRusakDetails::catatRusak([
                         'bahan_rusak_id' => $bahanRusakRecord->id,
                         'bahan_id' => $bahan_id, // Bisa null jika produk
                         'produk_id' => $produk_id, // Bisa null jika bahan
@@ -521,7 +531,7 @@ class ProjekController extends Controller
                         'qty' => $qtyRusak,
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
-                    ]);
+                    ], $item['satuan_input'] ?? null, $item['qty_input'] ?? null);
                 }
                 $targetPhone = $purchasingUser->telephone;
                 $recipientName = $purchasingUser->name;
@@ -568,7 +578,7 @@ class ProjekController extends Controller
                     $unit_price = $item['unit_price'] ?? 0;
                     $sub_total = $qtyRetur * $unit_price;
 
-                    BahanReturDetails::create([
+                    BahanReturDetails::catatRetur([
                         'bahan_retur_id' => $bahanReturRecord->id,
                         'bahan_id' => $bahan_id, // Bisa null jika produk
                         'produk_id' => $produk_id, // Bisa null jika bahan
@@ -577,7 +587,7 @@ class ProjekController extends Controller
                         'qty' => $qtyRetur,
                         'unit_price' => $unit_price,
                         'sub_total' => $sub_total,
-                    ]);
+                    ], $item['satuan_input'] ?? null, $item['qty_input'] ?? null);
                 }
                 $targetPhone = $purchasingUser->telephone;
                 $recipientName = $purchasingUser->name;

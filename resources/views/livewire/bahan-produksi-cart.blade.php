@@ -97,11 +97,24 @@
                 <tbody>
                     @foreach($cartItems as $item)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            @php
+                                // Angka kebutuhan datang dari resep produk dan ditulis dalam satuan
+                                // master bahan — untuk pipa berarti jumlah batang. Stoknya sendiri
+                                // tersimpan dalam cm, jadi hasil konversinya ditampilkan agar
+                                // operator bisa melihat angka yang benar-benar dipotong dari stok.
+                                $panjangStandarProduksi = $panjangStandar[$item->id] ?? null;
+                            @endphp
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                 {{ $item->nama ?? $item->nama_bahan }}
+                                @if($panjangStandarProduksi)
+                                    <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">1 Batang = {{ $panjangStandarProduksi }} cm</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 {{ isset($jml_bahan[$item->id]) ? $jml_bahan[$item->id] : 0 }}
+                                @if($panjangStandarProduksi)
+                                    <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">Batang</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 text-right flex justify-end">
 
@@ -117,6 +130,18 @@
                                         class="bg-gray-50 w-20 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 border-transparent"
                                         placeholder="0" min="0" required readonly />
 
+                                    {{-- Angkanya dari resep, tapi satuan permintaan ke gudang boleh
+                                         dipilih: batang untuk batang utuh, cm untuk potongan. Ganti
+                                         satuan menghitung ulang angkanya dari resep. --}}
+                                    @if($panjangStandarProduksi)
+                                        <select wire:model="satuan.{{ $item->id }}"
+                                            wire:change="updateSatuan({{ $item->id }})"
+                                            class="ml-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                            <option value="batang">Batang</option>
+                                            <option value="cm">cm</option>
+                                        </select>
+                                        <span class="ml-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">= {{ number_format($this->qtyDasarUntuk($item->id), 0, ',', '.') }} cm</span>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

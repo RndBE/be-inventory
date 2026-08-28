@@ -88,7 +88,15 @@
                     @foreach (collect($selectedBahanList)->where('is_selected', true)->values() as $index => $bahan)
                         <tr>
                             <td class="border px-2 py-1 text-center">{{ $index + 1 }}</td>
-                            <td class="border px-2 py-1">{{ $bahan['nama_bahan'] }}</td>
+                            <td class="border px-2 py-1">
+                                {{ $bahan['nama_bahan'] }}
+                                @if($bahan['panjang_standar'] ?? null)
+                                    {{-- Semua angka di baris ini dalam satuan yang dipilih petugas QC,
+                                         bukan satuan ledger. Konversi ke cm terjadi saat diproses ke
+                                         gudang, jadi satuannya perlu terbaca di preview. --}}
+                                    <span class="block text-xs text-gray-500">angka dalam {{ ($bahan['satuan'] ?? 'cm') === 'batang' ? 'Batang' : 'cm' }} &middot; 1 Batang = {{ $bahan['panjang_standar'] }} cm</span>
+                                @endif
+                            </td>
                             <td class="border px-2 py-1">
                                 {{ optional($supplierList->firstWhere('id', $bahan['supplier_id']))->nama }}
                             </td>

@@ -132,7 +132,7 @@
                                             <div class="flex mb-1">
                                                 <span class="w-28 font-medium">Qty</span>
                                                 <span class="pr-1">:</span>
-                                                <span>{{ $detail->qty }}</span>
+                                                <span>{{ $detail->qtyTampil() }}</span>
                                             </div>
                                             <div class="flex mb-1">
                                                 @php
@@ -315,7 +315,7 @@
                                             </div>
                                             <div class="flex justify-between">
                                                 <span class="font-medium w-32">Qty</span>
-                                                <span>{{ $detail->qty ?? 0 }}</span>
+                                                <span>{{ $detail->qtyTampil() }}</span>
                                             </div>
                                             <div class="flex justify-between">
                                                 <span class="font-medium w-32">Unit Price</span>
@@ -415,7 +415,7 @@
                                             </div>
                                             <div class="flex justify-between">
                                                 <span class="font-medium w-32">Qty</span>
-                                                <span>{{ $detail->qty ?? 0 }}</span>
+                                                <span>{{ $detail->qtyTampil() }}</span>
                                             </div>
                                             <div class="flex justify-between">
                                                 <span class="font-medium w-32">Unit Price</span>

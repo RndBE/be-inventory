@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Helpers\SatuanBahanHelper;
 use App\Models\Bahan;
 use Livewire\Component;
 use App\Models\Produksi;
@@ -17,6 +18,27 @@ class EditBahanKeluarCart extends Component
 {
     public $cart = [];
     public $qty = [];
+
+    /**
+     * Angka qty dalam satuan yang dipakai saat mengajukan, per item.
+     *
+     * `$qty` selalu satuan ledger — untuk bahan batangan berarti cm — dan itu
+     * yang dipakai menghitung subtotal dan mengalokasikan lot. Yang dibaca
+     * orang di halaman ini justru satuan pengajuannya: yang diminta 10 batang
+     * harus terbaca 10, bukan 6.000. Dua angka itu disimpan terpisah supaya
+     * tampilan tidak mengubah angka yang dipakai berhitung.
+     */
+    public $qtyTampil = [];
+
+    /**
+     * Satuan pengajuan per item: 'batang', 'cm', atau null untuk bahan biasa.
+     *
+     * Diambil dari `bahan_keluar_details.satuan_input` yang direkam saat
+     * pengajuan dibuat. Baris lama yang dibuat sebelum kolom itu ada bernilai
+     * null, dan angkanya diperlakukan sebagai satuan ledger — sama seperti
+     * bagian aplikasi yang lain.
+     */
+    public $satuanInput = [];
     public $jml_bahan = [];
     public $details = [];
     public $details_raw = [];
@@ -60,6 +82,24 @@ class EditBahanKeluarCart extends Component
                 continue; // Lewati jika tidak ada ID yang valid
             }
 
+            $panjangStandar = SatuanBahanHelper::panjangStandar($detail['panjang_standar'] ?? null);
+            $satuanInput = $detail['satuan_input'] ?? null;
+
+            // Baris yang dibuat sebelum bahannya jadi bahan batangan menyimpan
+            // jumlah barang, bukan cm - waktu itu memang belum ada satuan cm,
+            // dan `satuan_input`-nya kosong karena kolomnya belum dipakai.
+            // Angkanya dinaikkan ke cm di sini supaya sisa stok, subtotal, dan
+            // alokasi lot memakai satuan yang sama dengan ledger. Tanpa ini,
+            // permintaan 10 batang akan memotong stok 10 cm saja.
+            if ($panjangStandar && $satuanInput === null) {
+                $requestedQty = SatuanBahanHelper::keSatuanDasar(
+                    $requestedQty,
+                    SatuanBahanHelper::SATUAN_BATANG,
+                    $panjangStandar
+                );
+                $satuanInput = SatuanBahanHelper::SATUAN_BATANG;
+            }
+
             if ($produkId !== null) {
                 $bahanSetengahjadiDetails = BahanSetengahjadiDetails::where('id', $produkId)
                     ->where('sisa', '>', 0)
@@ -101,6 +141,16 @@ class EditBahanKeluarCart extends Component
                     $this->updateUnitPriceAndSubtotal($finalId, $this->qty[$finalId], $purchaseDetails);
                 }
             }
+
+            // Dihitung dari qty yang sudah dipotong sisa stok, bukan dari
+            // `qty_input` yang tersimpan: kalau permintaannya dipangkas karena
+            // stok kurang, angka yang tampil harus ikut turun.
+            $this->satuanInput[$finalId] = $satuanInput;
+            $this->qtyTampil[$finalId] = SatuanBahanHelper::dariSatuanDasar(
+                $this->qty[$finalId] ?? 0,
+                $satuanInput,
+                $panjangStandar
+            );
         }
 
         $this->calculateTotalHarga();
@@ -140,6 +190,11 @@ class EditBahanKeluarCart extends Component
                     'produk_id' => $produkId, // Simpan produk_id agar tidak hilang
                     'produk_jadis_id' => $produkJadisId,
                     'qty' => $detail->qty,
+                    // Satuan pengajuan dan panjang standar ikut dibawa ke view
+                    // supaya kolom qty bisa ditampilkan dalam satuan yang dipakai
+                    // saat mengajukan, lengkap dengan panjang cm-nya.
+                    'satuan_input' => $detail->satuan_input,
+                    'panjang_standar' => $bahan?->panjang_standar,
                     'stok' => $stok,
                     'jml_bahan' => $detail->jml_bahan,
                     'used_materials' => $detail->used_materials ?? 0,

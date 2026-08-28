@@ -237,6 +237,13 @@
                                             rows="2" name="projekRndDetails[{{ $produkId }}][keterangan_penanggungjawab]" @if ($this->projekRndStatus === 'Selesai' || $this->projekRndStatus === 'Tidak dilanjutkan') disabled @endif></textarea>
                                     @endif --}}
                             </td>
+                            @php
+                                // Bahan batangan stoknya tersimpan dalam cm. Tanpa pilihan satuan,
+                                // "2" akan terbaca 2 cm padahal maksudnya 2 batang. Baris produk
+                                // setengah jadi tidak punya panjang standar, jadi tidak ikut.
+                                $panjangStandarBaris = $this->panjangStandarUntuk($id);
+                                $labelBatangBaris = $panjangStandarBaris ? $this->namaUnitUntuk($id) : null;
+                            @endphp
                             <td class="px-6 py-4 text-gray-900 dark:text-white text-center">
                                 <div class="flex items-center">
                                     {{-- <input value="{{ old('qty.' . $id, $qty[$id] ?? 0) }}" type="number" --}}
@@ -247,6 +254,15 @@
                                         class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                         placeholder="0" min="0" required
                                         @if ($this->projekRndStatus === 'Selesai' || $this->projekRndStatus === 'Tidak dilanjutkan') disabled @endif />
+
+                                    @if ($panjangStandarBaris)
+                                        <select wire:model="satuan.{{ $id }}" wire:change="updateSatuan({{ $id }})"
+                                            class="ml-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                            @if ($this->projekRndStatus === 'Selesai' || $this->projekRndStatus === 'Tidak dilanjutkan') disabled @endif>
+                                            <option value="batang">{{ $labelBatangBaris }}</option>
+                                            <option value="cm">cm</option>
+                                        </select>
+                                    @endif
                                     {{-- <input value="{{ old('qty.' . $id, $qty[$id] ?? 0) }}"
                                         name="projekRndDetails[{{ $id }}][qty]" type="number"
                                         wire:model.defer="qty.{{ $id }}"
@@ -280,6 +296,12 @@
                                             @if ($this->projekRndStatus === 'Selesai' || $this->projekRndStatus === 'Tidak dilanjutkan') disabled @endif />
                                     @endif --}}
                                 </div>
+                                @if ($panjangStandarBaris)
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+                                        keluar {{ number_format($this->qtyDasar($id), 0, ',', '.') }} cm
+                                        &middot; 1 {{ $labelBatangBaris }} = {{ $panjangStandarBaris }} cm
+                                    </p>
+                                @endif
                             </td>
 
                             <td class="items-right px-6 py-4 text-right">
@@ -494,7 +516,7 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        {{ number_format($rusak['unit_price'] * $rusak['qty'], 0, ',', '.') }}
+                                        {{ number_format(($rusak['unit_price'] ?? 0) * $this->qtyDasarBarisRusak($index), 0, ',', '.') }}
                                     </td> --}}
                                     <td class="px-6 py-4">
                                         <div class="flex justify-end items-center gap-2">
@@ -504,7 +526,7 @@
                                                 wire:model.defer="bahanRusak.{{ $index }}.qty"
                                                 wire:change="updateRusakQty({{ $rusak['bahan_id'] ?? $rusak['produk_id'] }}, {{ $rusak['unit_price'] }}, $event.target.value)"> --}}
                                             <input type="number" step="0.01" min="0"
-                                                max="{{ $maxQty }}"
+                                                max="{{ $this->panjangStandarBarisRusak($index) ? $this->maksInputRusak($index, $maxQty) : $maxQty }}"
                                                 oninput="if(parseFloat(this.value) > parseFloat(this.max)) this.value = this.max;"
                                                 inputmode="decimal"
                                                 class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg
@@ -517,6 +539,18 @@
                                                     {{ $rusak['unit_price'] }},
                                                     $event.target.value
                                                 )" />
+
+                                            {{-- Bahan batangan boleh diisi per batang atau per cm. Default cm karena
+                                                 yang pulang dari proyek umumnya potongan sisa; opsi batang untuk
+                                                 batang utuh yang tidak terpakai. --}}
+                                            @if ($this->panjangStandarBarisRusak($index))
+                                                <select wire:model="bahanRusak.{{ $index }}.satuan" wire:change="updateSatuanRusak({{ $index }})"
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                                    <option value="cm">cm</option>
+                                                    <option value="batang">{{ $this->namaUnitTampil($rusak['bahan_id'] ?? $rusak['id'] ?? null) }}</option>
+                                                </select>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">= {{ number_format($this->qtyDasarBarisRusak($index), 0, ',', '.') }} cm</span>
+                                            @endif
 
                                             x {{ number_format($rusak['unit_price'] ?? 0, 0, ',', '.') }}
 
@@ -628,7 +662,7 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        {{ number_format($retur['unit_price'] * $retur['qty'], 0, ',', '.') }}
+                                        {{ number_format(($retur['unit_price'] ?? 0) * $this->qtyDasarBarisRetur($index), 0, ',', '.') }}
                                     </td> --}}
                                     <td class="px-6 py-4">
                                         <div class="flex justify-end items-center gap-2">
@@ -638,7 +672,7 @@
                                                 wire:model.defer="bahanRetur.{{ $index }}.qty"
                                                 wire:change="updateReturQty({{ $retur['bahan_id'] ?? $retur['produk_id'] }}, {{ $retur['unit_price'] }}, $event.target.value)"> --}}
                                             <input type="number" step="0.01" min="0"
-                                                max="{{ $maxQty }}"
+                                                max="{{ $this->panjangStandarBarisRetur($index) ? $this->maksInputRetur($index, $maxQty) : $maxQty }}"
                                                 oninput="if(parseFloat(this.value) > parseFloat(this.max)) this.value = this.max;"
                                                 inputmode="decimal"
                                                 class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg
@@ -651,6 +685,18 @@
                                                     {{ $retur['unit_price'] }},
                                                     $event.target.value
                                                 )" />
+
+                                            {{-- Bahan batangan boleh diisi per batang atau per cm. Default cm karena
+                                                 yang pulang dari proyek umumnya potongan sisa; opsi batang untuk
+                                                 batang utuh yang tidak terpakai. --}}
+                                            @if ($this->panjangStandarBarisRetur($index))
+                                                <select wire:model="bahanRetur.{{ $index }}.satuan" wire:change="updateSatuanRetur({{ $index }})"
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                                    <option value="cm">cm</option>
+                                                    <option value="batang">{{ $this->namaUnitTampil($retur['bahan_id'] ?? $retur['id'] ?? null) }}</option>
+                                                </select>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">= {{ number_format($this->qtyDasarBarisRetur($index), 0, ',', '.') }} cm</span>
+                                            @endif
 
                                             x {{ number_format($retur['unit_price'] ?? 0, 0, ',', '.') }}
 

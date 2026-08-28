@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\SatuanBahanHelper;
 use App\Models\Purchase;
 use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
@@ -74,6 +75,9 @@ class ProyekController extends Controller
             'cartItems.*.qty' => 'required|numeric',
             'cartItems.*.unit_price' => 'required|numeric',
             'cartItems.*.sub_total' => 'required|numeric',
+            // Lihat catatan yang sama di Api\BahanMasukController: default
+            // batang menjaga perilaku klien lama tetap sama.
+            'cartItems.*.satuan' => 'nullable|in:batang,cm',
         ]);
 
         if ($validator->fails()) {
@@ -91,14 +95,13 @@ class ProyekController extends Controller
             ]);
 
             foreach ($cartItems as $item) {
-                PurchaseDetail::create([
+                PurchaseDetail::catatLot([
                     'purchase_id' => $purchase->id,
                     'bahan_id' => $item['id'],
                     'qty' => $item['qty'],
-                    'sisa' => $item['qty'],
                     'unit_price' => $item['unit_price'],
                     'sub_total' => $item['sub_total'],
-                ]);
+                ], $item['satuan'] ?? SatuanBahanHelper::SATUAN_BATANG);
             }
 
             DB::commit();

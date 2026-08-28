@@ -38,6 +38,11 @@
                                     wire:model="keterangan_penanggungjawab.{{ $item->id }}" rows="2"></textarea>
                             </div>
                         </td>
+                            @php
+                                // Bahan batangan stoknya tersimpan dalam cm. Tanpa pilihan satuan,
+                                // "2" akan terbaca 2 cm padahal maksudnya 2 batang.
+                                $panjangStandarBaris = $this->panjangStandarUntuk($item->id);
+                            @endphp
                         <td class="px-6 py-4">
                             <div class="flex justify-center items-center">
                                 <input value="{{ old('qty.' . $item->id, $qty[$item->id] ?? 0) }}" type="number"
@@ -45,7 +50,21 @@
                                     wire:keyup="updateQuantity({{ $item->id }})"
                                     class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     placeholder="0" min="0" required />
+
+                                @if($panjangStandarBaris)
+                                    <select wire:model="satuan.{{ $item->id }}"
+                                        wire:change="updateSatuan({{ $item->id }})"
+                                        class="ml-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                        <option value="batang">{{ $item->unit ?: 'Batang' }}</option>
+                                        <option value="cm">cm</option>
+                                    </select>
+                                @endif
                             </div>
+                            @if($panjangStandarBaris)
+                                <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+                                    keluar {{ number_format($this->qtyDasar($item->id), 0, ',', '.') }} cm &middot; maks {{ rtrim(rtrim(number_format($this->maksInput($item->id, $item->stok ?? 0), 2, ',', '.'), '0'), ',') }} {{ $this->labelSatuanUntuk($item->id) }}
+                                </p>
+                            @endif
                         </td>
                         {{-- <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white"><span><strong>Rp.</strong> {{ number_format($subtotals[$item->id] ?? 0, 0, ',', '.') }}</span></td> --}}
                         <td class="px-6 py-4">

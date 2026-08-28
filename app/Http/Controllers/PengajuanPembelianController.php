@@ -627,6 +627,10 @@ class PengajuanPembelianController extends Controller
                         'qty' => $this->normalizeDecimal($item['qty'] ?? 0),
                         'jml_bahan' => $this->normalizeDecimal($item['jml_bahan'] ?? 0),
                         'qty_pengajuan' => $this->normalizeDecimal($item['qty_pengajuan'] ?? 0),
+                        // Angka pengajuan tetap dalam satuan yang dipilih pemohon —
+                        // dokumen pembelian memang berbicara per batang. Kolom ini
+                        // dibaca wizard QC bahan masuk sebagai satuan awal.
+                        'satuan_input' => $item['satuan_input'] ?? null,
                         'used_materials' => 0,
                         'details' => json_encode($item['details']),
                         'sub_total' => $item['sub_total'],

@@ -198,15 +198,22 @@ class StockOpnameController extends Controller
 
         $validator = Validator::make([
             'tgl_pengajuan' => $request->tgl_pengajuan,
+            // Ikut divalidasi supaya batasnya sama dengan update(). Tanpa ini
+            // bisa lahir opname yang keterangannya lolos saat dibuat tapi
+            // ditolak saat diedit, dan penolakannya membatalkan seluruh form.
+            'keterangan' => $request->keterangan,
             'cartItems' => $rawCartItems,
         ], [
             'tgl_pengajuan' => 'required|date_format:Y-m-d',
+            'keterangan' => 'nullable|string|max:5000',
             'cartItems' => 'required|array',
             'cartItems.*.bahan_id' => 'nullable|integer',
             'cartItems.*.produk_id' => 'nullable|integer',
             'cartItems.*.serial_number' => 'nullable|string',
             'cartItems.*.tersedia_sistem' => 'nullable|numeric',
             'cartItems.*.tersedia_fisik' => 'nullable|numeric',
+            'cartItems.*.qty_input' => 'nullable|numeric',
+            'cartItems.*.satuan_input' => 'nullable|in:batang,cm',
             'cartItems.*.selisih' => 'nullable|numeric',
             'cartItems.*.keterangan' => 'nullable|string',
         ]);
@@ -238,7 +245,13 @@ class StockOpnameController extends Controller
                     'produk_id' => $item['produk_id'] ?? null,
                     'serial_number' => $item['serial_number'] ?? null,
                     'tersedia_sistem' => $item['tersedia_sistem'] ?? null,
+                    // Sudah dalam satuan dasar (cm untuk bahan batangan) supaya
+                    // sebanding dengan `tersedia_sistem` dan dengan sisa stok
+                    // yang dikurangi saat opname diselesaikan. Angka apa adanya
+                    // yang dihitung petugas ada di `qty_input`/`satuan_input`.
                     'tersedia_fisik' => $item['tersedia_fisik'] ?? null,
+                    'qty_input' => $item['qty_input'] ?? null,
+                    'satuan_input' => $item['satuan_input'] ?? null,
                     'selisih' => $item['selisih'] ?? null,
                     'keterangan' => $item['keterangan'] ?? null,
                 ]);
@@ -349,7 +362,11 @@ class StockOpnameController extends Controller
             'tgl_pengajuan' => 'required|date_format:Y-m-d',
             'tgl_audit' => 'nullable|date_format:Y-m-d',
             'auditor' => 'nullable|string|max:255',
-            'keterangan' => 'required|string|max:255',
+            // Kolomnya bertipe text, dan store() tidak membatasi panjangnya sama
+            // sekali. Batas 255 di sini membuat opname berketerangan panjang
+            // tidak bisa disimpan ulang - termasuk kolom hasil auditnya, karena
+            // seluruh form ikut ditolak. Batasnya disamakan dengan store().
+            'keterangan' => 'required|string|max:5000',
             'cartItems' => 'required|array',
         ]);
 

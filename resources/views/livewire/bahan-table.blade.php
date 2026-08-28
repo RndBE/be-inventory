@@ -207,16 +207,26 @@
                         {{-- Nama Bahan --}}
                         <h3 class="text-xl font-bold text-slate-800 mb-2">{{ $row->nama_bahan }}</h3>
 
-                        {{-- Stok di pojok kanan atas konten --}}
+                        {{-- Stok di pojok kanan atas konten.
+
+                             Bahan batangan punya dua angka, dan keduanya tidak sederajat:
+                             jumlah batang itu yang dipakai orang mengambil keputusan, sisa
+                             potongan cuma pengecualian. Karena itu batangnya saja yang masuk
+                             chip, sisanya turun jadi baris kecil di bawah — chip-nya jadi tidak
+                             melebar dan tidak menabrak nama bahan. Angka cm penuh tetap bisa
+                             dilihat lewat tooltip, untuk mencocokkan dengan data. --}}
                         <div class="absolute top-12 right-4">
-                            <span class="inline-flex items-center gap-1
-                                text-sm font-medium px-2.5 py-0.5 rounded-xl border
-                                {{ $row->total_stok == 0
+                            <x-chip-stok
+                                align="end"
+                                :qty="$row->total_stok"
+                                :panjang-standar="$row->panjang_standar"
+                                :nama-unit="$row->dataUnit->nama ?? null"
+                                :label-biasa="$row->total_stok . ' ' . ($row->dataUnit->nama ?? 'N/A')"
+                                :chip-class="'inline-flex items-center gap-1 text-sm font-medium px-2.5 py-0.5 rounded-xl border ' . ($row->total_stok == 0
                                     ? 'bg-red-100 text-red-800 border-red-400'
-                                    : 'bg-green-100 text-green-800 border-green-400' }}">
+                                    : 'bg-green-100 text-green-800 border-green-400')">
                                 <i class="fas fa-box"></i>
-                                {{ $row->total_stok }} {{ $row->dataUnit->nama ?? 'N/A' }}
-                            </span>
+                            </x-chip-stok>
                         </div>
 
                         {{-- Detail Informasi --}}

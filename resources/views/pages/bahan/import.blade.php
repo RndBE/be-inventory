@@ -57,6 +57,8 @@
                     <p class="mt-2 text-xs text-gray-500 dark:text-gray-300">
                         Kode Bahan menjadi kunci pencocokan. Kode yang sudah ada diperbarui dan kode baru ditambahkan.
                         Jenis Bahan, Satuan Unit, dan Supplier harus sudah terdaftar. Maksimal 10 MB.
+                        Kolom <em>Panjang per Batang (cm)</em> opsional: isi hanya untuk bahan batangan seperti pipa
+                        (contoh: pipa 6 meter diisi 600), kosongkan untuk bahan biasa.
                     </p>
 
                     <button type="submit"

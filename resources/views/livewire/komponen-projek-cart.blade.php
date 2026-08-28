@@ -35,7 +35,27 @@
                                         dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     min="0"
                                 />
+
+                                @php
+                                    // Bahan batangan stoknya tersimpan dalam cm. Tanpa pilihan satuan,
+                                    // "2" akan terbaca 2 cm padahal maksudnya 2 batang. Setengah jadi
+                                    // dan produk jadi tidak punya panjang standar, jadi tidak berubah.
+                                    $panjangStandarBaris = $this->panjangStandarUntuk($item->cart_key);
+                                @endphp
+                                @if($panjangStandarBaris)
+                                    <select wire:model="satuan.{{ $item->cart_key }}"
+                                        wire:change="updateSatuan('{{ $item->cart_key }}')"
+                                        class="ml-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                        <option value="batang">{{ $item->unit ?: 'Batang' }}</option>
+                                        <option value="cm">cm</option>
+                                    </select>
+                                @endif
                             </div>
+                            @if($panjangStandarBaris)
+                                <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+                                    keluar {{ number_format($this->qtyDasar($item->cart_key), 0, ',', '.') }} cm &middot; maks {{ rtrim(rtrim(number_format($this->maksInput($item->cart_key, $item->stok ?? 0), 2, ',', '.'), '0'), ',') }} {{ $this->labelSatuanUntuk($item->cart_key) }}
+                                </p>
+                            @endif
                         </td>
 
                         <td class="px-6 py-4">

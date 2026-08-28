@@ -122,6 +122,20 @@
                                 </div>
                             </div>
 
+                            {{-- Khusus bahan batangan seperti pipa. Kalau diisi, stok bahan ini
+                                 dicatat dalam cm dan form transaksi menampilkan pilihan satuan
+                                 batang atau cm. Dibiarkan kosong untuk bahan biasa. --}}
+                            <div class="sm:col-span-2">
+                                <label for="panjang_standar" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Panjang per Batang (cm)</label>
+                                <div class="mt-2">
+                                    <input value="{{ old('panjang_standar') }}" type="number" min="1" step="1" name="panjang_standar" id="panjang_standar" placeholder="Kosongkan kalau bukan bahan batangan" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Isi hanya untuk bahan batangan (pipa, hollow). Contoh: pipa 6 meter diisi 600. Stok akan dicatat dalam cm dan bisa diambil per potongan.</p>
+                                    @error('panjang_standar')
+                                        <p class="text-red-500 text-sm mt-1 error-message">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
                             <div class="sm:col-span-2">
                             <label for="penempatan" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Penempatan</label>
                             <div class="mt-2">

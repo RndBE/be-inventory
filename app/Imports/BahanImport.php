@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\Bahan;
 use App\Models\JenisBahan;
+use App\Models\PurchaseDetail;
 use App\Models\Supplier;
 use App\Models\Unit;
 use Illuminate\Support\Collection;
@@ -148,6 +149,13 @@ class BahanImport
                 $attributes['status'] = $this->status($data['status'], $baris);
             }
 
+            // Kolom opsional untuk bahan batangan. Hanya diikutkan kalau
+            // kolomnya ada di file — kalau tidak, panjang standar bahan yang
+            // sudah ada tidak boleh ikut terhapus oleh import.
+            if (array_key_exists('panjang_standar', $data)) {
+                $attributes['panjang_standar'] = $this->panjangStandar($data['panjang_standar'], $baris);
+            }
+
             $supplierIds = null;
             if (array_key_exists('supplier', $data)) {
                 $supplierIds = $this->supplierIds($data['supplier'], $suppliers, $baris);
@@ -173,10 +181,23 @@ class BahanImport
                 continue;
             }
 
+            // Diperiksa sebelum fill(), selagi nilai lama masih utuh di model.
+            $konversiPanjang = array_key_exists('panjang_standar', $attributes)
+                ? $this->jagaPanjangStandar($bahan, $attributes['panjang_standar'], $baris)
+                : null;
+
             $bahan->fill($attributes);
             $berubah = $bahan->isDirty();
 
             if ($berubah) {
+                // Konversi dijalankan lebih dulu karena yang dicari adalah lot
+                // yang `panjang_standar`-nya masih null, dan urutannya tidak
+                // berpengaruh pada hasil — keduanya berada di transaction yang
+                // sama, jadi kegagalan salah satu membatalkan dua-duanya.
+                if ($konversiPanjang !== null) {
+                    PurchaseDetail::konversiLotLama($bahan, $konversiPanjang);
+                }
+
                 $bahan->save();
             }
 
@@ -192,6 +213,68 @@ class BahanImport
 
             $berubah ? $this->jumlahDiperbarui++ : $this->jumlahTidakBerubah++;
         }
+    }
+
+    /**
+     * Panjang standar yang berubah lewat import ditolak atau dikonversi.
+     *
+     * Mengubah panjang standar mengubah arti setiap angka stok bahan itu:
+     * kolom `sisa` yang tadinya dibaca sebagai jumlah barang mendadak dibaca
+     * sebagai cm. Lewat form, BahanController sudah menahannya; lewat import
+     * jalurnya berbeda dan tanpa penjagaan yang sama satu sel Excel bisa
+     * memangkas stok ratusan kali tanpa satu pun error.
+     *
+     * Aturannya tidak ditulis ulang di sini, tapi diambil dari
+     * Bahan::alasanTolakPanjangStandar() supaya form dan import tidak bisa
+     * berbeda. Yang ditambahkan hanya nomor baris dan kode bahannya, karena
+     * satu import menyentuh banyak baris dan pesan tanpa penunjuk baris tidak
+     * bisa ditindaklanjuti.
+     *
+     * Mengembalikan panjang yang perlu dipakai untuk konversi lot lama, atau
+     * null kalau tidak ada yang berubah.
+     */
+    private function jagaPanjangStandar(Bahan $bahan, ?int $panjangBaru, int $baris): ?int
+    {
+        if ((int) $bahan->panjang_standar === (int) $panjangBaru) {
+            return null;
+        }
+
+        // setelUlangLot false: import tidak menyetel ulang stok. Satu sel
+        // Excel bisa menyentuh puluhan bahan tanpa dilihat satu per satu, jadi
+        // mengubah angka yang sudah dipakai tetap harus lewat form edit bahan.
+        $alasanTolak = $bahan->alasanTolakPanjangStandar($panjangBaru, false);
+
+        if ($alasanTolak !== null) {
+            throw new RuntimeException(
+                "Panjang per Batang (cm) pada baris {$baris} (Kode Bahan '{$bahan->kode_bahan}') ditolak. {$alasanTolak}"
+            );
+        }
+
+        return $panjangBaru;
+    }
+
+    /**
+     * Panjang standar dari sel import, atau null kalau selnya kosong.
+     *
+     * Kosong berarti bahan biasa, bukan bahan batangan. Nilai nol atau negatif
+     * ditolak daripada disimpan: itu akan mengaktifkan mode batangan dengan
+     * pembagi yang tidak masuk akal.
+     */
+    private function panjangStandar($nilai, int $baris): ?int
+    {
+        $teks = trim((string) $nilai);
+
+        if ($teks === '') {
+            return null;
+        }
+
+        if (! is_numeric($teks) || (int) $teks < 1) {
+            throw new RuntimeException(
+                "Panjang per Batang (cm) pada baris {$baris} harus berupa angka minimal 1, atau dikosongkan untuk bahan non-batangan."
+            );
+        }
+
+        return (int) $teks;
     }
 
     public function ringkasan(): string
@@ -211,6 +294,7 @@ class BahanImport
             'penempatan', 'lokasi' => 'penempatan',
             'status' => 'status',
             'supplier', 'suppliers', 'pemasok' => 'supplier',
+            'panjang per batang (cm)', 'panjang per batang', 'panjang standar', 'panjang' => 'panjang_standar',
             default => null,
         };
     }
@@ -223,6 +307,7 @@ class BahanImport
             'jenis_bahan' => 'Jenis Bahan',
             'satuan_unit' => 'Satuan Unit',
             'penempatan' => 'Penempatan',
+            'panjang_standar' => 'Panjang per Batang (cm)',
             default => Str::headline($kolom),
         };
     }

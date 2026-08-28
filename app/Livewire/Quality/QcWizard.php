@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Quality;
 
+use App\Helpers\SatuanBahanHelper;
 use App\Models\User;
 use App\Models\Bahan;
 use Livewire\Component;
@@ -126,10 +127,28 @@ class QcWizard extends Component
         if ($pembelian) {
             $this->selectedBahanList = $pembelian->pembelianBahanDetails->map(function ($detail) {
                 $stokLama = $detail->dataBahan->purchaseDetails->sum('sisa');
+                // Bahan batangan selalu di-QC per batang, sama seperti pengajuan
+                // pembelian dan keranjang bahan masuk: yang dipesan dan yang
+                // difakturkan supplier memang batang utuh. Semua angka fisik di
+                // baris ini dan harganya memakai satuan itu, jadi sub_total
+                // selalu hasil kali dua angka sesatuan dan konversi ke satuan
+                // ledger cukup terjadi sekali, saat barangnya diproses ke gudang.
+                $panjangStandar = SatuanBahanHelper::panjangStandar($detail->dataBahan);
+
                 return [
                     'bahan_id'          => $detail->dataBahan->id,
                     'nama_bahan'        => $detail->dataBahan->nama_bahan,
                     'stok_lama'         => $stokLama ?? 0,
+                    'stok_lama_label'   => $panjangStandar
+                        ? $detail->dataBahan->formatQty($stokLama ?? 0)
+                        : null,
+                    'panjang_standar'   => $panjangStandar,
+                    // Tidak bisa dipilih petugas: bahan batangan selalu batang.
+                    // Tetap disimpan di baris ini karena prosesKeGudang membaca
+                    // kolom ini untuk tahu cara mengonversi angkanya.
+                    'satuan'            => $panjangStandar
+                        ? SatuanBahanHelper::SATUAN_BATANG
+                        : SatuanBahanHelper::SATUAN_DASAR,
                     'jumlah_pengajuan'  => $detail->qty_pengajuan ?? 0,
                     'jumlah_pembelian'  => $detail->jml_bahan ?? 0,
                     'no_invoice'        => '',
@@ -170,6 +189,10 @@ class QcWizard extends Component
             'selectedBahanList.*.fisik_rusak'     => 'required|numeric|min:0',
             'selectedBahanList.*.fisik_retur'     => 'required|numeric|min:0',
             'selectedBahanList.*.unit_price'      => 'required|numeric|min:0',
+            'selectedBahanList.*.satuan'          => 'nullable|in:batang,cm',
+            // Satuan tidak lagi bisa dipilih petugas, tapi aturannya dibiarkan
+            // sebagai penjaga: nilai di luar dua itu berarti payload-nya sudah
+            // tidak berasal dari form ini.
             'selectedBahanList.*.statusQc'        => 'required|in:Belum Diterima,Diterima Semua,Diterima Sebagian,Ditolak',
         ], [
             'selectedBahanList.*.no_invoice.required'  => 'No Invoice wajib diisi.',
@@ -442,6 +465,12 @@ class QcWizard extends Component
                     'fisik_retur'       => $bahan['fisik_retur'],
                     'unit_price'        => $bahan['unit_price'],
                     'sub_total'         => $bahan['fisik_baik'] * $bahan['unit_price'],
+                    // Angka di baris ini dalam satuan dokumen QC - batang untuk
+                    // bahan batangan - bukan satuan ledger. Kolom ini yang nanti
+                    // dibaca prosesKeGudang untuk tahu cara mengonversinya.
+                    'satuan_input'      => ($bahan['panjang_standar'] ?? null)
+                        ? SatuanBahanHelper::SATUAN_BATANG
+                        : null,
                     'status'            => $bahan['statusQc'],
                     'notes'             => $bahan['notes'] ?? null,
                 ]);

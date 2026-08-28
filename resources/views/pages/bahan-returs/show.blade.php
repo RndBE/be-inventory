@@ -50,10 +50,21 @@
                                             <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
                                                 <div class="font-medium text-slate-700">{{ $detail->dataBahan->nama_bahan }}</div>
                                             </td>
+                                            {{-- Yang ditulis besar adalah angka yang diketik pengaju berikut
+                                                 satuannya: retur 1 batang utuh dan retur 600 cm potongan
+                                                 menghasilkan qty ledger yang sama persis, tapi artinya di
+                                                 gudang berbeda. Panjang cm-nya turun jadi keterangan. Baris
+                                                 lama yang belum punya jejak satuan tampil seperti dulu. --}}
                                             <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">
                                                 <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">
-                                                    {{ $detail->qty }} {{ $detail->dataBahan->dataUnit->nama ?? 'N/A' }}
+                                                    {{ $detail->qtyInputTampil()
+                                                        ?? ($detail->dataBahan?->panjang_standar
+                                                            ? $detail->qtyTampil()
+                                                            : $detail->qty . ' ' . ($detail->dataBahan->dataUnit->nama ?? 'N/A')) }}
                                                 </span>
+                                                @if($detail->satuanInputTampil() && $detail->satuanInputTampil() !== 'cm')
+                                                    <span class="block mt-1 text-xs text-slate-500">= {{ number_format($detail->qty, 0, ',', '.') }} cm</span>
+                                                @endif
                                             </td>
                                             <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">
                                                 @php

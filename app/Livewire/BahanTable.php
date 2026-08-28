@@ -15,6 +15,16 @@ class BahanTable extends Component
     public $search = '';
     public $perPage = 25;
     public $id_bahan, $nama_bahan, $jenis_bahan_id, $stok_awal, $total_stok, $penempatan, $supplier, $unit_id, $kondisi, $gambar, $kode_bahan;
+
+    /**
+     * Stok siap tampil untuk modal detail.
+     *
+     * Bahan batangan menyimpan stoknya dalam cm, jadi angka mentahnya (mis.
+     * 3640) menyesatkan kalau dibaca sebagai jumlah barang. Label ini sudah
+     * berbentuk "6 Batang + 40 cm"; untuk bahan biasa isinya sama seperti
+     * sebelumnya, angka diikuti nama unit.
+     */
+    public $total_stok_label;
     public $selectedIds = [];
     public $isDeleteModalOpen = false;
     public $isShowModalOpen = false;
@@ -62,6 +72,9 @@ class BahanTable extends Component
         $this->supplier = $Data->suppliers->isNotEmpty() ? $Data->suppliers->pluck('nama')->implode(', ') : 'N/A';
         $this->kondisi = $Data->kondisi;
         $this->unit_id = $Data->dataUnit->nama ?? 'N/A';
+        $this->total_stok_label = $Data->panjang_standar
+            ? $Data->formatQty($this->total_stok)
+            : $this->total_stok . ' ' . $this->unit_id;
         $this->gambar = $Data->gambar;
         $this->isShowModalOpen = true;
     }

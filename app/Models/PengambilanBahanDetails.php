@@ -4,11 +4,13 @@ namespace App\Models;
 
 use App\Models\Pengajuan;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\MenampilkanQtyBahan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PengambilanBahanDetails extends Model
 {
     use HasFactory;
+    use MenampilkanQtyBahan;
 
     protected $table = 'pengambilan_bahan_details';
     protected $guarded = [];

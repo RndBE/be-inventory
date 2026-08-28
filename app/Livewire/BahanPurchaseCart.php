@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Helpers\SatuanBahanHelper;
 use App\Models\Bahan;
 use Livewire\Component;
 use Illuminate\Support\Facades\Session;
@@ -15,6 +16,19 @@ class BahanPurchaseCart extends Component
     public $subtotals = [];
     public $totalharga = 0;
     public $editingItemId = null;
+
+    /**
+     * Satuan input tidak bisa dipilih: bahan batangan selalu dibeli per batang.
+     *
+     * Sama seperti keranjang pengajuan pembelian — yang dipesan ke supplier
+     * batang utuh, dan surat pesanan maupun fakturnya ditulis begitu. Angka qty
+     * berarti jumlah batang dan harga berarti harga per batang, jadi subtotal
+     * selalu hasil kali dua angka dalam satuan yang sama dan nilainya eksak.
+     *
+     * Panjang cm-nya tetap ditampilkan sebagai pemeriksaan silang lewat
+     * totalSatuanDasar(), dan konversi ke ledger dilakukan
+     * PurchaseDetail::catatLot().
+     */
 
     protected $listeners = ['bahanSelected' => 'addToCart'];
     public function mount()
@@ -36,6 +50,17 @@ class BahanPurchaseCart extends Component
             // Jika bahan sudah ada, tingkatkan kuantitas
             $this->qty[$bahan->bahan_id]++;
         } else {
+            // Panjang standar dibaca langsung dari master bahan, bukan dari
+            // payload pencarian. Payload-nya dirakit di beberapa komponen Search
+            // yang berbeda dan tidak semuanya membawa kolom ini, jadi kalau
+            // dipercaya, pilihan satuannya hilang tanpa jejak untuk bahan yang
+            // sebetulnya batangan. Nilainya dilekatkan ke item keranjang supaya
+            // baris tabel tidak perlu query ulang tiap render.
+            $panjangStandar = SatuanBahanHelper::panjangStandar(
+                Bahan::find($bahan->bahan_id ?? null)
+            );
+            $bahan->panjang_standar = $panjangStandar;
+
             // Jika bahan belum ada, tambahkan ke keranjang
             $this->cart[] = $bahan;
             $this->qty[$bahan->bahan_id] = null; // Set kuantitas menjadi 1
@@ -121,6 +146,48 @@ class BahanPurchaseCart extends Component
     }
 
 
+    /**
+     * Satuan input untuk satu bahan: batang kalau bahannya batangan.
+     *
+     * Tidak ada pilihan di sini — lihat catatan di atas. Bahan biasa memakai
+     * satuan dasar, dan nilainya diabaikan karena konversinya identitas.
+     */
+    public function satuanUntuk($itemId): string
+    {
+        return $this->panjangStandarUntuk($itemId)
+            ? SatuanBahanHelper::SATUAN_BATANG
+            : SatuanBahanHelper::SATUAN_DASAR;
+    }
+
+    /**
+     * Panjang standar bahan di keranjang, atau null kalau bukan bahan batangan.
+     */
+    public function panjangStandarUntuk($itemId): ?int
+    {
+        foreach ($this->cart as $item) {
+            if (($item->bahan_id ?? null) == $itemId) {
+                return SatuanBahanHelper::panjangStandar($item->panjang_standar ?? null);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Panjang total yang akan tercatat di stok, dalam cm.
+     *
+     * Ditampilkan di form sebagai pemeriksaan silang: petugas bisa langsung
+     * melihat 5 batang menjadi 3.000 cm sebelum menyimpan.
+     */
+    public function totalSatuanDasar($itemId): float
+    {
+        return SatuanBahanHelper::keSatuanDasar(
+            $this->qty[$itemId] ?? 0,
+            $this->satuanUntuk($itemId),
+            $this->panjangStandarUntuk($itemId)
+        );
+    }
+
     public function editItem($itemId)
     {
         $this->editingItemId = $itemId; // Set ID item yang sedang diedit
@@ -160,9 +227,14 @@ class BahanPurchaseCart extends Component
             $items[] = [
                 'id' => $itemId,
                 // 'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
+                // qty dan unit_price dikirim dalam satuan yang dipilih user;
+                // PurchaseDetail::catatLot yang mengubahnya ke satuan ledger.
+                // sub_total ikut dikirim karena dihitung dari angka input yang
+                // masih bulat, jadi hasilnya eksak.
                 'qty' => isset($this->qty[$itemId]) ? floatval($this->qty[$itemId]) : 0,
                 'unit_price' => isset($this->unit_price_raw[$itemId]) ? round(floatval($this->unit_price_raw[$itemId]), 2) : 0.00,
                 'sub_total' => isset($this->subtotals[$itemId]) ? round($this->subtotals[$itemId], 2) : 0.00,
+                'satuan' => $this->panjangStandarUntuk($itemId) ? $this->satuanUntuk($itemId) : null,
 
                 // 'unit_price' => isset($this->unit_price_raw[$itemId]) ? $this->unit_price_raw[$itemId] : 0,
                 // 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,

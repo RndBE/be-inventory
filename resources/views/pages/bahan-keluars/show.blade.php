@@ -52,7 +52,7 @@
                                             </td>
                                             <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">
                                                 <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">
-                                                    {{ $detail->qty }} {{ $detail->dataBahan->dataUnit->nama ?? 'N/A' }}
+                                                    {{ $detail->dataBahan?->panjang_standar ? $detail->qtyTampil() : $detail->qty . ' ' . ($detail->dataBahan->dataUnit->nama ?? 'N/A') }}
                                                 </span>
                                             </td>
                                             <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">

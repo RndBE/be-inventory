@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\MenampilkanQtyBahan;
 
 class ProjekDetails extends Model
 {
     use HasFactory;
+    use MenampilkanQtyBahan;
 
     protected $table = 'projek_details';
     protected $guarded = [];

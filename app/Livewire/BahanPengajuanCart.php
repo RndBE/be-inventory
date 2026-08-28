@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Helpers\SatuanBahanHelper;
 use App\Models\Bahan;
 use Livewire\Component;
 use App\Models\ProdukProduksi;
@@ -26,6 +27,20 @@ class BahanPengajuanCart extends Component
     public $kategoriPengajuan = 'Produksi';
     public $currency = 'USD';
     public $showSearchBahanProduksi = false;
+
+    /**
+     * Satuan pengajuan tidak bisa dipilih: bahan batangan selalu diajukan per
+     * batang.
+     *
+     * Yang dibeli dari supplier memang batang utuh — meminta "250 cm" tidak
+     * punya arti di surat pesanan. Karena itu keranjang ini tidak menyediakan
+     * dropdown satuan seperti keranjang pengambilan; angka yang diketik selalu
+     * jumlah batang, dan panjang cm-nya cuma ditampilkan sebagai keterangan.
+     *
+     * Keranjang ini juga bukan pengurang stok — angkanya diteruskan apa adanya
+     * ke `pembelian_bahan_details`, dan `satuan_input` yang ikut tersimpan
+     * dipakai QC bahan masuk untuk tahu permintaannya ditulis dalam satuan apa.
+     */
 
     protected $listeners = ['bahanSelected' => 'addToCart', 'bahanSetengahJadiSelected' => 'addToCart'];
 
@@ -63,11 +78,18 @@ class BahanPengajuanCart extends Component
             // $this->updateQuantity($bahan->bahan_id);
         } else {
             // Buat objek item
+            $modelBahan = $isSetengahJadi ? null : Bahan::find($bahan->bahan_id);
+            $panjangStandar = SatuanBahanHelper::panjangStandar($modelBahan);
+
             $item = (object)[
                 'id' => $bahan->bahan_id,
-                'nama_bahan' => $isSetengahJadi ? $bahan->nama : Bahan::find($bahan->bahan_id)->nama_bahan,
+                'nama_bahan' => $isSetengahJadi ? $bahan->nama : $modelBahan->nama_bahan,
                 'stok' => $bahan->stok,
                 'unit' => $bahan->unit,
+                'panjang_standar' => $panjangStandar,
+                // Stok bahan batangan tersimpan dalam cm, jadi angka mentahnya
+                // ditampilkan lewat label ini biar tidak terbaca jumlah barang.
+                'stok_label' => SatuanBahanHelper::format($bahan->stok, $panjangStandar, $bahan->unit),
             ];
 
             // Tambahkan item ke keranjang
@@ -160,6 +182,50 @@ class BahanPengajuanCart extends Component
         $this->saveCartToSession();
     }
 
+    /**
+     * Panjang standar bahan di keranjang, atau null kalau bukan bahan batangan.
+     */
+    public function panjangStandarUntuk($itemId): ?int
+    {
+        foreach ($this->cart as $item) {
+            if (($item->id ?? null) == $itemId) {
+                return SatuanBahanHelper::panjangStandar($item->panjang_standar ?? null);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Satuan pengajuan untuk satu bahan: batang kalau bahannya batangan.
+     *
+     * Tidak ada pilihan di sini — lihat catatan di atas. Bahan biasa memakai
+     * satuan dasar, dan nilainya diabaikan karena konversinya identitas.
+     */
+    public function satuanUntuk($itemId): string
+    {
+        return $this->panjangStandarUntuk($itemId)
+            ? SatuanBahanHelper::SATUAN_BATANG
+            : SatuanBahanHelper::SATUAN_DASAR;
+    }
+
+    /**
+     * Panjang total yang diminta, dalam cm, atau null untuk bahan biasa.
+     *
+     * Cuma keterangan di sebelah kolom qty: "10 Batang = 6.000 cm". Angka ini
+     * tidak disimpan ke mana pun — yang tersimpan tetap jumlah batangnya.
+     */
+    public function panjangDimintaCm($itemId): ?float
+    {
+        $panjangStandar = $this->panjangStandarUntuk($itemId);
+
+        if ($panjangStandar === null) {
+            return null;
+        }
+
+        return (float) str_replace(',', '.', (string) ($this->qty_pengajuan[$itemId] ?? 0)) * $panjangStandar;
+    }
+
     public function getCartItemsForStorage()
     {
         $items = [];
@@ -170,6 +236,9 @@ class BahanPengajuanCart extends Component
                 'qty' => isset($this->qty[$itemId]) ? $this->normalizeDecimal($this->qty[$itemId]) : 0,
                 'qty_pengajuan' => isset($this->qty_pengajuan[$itemId]) ? $this->normalizeDecimal($this->qty_pengajuan[$itemId]) : 0,
                 'jml_bahan' => isset($this->jml_bahan[$itemId]) ? $this->normalizeDecimal($this->jml_bahan[$itemId]) : 0,
+                // Tidak ada konversi: angka pengajuan diteruskan apa adanya,
+                // satuannya cuma ikut tercatat.
+                'satuan_input' => $this->panjangStandarUntuk($itemId) ? $this->satuanUntuk($itemId) : null,
                 'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
                 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
                 'spesifikasi' => isset($this->spesifikasi[$itemId]) ? $this->spesifikasi[$itemId] : 0,

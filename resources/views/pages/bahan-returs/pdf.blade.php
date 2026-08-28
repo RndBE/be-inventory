@@ -115,8 +115,13 @@
                             Data tidak tersedia
                         @endif
                     </td>
-                    <td style="border: 1px solid black;text-align: center;">{{ $detail->qty }}</td>
-                    <td style="border: 1px solid black;text-align: center;">{{ $detail->dataBahan->dataUnit->nama ?? 'Pcs' }}</td>
+                    {{-- Angka dan satuannya mengikuti yang diketik pengaju, karena itu yang
+                         dipegang orang gudang saat mencocokkan barang: "1 Batang" tidak sama
+                         artinya dengan "600 cm" walau panjangnya identik. Baris lama yang
+                         belum punya jejak satuan jatuh ke qtyTampil() dan unit masternya,
+                         persis seperti sebelumnya. --}}
+                    <td style="border: 1px solid black;text-align: center;">{{ $detail->qtyInputAngka() ?? $detail->qtyTampil() }}</td>
+                    <td style="border: 1px solid black;text-align: center;">{{ $detail->satuanInputTampil() ?? ($detail->dataBahan->dataUnit->nama ?? 'Pcs') }}</td>
                 </tr>
                 @php
                     $totalSubTotal += $detail->qty;

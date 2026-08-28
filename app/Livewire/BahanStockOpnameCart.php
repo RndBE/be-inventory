@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Helpers\SatuanBahanHelper;
 use App\Models\Bahan;
 use Livewire\Component;
 use App\Models\PurchaseDetail;
@@ -23,6 +24,16 @@ class BahanStockOpnameCart extends Component
     public $selisih = [];         // Holds the difference values
     public $tersedia_fisik_raw = [];
     public $keterangan = [];
+
+    /**
+     * Satuan hitung fisik per bahan batangan: 'batang' atau 'cm'.
+     *
+     * Stok bahan batangan tersimpan dalam cm, sedangkan yang dihitung petugas
+     * di gudang biasanya jumlah batang. Tanpa pilihan ini, angka "6" akan
+     * tercatat sebagai 6 cm dan selisihnya membuat stok terpotong hampir habis
+     * begitu opname diselesaikan.
+     */
+    public $satuan = [];
     protected $listeners = ['bahanSelected' => 'addToCart', 'bahanSetengahJadiSelected' => 'addToCart'];
 
     public function mount()
@@ -93,6 +104,13 @@ class BahanStockOpnameCart extends Component
                 return;
             }
         }
+        // Panjang standar hanya berlaku untuk bahan biasa. Bahan setengah jadi
+        // tidak punya konsep batang, jadi dibiarkan null dan perilakunya sama
+        // seperti sebelumnya.
+        $panjangStandar = empty($bahan->produk_id)
+            ? SatuanBahanHelper::panjangStandar($item)
+            : null;
+
         // Tambahkan item ke keranjang
         $item = (object)[
             'id' => $itemId,
@@ -104,6 +122,8 @@ class BahanStockOpnameCart extends Component
             'nama_bahan' => $bahan->nama ?? 'Tanpa Nama',
             'stok' => $bahan->stok ?? 0,
             'unit' => $bahan->unit ?? 'Pcs',
+            'panjang_standar' => $panjangStandar,
+            'sistem_label' => SatuanBahanHelper::format($totalAvailable, $panjangStandar, $bahan->unit ?? null),
         ];
         $this->cart[] = $item;
         $this->qty[$itemId] = 1;
@@ -111,6 +131,9 @@ class BahanStockOpnameCart extends Component
         $this->unit_price[$itemId] = null;
         $this->tersedia_sistem[$itemId] = $totalAvailable;
         $this->tersedia_fisik[$itemId] = 0;
+        $this->satuan[$itemId] = $panjangStandar
+            ? SatuanBahanHelper::SATUAN_BATANG
+            : SatuanBahanHelper::SATUAN_DASAR;
         $this->keterangan[$itemId] = '';
 
         $this->saveCartToSession();
@@ -204,14 +227,63 @@ class BahanStockOpnameCart extends Component
         $this->updateSession();
     }
 
+    /**
+     * Satuan hitung yang sedang aktif untuk satu baris.
+     */
+    public function satuanUntuk($itemId): string
+    {
+        return SatuanBahanHelper::normalkanSatuan($this->satuan[$itemId] ?? null);
+    }
+
+    /**
+     * Panjang standar bahan di keranjang, atau null kalau bukan bahan batangan.
+     */
+    public function panjangStandarUntuk($itemId): ?int
+    {
+        foreach ($this->cart as $item) {
+            if ($item->id == $itemId) {
+                return $item->panjang_standar ?? null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Hitungan fisik yang diketik, dikonversi ke satuan dasar.
+     */
+    public function fisikSatuanDasar($itemId): float
+    {
+        $raw = isset($this->tersedia_fisik_raw[$itemId])
+            ? floatval(str_replace([' ', ','], ['', '.'], (string) $this->tersedia_fisik_raw[$itemId]))
+            : 0;
+
+        return SatuanBahanHelper::keSatuanDasar($raw, $this->satuanUntuk($itemId), $this->panjangStandarUntuk($itemId));
+    }
+
+    /**
+     * Ganti satuan hitung, lalu kosongkan angkanya.
+     *
+     * Angka lama tidak dipertahankan karena artinya berubah: "6" yang tadinya
+     * 6 batang tidak boleh diam-diam jadi 6 cm.
+     */
+    public function updateSatuan($itemId)
+    {
+        $this->tersedia_fisik_raw[$itemId] = null;
+        $this->tersedia_fisik[$itemId] = 0;
+        $this->selisih[$itemId] = $this->getSelisih($itemId);
+    }
+
     public function getSelisih($itemId)
     {
-        // Ensure both the system stock and physical stock values are set
-        $tersediaSistem = isset($this->tersedia_sistem[$itemId]) ? $this->tersedia_sistem[$itemId] : 0;
-        $tersediaFisikRaw = isset($this->tersedia_fisik_raw[$itemId]) ? intval(str_replace(['.', ' '], '', $this->tersedia_fisik_raw[$itemId])) : 0;
+        // Selisih dihitung dalam satuan dasar, bukan satuan yang diketik:
+        // `tersedia_sistem` diambil dari sisa stok yang memang sudah dalam cm,
+        // sedangkan hitungan fisik bisa jadi jumlah batang. Angka inilah yang
+        // nanti dikurangkan langsung dari purchase_details.sisa saat opname
+        // diselesaikan, jadi satuannya harus sama.
+        $tersediaSistem = isset($this->tersedia_sistem[$itemId]) ? (float) $this->tersedia_sistem[$itemId] : 0;
 
-        // Calculate and return the difference
-        return  $tersediaFisikRaw - $tersediaSistem;
+        return $this->fisikSatuanDasar($itemId) - $tersediaSistem;
     }
 
     public function updateQuantity($itemId)
@@ -295,7 +367,12 @@ class BahanStockOpnameCart extends Component
                 'produk_id' => $isSetengahJadi ? ($item->produk_id ?? $item->id) : null,
                 'serial_number' => $isSetengahJadi ? $item->serial_number : null,
                 'tersedia_sistem' => isset($this->tersedia_sistem[$item->id]) ? $this->tersedia_sistem[$item->id] : 0,
-                'tersedia_fisik' => isset($this->tersedia_fisik_raw[$item->id]) ? $this->tersedia_fisik_raw[$item->id] : 0,
+                // Yang disimpan sudah dalam satuan dasar supaya sebanding
+                // dengan `tersedia_sistem`. Angka apa adanya yang diketik
+                // petugas ikut disimpan di `qty_input`/`satuan_input`.
+                'tersedia_fisik' => $this->fisikSatuanDasar($item->id),
+                'qty_input' => $this->tersedia_fisik_raw[$item->id] ?? null,
+                'satuan_input' => ($item->panjang_standar ?? null) ? $this->satuanUntuk($item->id) : null,
                 'selisih' => $this->getSelisih($item->id),
                 'keterangan' => isset($this->keterangan[$item->id]) ? $this->keterangan[$item->id] : '',
             ];

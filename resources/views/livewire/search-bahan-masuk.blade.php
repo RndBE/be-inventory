@@ -50,7 +50,7 @@
                                 class="cursor-pointer {{ $selectedIndex === $index ? 'bg-blue-100 text-blue-900' : 'hover:bg-blue-50' }} p-2">
                                 {{ $bahan->nama_bahan }} | {{ $bahan->kode_bahan }} |
                                 <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-400">
-                                    {{ $bahan->total_stok }} {{ $bahan->dataUnit->nama }}
+                                    {{ $bahan->panjang_standar ? $bahan->formatQty($bahan->total_stok) : $bahan->total_stok . ' ' . $bahan->dataUnit->nama }}
                                 </span>
                             </li>
                         @endforeach

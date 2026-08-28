@@ -33,10 +33,22 @@
                             }"
                             >
 
+                            @php
+                                // Bahan batangan selalu di-QC per batang: yang dipesan dan
+                                // difakturkan supplier batang utuh, sama seperti pengajuan
+                                // pembelian dan keranjang bahan masuk. Satuan itu berlaku untuk
+                                // semua angka fisik di kartu ini sekaligus harganya, jadi
+                                // subtotalnya tetap hasil kali dua angka sesatuan.
+                                $panjangStandarQc = $bahan['panjang_standar'] ?? null;
+                                $labelSatuanQc = 'Batang';
+                            @endphp
                             <!-- Header -->
                             <div class="flex items-center justify-between">
                                 <h3 class="font-semibold text-lg text-gray-800">
                                     {{ $bahan['nama_bahan'] }}
+                                    @if($panjangStandarQc)
+                                        <span class="block text-xs font-normal text-gray-500">1 Batang = {{ $panjangStandarQc }} cm &middot; stok sekarang {{ $bahan['stok_lama_label'] }}</span>
+                                    @endif
                                 </h3>
                                 <div class="flex items-center gap-2">
                                     <span class="text-lg text-black">#{{ $index + 1 }}</span>
@@ -173,8 +185,16 @@
                                     </div>
 
 
+                                    @if($panjangStandarQc)
+                                        <div class="col-span-1">
+                                            <label class="text-black">Satuan Hitung</label>
+                                            <p class="input border w-full mt-1 text-lg bg-gray-50 text-gray-700">Batang</p>
+                                            <p class="text-xs text-gray-500 mt-1">Bahan batangan selalu dihitung per batang. Semua angka fisik dan harga di kartu ini memakai satuan itu; stoknya dicatat {{ $panjangStandarQc }} cm per batang.</p>
+                                        </div>
+                                    @endif
+
                                     <div>
-                                        <label class="text-black">Jumlah Diterima</label>
+                                        <label class="text-black">Jumlah Diterima {{ $panjangStandarQc ? '(' . $labelSatuanQc . ')' : '' }}</label>
                                         <input type="number" step="0.01"
                                             wire:model.lazy="selectedBahanList.{{ $index }}.jumlah_diterima"
                                             x-model="jumlahDiterima"
@@ -187,7 +207,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="text-black">Fisik Baik</label>
+                                        <label class="text-black">Fisik Baik {{ $panjangStandarQc ? '(' . $labelSatuanQc . ')' : '' }}</label>
                                         <input type="number" step="0.01"
                                             wire:model.lazy="selectedBahanList.{{ $index }}.fisik_baik"
                                             x-model="fisikBaik"
@@ -200,7 +220,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="text-black">Fisik Rusak</label>
+                                        <label class="text-black">Fisik Rusak {{ $panjangStandarQc ? '(' . $labelSatuanQc . ')' : '' }}</label>
                                         <input type="number" step="0.01"
                                             wire:model.lazy="selectedBahanList.{{ $index }}.fisik_rusak"
                                             x-model="fisikRusak"
@@ -213,7 +233,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="text-black">Fisik Retur</label>
+                                        <label class="text-black">Fisik Retur {{ $panjangStandarQc ? '(' . $labelSatuanQc . ')' : '' }}</label>
                                         <input type="number" step="0.01"
                                             wire:model.lazy="selectedBahanList.{{ $index }}.fisik_retur"
                                             x-model="fisikRetur"
@@ -226,7 +246,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="text-black">Harga / Unit</label>
+                                        <label class="text-black">Harga / {{ $panjangStandarQc ? $labelSatuanQc : 'Unit' }}</label>
                                         <input type="number" step="0.01" wire:model.lazy="selectedBahanList.{{ $index }}.unit_price"
                                             class="input border w-full mt-1 text-lg" placeholder="50000" :disabled="!isSelected">
                                         @error("selectedBahanList.$index.unit_price")

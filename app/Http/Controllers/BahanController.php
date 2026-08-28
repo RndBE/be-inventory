@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Exports\BahansExport;
 use App\Exports\SaldoPersediaanExport;
 use App\Helpers\LogHelper;
+use App\Helpers\SatuanBahanHelper;
 use App\Imports\BahanImport;
 use App\Models\Bahan;
 use App\Models\JenisBahan;
+use App\Models\PurchaseDetail;
 use App\Models\Supplier;
 use App\Models\Unit;
 use Illuminate\Http\Request;
@@ -115,6 +117,10 @@ class BahanController extends Controller
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 // 'stok_awal' => 'required|integer',
                 'unit_id' => 'required|exists:unit,id',
+                // Diisi hanya untuk bahan batangan seperti pipa. Kalau terisi,
+                // stoknya dicatat dalam cm dan form transaksi menampilkan
+                // pilihan satuan batang atau cm. Lihat SatuanBahanHelper.
+                'panjang_standar' => 'nullable|integer|min:1',
                 'supplier_id' => 'nullable|array',
                 'supplier_id.*' => 'exists:supplier,id',
                 'penempatan' => 'required|string|max:255',
@@ -171,11 +177,40 @@ class BahanController extends Controller
                 'nama_bahan' => 'required|string|max:255',
                 'jenis_bahan_id' => 'required|exists:jenis_bahan,id',
                 'unit_id' => 'required|exists:unit,id',
+                'panjang_standar' => 'nullable|integer|min:1',
                 'supplier_id' => 'nullable|array',
                 'supplier_id.*' => 'exists:supplier,id',
                 'penempatan' => 'required|string|max:255',
                 'gambar' => 'nullable|image|max:2048',
             ]);
+
+            // Aturan lengkapnya ada di Bahan::alasanTolakPanjangStandar(),
+            // dipakai bersama form ini, import, dan label terkunci di Blade.
+            // Lewat form, mengisi maupun mengubah panjang standar boleh walau
+            // stok masih berjalan: lot ikut disetel ulang di transaksi yang
+            // sama. Yang tetap ditolak adalah mengosongkannya.
+            // Diperiksa hanya kalau field-nya benar-benar dikirim: form yang
+            // tidak memuat field ini tidak boleh dianggap sedang mengosongkan
+            // panjang standar, karena `$bahan->update()` juga tidak akan
+            // menyentuh kolomnya kalau kuncinya tidak ada.
+            $panjangLama = SatuanBahanHelper::panjangStandar($bahan);
+            $konversiPanjang = null;
+
+            if ($request->has('panjang_standar')) {
+                $panjangBaru = $validated['panjang_standar'] ?? null;
+                $alasanTolak = $bahan->alasanTolakPanjangStandar($panjangBaru);
+
+                if ($alasanTolak !== null) {
+                    return redirect()->back()
+                        ->withErrors(['panjang_standar' => $alasanTolak])
+                        ->withInput();
+                }
+
+                if ((int) $bahan->panjang_standar !== (int) $panjangBaru) {
+                    $konversiPanjang = $panjangBaru;
+                }
+            }
+
             if ($request->hasFile('gambar')) {
                 // Hapus gambar lama jika ada
                 if ($bahan->gambar && Storage::exists('public/'.$bahan->gambar)) {
@@ -191,8 +226,26 @@ class BahanController extends Controller
             $supplier_ids = $validated['supplier_id'] ?? [];
             unset($validated['supplier_id']);
 
-            $bahan->update($validated);
-            $bahan->suppliers()->sync($supplier_ids);
+            // Konversi lot dan perubahan masternya harus satu paket: kalau
+            // salah satunya gagal, angka lot dan panjang standarnya jadi tidak
+            // sejalan dan tidak ada yang tahu mana yang benar.
+            DB::transaction(function () use ($bahan, $validated, $supplier_ids, $konversiPanjang, $panjangLama) {
+                if ($konversiPanjang !== null) {
+                    // Lot yang sudah tercatat pada panjang lama disetel ulang
+                    // ke ukuran baru dengan jumlah batang dipertahankan; lot
+                    // yang belum pernah dikonversi masih menyimpan angka
+                    // batang, jadi ditangani konversiLotLama(). Dua kelompok
+                    // itu tidak beririsan, jadi urutannya tidak berpengaruh.
+                    if ($panjangLama !== null) {
+                        PurchaseDetail::setelUlangPanjangLot($bahan, $panjangLama, $konversiPanjang);
+                    }
+
+                    PurchaseDetail::konversiLotLama($bahan, $konversiPanjang);
+                }
+
+                $bahan->update($validated);
+                $bahan->suppliers()->sync($supplier_ids);
+            });
 
             LogHelper::success('Berhasil Mengubah Bahan!');
             $page = $request->input('page', 1);

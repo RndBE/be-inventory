@@ -160,8 +160,18 @@
 
                                     <tr
                                         class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                        @php
+                                            // Pengajuan pembelian tidak memotong stok, jadi angkanya
+                                            // diteruskan apa adanya. Satuannya tetap perlu eksplisit
+                                            // supaya petugas QC nanti tahu "5" itu batang atau cm.
+                                            $panjangStandarPengajuan = $this->panjangStandarUntuk($item->id);
+                                        @endphp
                                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                            {{ $item->nama_bahan }}</td>
+                                            {{ $item->nama_bahan }}
+                                            @if($panjangStandarPengajuan)
+                                                <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">1 {{ $item->unit ?: 'Batang' }} = {{ $panjangStandarPengajuan }} cm &middot; stok {{ $item->stok_label }}</span>
+                                            @endif
+                                        </td>
                                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                             <div class="flex justify-right items-right">
                                                 <textarea wire:model="spesifikasi.{{ $item->id }}"
@@ -186,6 +196,16 @@
                                                     wire:keyup="updateQuantity({{ $item->id }})"
                                                     class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                                     placeholder="0" required />
+
+                                                {{-- Pengajuan ke supplier selalu per batang, jadi tidak ada
+                                                     pilihan satuan di sini — cuma label dan hasil kalinya, biar
+                                                     terlihat berapa cm yang sebenarnya diminta. --}}
+                                                @if($panjangStandarPengajuan)
+                                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $item->unit ?: 'Batang' }}</span>
+                                                    <span class="ml-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">= {{ number_format($this->panjangDimintaCm($item->id), 0, ',', '.') }} cm</span>
+                                                @elseif($item->unit ?? false)
+                                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $item->unit }}</span>
+                                                @endif
                                             </div>
                                         </td>
                                         <td class="px-6 py-4">
@@ -244,8 +264,18 @@
 
                                     <tr
                                         class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                        @php
+                                            // Pengajuan pembelian tidak memotong stok, jadi angkanya
+                                            // diteruskan apa adanya. Satuannya tetap perlu eksplisit
+                                            // supaya petugas QC nanti tahu "5" itu batang atau cm.
+                                            $panjangStandarPengajuan = $this->panjangStandarUntuk($item->id);
+                                        @endphp
                                         <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                            {{ $item->nama_bahan }}</td>
+                                            {{ $item->nama_bahan }}
+                                            @if($panjangStandarPengajuan)
+                                                <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">1 {{ $item->unit ?: 'Batang' }} = {{ $panjangStandarPengajuan }} cm &middot; stok {{ $item->stok_label }}</span>
+                                            @endif
+                                        </td>
                                         {{-- <td class="px-6 py-4">
                                             <div class="flex justify-center items-center">
                                                 <input value="{{ old('jml_bahan.'.$item->id, $jml_bahan[$item->id] ?? 0) }}"
@@ -264,6 +294,16 @@
                                                     wire:keyup="updateQuantity({{ $item->id }})"
                                                     class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                                     placeholder="0" required />
+
+                                                {{-- Pengajuan ke supplier selalu per batang, jadi tidak ada
+                                                     pilihan satuan di sini — cuma label dan hasil kalinya, biar
+                                                     terlihat berapa cm yang sebenarnya diminta. --}}
+                                                @if($panjangStandarPengajuan)
+                                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $item->unit ?: 'Batang' }}</span>
+                                                    <span class="ml-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">= {{ number_format($this->panjangDimintaCm($item->id), 0, ',', '.') }} cm</span>
+                                                @elseif($item->unit ?? false)
+                                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $item->unit }}</span>
+                                                @endif
                                             </div>
                                         </td>
                                         <td class="px-6 py-4">

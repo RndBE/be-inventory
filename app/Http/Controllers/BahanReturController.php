@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Purchase;
 use App\Helpers\LogHelper;
 use App\Helpers\PdfSignatureHelper;
+use App\Helpers\SatuanBahanHelper;
 use App\Models\BahanRetur;
 use Illuminate\Http\Request;
 use App\Models\ProjekDetails;
@@ -600,14 +601,18 @@ class BahanReturController extends Controller
                             ['tgl_masuk' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s')]
                         );
 
-                        PurchaseDetail::create([
+                        // Angka retur sudah dalam satuan ledger — untuk bahan
+                        // batangan berarti cm, karena yang dikembalikan dari
+                        // proyek justru potongan sisa, bukan batang utuh. Jadi
+                        // tidak ada konversi di sini; catatLot dipakai supaya
+                        // panjang standar lot barunya tetap ikut dibekukan.
+                        PurchaseDetail::catatLot([
                             'purchase_id' => $purchase->id,
                             'bahan_id' => $returDetail->bahan_id,
                             'qty' => $returDetail->qty,
-                            'sisa' => $returDetail->qty,
                             'unit_price' => $returDetail->unit_price,
                             'sub_total' => $returDetail->qty * $returDetail->unit_price,
-                        ]);
+                        ], SatuanBahanHelper::SATUAN_DASAR);
                     }
                 }
 

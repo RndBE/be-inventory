@@ -2,11 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Helpers\SatuanBahanHelper;
+use App\Livewire\Concerns\MemilihSatuanBahan;
 use App\Models\Bahan;
 use Livewire\Component;
 
 class BahanKeluarCart extends Component
 {
+    use MemilihSatuanBahan;
+
     public $cart = [];
     public $qty = [];
     public $details = [];
@@ -33,8 +37,26 @@ class BahanKeluarCart extends Component
         if ($existingItemKey !== false) {
             $this->qty[$bahan->id]++;
         } else {
+            // Sisa stok, nama unit, dan panjang standar dilekatkan di item
+            // keranjang supaya baris tabel bisa menampilkan batas dan label
+            // satuannya tanpa query per render.
+            //
+            // `panjang_standar` diambil dari master bahan, bukan dari payload
+            // yang dikirim pencarian. Payload-nya kebetulan memuatnya karena
+            // SearchBahanMasuk mengirim model Bahan utuh, tapi komponen
+            // pencarian lain merakit array sendiri dan tidak semuanya menyertakan
+            // kolom ini. Bergantung padanya berarti pilihan satuannya hilang
+            // tanpa jejak begitu halaman ini dipasangkan ke pencarian lain.
+            $model = Bahan::with('dataUnit', 'purchaseDetails')->find($bahan->id);
+            $panjangStandar = SatuanBahanHelper::panjangStandar($model);
+            $bahan->stok = $model ? $model->purchaseDetails->sum('sisa') : 0;
+            $bahan->unit = $model->dataUnit->nama ?? null;
+            $bahan->panjang_standar = $panjangStandar;
+            $bahan->stok_label = $model ? $model->formatQty($bahan->stok) : null;
+
             $this->cart[] = $bahan;
             $this->qty[$bahan->id] = null;
+            $this->setelSatuanAwal($bahan->id, $panjangStandar);
         }
 
         // Save to session
@@ -51,8 +73,29 @@ class BahanKeluarCart extends Component
         if (session()->has('cartItems')) {
             $storedItems = session()->get('cartItems');
             foreach ($storedItems as $storedItem) {
-                $this->cart[] = (object) ['id' => $storedItem['id'], 'nama_bahan' => Bahan::find($storedItem['id'])->nama_bahan];
-                $this->qty[$storedItem['id']] = $storedItem['qty'];
+                // Item keranjang dirakit ulang lengkap dengan panjang standarnya.
+                // Tanpa itu, pilihan satuannya hilang begitu halaman dimuat ulang
+                // dari sesi, dan angka yang tadinya diketik "2 batang" muncul
+                // kembali sebagai 1.200 tanpa keterangan apa pun.
+                $model = Bahan::with('dataUnit', 'purchaseDetails')->find($storedItem['id']);
+                $panjangStandar = SatuanBahanHelper::panjangStandar($model);
+                $stok = $model ? $model->purchaseDetails->sum('sisa') : 0;
+
+                $this->cart[] = (object) [
+                    'id' => $storedItem['id'],
+                    'nama_bahan' => $model->nama_bahan ?? null,
+                    'panjang_standar' => $panjangStandar,
+                    'unit' => $model->dataUnit->nama ?? null,
+                    'stok' => $stok,
+                    'stok_label' => $model ? $model->formatQty($stok) : null,
+                ];
+
+                // Satuan dan angka apa adanya dipulihkan berpasangan. Sesi lama
+                // yang belum punya kedua kunci itu jatuh ke angka satuan dasar,
+                // sama seperti perilaku sebelumnya.
+                $this->satuan[$storedItem['id']] = $storedItem['satuan_input']
+                    ?? ($panjangStandar ? SatuanBahanHelper::SATUAN_BATANG : SatuanBahanHelper::SATUAN_DASAR);
+                $this->qty[$storedItem['id']] = $storedItem['qty_input'] ?? $storedItem['qty'];
                 $this->subtotals[$storedItem['id']] = $storedItem['sub_total'];
             }
             $this->calculateTotalHarga();
@@ -135,18 +178,13 @@ class BahanKeluarCart extends Component
 
             $totalAvailable = $purchaseDetails->sum('sisa');
 
-            // Jika permintaan melebihi total sisa yang tersedia
-            if ($requestedQty > $totalAvailable) {
-                $this->qty[$itemId] = $totalAvailable; // Atur kuantitas ke total sisa
-            } elseif ($requestedQty < 0) {
-                $this->qty[$itemId] = null; // Atur kuantitas ke 0
-            } else {
-                // Kuantitas yang diminta valid, biarkan seperti itu
-                $this->qty[$itemId] = $requestedQty;
-            }
+            // Pembatasan dan alokasi lot dilakukan dalam satuan dasar: sisa stok
+            // tersimpan dalam cm, sedangkan yang diketik bisa jadi jumlah batang.
+            // `$this->qty` sendiri tetap menyimpan angka apa adanya yang diketik.
+            $this->qty[$itemId] = $this->batasiQtyInput($itemId, $requestedQty, $totalAvailable);
 
             // Perbarui unit price dan hitung subtotal berdasarkan kuantitas
-            $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
+            $this->updateUnitPriceAndSubtotal($itemId, $this->qtyDasar($itemId), $purchaseDetails);
         }
     }
 
@@ -214,7 +252,12 @@ class BahanKeluarCart extends Component
 
             $items[] = [
                 'id' => $itemId,
-                'qty' => isset($this->qty[$itemId]) ? $this->qty[$itemId] : 0,
+                // `qty` dikirim dalam satuan dasar karena inilah angka yang
+                // dipotong dari stok. Angka apa adanya yang diketik user
+                // disimpan terpisah untuk jejak dan tampilan riwayat.
+                'qty' => $this->qtyDasar($itemId),
+                'qty_input' => $this->qty[$itemId] ?? 0,
+                'satuan_input' => $this->panjangStandarUntuk($itemId) ? $this->satuanUntuk($itemId) : null,
                 'details' => isset($this->details[$itemId]) ? $this->details[$itemId] : [],
                 'sub_total' => isset($this->subtotals[$itemId]) ? $this->subtotals[$itemId] : 0,
             ];

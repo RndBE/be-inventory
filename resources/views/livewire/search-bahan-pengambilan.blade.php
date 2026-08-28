@@ -42,11 +42,14 @@
                     @endif
                     <div class="flex justify-between items-start mt-4">
                         <div>
-                            <span class="text-sm font-medium px-2.5 py-0.5 rounded border
-                                {{ $bahan['type'] === 'setengahjadi' ? 'bg-blue-100 text-blue-800 border-blue-400' : 'bg-green-100 text-green-800 border-green-400' }}
-                            ">
-                                {{ $bahan['stok'] }} {{ $bahan['unit'] }}
-                            </span>
+                            <x-chip-stok
+                                :qty="$bahan['stok']"
+                                :panjang-standar="$bahan['panjang_standar'] ?? null"
+                                :nama-unit="$bahan['unit']"
+                                :label-biasa="$bahan['stok'] . ' ' . $bahan['unit']"
+                                :chip-class="'text-sm font-medium px-2.5 py-0.5 rounded border ' . ($bahan['type'] === 'setengahjadi'
+                                    ? 'bg-blue-100 text-blue-800 border-blue-400'
+                                    : 'bg-green-100 text-green-800 border-green-400')" />
 
                             <div class="text-xs text-gray-600 mt-1">
                                 <div><strong>Penempatan:</strong> {{ $bahan['penempatan'] ?? '-' }}</div>

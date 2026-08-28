@@ -8,7 +8,7 @@
                         <th scope="col" class="px-6 py-3">Bahan</th>
                         <th scope="col" class="px-6 py-3">Unit Price</th>
                         {{-- <th scope="col" class="px-6 py-3">Stok</th> --}}
-                        <th scope="col" class="px-6 py-3 text-center">Qty</th>
+                        <th scope="col" class="px-6 py-3 text-center">Qty &amp; Satuan</th>
                         <th scope="col" class="px-6 py-3">Sub Total</th>
                         <th scope="col" class="px-6 py-3">Action</th>
                     </tr>
@@ -17,7 +17,19 @@
                     @foreach($cartItems as $item)
                         <input type="hidden" name="cartItems" value="{{ json_encode($this->getCartItemsForStorage()) }}">
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama }}</td>
+                            @php
+                                // Bahan batangan boleh dicatat per batang atau per cm. Satuan yang
+                                // dipilih berlaku untuk qty sekaligus harganya, jadi pasangan
+                                // angkanya selalu sesatuan dan subtotalnya eksak.
+                                $panjangStandarBeli = $this->panjangStandarUntuk($item->bahan_id);
+                                $labelBatang = $item->unit ?: 'Batang';
+                            @endphp
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                                {{ $item->nama }}
+                                @if($panjangStandarBeli)
+                                    <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">1 {{ $labelBatang }} = {{ $panjangStandarBeli }} cm</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                 @if($editingItemId === $item->bahan_id)
                                     <input
@@ -38,6 +50,9 @@
                                         Rp. {{ number_format($unit_price[$item->bahan_id] ?? 0, 2, ',', '.') }}
                                     </span>
                                 @endif
+                                @if($panjangStandarBeli)
+                                    <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">per {{ $labelBatang }}</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex justify-center items-center">
@@ -51,7 +66,23 @@
                                         class="bg-gray-50 w-32 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                         placeholder="0.00"
                                         required />
+
+                                    {{-- Pembelian ke supplier selalu per batang, jadi tidak ada
+                                         pilihan satuan di sini — cuma labelnya. Panjang cm-nya
+                                         tampil sebagai pemeriksaan silang di bawah. --}}
+                                    @if($panjangStandarBeli)
+                                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $labelBatang }}</span>
+                                    @else
+                                        <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">{{ $item->unit ?? '' }}</span>
+                                    @endif
                                 </div>
+
+                                @if($panjangStandarBeli)
+                                    {{-- Pemeriksaan silang: angka inilah yang benar-benar masuk stok. --}}
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+                                        masuk stok {{ number_format($this->totalSatuanDasar($item->bahan_id), 0, ',', '.') }} cm
+                                    </p>
+                                @endif
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                 {{-- <span><strong>Rp.</strong> {{ number_format($subtotals[$item->bahan_id] ?? 0, 0, ',', '.') }}</span> --}}

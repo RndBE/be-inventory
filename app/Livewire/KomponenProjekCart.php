@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Helpers\SatuanBahanHelper;
+use App\Livewire\Concerns\MemilihSatuanBahan;
 use App\Models\Bahan;
 use Livewire\Component;
 use App\Models\PurchaseDetail;
@@ -10,6 +12,8 @@ use App\Models\BahanSetengahjadiDetails;
 
 class KomponenProjekCart extends Component
 {
+    use MemilihSatuanBahan;
+
     public $cart = [];
     public $qty = [];
     public $jml_bahan = [];
@@ -85,11 +89,19 @@ class KomponenProjekCart extends Component
             'stok'           => $bahan->stok ?? 0,
             'type'           => $bahan->type ?? '-',
             'unit'           => $bahan->unit ?? 'Pcs',
+            // Hanya bahan biasa yang bisa batangan; setengah jadi dan produk
+            // jadi dihitung per unit sehingga panjang standarnya null.
+            'panjang_standar' => empty($bahan->produk_id) && empty($bahan->produk_jadis_id)
+                ? SatuanBahanHelper::panjangStandar(Bahan::find($bahan->bahan_id ?? null))
+                : null,
         ];
+
+        $item->stok_label = SatuanBahanHelper::format($totalAvailable, $item->panjang_standar, $item->unit);
 
         $this->cart[$itemKey] = $item;
         $this->qty[$itemKey] = null;
         $this->jml_bahan[$itemKey] = null;
+        $this->setelSatuanAwal($itemKey, $item->panjang_standar);
 
         $this->saveCartToSession();
         $this->calculateSubTotal($itemKey);
@@ -169,7 +181,7 @@ class KomponenProjekCart extends Component
 
                 if ($bahanSetengahJadiDetail) {
                     $totalAvailable = $bahanSetengahJadiDetail->sisa;
-                    $this->qty[$cartKey] = $this->validateQty($requestedQty, $totalAvailable, 'Jumlah melebihi stok yang tersedia untuk serial number ini (bahan setengah jadi).');
+                    $this->qty[$cartKey] = $this->validateQty($requestedQty, $totalAvailable, 'Jumlah melebihi stok yang tersedia untuk serial number ini (bahan setengah jadi).', $cartKey);
                 }
             } elseif ($cartItem->type === 'jadi' && !empty($cartItem->serial_number)) {
                 $produkJadiDetail = ProdukJadiDetails::where('id', $cartItem->produk_jadis_id)
@@ -178,25 +190,39 @@ class KomponenProjekCart extends Component
 
                 if ($produkJadiDetail) {
                     $totalAvailable = $produkJadiDetail->sisa;
-                    $this->qty[$cartKey] = $this->validateQty($requestedQty, $totalAvailable, 'Jumlah melebihi stok yang tersedia untuk serial number ini (produk jadi).');
+                    $this->qty[$cartKey] = $this->validateQty($requestedQty, $totalAvailable, 'Jumlah melebihi stok yang tersedia untuk serial number ini (produk jadi).', $cartKey);
                 }
             } else {
                 $item = Bahan::find($cartItem->bahan_id);
                 if ($item) {
                     if ($item->jenisBahan->nama === 'Produksi') {
                         $totalAvailable = $item->bahanSetengahjadiDetails()->where('sisa', '>', 0)->sum('sisa');
-                        $this->qty[$cartKey] = $this->validateQty($requestedQty, $totalAvailable);
+                        $this->qty[$cartKey] = $this->validateQty($requestedQty, $totalAvailable, null, $cartKey);
                     } else {
                         $totalAvailable = $item->purchaseDetails()->where('sisa', '>', 0)->sum('sisa');
-                        $this->qty[$cartKey] = $this->validateQty($requestedQty, $totalAvailable);
+                        $this->qty[$cartKey] = $this->validateQty($requestedQty, $totalAvailable, null, $cartKey);
                     }
                 }
             }
         }
     }
 
-    private function validateQty($requestedQty, $totalAvailable, $errorMessage = null)
+    /**
+     * Batasi qty sesuai sisa stok.
+     *
+     * Perbandingannya di satuan dasar: sisa stok bahan batangan tersimpan dalam
+     * cm, sedangkan yang diketik bisa jadi jumlah batang.
+     */
+    private function validateQty($requestedQty, $totalAvailable, $errorMessage = null, $cartKey = null)
     {
+        if ($cartKey !== null && $this->qtyDasar($cartKey, $requestedQty) > $totalAvailable && $errorMessage) {
+            session()->flash('error', $errorMessage);
+        }
+
+        if ($cartKey !== null) {
+            return $this->batasiQtyInput($cartKey, $requestedQty, $totalAvailable);
+        }
+
         if ($requestedQty > $totalAvailable) {
             if ($errorMessage) session()->flash('error', $errorMessage);
             return $totalAvailable;
@@ -241,7 +267,12 @@ class KomponenProjekCart extends Component
                 'produk_id'       => $item->produk_id ?? null,
                 'produk_jadis_id' => $item->produk_jadis_id ?? null,
                 'serial_number'   => $item->serial_number ?? null,
-                'qty'             => $this->qty[$cartKey] ?? 0,
+                // Dikirim dalam satuan dasar karena inilah angka yang dipotong
+                // dari stok. Angka apa adanya yang diketik user disimpan
+                // terpisah untuk jejak dan tampilan riwayat.
+                'qty'             => $this->qtyDasar($cartKey),
+                'qty_input'       => $this->qty[$cartKey] ?? 0,
+                'satuan_input'    => $this->panjangStandarUntuk($cartKey) ? $this->satuanUntuk($cartKey) : null,
                 'jml_bahan'       => $this->jml_bahan[$cartKey] ?? 0,
                 'details'         => $this->details[$cartKey] ?? [],
                 'sub_total'       => $this->subtotals[$cartKey] ?? 0,

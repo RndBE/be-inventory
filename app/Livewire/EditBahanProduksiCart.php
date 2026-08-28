@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Bahan;
+use App\Livewire\Concerns\MemilihSatuanReturRusak;
 use Livewire\Component;
 use App\Models\Produksi;
 use App\Models\BahanRetur;
@@ -11,6 +12,8 @@ use App\Models\BahanKeluar;
 
 class EditBahanProduksiCart extends Component
 {
+    use MemilihSatuanReturRusak;
+
     public $cart = [];
     public $qty = [];
     public $details = [];
@@ -290,6 +293,10 @@ class EditBahanProduksiCart extends Component
             $this->bahanRusak[] = [
                 'id' => $itemId,
                 'unit_price' => $unitPrice,
+            
+                // cm sebagai default: yang dikembalikan dari proyek umumnya
+                // potongan sisa, bukan batang utuh.
+                'satuan' => $this->satuanAwalBaris(null),
             ];
         }
     }
@@ -352,6 +359,10 @@ class EditBahanProduksiCart extends Component
             $this->bahanRetur[] = [
                 'id' => $itemId,
                 'unit_price' => $unitPrice,
+            
+                // cm sebagai default: yang dikembalikan dari proyek umumnya
+                // potongan sisa, bukan batang utuh.
+                'satuan' => $this->satuanAwalBaris(null),
             ];
         }
     }
@@ -541,10 +552,14 @@ class EditBahanProduksiCart extends Component
     {
         $bahanRusak = [];
 
-        foreach ($this->bahanRusak as $rusak) {
-            $qty = isset($rusak['qty'])
+        foreach ($this->bahanRusak as $index => $rusak) {
+            $qtyInput = isset($rusak['qty'])
                 ? floatval(str_replace(',', '.', $rusak['qty']))
                 : 1;
+
+            // Angka yang masuk ledger selalu satuan dasar; `unit_price`
+            // baris ini harga per satuan dasar, jadi subtotalnya ikut.
+            $qty = $this->qtyDasarBarisRusak($index, $qtyInput);
 
             $unitPrice = isset($rusak['unit_price'])
                 ? floatval($rusak['unit_price'])
@@ -556,6 +571,8 @@ class EditBahanProduksiCart extends Component
             $bahanRusak[] = [
                 'id' => $rusak['id'],
                 'qty' => $qty,
+                'qty_input' => $qtyInput,
+                'satuan_input' => $this->satuanTersimpanRusak($index),
                 'unit_price' => $unitPrice,
                 'sub_total' => $subTotal,
             ];
@@ -582,10 +599,14 @@ class EditBahanProduksiCart extends Component
     {
         $bahanRetur = [];
 
-        foreach ($this->bahanRetur as $retur) {
-            $qty = isset($retur['qty'])
+        foreach ($this->bahanRetur as $index => $retur) {
+            $qtyInput = isset($retur['qty'])
                 ? floatval(str_replace(',', '.', $retur['qty']))
                 : 1;
+
+            // Angka yang masuk ledger selalu satuan dasar; `unit_price`
+            // baris ini harga per satuan dasar, jadi subtotalnya ikut.
+            $qty = $this->qtyDasarBarisRetur($index, $qtyInput);
 
             $unitPrice = isset($retur['unit_price'])
                 ? floatval($retur['unit_price'])
@@ -597,6 +618,8 @@ class EditBahanProduksiCart extends Component
             $bahanRetur[] = [
                 'id' => $retur['id'],
                 'qty' => $qty,
+                'qty_input' => $qtyInput,
+                'satuan_input' => $this->satuanTersimpanRetur($index),
                 'unit_price' => $unitPrice,
                 'sub_total' => $subTotal,
             ];
@@ -621,8 +644,13 @@ class EditBahanProduksiCart extends Component
         }
 
         // Validasi agar tidak melebihi
-        if ($parsedQty > $maxQty) {
-            $parsedQty = $maxQty;
+        // Perbandingannya di satuan dasar: `$maxQty` dijumlahkan dari alokasi
+        // lot yang tersimpan dalam cm, sedangkan yang diketik bisa jadi jumlah
+        // batang. Angka yang disimpan kembali tetap dalam satuan input.
+        $index = $this->indexRetur($id, $unitPrice);
+
+        if ($index !== null && $this->qtyDasarBarisRetur($index, $parsedQty) > $maxQty) {
+            $parsedQty = $this->maksInputRetur($index, $maxQty);
             session()->flash('error', 'Qty retur tidak boleh melebihi jumlah pengambilan.');
         }
 
@@ -653,8 +681,13 @@ class EditBahanProduksiCart extends Component
         }
 
         // Validasi agar tidak melebihi
-        if ($parsedQty > $maxQty) {
-            $parsedQty = $maxQty;
+        // Perbandingannya di satuan dasar: `$maxQty` dijumlahkan dari alokasi
+        // lot yang tersimpan dalam cm, sedangkan yang diketik bisa jadi jumlah
+        // batang. Angka yang disimpan kembali tetap dalam satuan input.
+        $index = $this->indexRusak($id, $unitPrice);
+
+        if ($index !== null && $this->qtyDasarBarisRusak($index, $parsedQty) > $maxQty) {
+            $parsedQty = $this->maksInputRusak($index, $maxQty);
             session()->flash('error', 'Qty rusak tidak boleh melebihi jumlah pengambilan.');
         }
 

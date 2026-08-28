@@ -65,15 +65,16 @@
                         $stokFormatted = rtrim(rtrim(number_format($bahan['stok'], 2, '.', ''), '0'), '.');
                     @endphp
 
-                    <span class="text-sm font-medium px-2.5 py-0.5 rounded border
-                        {{ $bahan['type'] === 'setengahjadi'
+                    <x-chip-stok
+                        :qty="$bahan['stok']"
+                        :panjang-standar="$bahan['panjang_standar'] ?? null"
+                        :nama-unit="$bahan['unit']"
+                        :label-biasa="$stokFormatted . ' ' . $bahan['unit']"
+                        :chip-class="'text-sm font-medium px-2.5 py-0.5 rounded border ' . ($bahan['type'] === 'setengahjadi'
                             ? 'bg-blue-100 text-blue-800 border-blue-400'
                             : ($bahan['type'] === 'jadi'
                                 ? 'bg-orange-100 text-orange-800 border-orange-400'
-                                : 'bg-green-100 text-green-800 border-green-400') }}
-                    ">
-                        {{ $stokFormatted }} {{ $bahan['unit'] }}
-                    </span>
+                                : 'bg-green-100 text-green-800 border-green-400'))" />
 
                     <div class="text-xs text-gray-600 mt-1">
                         <div><strong>Penempatan:</strong> {{ $bahan['penempatan'] ?? '-' }}</div>

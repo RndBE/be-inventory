@@ -226,7 +226,11 @@
                             @foreach($detail['details'] as $d)
                             <div class="flex flex-col space-y-2">
                                 <div class="flex justify-end items-center">
-                                    <p>{{ $d['qty'] }} x {{ number_format($d['unit_price'], 0, ',', '.') }}</p>
+                                    <x-rincian-lot
+                                        :qty="$d['qty']"
+                                        :unit-price="$d['unit_price']"
+                                        :panjang-standar="$detail['bahan']->panjang_standar ?? null"
+                                        :nama-unit="$detail['bahan']->dataUnit->nama ?? null" />
                                     @if($produksiStatus !== 'Selesai')
                                         <button wire:click="decreaseQuantityPerPrice({{ $detail['bahan']->id }}, {{ $d['unit_price'] }})"
                                             class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
@@ -296,7 +300,7 @@
                                     </div>
                                 </td> --}}
                                 {{-- <td class="px-6 py-4 text-right">
-                                    {{ number_format($rusak['unit_price'] * $rusak['qty'], 0, ',', '.') }}
+                                    {{ number_format(($rusak['unit_price'] ?? 0) * $this->qtyDasarBarisRusak($index), 0, ',', '.') }}
                                 </td> --}}
                                 <td class="px-6 py-4">
                                     <div class="flex justify-end items-center gap-2">
@@ -305,6 +309,18 @@
                                             class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                             wire:model.defer="bahanRusak.{{ $index }}.qty"
                                             wire:change="updateRusakQty({{ $rusak['id'] }}, {{ $rusak['unit_price'] }}, $event.target.value)">
+
+                                        {{-- Bahan batangan boleh diisi per batang atau per cm. Default cm karena
+                                             yang pulang dari proyek umumnya potongan sisa; opsi batang untuk
+                                             batang utuh yang tidak terpakai. --}}
+                                        @if ($this->panjangStandarBarisRusak($index))
+                                            <select wire:model="bahanRusak.{{ $index }}.satuan" wire:change="updateSatuanRusak({{ $index }})"
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                                <option value="cm">cm</option>
+                                                <option value="batang">{{ $this->namaUnitTampil($rusak['bahan_id'] ?? $rusak['id'] ?? null) }}</option>
+                                            </select>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">= {{ number_format($this->qtyDasarBarisRusak($index), 0, ',', '.') }} cm</span>
+                                        @endif
 
                                         x {{ number_format($rusak['unit_price'] ?? 0, 0, ',', '.') }} <br>
 
@@ -322,8 +338,8 @@
                                 </td>
 
                                 <td class="px-6 py-4 text-right">
-                                    {{-- {{ number_format(($rusak['unit_price'] ?? 0) * floatval($rusak['qty'] ?? 0), 0, ',', '.') }} --}}
-                                    {{ number_format(round(($rusak['unit_price'] ?? 0) * floatval($rusak['qty'] ?? 0), 0), 0, ',', '.') }}
+                                    {{-- {{ number_format(($rusak['unit_price'] ?? 0) * $this->qtyDasarBarisRusak($index), 0, ',', '.') }} --}}
+                                    {{ number_format(round(($rusak['unit_price'] ?? 0) * $this->qtyDasarBarisRusak($index), 0), 0, ',', '.') }}
 
                                 </td>
                             </tr>
@@ -361,7 +377,7 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    {{ number_format($retur['unit_price'] * $retur['qty'], 0, ',', '.') }}
+                                    {{ number_format(($retur['unit_price'] ?? 0) * $this->qtyDasarBarisRetur($index), 0, ',', '.') }}
                                 </td> --}}
                                 <td class="px-6 py-4">
                                     <div class="flex justify-end items-center gap-2">
@@ -370,6 +386,18 @@
                                             class="bg-gray-50 w-20 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                             wire:model.defer="bahanRetur.{{ $index }}.qty"
                                             wire:change="updateReturQty({{ $retur['id'] }}, {{ $retur['unit_price'] }}, $event.target.value)">
+
+                                        {{-- Bahan batangan boleh diisi per batang atau per cm. Default cm karena
+                                             yang pulang dari proyek umumnya potongan sisa; opsi batang untuk
+                                             batang utuh yang tidak terpakai. --}}
+                                        @if ($this->panjangStandarBarisRetur($index))
+                                            <select wire:model="bahanRetur.{{ $index }}.satuan" wire:change="updateSatuanRetur({{ $index }})"
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                                <option value="cm">cm</option>
+                                                <option value="batang">{{ $this->namaUnitTampil($retur['bahan_id'] ?? $retur['id'] ?? null) }}</option>
+                                            </select>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">= {{ number_format($this->qtyDasarBarisRetur($index), 0, ',', '.') }} cm</span>
+                                        @endif
 
                                         x {{ number_format($retur['unit_price'] ?? 0, 0, ',', '.') }} <br>
 
@@ -387,8 +415,8 @@
                                 </td>
 
                                 <td class="px-6 py-4 text-right">
-                                    {{-- {{ number_format(($retur['unit_price'] ?? 0) * floatval($retur['qty'] ?? 0), 0, ',', '.') }} --}}
-                                    {{ number_format(round(($retur['unit_price'] ?? 0) * floatval($retur['qty'] ?? 0), 0), 0, ',', '.') }}
+                                    {{-- {{ number_format(($retur['unit_price'] ?? 0) * $this->qtyDasarBarisRetur($index), 0, ',', '.') }} --}}
+                                    {{ number_format(round(($retur['unit_price'] ?? 0) * $this->qtyDasarBarisRetur($index), 0), 0, ',', '.') }}
 
                                 </td>
                             </tr>

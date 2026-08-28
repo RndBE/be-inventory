@@ -2,6 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Helpers\SatuanBahanHelper;
+use App\Livewire\Concerns\MemilihSatuanBahan;
+use App\Livewire\Concerns\MemilihSatuanReturRusak;
 use App\Models\Bahan;
 use App\Models\PengambilanBahan;
 use Livewire\Component;
@@ -12,6 +15,24 @@ use App\Models\BahanKeluar;
 
 class EditBahanPengambilanBahanCart extends Component
 {
+    // Nama asli dari trait disimpan supaya versi di kelas ini bisa memakainya
+    // sebagai cadangan, setelah peta panjang standar diperiksa lebih dulu.
+    use MemilihSatuanBahan {
+        panjangStandarUntuk as panjangStandarDariKeranjang;
+    }
+
+    use MemilihSatuanReturRusak;
+
+    /**
+     * Panjang standar per bahan, termasuk baris yang sudah tersimpan.
+     *
+     * Trait MemilihSatuanBahan membaca panjang standar dari `$cart`, sedangkan
+     * di halaman edit `$cart` hanya berisi baris yang baru ditambahkan pada
+     * sesi ini — baris lama datang dari `$pengambilanBahanDetails`. Peta ini
+     * menutup selisih itu supaya baris lama juga dapat pilihan satuan.
+     */
+    public $panjangStandarItem = [];
+
     public $cart = [];
     public $qty = [];
     public $jml_bahan = [];
@@ -67,6 +88,46 @@ class EditBahanPengambilanBahanCart extends Component
                     'sub_total' => $detail->sub_total,
                     'details' => json_decode($detail->details, true),
                 ];
+            }
+
+            $this->muatPanjangStandar();
+        }
+    }
+
+    /**
+     * Panjang standar item: peta dulu, keranjang sebagai cadangan.
+     */
+    public function panjangStandarUntuk($itemId): ?int
+    {
+        if (array_key_exists($itemId, $this->panjangStandarItem)) {
+            return SatuanBahanHelper::panjangStandar($this->panjangStandarItem[$itemId]);
+        }
+
+        return $this->panjangStandarDariKeranjang($itemId);
+    }
+
+    /**
+     * Isi peta panjang standar untuk semua baris yang sudah tersimpan.
+     *
+     * Model bahannya sudah dimuat di `$pengambilanBahanDetails`, jadi tidak ada
+     * query tambahan di sini. Satuan awalnya batang sama seperti baris baru,
+     * karena pengambilan satu batang utuh jauh lebih sering daripada potongan.
+     */
+    protected function muatPanjangStandar(): void
+    {
+        foreach ($this->pengambilanBahanDetails as $detail) {
+            $bahan = $detail['bahan'] ?? null;
+            $bahanId = $bahan->id ?? null;
+
+            if ($bahanId === null) {
+                continue;
+            }
+
+            $panjangStandar = SatuanBahanHelper::panjangStandar($bahan);
+            $this->panjangStandarItem[$bahanId] = $panjangStandar;
+
+            if (! isset($this->satuan[$bahanId])) {
+                $this->setelSatuanAwal($bahanId, $panjangStandar);
             }
         }
     }
@@ -134,15 +195,23 @@ class EditBahanPengambilanBahanCart extends Component
 
     // Tambahkan ke cart
     if (!in_array($bahan->id, array_column($this->cart, 'id'))) {
+        // Panjang standar dibaca dari master bahan yang sudah dimuat di atas.
+        // Ikut dilekatkan ke item keranjang supaya baris tabel bisa memutuskan
+        // perlu tidaknya pilihan satuan tanpa query ulang tiap render.
+        $panjangStandar = SatuanBahanHelper::panjangStandar($bahan);
+        $this->panjangStandarItem[$bahan->id] = $panjangStandar;
+
         $this->cart[] = (object)[
             'id' => $bahan->id,
             'nama_bahan' => $bahan->nama,
             'stok' => $bahan->stok,
             'unit' => $bahan->unit,
+            'panjang_standar' => $panjangStandar,
             'newly_added' => true,
         ];
 
         $this->qty[$bahan->id] = null;
+        $this->setelSatuanAwal($bahan->id, $panjangStandar);
         $this->subtotals[$bahan->id] = 0;
 
         $this->pengambilanBahanDetails[] = [
@@ -169,7 +238,9 @@ class EditBahanPengambilanBahanCart extends Component
     public function calculateSubTotal($itemId)
     {
         $unitPrice = isset($this->details[$itemId]) ? intval($this->details[$itemId]) : 0;
-        $qty = isset($this->qty[$itemId]) ? intval($this->qty[$itemId]) : 0;
+        // Harga ledger untuk bahan batangan adalah harga per cm, jadi yang
+        // dikalikan harus angka satuan dasar, bukan jumlah batang yang diketik.
+        $qty = $this->qtyDasar($itemId);
         $this->subtotals[$itemId] = $unitPrice * $qty;
         $this->calculateTotalHarga();
     }
@@ -204,11 +275,7 @@ class EditBahanPengambilanBahanCart extends Component
 
                 // Jumlah stok tersedia dari bahan setengah jadi
                 $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
-                if ($requestedQty > $totalAvailable) {
-                    $this->qty[$itemId] = $totalAvailable;
-                } else {
-                    $this->qty[$itemId] = $requestedQty;
-                }
+                $this->qty[$itemId] = $this->batasiQtyInput($itemId, $requestedQty, $totalAvailable);
 
             } else {
                 // Ambil data stok dari purchase details
@@ -218,13 +285,13 @@ class EditBahanPengambilanBahanCart extends Component
                         $query->orderBy('tgl_masuk', 'asc');
                     }])->get();
 
-                // Jumlah stok tersedia dari purchase details
+                // Jumlah stok tersedia dari purchase details.
+                //
+                // Pembatasan dilakukan di satuan dasar: sisa stok tersimpan
+                // dalam cm, sedangkan yang diketik bisa jadi jumlah batang.
+                // `$this->qty` sendiri tetap menyimpan angka apa adanya.
                 $totalAvailable = $purchaseDetails->sum('sisa');
-                if ($requestedQty > $totalAvailable) {
-                    $this->qty[$itemId] = $totalAvailable;
-                } else {
-                    $this->qty[$itemId] = $requestedQty;
-                }
+                $this->qty[$itemId] = $this->batasiQtyInput($itemId, $requestedQty, $totalAvailable);
             }
         }
     }
@@ -327,6 +394,9 @@ class EditBahanPengambilanBahanCart extends Component
             $this->bahanRusak[] = [
                 'id' => $itemId,
                 'unit_price' => $unitPrice,
+                // cm sebagai default: yang dikembalikan dari proyek umumnya
+                // potongan sisa, bukan batang utuh.
+                'satuan' => $this->satuanAwalBaris($itemId),
             ];
         }
     }
@@ -411,6 +481,9 @@ class EditBahanPengambilanBahanCart extends Component
             $this->bahanRetur[] = [
                 'id' => $itemId,
                 'unit_price' => $unitPrice,
+                // cm sebagai default: yang dikembalikan dari proyek umumnya
+                // potongan sisa, bukan batang utuh.
+                'satuan' => $this->satuanAwalBaris($itemId),
             ];
         }
     }
@@ -509,7 +582,9 @@ class EditBahanPengambilanBahanCart extends Component
 
         foreach ($this->pengambilanBahanDetails as $item) {
             $bahanId = $item['bahan']->id;
-            $usedMaterials = $this->qty[$bahanId] ?? 0;
+            // Angka yang dipotong dari stok selalu satuan dasar, sedangkan
+            // `$this->qty` menyimpan angka apa adanya yang diketik user.
+            $usedMaterials = $this->qtyDasar($bahanId);
 
             if ($usedMaterials <= 0) {
                 continue;
@@ -520,7 +595,11 @@ class EditBahanPengambilanBahanCart extends Component
 
             $pengambilanBahanDetails[] = [
                 'id' => $bahanId,
-                'qty' => $this->qty[$bahanId],
+                'qty' => $usedMaterials,
+                // Jejak satuan input untuk riwayat dan cetakan. Tidak ada
+                // perhitungan stok yang boleh mengambil angka dari sini.
+                'qty_input' => $this->qty[$bahanId] ?? 0,
+                'satuan_input' => $this->panjangStandarUntuk($bahanId) ? $this->satuanUntuk($bahanId) : null,
                 'jml_bahan' => $this->jml_bahan[$bahanId] ?? 0,
                 'details' => $details,
                 'sub_total' => $totalPrice,
@@ -546,10 +625,14 @@ class EditBahanPengambilanBahanCart extends Component
     {
         $bahanRusak = [];
 
-        foreach ($this->bahanRusak as $rusak) {
-            $qty = isset($rusak['qty'])
+        foreach ($this->bahanRusak as $index => $rusak) {
+            $qtyInput = isset($rusak['qty'])
                 ? floatval(str_replace(',', '.', $rusak['qty']))
                 : 1;
+
+            // Sama seperti retur: `qty` dikirim dalam satuan dasar, karena
+            // `unit_price` di baris ini harga per satuan dasar.
+            $qty = $this->qtyDasarBarisRusak($index, $qtyInput);
 
             $unitPrice = isset($rusak['unit_price'])
                 ? floatval($rusak['unit_price'])
@@ -561,6 +644,8 @@ class EditBahanPengambilanBahanCart extends Component
             $bahanRusak[] = [
                 'id' => $rusak['id'],
                 'qty' => $qty,
+                'qty_input' => $qtyInput,
+                'satuan_input' => $this->satuanTersimpanRusak($index),
                 'unit_price' => $unitPrice,
                 'sub_total' => $subTotal,
             ];
@@ -587,10 +672,16 @@ public function getCartItemsForBahanRetur()
 {
     $bahanRetur = [];
 
-    foreach ($this->bahanRetur as $retur) {
-        $qty = isset($retur['qty'])
+    foreach ($this->bahanRetur as $index => $retur) {
+        $qtyInput = isset($retur['qty'])
             ? floatval(str_replace(',', '.', $retur['qty']))
             : 1;
+
+        // `qty` dikirim dalam satuan dasar karena inilah angka yang masuk
+        // ledger, dan `unit_price` di baris ini harga per satuan dasar — jadi
+        // subtotalnya harus dihitung dari angka hasil konversi, bukan dari
+        // jumlah batang yang diketik.
+        $qty = $this->qtyDasarBarisRetur($index, $qtyInput);
 
         $unitPrice = isset($retur['unit_price'])
             ? floatval($retur['unit_price'])
@@ -602,6 +693,8 @@ public function getCartItemsForBahanRetur()
         $bahanRetur[] = [
             'id' => $retur['id'],
             'qty' => $qty,
+            'qty_input' => $qtyInput,
+            'satuan_input' => $this->satuanTersimpanRetur($index),
             'unit_price' => $unitPrice,
             'sub_total' => $subTotal,
         ];
@@ -627,9 +720,15 @@ public function updateReturQty($id, $unitPrice, $newQty)
         }
     }
 
-    // Validasi agar tidak melebihi
-    if ($parsedQty > $maxQty) {
-        $parsedQty = $maxQty;
+    // Validasi agar tidak melebihi.
+    //
+    // Perbandingannya di satuan dasar: `$maxQty` dijumlahkan dari alokasi lot
+    // yang tersimpan dalam cm, sedangkan yang diketik bisa jadi jumlah batang.
+    // Angka yang disimpan kembali tetap dalam satuan input.
+    $index = $this->indexRetur($id, $unitPrice);
+
+    if ($index !== null && $this->qtyDasarBarisRetur($index, $parsedQty) > $maxQty) {
+        $parsedQty = $this->maksInputRetur($index, $maxQty);
         session()->flash('error', 'Qty retur tidak boleh melebihi jumlah pengambilan.');
     }
 
@@ -659,9 +758,12 @@ public function updateRusakQty($id, $unitPrice, $newQty)
         }
     }
 
-    // Validasi agar tidak melebihi
-    if ($parsedQty > $maxQty) {
-        $parsedQty = $maxQty;
+    // Validasi agar tidak melebihi, dibandingkan di satuan dasar sama seperti
+    // updateReturQty.
+    $index = $this->indexRusak($id, $unitPrice);
+
+    if ($index !== null && $this->qtyDasarBarisRusak($index, $parsedQty) > $maxQty) {
+        $parsedQty = $this->maksInputRusak($index, $maxQty);
         session()->flash('error', 'Qty rusak tidak boleh melebihi jumlah pengambilan.');
     }
 

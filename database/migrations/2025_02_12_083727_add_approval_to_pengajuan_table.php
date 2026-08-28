@@ -11,14 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('pengajuan', function (Blueprint $table) {
-            $table->enum('status_leader', ['Belum disetujui', 'Disetujui', 'Ditolak'])->default('Belum disetujui');
-            $table->enum('status_general_manager', ['Belum disetujui', 'Disetujui', 'Ditolak'])->default('Belum disetujui');
-            $table->enum('status_purchasing', ['Belum disetujui', 'Disetujui', 'Ditolak'])->default('Belum disetujui');
-            $table->enum('status_manager', ['Belum disetujui', 'Disetujui', 'Ditolak'])->default('Belum disetujui');
-            $table->enum('status_finance', ['Belum disetujui', 'Disetujui', 'Ditolak'])->default('Belum disetujui');
-            $table->enum('status_admin_manager', ['Belum disetujui', 'Disetujui', 'Ditolak'])->default('Belum disetujui');
-            $table->enum('status', ['Belum disetujui', 'Disetujui', 'Ditolak'])->default('Belum disetujui');
+        // Kolom `status` sudah dibuat di migration pembuatan tabelnya, jadi
+        // penambahan di sini harus dilewati kalau sudah ada — kalau tidak,
+        // `migrate` pada database kosong berhenti di sini.
+        $kolomApproval = [
+            'status_leader',
+            'status_general_manager',
+            'status_purchasing',
+            'status_manager',
+            'status_finance',
+            'status_admin_manager',
+            'status',
+        ];
+
+        Schema::table('pengajuan', function (Blueprint $table) use ($kolomApproval) {
+            foreach ($kolomApproval as $kolom) {
+                if (Schema::hasColumn('pengajuan', $kolom)) {
+                    continue;
+                }
+
+                $table->enum($kolom, ['Belum disetujui', 'Disetujui', 'Ditolak'])->default('Belum disetujui');
+            }
         });
     }
 

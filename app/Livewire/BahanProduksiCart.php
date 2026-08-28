@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Helpers\SatuanBahanHelper;
 use App\Models\Bahan;
 use Livewire\Component;
 use App\Models\ProdukProduksi;
@@ -24,6 +25,32 @@ class BahanProduksiCart extends Component
     public $used_materials = [];
     public $jmlProduksi,$originalJmlBahan;
     public $selectedStartDate;
+
+    /**
+     * Panjang standar per bahan batangan, dalam cm.
+     *
+     * Kebutuhan bahannya datang dari resep produk
+     * (`produk_produksi_detail.jml_bahan`), dan angka di resep itu selalu
+     * ditulis dalam satuan yang tampil di master bahan — untuk pipa berarti
+     * jumlah batang. Karena stoknya tersimpan dalam cm, angka resep harus
+     * dikalikan panjang standar sebelum dibandingkan dengan sisa stok dan
+     * sebelum dikirim ke controller.
+     *
+     * Kalau ada resep yang sebetulnya ditulis dalam cm, resepnya yang harus
+     * diperbaiki — bukan asumsi di sini.
+     */
+    public $panjangStandar = [];
+
+    /**
+     * Satuan permintaan ke gudang per bahan batangan: 'batang' atau 'cm'.
+     *
+     * Angkanya tetap datang dari resep, tapi satuan permintaannya boleh
+     * berbeda: satu produk bisa butuh 2 batang utuh, produk lain butuh
+     * potongan dan lebih jelas ditulis dalam cm. Pilihan ini menentukan angka
+     * yang tampil di keranjang dan `satuan_input` yang tersimpan; jumlah yang
+     * dipotong dari stok tidak berubah karena selalu dikirim dalam cm.
+     */
+    public $satuan = [];
 
     protected $listeners = [
         'bahanSelected' => 'addToCart',
@@ -89,12 +116,16 @@ class BahanProduksiCart extends Component
             }
         } else {
             $this->cart[] = $bahan;
+            $this->panjangStandar[$bahanId] = SatuanBahanHelper::panjangStandar(Bahan::find($bahanId));
+
             if ($currentStock === 'Not Available') {
                 $this->qty[$bahanId] = 0;
-            } elseif ($currentStock >= $jmlBahan) {
-                $this->qty[$bahanId] = $jmlBahan;
+            } elseif ($currentStock >= $this->resepKeSatuanDasar($bahanId, $jmlBahan)) {
+                $this->qty[$bahanId] = $this->dariSatuanDasar($bahanId, $this->resepKeSatuanDasar($bahanId, $jmlBahan));
             } else {
-                $this->qty[$bahanId] = $currentStock;
+                // Stok kurang: qty dipotong sebesar sisa yang ada, dinyatakan
+                // kembali dalam satuan resep supaya tampilannya konsisten.
+                $this->qty[$bahanId] = $this->dariSatuanDasar($bahanId, $currentStock);
             }
 
             $this->originalJmlBahan[$bahanId] = $jmlBahan;
@@ -133,13 +164,15 @@ class BahanProduksiCart extends Component
                 $this->jml_bahan[$bahanId] = 0;
             }
 
-            // Update qty based on jml_bahan and current stock
+            // Update qty based on jml_bahan and current stock.
+            // Kebutuhan resep dinyatakan dalam satuan master bahan, sedangkan
+            // sisa stok dalam cm, jadi perbandingannya di satuan dasar.
             if ($currentStock === 'Not Available') {
                 $this->qty[$bahanId] = 0;
-            } elseif ($currentStock >= $this->jml_bahan[$bahanId]) {
-                $this->qty[$bahanId] = $this->jml_bahan[$bahanId];
+            } elseif ($currentStock >= $this->resepKeSatuanDasar($bahanId, $this->jml_bahan[$bahanId])) {
+                $this->qty[$bahanId] = $this->dariSatuanDasar($bahanId, $this->resepKeSatuanDasar($bahanId, $this->jml_bahan[$bahanId]));
             } else {
-                $this->qty[$bahanId] = $currentStock;
+                $this->qty[$bahanId] = $this->dariSatuanDasar($bahanId, $currentStock);
             }
         }
     }
@@ -221,13 +254,7 @@ class BahanProduksiCart extends Component
                     }])->get();
 
                 $totalAvailable = $bahanSetengahjadiDetails->sum('sisa');
-                if ($requestedQty > $totalAvailable) {
-                    $this->qty[$itemId] = $totalAvailable;
-                } elseif ($requestedQty < 0) {
-                    $this->qty[$itemId] = null;
-                } else {
-                    $this->qty[$itemId] = $requestedQty;
-                }
+                $this->qty[$itemId] = $this->batasiQty($itemId, $requestedQty, $totalAvailable);
                 // $this->updateUnitPriceAndSubtotalBahanSetengahJadi($itemId, $this->qty[$itemId], $bahanSetengahjadiDetails);
             }
             elseif ($item->jenisBahan->nama !== 'Produksi') {
@@ -238,13 +265,7 @@ class BahanProduksiCart extends Component
                     }])->get();
 
                 $totalAvailable = $purchaseDetails->sum('sisa');
-                if ($requestedQty > $totalAvailable) {
-                    $this->qty[$itemId] = $totalAvailable;
-                } elseif ($requestedQty < 0) {
-                    $this->qty[$itemId] = null;
-                } else {
-                    $this->qty[$itemId] = $requestedQty;
-                }
+                $this->qty[$itemId] = $this->batasiQty($itemId, $requestedQty, $totalAvailable);
                 // $this->updateUnitPriceAndSubtotal($itemId, $this->qty[$itemId], $purchaseDetails);
             }
         }
@@ -340,6 +361,104 @@ class BahanProduksiCart extends Component
         $this->calculateTotalHarga();
     }
 
+    /**
+     * Satuan permintaan yang sedang dipilih untuk satu bahan.
+     *
+     * Bahan biasa selalu satuan dasar dan nilainya diabaikan, karena
+     * konversinya identitas. Bahan batangan default-nya batang: itu yang
+     * dipakai resep, jadi keranjang terbuka dengan angka yang sama seperti
+     * sebelum pilihan ini ada.
+     */
+    public function satuanUntuk($itemId): string
+    {
+        if (! ($this->panjangStandar[$itemId] ?? null)) {
+            return SatuanBahanHelper::SATUAN_DASAR;
+        }
+
+        return SatuanBahanHelper::normalkanSatuan(
+            $this->satuan[$itemId] ?? SatuanBahanHelper::SATUAN_BATANG
+        );
+    }
+
+    /**
+     * Ganti satuan permintaan, lalu hitung ulang angkanya dari resep.
+     *
+     * Dihitung ulang dari `jml_bahan`, bukan dikonversi dari angka yang sedang
+     * tampil: resep adalah sumber yang benar, dan menghitung ulang menghindari
+     * galat pembulatan yang menumpuk kalau satuannya dibolak-balik.
+     */
+    public function updateSatuan($itemId)
+    {
+        $this->qty[$itemId] = $this->dariSatuanDasar(
+            $itemId,
+            $this->resepKeSatuanDasar($itemId, $this->jml_bahan[$itemId] ?? 0)
+        );
+
+        $this->updateQuantity($itemId);
+    }
+
+    /**
+     * Angka keranjang dalam cm, untuk keterangan di sebelah kolom qty.
+     *
+     * Dipanggil Blade langsung, jadi harus public.
+     */
+    public function qtyDasarUntuk($itemId): float
+    {
+        return $this->keSatuanDasar($itemId, $this->qty[$itemId] ?? 0);
+    }
+
+    /**
+     * Angka resep jadi angka satuan dasar. Resep selalu ditulis per batang.
+     */
+    private function resepKeSatuanDasar($itemId, $nilai): float
+    {
+        return SatuanBahanHelper::keSatuanDasar(
+            $nilai,
+            SatuanBahanHelper::SATUAN_BATANG,
+            $this->panjangStandar[$itemId] ?? null
+        );
+    }
+
+    /**
+     * Angka di keranjang jadi angka satuan dasar, mengikuti satuan terpilih.
+     */
+    private function keSatuanDasar($itemId, $nilai): float
+    {
+        return SatuanBahanHelper::keSatuanDasar(
+            $nilai,
+            $this->satuanUntuk($itemId),
+            $this->panjangStandar[$itemId] ?? null
+        );
+    }
+
+    /**
+     * Kebalikannya: angka cm dinyatakan kembali dalam satuan terpilih.
+     */
+    private function dariSatuanDasar($itemId, $nilaiDasar): float
+    {
+        return SatuanBahanHelper::dariSatuanDasar(
+            $nilaiDasar,
+            $this->satuanUntuk($itemId),
+            $this->panjangStandar[$itemId] ?? null
+        );
+    }
+
+    /**
+     * Batasi qty sesuai sisa stok, dengan perbandingan di satuan dasar.
+     */
+    private function batasiQty($itemId, $requestedQty, $totalAvailable)
+    {
+        if ($requestedQty === null || $requestedQty === '' || (float) $requestedQty < 0) {
+            return null;
+        }
+
+        if ($this->keSatuanDasar($itemId, $requestedQty) > $totalAvailable) {
+            return $this->dariSatuanDasar($itemId, $totalAvailable);
+        }
+
+        return $requestedQty;
+    }
+
     public function getCartItemsForStorage()
     {
         $items = [];
@@ -355,7 +474,11 @@ class BahanProduksiCart extends Component
 
             $items[] = [
                 'id'        => $itemId,
-                'qty'       => $this->qty[$itemId] ?? 0,
+                // Dikirim dalam satuan dasar karena inilah angka yang dipotong
+                // dari stok. `qty_input` menyimpan angka resep apa adanya.
+                'qty'       => $this->keSatuanDasar($itemId, $this->qty[$itemId] ?? 0),
+                'qty_input' => $this->qty[$itemId] ?? 0,
+                'satuan_input' => ($this->panjangStandar[$itemId] ?? null) ? $this->satuanUntuk($itemId) : null,
                 'jml_bahan' => $this->jml_bahan[$itemId] ?? 0,
                 'details'   => $this->details[$itemId] ?? [],
                 'sub_total' => $this->subtotals[$itemId] ?? 0,

@@ -21,7 +21,16 @@
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->kode_bahan }}@if(!empty($item->serial_number)) {{ $item->serial_number }} @endif</td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->nama_bahan }}</td>
-                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ $item->dataUnit->nama ?? null }}</td>
+                            <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-center">
+                                @if($item->panjang_standar ?? false)
+                                    {{-- Stok bahan batangan disimpan dalam cm, jadi kolom satuan
+                                         menampilkan satuan ledger-nya, bukan satuan master bahan. --}}
+                                    cm
+                                    <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">1 {{ $item->unit ?: 'Batang' }} = {{ $item->panjang_standar }} cm</span>
+                                @else
+                                    {{ $item->unit ?? ($item->dataUnit->nama ?? null) }}
+                                @endif
+                            </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white text-right">
                                 <input
                                     value="{{ old('tersedia_sistem.'.$item->id, $tersedia_sistem[$item->id] ?? 0) }}"
@@ -32,6 +41,9 @@
                                     readonly
                                     required
                                 />
+                                @if($item->panjang_standar ?? false)
+                                    <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">{{ $item->sistem_label }}</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex justify-center items-center">
@@ -46,9 +58,25 @@
                                             required wire:blur="format({{ $item->id }})"
                                         />
                                     @else
-                                        <span class="cursor-pointer text-gray-900 " wire:click="editItem({{ $item->id }})">{{ $tersedia_fisik[$item->id] ?? 0 }}</span>
+                                        <span class="cursor-pointer text-gray-900 dark:text-white" wire:click="editItem({{ $item->id }})">{{ $tersedia_fisik_raw[$item->id] ?? ($tersedia_fisik[$item->id] ?? 0) }}</span>
+                                    @endif
+
+                                    {{-- Dropdown hanya muncul untuk bahan batangan. Petugas gudang
+                                         menghitung batang, sedangkan stok tersimpan dalam cm, jadi
+                                         satuan hitungnya harus dinyatakan eksplisit — kalau tidak,
+                                         "6" akan tercatat 6 cm dan selisihnya menghabiskan stok. --}}
+                                    @if($item->panjang_standar ?? false)
+                                        <select wire:model="satuan.{{ $item->id }}"
+                                            wire:change="updateSatuan({{ $item->id }})"
+                                            class="ml-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                            <option value="batang">{{ $item->unit ?: 'Batang' }}</option>
+                                            <option value="cm">cm</option>
+                                        </select>
                                     @endif
                                 </div>
+                                @if($item->panjang_standar ?? false)
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">= {{ number_format($this->fisikSatuanDasar($item->id), 0, ',', '.') }} cm</p>
+                                @endif
                             </td>
 
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">

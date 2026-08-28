@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\MenampilkanQtyBahan;
 
 class BahanKeluarDetails extends Model
 {
     use HasFactory;
+    use MenampilkanQtyBahan;
 
     protected $table = 'bahan_keluar_details';
     protected $guarded = [];
@@ -19,6 +21,13 @@ class BahanKeluarDetails extends Model
         'produk_jadis_id',
         'serial_number',
         'qty',
+        // Jejak satuan input untuk bahan batangan. `qty` di atas tetap satu-
+        // satunya sumber kebenaran dan selalu dalam satuan dasar (cm); dua
+        // kolom ini hanya merekam angka apa adanya yang diketik user.
+        // Wajib terdaftar di sini — $fillable menang atas $guarded, jadi kolom
+        // yang tidak disebut akan didrop tanpa error saat create().
+        'qty_input',
+        'satuan_input',
         'jml_bahan',
         'used_materials',
         'details',

@@ -81,7 +81,7 @@
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $detail->qty }} {{ $detail->dataBahan->dataUnit->nama ?? 'Pcs' }}</span></td>
+                                    <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-green-400 border border-green-400">{{ $detail->dataBahan?->panjang_standar ? $detail->qtyTampil() : $detail->qty . ' ' . ($detail->dataBahan->dataUnit->nama ?? 'Pcs') }}</span></td>
                                     <td class="hidden px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">Rp. {{ number_format($detail->unit_price, 2) }}</td>
                                     <td class="py-4 pl-3 pr-4 text-sm text-right text-slate-500 sm:pr-6 md:pr-0">Rp. {{ number_format($detail->sub_total, 2) }}</td>
                                 </tr>

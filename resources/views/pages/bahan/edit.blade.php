@@ -263,6 +263,38 @@
                             </div>
 
 
+                            {{-- Alasan terkuncinya diambil dari model supaya form, import, dan
+                                 validasi di controller memakai aturan yang sama. Yang dikunci cuma
+                                 kasus yang angkanya tidak bisa dikonversi lagi: panjang yang sudah
+                                 dipakai lot berjalan. Mengisi panjang untuk pertama kali tetap
+                                 boleh, dan lot lamanya ikut dikonversi saat disimpan. --}}
+                            @php($alasanTerkunci = $bahan->alasanPanjangStandarTerkunci())
+                            @php($terkunci = $alasanTerkunci !== null)
+                            @php($adaRiwayatStok = $bahan->purchaseDetails->isNotEmpty())
+                            @php($adaSisaStok = $bahan->purchaseDetails->sum('sisa') > 0)
+                            <div class="sm:col-span-2">
+                                <label for="panjang_standar" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Panjang per Batang (cm)</label>
+                                <div class="mt-2">
+                                    <input value="{{ old('panjang_standar', $bahan->panjang_standar) }}" type="number" min="1" step="1" name="panjang_standar" id="panjang_standar" placeholder="Kosongkan kalau bukan bahan batangan" @disabled($terkunci) class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100 disabled:cursor-not-allowed dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:disabled:bg-gray-800">
+                                    @if($terkunci)
+                                        <input type="hidden" name="panjang_standar" value="{{ $bahan->panjang_standar }}">
+                                        <p class="text-xs text-amber-600 dark:text-amber-500 mt-1">{{ $alasanTerkunci }}</p>
+                                    @else
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Isi hanya untuk bahan batangan (pipa, hollow). Contoh: pipa 6 meter diisi 600. Stok akan dicatat dalam cm dan bisa diambil per potongan.</p>
+                                        @if($bahan->panjang_standar && $adaSisaStok)
+                                            <p class="text-xs text-amber-600 dark:text-amber-500 mt-1">Mengubah angka ini menyetel ulang lot stoknya: jumlah batang dipertahankan, panjang cm-nya yang menyesuaikan. Sisa {{ number_format($bahan->purchaseDetails->sum('sisa'), 0, ',', '.') }} cm ({{ rtrim(rtrim(number_format($bahan->purchaseDetails->sum('sisa') / $bahan->panjang_standar, 2, ',', '.'), '0'), ',') }} batang) akan dihitung ulang pada panjang yang baru, dan harga per batangnya tidak berubah. Kalau ukurannya memang barang yang berbeda, buat data bahan baru — jangan diubah di sini.</p>
+                                        @elseif($adaSisaStok)
+                                            <p class="text-xs text-amber-600 dark:text-amber-500 mt-1">Stok yang ada sekarang masih dihitung per {{ $bahan->dataUnit->nama ?? 'batang' }}. Begitu panjangnya disimpan, sisa dan riwayat pembeliannya dikonversi ke cm — mis. sisa 5 jadi 5 x panjang. Sesudah itu panjangnya tidak bisa dikosongkan lagi.</p>
+                                        @elseif($adaRiwayatStok)
+                                            <p class="text-xs text-amber-600 dark:text-amber-500 mt-1">Sisa stoknya nol, jadi panjangnya masih boleh diisi. Riwayat pembelian yang lama ikut dikonversi ke cm saat disimpan, dan sesudah itu panjangnya tidak bisa dikosongkan lagi.</p>
+                                        @endif
+                                    @endif
+                                    @error('panjang_standar')
+                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
                             <div class="sm:col-span-2">
                             <label for="penempatan" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Penempatan</label>
                             <div class="mt-2">

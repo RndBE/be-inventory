@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Helpers\SatuanBahanHelper;
 use App\Models\User;
 use App\Models\Bahan;
 use Livewire\Component;
@@ -222,6 +223,44 @@ class EditPembelianBahanCart extends Component
 
 
 
+    /**
+     * Nama satuan angka pengajuan pada satu baris, atau string kosong.
+     *
+     * Halaman ini tidak mengonversi apa pun: `jml_bahan` disimpan dalam satuan
+     * yang dipilih saat pengajuan dibuat, dan pembelian meneruskannya apa
+     * adanya. Yang perlu ditutup di sini hanya soal keterbacaan — angka "5"
+     * tanpa satuan tidak bisa dibedakan antara 5 batang dan 5 cm.
+     *
+     * Satuannya sengaja tidak bisa diubah dari halaman ini. Mengubahnya berarti
+     * mengubah arti permintaan yang sudah disetujui, dan itu urusan pengajuan
+     * bukan pembelian.
+     *
+     * Baris aset tidak punya model bahan, jadi hasilnya string kosong dan
+     * tampilannya sama seperti sebelumnya.
+     */
+    public function labelSatuanPengajuan($detail): string
+    {
+        $bahan = is_array($detail) ? ($detail['bahan'] ?? null) : null;
+        $panjangStandar = SatuanBahanHelper::panjangStandar($bahan);
+
+        if (! $panjangStandar) {
+            return '';
+        }
+
+        // Baris pengajuan lama tidak punya kolom satuan. Jatuh ke batang, sama
+        // seperti QC bahan masuk, supaya angka yang sama tidak dibaca berbeda
+        // di dua halaman.
+        $satuan = SatuanBahanHelper::normalkanSatuan(
+            ($detail['satuan_input'] ?? null) ?: SatuanBahanHelper::SATUAN_BATANG
+        );
+
+        if ($satuan === SatuanBahanHelper::SATUAN_BATANG) {
+            return $bahan->dataUnit->nama ?? 'Batang';
+        }
+
+        return 'cm';
+    }
+
     public function loadProduksi()
     {
         $pembelianBahan = PembelianBahan::with('pembelianBahanDetails')->find($this->pembelianBahanId);
@@ -271,6 +310,10 @@ class EditPembelianBahanCart extends Component
                     'pembelian_bahan_id' => $detail->pembelian_bahan_id,
                     'jml_bahan' => $detail->jml_bahan,
                     'qty_pengajuan' => $detail->qty_pengajuan,
+                    // Satuan yang dipilih saat pengajuan dibuat. Angkanya tidak
+                    // dikonversi di alur pembelian — kolom ini cuma dipakai
+                    // untuk menuliskan satuannya di sebelah angkanya.
+                    'satuan_input' => $detail->satuan_input,
                     'used_materials' => $detail->used_materials ?? 0,
                     'sub_total' => $detail->sub_total,
                     'details' => $decodedDetails,

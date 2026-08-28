@@ -22,6 +22,14 @@ class BahanResource extends JsonResource
             'penempatan' => $this->penempatan,
             'gambar' => $this->gambar,
             'total_stok' => $this->purchaseDetails->sum('sisa'),
+            // Untuk bahan batangan, `total_stok` di atas adalah panjang total
+            // dalam cm — bukan jumlah barang. Dua field berikut ada supaya
+            // klien bisa menerjemahkannya sendiri: `panjang_standar` null
+            // berarti bahan biasa dan `total_stok` dibaca seperti sebelumnya.
+            'panjang_standar' => $this->panjang_standar,
+            'total_stok_label' => $this->resource->panjang_standar
+                ? $this->resource->formatQty($this->purchaseDetails->sum('sisa'))
+                : null,
             'jenis_bahan' => [
                 'id' => $this->jenisBahan->id ?? null,
                 'nama' => $this->jenisBahan->nama ?? null,

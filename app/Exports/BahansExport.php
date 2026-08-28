@@ -23,6 +23,9 @@ class BahansExport implements FromCollection, WithEvents, WithHeadings, WithStyl
                     'nama_bahan' => $item->nama_bahan,
                     'jenis_bahan_id' => $item->jenisBahan->nama ?? 'N/A',
                     'unit_id' => $item->dataUnit->nama ?? 'N/A',
+                    // Kosong untuk bahan biasa. Kalau terisi, stok bahan ini
+                    // dicatat dalam cm dan angka ini pembaginya.
+                    'panjang_standar' => $item->panjang_standar,
                     'penempatan' => $item->penempatan,
                     'status' => $item->status,
                     'supplier' => $item->suppliers->pluck('nama')->implode(', '),
@@ -37,6 +40,7 @@ class BahansExport implements FromCollection, WithEvents, WithHeadings, WithStyl
             'Nama Bahan',
             'Jenis Bahan',
             'Satuan Unit',
+            'Panjang per Batang (cm)',
             'Penempatan',
             'Status',
             'Supplier',
@@ -67,7 +71,9 @@ class BahansExport implements FromCollection, WithEvents, WithHeadings, WithStyl
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                foreach (range('A', 'G') as $column) {
+                // A sampai H: delapan kolom di headings(), termasuk
+                // "Panjang per Batang (cm)".
+                foreach (range('A', 'H') as $column) {
                     $event->sheet->getDelegate()->getColumnDimension($column)->setAutoSize(true);
                 }
             },

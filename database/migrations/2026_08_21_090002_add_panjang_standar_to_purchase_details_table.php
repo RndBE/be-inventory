@@ -53,11 +53,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (! $this->punyaKolom('purchase_details', 'panjang_standar')) {
-            DB::statement('alter table `purchase_details` add `panjang_standar` int null after `bahan_id`');
-        }
+        $this->tanpaModeTanggalKetat(function () {
+            if (! $this->punyaKolom('purchase_details', 'panjang_standar')) {
+                DB::statement('alter table `purchase_details` add `panjang_standar` int null after `bahan_id`');
+            }
 
-        DB::statement('alter table `purchase_details` modify `unit_price` decimal(15,4) not null');
+            DB::statement('alter table `purchase_details` modify `unit_price` decimal(15,4) not null');
+        });
     }
 
     /**
@@ -108,4 +110,44 @@ return new class extends Migration
             DB::statement('alter table `purchase_details` drop column `panjang_standar`');
         }
     }
+    /**
+     * Jalankan perubahan skema tanpa mode tanggal ketat, lalu kembalikan lagi.
+     *
+     * ALTER TABLE membangun ulang tabelnya, dan saat itu MySQL memvalidasi
+     * ulang setiap baris lama. Beberapa tabel di produksi masih menyimpan
+     * `created_at = '0000-00-00'` - tanggal nol yang dulu diterima, tapi
+     * ditolak oleh sql_mode sekarang. Akibatnya penambahan kolom yang sama
+     * sekali tidak menyentuh tanggal ikut gagal dengan
+     * "Incorrect datetime value: '0000-00-00'".
+     *
+     * Yang dilonggarkan hanya sesi ini, dan dikembalikan di blok finally
+     * termasuk kalau ALTER-nya gagal. Baris bertanggal nol dibiarkan apa
+     * adanya: membetulkannya berarti mengarang tanggal yang tidak pernah
+     * tercatat, dan itu keputusan pemilik datanya, bukan efek samping
+     * migration.
+     */
+    private function tanpaModeTanggalKetat(callable $aksi): void
+    {
+        $modeAsli = (string) DB::selectOne('select @@session.sql_mode as mode')->mode;
+
+        $modeLonggar = implode(',', array_filter(
+            array_map('trim', explode(',', $modeAsli)),
+            static fn ($mode) => $mode !== '' && ! in_array($mode, [
+                'NO_ZERO_DATE',
+                'NO_ZERO_IN_DATE',
+                'STRICT_TRANS_TABLES',
+                'STRICT_ALL_TABLES',
+            ], true)
+        ));
+
+        $pdo = DB::connection()->getPdo();
+        DB::unprepared('set session sql_mode = ' . $pdo->quote($modeLonggar));
+
+        try {
+            $aksi();
+        } finally {
+            DB::unprepared('set session sql_mode = ' . $pdo->quote($modeAsli));
+        }
+    }
+
 };

@@ -47,13 +47,15 @@ return new class extends Migration
 
     public function up(): void
     {
-        foreach (self::TABEL as $tabel) {
-            if (! $this->punyaTabel($tabel) || ! $this->punyaKolom($tabel, 'unit_price')) {
-                continue;
-            }
+        $this->tanpaModeTanggalKetat(function () {
+            foreach (self::TABEL as $tabel) {
+                if (! $this->punyaTabel($tabel) || ! $this->punyaKolom($tabel, 'unit_price')) {
+                    continue;
+                }
 
-            DB::statement("alter table `{$tabel}` modify `unit_price` decimal(15,4) null");
-        }
+                DB::statement("alter table `{$tabel}` modify `unit_price` decimal(15,4) null");
+            }
+        });
     }
 
     public function down(): void
@@ -66,6 +68,46 @@ return new class extends Migration
             DB::statement("alter table `{$tabel}` modify `unit_price` int null");
         }
     }
+    /**
+     * Jalankan perubahan skema tanpa mode tanggal ketat, lalu kembalikan lagi.
+     *
+     * ALTER TABLE membangun ulang tabelnya, dan saat itu MySQL memvalidasi
+     * ulang setiap baris lama. Beberapa tabel di produksi masih menyimpan
+     * `created_at = '0000-00-00'` - tanggal nol yang dulu diterima, tapi
+     * ditolak oleh sql_mode sekarang. Akibatnya penambahan kolom yang sama
+     * sekali tidak menyentuh tanggal ikut gagal dengan
+     * "Incorrect datetime value: '0000-00-00'".
+     *
+     * Yang dilonggarkan hanya sesi ini, dan dikembalikan di blok finally
+     * termasuk kalau ALTER-nya gagal. Baris bertanggal nol dibiarkan apa
+     * adanya: membetulkannya berarti mengarang tanggal yang tidak pernah
+     * tercatat, dan itu keputusan pemilik datanya, bukan efek samping
+     * migration.
+     */
+    private function tanpaModeTanggalKetat(callable $aksi): void
+    {
+        $modeAsli = (string) DB::selectOne('select @@session.sql_mode as mode')->mode;
+
+        $modeLonggar = implode(',', array_filter(
+            array_map('trim', explode(',', $modeAsli)),
+            static fn ($mode) => $mode !== '' && ! in_array($mode, [
+                'NO_ZERO_DATE',
+                'NO_ZERO_IN_DATE',
+                'STRICT_TRANS_TABLES',
+                'STRICT_ALL_TABLES',
+            ], true)
+        ));
+
+        $pdo = DB::connection()->getPdo();
+        DB::unprepared('set session sql_mode = ' . $pdo->quote($modeLonggar));
+
+        try {
+            $aksi();
+        } finally {
+            DB::unprepared('set session sql_mode = ' . $pdo->quote($modeAsli));
+        }
+    }
+
 
     /**
      * Apakah tabel ini punya kolom tersebut.

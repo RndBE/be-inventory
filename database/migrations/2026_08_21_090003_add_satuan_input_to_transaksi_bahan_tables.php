@@ -52,19 +52,21 @@ return new class extends Migration
 
     public function up(): void
     {
-        foreach (self::TABEL as $tabel => $setelah) {
-            if (! $this->punyaTabel($tabel)) {
-                continue;
-            }
+        $this->tanpaModeTanggalKetat(function () {
+            foreach (self::TABEL as $tabel => $setelah) {
+                if (! $this->punyaTabel($tabel)) {
+                    continue;
+                }
 
-            if (! $this->punyaKolom($tabel, 'qty_input')) {
-                DB::statement("alter table `{$tabel}` add `qty_input` decimal(15,2) null after `{$setelah}`");
-            }
+                if (! $this->punyaKolom($tabel, 'qty_input')) {
+                    DB::statement("alter table `{$tabel}` add `qty_input` decimal(15,2) null after `{$setelah}`");
+                }
 
-            if (! $this->punyaKolom($tabel, 'satuan_input')) {
-                DB::statement("alter table `{$tabel}` add `satuan_input` varchar(20) null after `{$setelah}`");
+                if (! $this->punyaKolom($tabel, 'satuan_input')) {
+                    DB::statement("alter table `{$tabel}` add `satuan_input` varchar(20) null after `{$setelah}`");
+                }
             }
-        }
+        });
     }
 
     public function down(): void
@@ -81,6 +83,46 @@ return new class extends Migration
             }
         }
     }
+    /**
+     * Jalankan perubahan skema tanpa mode tanggal ketat, lalu kembalikan lagi.
+     *
+     * ALTER TABLE membangun ulang tabelnya, dan saat itu MySQL memvalidasi
+     * ulang setiap baris lama. Beberapa tabel di produksi masih menyimpan
+     * `created_at = '0000-00-00'` - tanggal nol yang dulu diterima, tapi
+     * ditolak oleh sql_mode sekarang. Akibatnya penambahan kolom yang sama
+     * sekali tidak menyentuh tanggal ikut gagal dengan
+     * "Incorrect datetime value: '0000-00-00'".
+     *
+     * Yang dilonggarkan hanya sesi ini, dan dikembalikan di blok finally
+     * termasuk kalau ALTER-nya gagal. Baris bertanggal nol dibiarkan apa
+     * adanya: membetulkannya berarti mengarang tanggal yang tidak pernah
+     * tercatat, dan itu keputusan pemilik datanya, bukan efek samping
+     * migration.
+     */
+    private function tanpaModeTanggalKetat(callable $aksi): void
+    {
+        $modeAsli = (string) DB::selectOne('select @@session.sql_mode as mode')->mode;
+
+        $modeLonggar = implode(',', array_filter(
+            array_map('trim', explode(',', $modeAsli)),
+            static fn ($mode) => $mode !== '' && ! in_array($mode, [
+                'NO_ZERO_DATE',
+                'NO_ZERO_IN_DATE',
+                'STRICT_TRANS_TABLES',
+                'STRICT_ALL_TABLES',
+            ], true)
+        ));
+
+        $pdo = DB::connection()->getPdo();
+        DB::unprepared('set session sql_mode = ' . $pdo->quote($modeLonggar));
+
+        try {
+            $aksi();
+        } finally {
+            DB::unprepared('set session sql_mode = ' . $pdo->quote($modeAsli));
+        }
+    }
+
 
     /**
      * Apakah tabel ini punya kolom tersebut.

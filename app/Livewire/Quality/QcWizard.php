@@ -70,9 +70,13 @@ class QcWizard extends Component
         ])
         ->where('status_pembelian', 'Diproses')
         ->get();
-        $this->petugasList = User::whereHas('dataOrganization', function ($query) {
-            $query->where('nama', 'Hardware');
-        })->get();
+        $this->petugasList = User::where(function ($query) {
+            $query->whereHas('dataOrganization', function ($organizationQuery) {
+                $organizationQuery->where('nama', 'Hardware');
+            })->orWhereHas('roles', function ($roleQuery) {
+                $roleQuery->where('name', 'Petugas QC');
+            });
+        })->orderBy('name', 'asc')->get();
     }
 
     public function removeImage($bahanId, $index)
@@ -507,4 +511,3 @@ class QcWizard extends Component
         ]);
     }
 }
-

@@ -12,6 +12,6 @@ class QcBahanMasukPetugasSelectionTest extends TestCase
 
         $this->assertStringContainsString("where('nama', 'Hardware')", $source);
         $this->assertStringContainsString("orWhereHas('roles'", $source);
-        $this->assertStringContainsString("where('name', 'Petugas QC')", $source);
+        $this->assertStringContainsString("whereIn('name', ['Petugas QC', 'Petugas_QC'])", $source);
     }
 }

@@ -74,7 +74,7 @@ class QcWizard extends Component
             $query->whereHas('dataOrganization', function ($organizationQuery) {
                 $organizationQuery->where('nama', 'Hardware');
             })->orWhereHas('roles', function ($roleQuery) {
-                $roleQuery->where('name', 'Petugas QC');
+                $roleQuery->whereIn('name', ['Petugas QC', 'Petugas_QC']);
             });
         })->orderBy('name', 'asc')->get();
     }

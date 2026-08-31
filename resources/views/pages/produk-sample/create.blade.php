@@ -119,18 +119,10 @@
                                                             <input type="radio" name="kategori_pengajuan" value="{{ $kategori }}"
                                                                 @checked(old('kategori_pengajuan', \App\Models\ProdukSample::KATEGORI_NON_RND) === $kategori)
                                                                 class="text-indigo-600 border-gray-300 focus:ring-indigo-600">
-                                                            <span class="ml-2 text-sm text-gray-900 dark:text-gray-300">
-                                                                {{ $kategori }}
-                                                                @if (!empty($approverKategori[$kategori]))
-                                                                    <span class="text-gray-500 dark:text-gray-400">&mdash; {{ $approverKategori[$kategori] }}</span>
-                                                                @endif
-                                                            </span>
+                                                            <span class="ml-2 text-sm text-gray-900 dark:text-gray-300">{{ $kategori }}</span>
                                                         </label>
                                                     @endforeach
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    Non-RnD disetujui Leader, RnD disetujui Manager. Nama di samping pilihan adalah atasan yang akan menyetujui.
-                                                </p>
                                             </div>
                                         </div>
 

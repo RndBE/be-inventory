@@ -157,27 +157,8 @@ class ProdukSampleController extends Controller
     {
         $units = Unit::all();
         $produkProduksi = ProdukProduksi::all();
-        $approverKategori = $this->approverPerKategori(Auth::user());
 
-        return view('pages.produk-sample.create', compact('units', 'produkProduksi', 'approverKategori'));
-    }
-
-    /**
-     * Nama atasan yang akan memutus tiap kategori, untuk ditampilkan di form.
-     * Pengaju Produk Sample datang dari macam-macam divisi, jadi label
-     * "Non-RnD/RnD" saja tidak cukup memberi tahu siapa yang dituju.
-     *
-     * @return array<string, ?string>
-     */
-    private function approverPerKategori(User $user): array
-    {
-        $leader = $user->atasanLevel3 ?? $user->atasanLevel2;
-        $manager = $user->atasanLevel2 ?? $user->atasanLevel3;
-
-        return [
-            ProdukSample::KATEGORI_NON_RND => $leader?->name,
-            ProdukSample::KATEGORI_RND => $manager?->name,
-        ];
+        return view('pages.produk-sample.create', compact('units', 'produkProduksi'));
     }
 
     public function store(Request $request)
@@ -404,7 +385,6 @@ class ProdukSampleController extends Controller
             'sudahMasukStok' => $sudahMasukStok,
             'sudahDikirimQc' => $sudahDikirimQc,
             'sudahMasukProduksiProdukJadi' => $sudahMasukProduksiProdukJadi,
-            'approverKategori' => $this->approverPerKategori(Auth::user()),
         ]);
     }
 

@@ -13,37 +13,62 @@ class BahanKeluar extends Model
     protected $guarded = [];
 
     /**
-     * Pemilik slot approval awal Bahan Keluar.
-     *
+     * Pemilik slot approval awal Bahan Keluar dalam bentuk aturan ketat:
      * Proyek RnD tidak mempunyai tahap Leader, sehingga atasan level 2
      * (Manager) langsung memutus slot yang secara historis disimpan pada
      * kolom status_leader. Transaksi lain tetap memakai Leader dan jatuh ke
      * Manager hanya ketika atasan level 3 tidak tersedia.
+     *
+     * Produk Sample kategori RnD memakai aturan yang lebih longgar — lihat
+     * approverLeader(), yang menurunkan slotnya ke Leader saat Manager belum
+     * ada.
      */
-    public static function approverLeaderId(bool $projekRnd, ?int $atasanLevel3Id, ?int $atasanLevel2Id): ?int
+    public static function approverLeaderId(bool $diputusManager, ?int $atasanLevel3Id, ?int $atasanLevel2Id): ?int
     {
-        if ($projekRnd) {
+        if ($diputusManager) {
             return $atasanLevel2Id;
         }
 
         return $atasanLevel3Id ?? $atasanLevel2Id;
     }
 
-    public static function statusLeaderAwal(bool $projekRnd, ?int $atasanLevel3Id, ?int $atasanLevel2Id): string
+    public static function statusLeaderAwal(bool $diputusManager, ?int $atasanLevel3Id, ?int $atasanLevel2Id): string
     {
-        return self::approverLeaderId($projekRnd, $atasanLevel3Id, $atasanLevel2Id) === null
+        return self::approverLeaderId($diputusManager, $atasanLevel3Id, $atasanLevel2Id) === null
             ? 'Disetujui'
             : 'Belum disetujui';
     }
 
+    /**
+     * Kategori dibekukan di baris Bahan Keluar, bukan dibaca ulang dari produk
+     * sample-nya. Nama dan kategori produk sample masih bisa diedit setelah
+     * pengajuan jalan, dan approver satu transaksi tidak boleh ikut berpindah
+     * karena itu.
+     */
     public function leaderDiputusManager(): bool
     {
-        return $this->projek_rnd_id !== null;
+        return $this->projek_rnd_id !== null
+            || $this->kategori_pengajuan === ProdukSample::KATEGORI_RND;
     }
 
+    /**
+     * Produk Sample kategori RnD yang pengajunya belum punya atasan level 2
+     * turun ke Leader, jadi labelnya ikut turun. Proyek RnD tidak ikut aturan
+     * ini karena controller-nya menolak simpan saat Manager belum ada.
+     */
     public function approvalAwalRole(): string
     {
-        return $this->leaderDiputusManager() ? 'Manager' : 'Leader';
+        if ($this->projek_rnd_id !== null) {
+            return 'Manager';
+        }
+
+        if ($this->kategori_pengajuan === ProdukSample::KATEGORI_RND) {
+            return $this->dataUser && $this->dataUser->atasan_level2_id === null
+                ? 'Leader'
+                : 'Manager';
+        }
+
+        return 'Leader';
     }
 
     public function approverLeader(): ?User
@@ -54,9 +79,17 @@ class BahanKeluar extends Model
             return null;
         }
 
-        return $this->leaderDiputusManager()
-            ? $pengaju->atasanLevel2
-            : ($pengaju->atasanLevel3 ?? $pengaju->atasanLevel2);
+        if ($this->projek_rnd_id !== null) {
+            return $pengaju->atasanLevel2;
+        }
+
+        if ($this->kategori_pengajuan === ProdukSample::KATEGORI_RND) {
+            // Kategori RnD diputus Manager. Tanpa atasan level 2, slot ini
+            // jatuh ke Leader supaya pengajuan tetap diperiksa atasan.
+            return $pengaju->atasanLevel2 ?? $pengaju->atasanLevel3;
+        }
+
+        return $pengaju->atasanLevel3 ?? $pengaju->atasanLevel2;
     }
 
     public function dataUser()

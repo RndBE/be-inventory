@@ -113,6 +113,41 @@ class ProdukSampleController extends Controller
         return Excel::download(new ProdukSampleExport($produkSample_id), $fileName);
     }
 
+    /**
+     * Kategori yang tidak dikenal diperlakukan sebagai Non-RnD supaya rute
+     * approval lama tetap jadi default.
+     */
+    private function kategoriPengajuanTervalidasi(?string $kategori): string
+    {
+        return in_array($kategori, ProdukSample::KATEGORI_PENGAJUAN, true)
+            ? $kategori
+            : ProdukSample::KATEGORI_NON_RND;
+    }
+
+    /**
+     * Rute approval Produk Sample kategori RnD: slot Leader diputus Manager
+     * (atasan level 2). Kalau pengaju belum punya atasan level 2, slotnya
+     * turun ke Leader (atasan level 3) supaya pengajuan tetap diperiksa
+     * atasan. Baru kalau dua-duanya kosong pengajuan lolos ke Purchasing,
+     * mengikuti pola pengajuan lama saat approver tidak ada sama sekali.
+     *
+     * @return array{0: string, 1: ?string, 2: string} [status_leader, telepon tujuan, nama tujuan]
+     */
+    private function rutePersetujuanRnd(User $user, ?User $purchasingUser): array
+    {
+        $approver = $user->atasanLevel2 ?? $user->atasanLevel3;
+
+        if ($approver) {
+            return ['Belum disetujui', $approver->telephone, $approver->name];
+        }
+
+        return [
+            'Disetujui',
+            $purchasingUser ? $purchasingUser->telephone : null,
+            $purchasingUser ? $purchasingUser->name : 'Purchasing',
+        ];
+    }
+
     public function index()
     {
         return view('pages.produk-sample.index');
@@ -122,8 +157,27 @@ class ProdukSampleController extends Controller
     {
         $units = Unit::all();
         $produkProduksi = ProdukProduksi::all();
+        $approverKategori = $this->approverPerKategori(Auth::user());
 
-        return view('pages.produk-sample.create', compact('units', 'produkProduksi'));
+        return view('pages.produk-sample.create', compact('units', 'produkProduksi', 'approverKategori'));
+    }
+
+    /**
+     * Nama atasan yang akan memutus tiap kategori, untuk ditampilkan di form.
+     * Pengaju Produk Sample datang dari macam-macam divisi, jadi label
+     * "Non-RnD/RnD" saja tidak cukup memberi tahu siapa yang dituju.
+     *
+     * @return array<string, ?string>
+     */
+    private function approverPerKategori(User $user): array
+    {
+        $leader = $user->atasanLevel3 ?? $user->atasanLevel2;
+        $manager = $user->atasanLevel2 ?? $user->atasanLevel3;
+
+        return [
+            ProdukSample::KATEGORI_NON_RND => $leader?->name,
+            ProdukSample::KATEGORI_RND => $manager?->name,
+        ];
     }
 
     public function store(Request $request)
@@ -165,7 +219,12 @@ class ProdukSampleController extends Controller
             $new_transaction_number_produk = ($lastTransactionProdukSample ? intval(substr($lastTransactionProdukSample->kode_produk_sample, 6)) : 0) + 1;
             $kode_produk_sample = 'PRS - ' . str_pad($new_transaction_number_produk, 5, '0', STR_PAD_LEFT);
 
-            if ($user->job_level == 3 && $user->atasan_level3_id === null) {
+            $kategoriPengajuan = $this->kategoriPengajuanTervalidasi($request->kategori_pengajuan);
+
+            if ($kategoriPengajuan === ProdukSample::KATEGORI_RND) {
+                // Kategori RnD melewati Leader dan langsung diputus Manager.
+                [$status_leader, $targetPhone, $recipientName] = $this->rutePersetujuanRnd($user, $purchasingUser);
+            } elseif ($user->job_level == 3 && $user->atasan_level3_id === null) {
                 // Job level 3 dan atasan_level3_id null
                 $status_leader = 'Disetujui';
                 // Kirim notifikasi ke Purchasing
@@ -199,6 +258,7 @@ class ProdukSampleController extends Controller
             $produkSample = ProdukSample::create([
                 'kode_produk_sample' => $kode_produk_sample,
                 'nama_produk_sample' => $request->nama_produk_sample,
+                'kategori_pengajuan' => $kategoriPengajuan,
                 'pengaju' => $user->name,
                 'keterangan' => $request->keterangan,
                 'mulai_produk_sample' => $request->mulai_produk_sample,
@@ -216,6 +276,7 @@ class ProdukSampleController extends Controller
                 'status_pengambilan' => 'Belum Diambil',
                 'status' => 'Belum disetujui',
                 'status_leader' => $status_leader,
+                'kategori_pengajuan' => $kategoriPengajuan,
             ]);
 
             // Group items by bahan_id
@@ -343,6 +404,7 @@ class ProdukSampleController extends Controller
             'sudahMasukStok' => $sudahMasukStok,
             'sudahDikirimQc' => $sudahDikirimQc,
             'sudahMasukProduksiProdukJadi' => $sudahMasukProduksiProdukJadi,
+            'approverKategori' => $this->approverPerKategori(Auth::user()),
         ]);
     }
 
@@ -360,10 +422,18 @@ class ProdukSampleController extends Controller
             $bahanRetur = json_decode($request->bahanRetur, true) ?? [];
             $produkSample = ProdukSample::findOrFail($id);
 
-            $produkSample->update([
+            $dataProdukSample = [
                 'nama_produk_sample' => $validatedData['nama_produk_sample'],
                 'keterangan' => $validatedData['keterangan'],
-            ]);
+            ];
+
+            // Kategori hanya boleh dipindah selama belum ada Bahan Keluar yang
+            // sudah diputus atasan; setelah itu approver-nya sudah berjalan.
+            if ($request->filled('kategori_pengajuan') && $produkSample->kategoriMasihBisaDiubah()) {
+                $dataProdukSample['kategori_pengajuan'] = $this->kategoriPengajuanTervalidasi($request->kategori_pengajuan);
+            }
+
+            $produkSample->update($dataProdukSample);
 
             $tujuan = $produkSample->nama_produk_sample;
             $user = Auth::user();
@@ -383,7 +453,12 @@ class ProdukSampleController extends Controller
             $kode_transaksi = 'KBK - ' . $formatted_number. ' PRS';
             $tgl_pengajuan = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
-            if ($user->job_level == 3 && $user->atasan_level3_id === null) {
+            $kategoriPengajuan = $produkSample->kategoriPengajuan();
+
+            if ($kategoriPengajuan === ProdukSample::KATEGORI_RND) {
+                // Kategori RnD melewati Leader dan langsung diputus Manager.
+                [$status_leader, $targetPhone, $recipientName] = $this->rutePersetujuanRnd($user, $purchasingUser);
+            } elseif ($user->job_level == 3 && $user->atasan_level3_id === null) {
                 // Job level 3 dan atasan_level3_id null
                 $status_leader = 'Disetujui';
                 // Kirim notifikasi ke Purchasing
@@ -461,6 +536,7 @@ class ProdukSampleController extends Controller
                     'status_pengambilan' => 'Belum Diambil',
                     'status' => 'Belum disetujui',
                     'status_leader' => $status_leader,
+                    'kategori_pengajuan' => $kategoriPengajuan,
                 ]);
 
                 // Simpan data ke Bahan Keluar Detail dan Produksi Detail

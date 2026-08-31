@@ -109,6 +109,32 @@
                                         </div>
 
                                         <div class="flex items-center">
+                                            <label class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4 dark:text-white">
+                                                Kategori <sup class="text-red-500 text-base">*</sup>
+                                            </label>
+                                            <div class="w-3/4">
+                                                <div class="flex items-center gap-6">
+                                                    @foreach (\App\Models\ProdukSample::KATEGORI_PENGAJUAN as $kategori)
+                                                        <label class="inline-flex items-center cursor-pointer">
+                                                            <input type="radio" name="kategori_pengajuan" value="{{ $kategori }}"
+                                                                @checked(old('kategori_pengajuan', \App\Models\ProdukSample::KATEGORI_NON_RND) === $kategori)
+                                                                class="text-indigo-600 border-gray-300 focus:ring-indigo-600">
+                                                            <span class="ml-2 text-sm text-gray-900 dark:text-gray-300">
+                                                                {{ $kategori }}
+                                                                @if (!empty($approverKategori[$kategori]))
+                                                                    <span class="text-gray-500 dark:text-gray-400">&mdash; {{ $approverKategori[$kategori] }}</span>
+                                                                @endif
+                                                            </span>
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    Non-RnD disetujui Leader, RnD disetujui Manager. Nama di samping pilihan adalah atasan yang akan menyetujui.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center">
                                             <label for="datepicker-autohide" class="block text-sm font-medium leading-6 text-gray-900 mr-2 w-1/4">Tanggal<sup class="text-red-500 text-base">*</sup></label>
                                             <div class="relative w-3/4">
                                                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">

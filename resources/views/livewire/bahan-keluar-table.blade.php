@@ -290,20 +290,19 @@
                                                 </button>
                                             @endif
                                         @endcan --}}
-                                        {{-- Button hanya muncul untuk atasan pengaju level 3 atau level 2 --}}
+                                        {{-- Button hanya muncul untuk pemegang slot approval awal. Dipakai
+                                             satu sumber dengan pengecekan 403 di BahanKeluarController. --}}
                                         @php
-                                            $pengaju = $bahan_keluar->dataUser;
                                             $loginUser = Auth::user();
-                                            $isAtasanLevel3 = $pengaju?->atasan_level3_id == $loginUser->id;
-                                            $isAtasanLevel2 = $pengaju?->atasan_level2_id == $loginUser->id;
-                                            $diputusManager = $bahan_keluar->leaderDiputusManager();
+                                            $approverAwal = $bahan_keluar->approverLeader();
+                                            $bolehApproveAwal = $approverAwal && (int) $approverAwal->id === (int) $loginUser->id;
                                         @endphp
 
-                                        @if ($diputusManager ? $isAtasanLevel2 : ($isAtasanLevel3 || (!$pengaju?->atasan_level3_id && $isAtasanLevel2)))
+                                        @if ($bolehApproveAwal)
                                             @if ($bahan_keluar->status_leader !== 'Disetujui' && $bahan_keluar->status_leader !== 'Ditolak')
                                                 <button wire:click="editBahanKeluar({{ $bahan_keluar->id }})"
                                                     class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
-                                                    Approve {{ $diputusManager ? 'Manager' : 'Leader' }}
+                                                    Approve {{ $bahan_keluar->approvalAwalRole() }}
                                                 </button>
                                             @endif
                                         @endif

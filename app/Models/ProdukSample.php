@@ -12,10 +12,45 @@ class ProdukSample extends Model
     protected $table = 'produk_sample';
     protected $guarded = [];
 
+    public const KATEGORI_NON_RND = 'Non-RnD';
+    public const KATEGORI_RND = 'RnD';
+
+    public const KATEGORI_PENGAJUAN = [
+        self::KATEGORI_NON_RND,
+        self::KATEGORI_RND,
+    ];
+
     protected $casts = [
         'mulai_produk_sample' => 'datetime',
         'selesai_produk_sample' => 'datetime',
     ];
+
+    /**
+     * Kategori efektif produk sample. Baris lama bernilai null dan tetap
+     * diperlakukan sebagai Non-RnD supaya rute approval-nya tidak berubah.
+     */
+    public function kategoriPengajuan(): string
+    {
+        return in_array($this->kategori_pengajuan, self::KATEGORI_PENGAJUAN, true)
+            ? $this->kategori_pengajuan
+            : self::KATEGORI_NON_RND;
+    }
+
+    /**
+     * Kategori masih boleh diubah selama belum ada Bahan Keluar yang diputus
+     * atasan. Sekali salah satu transaksinya jalan, memindah kategori berarti
+     * memindah approver di tengah proses.
+     */
+    public function kategoriMasihBisaDiubah(): bool
+    {
+        if ($this->status === 'Selesai') {
+            return false;
+        }
+
+        return ! $this->bahanKeluar()
+            ->where('status_leader', '!=', 'Belum disetujui')
+            ->exists();
+    }
 
     public function produkSampleDetails()
     {

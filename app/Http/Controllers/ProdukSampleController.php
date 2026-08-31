@@ -407,8 +407,9 @@ class ProdukSampleController extends Controller
                 'keterangan' => $validatedData['keterangan'],
             ];
 
-            // Kategori hanya boleh dipindah selama belum ada Bahan Keluar yang
-            // sudah diputus atasan; setelah itu approver-nya sudah berjalan.
+            // Kategori yang dipilih di sini menentukan rute pengajuan Bahan
+            // Keluar yang dibuat sekarang; pengajuan sebelumnya tetap memakai
+            // kategori yang sudah dibekukan di barisnya masing-masing.
             if ($request->filled('kategori_pengajuan') && $produkSample->kategoriMasihBisaDiubah()) {
                 $dataProdukSample['kategori_pengajuan'] = $this->kategoriPengajuanTervalidasi($request->kategori_pengajuan);
             }

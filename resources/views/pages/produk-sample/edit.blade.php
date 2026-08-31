@@ -177,7 +177,7 @@
                                                 </div>
                                                 @unless ($kategoriBisaDiubah)
                                                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                        Kategori terkunci karena sudah ada bahan keluar yang diputus atasan.
+                                                        Produk sample sudah selesai, kategori tidak bisa diubah lagi.
                                                     </p>
                                                 @endunless
                                             </div>

@@ -37,19 +37,17 @@ class ProdukSample extends Model
     }
 
     /**
-     * Kategori masih boleh diubah selama belum ada Bahan Keluar yang diputus
-     * atasan. Sekali salah satu transaksinya jalan, memindah kategori berarti
-     * memindah approver di tengah proses.
+     * Kategori di sini berlaku untuk pengajuan Bahan Keluar berikutnya, jadi
+     * boleh diganti kapan saja selama produk sample belum selesai. Pengajuan
+     * yang sudah dibuat tidak ikut bergeser: tiap baris bahan_keluars membawa
+     * salinan kategorinya sendiri dan approver-nya dibaca dari situ.
+     *
+     * Satu produk sample karena itu bisa berisi campuran — misalnya pengajuan
+     * lama lewat Leader dan pengajuan baru lewat Manager.
      */
     public function kategoriMasihBisaDiubah(): bool
     {
-        if ($this->status === 'Selesai') {
-            return false;
-        }
-
-        return ! $this->bahanKeluar()
-            ->where('status_leader', '!=', 'Belum disetujui')
-            ->exists();
+        return $this->status !== 'Selesai';
     }
 
     public function produkSampleDetails()

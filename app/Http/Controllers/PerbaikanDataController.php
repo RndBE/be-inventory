@@ -371,9 +371,18 @@ class PerbaikanDataController extends Controller
     /**
      * Catat seluruh baris perubahan pada satu pengajuan yang sudah disetujui.
      *
-     * TIDAK mengubah data yang dikoreksi. Perubahan datanya dikerjakan tim
-     * software langsung di database; yang dilakukan di sini menutup tiketnya dan
-     * menulis jejaknya ke Audit Perubahan Data. Lihat PerbaikanDataService.
+     * TIDAK mengubah data yang dikoreksi, dan TIDAK menutup tiketnya. Yang
+     * dilakukan di sini hanya menulis jejaknya ke Audit Perubahan Data. Lihat
+     * PerbaikanDataService.
+     *
+     * Status tiket sengaja tidak disentuh. Dulu tiket langsung ditandai
+     * 'Selesai' begitu semua barisnya tercatat, dan itu menyatakan hal yang
+     * belum terjadi: perubahan datanya dikerjakan tim software langsung di
+     * database, sesudah pencatatan ini. Tiket yang menutup dirinya sendiri di
+     * tengah jalan membuat daftar pengajuan terbaca seolah pekerjaannya sudah
+     * beres padahal datanya belum disentuh siapa pun. Yang tahu kapan tiketnya
+     * benar-benar selesai adalah orang yang mengerjakannya, dan dia menyetelnya
+     * lewat form approval seperti status lain.
      *
      * Tiap baris dicatat terpisah. Satu baris yang gagal — biasanya karena
      * nilai lamanya sudah tidak cocok lagi dengan database — tidak boleh
@@ -447,13 +456,10 @@ class PerbaikanDataController extends Controller
         }
 
         if (empty($gagal)) {
-            $perbaikanData->status = 'Selesai';
-            $perbaikanData->tgl_diubah = now()->setTimezone('Asia/Jakarta');
-            $perbaikanData->save();
-
             return redirect()->route('perbaikan-data.show', $perbaikanData->id)
-                ->with('success', "{$berhasil} perubahan tercatat di Audit Perubahan Data. Perubahan datanya sendiri "
-                    . 'dikerjakan tim software langsung di database.');
+                ->with('success', "{$berhasil} perubahan tercatat di Audit Perubahan Data. Perubahan datanya "
+                    . 'dikerjakan tim software langsung di database, dan status tiket disetel Selesai sendiri '
+                    . 'lewat form approval setelah datanya benar-benar diubah.');
         }
 
         return redirect()->route('perbaikan-data.show', $perbaikanData->id)

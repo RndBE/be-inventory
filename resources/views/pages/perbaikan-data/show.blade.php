@@ -82,11 +82,12 @@
                 @endphp
 
                 {{--
-                    Tombol ini MENCATAT, tidak mengubah data. Perubahan datanya
-                    dikerjakan tim software langsung di database; yang terjadi di
-                    sini menulis jejaknya ke Audit Perubahan Data dan menutup
-                    tiketnya. Teksnya harus jujur soal itu — modul yang ada demi
-                    kejujuran catatan tidak boleh berbohong di tombolnya sendiri.
+                    Tombol ini MENCATAT saja: tidak mengubah data, dan tidak
+                    menutup tiketnya. Perubahan datanya dikerjakan tim software
+                    langsung di database sesudah ini, dan statusnya disetel
+                    Selesai manual lewat form approval oleh yang mengerjakan.
+                    Teksnya harus jujur soal itu — modul yang ada demi kejujuran
+                    catatan tidak boleh berbohong di tombolnya sendiri.
 
                     Muncul kalau ketiganya benar: pemegang permission, tiketnya
                     sudah disetujui (termasuk yang statusnya sudah disetel
@@ -119,7 +120,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" />
                                 </svg>
-                                Catat &amp; Tutup Tiket
+                                Catat ke Audit
                             </button>
 
                             <div x-show="buka" x-cloak
@@ -161,8 +162,8 @@
                                                     Catat ke Audit Perubahan Data
                                                 </h3>
                                                 <p class="mt-1 text-sm text-gray-500">
-                                                    {{ $akanDicatat->count() }} perubahan dicatat, lalu tiket
-                                                    {{ $perbaikanData->kode_pengajuan }} ditutup.
+                                                    {{ $akanDicatat->count() }} perubahan dari tiket
+                                                    {{ $perbaikanData->kode_pengajuan }} dicatat. Tiketnya tetap terbuka.
                                                 </p>
                                             </div>
 
@@ -218,7 +219,8 @@
                                                 <p class="text-sm text-amber-800">
                                                     Data aslinya <strong class="font-semibold">tidak ikut berubah</strong>.
                                                     Perubahan datanya dikerjakan langsung di database oleh tim software —
-                                                    yang terjadi di sini hanya pencatatannya.
+                                                    yang terjadi di sini hanya pencatatannya. Status tiket juga tidak berubah:
+                                                    setel Selesai sendiri lewat form approval setelah datanya benar-benar diubah.
                                                 </p>
                                             </div>
 
@@ -256,7 +258,7 @@
                                                          bergantung pada penguraian entitas HTML di
                                                          dalam string JavaScript. Benar, tapi tidak
                                                          terbaca sebagai benar. --}}
-                                                    <span x-show="!kirim">Catat &amp; Tutup Tiket</span>
+                                                    <span x-show="!kirim">Catat ke Audit</span>
                                                     <span x-show="kirim" x-cloak>Mencatat...</span>
                                                 </button>
                                             </form>

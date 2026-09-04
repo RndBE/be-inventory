@@ -49,28 +49,35 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
                             <th scope="col" class="px-6 py-3">Waktu &amp; Tiket</th>
-                            <th scope="col" class="px-6 py-3">Modul &amp; Record</th>
-                            <th scope="col" class="px-6 py-3">Kolom</th>
+                            <th scope="col" class="px-6 py-3">Perubahan</th>
                             <th scope="col" class="px-6 py-3">Lama &rarr; Baru</th>
                             <th scope="col" class="px-6 py-3">Alasan</th>
-                            <th scope="col" class="px-6 py-3">Pengaju</th>
-                            <th scope="col" class="px-6 py-3">Approver</th>
+                            <th scope="col" class="px-6 py-3">Oleh</th>
                         </tr>
                     </thead>
                     <tbody>
                         {{--
                             Baris yang lahir dari satu keputusan digabung: waktu, tiket,
-                            pengaju, dan approvernya ditulis sekali dengan rowspan, dan
-                            yang berulang ke bawah hanya yang memang berbeda — modul,
-                            kolom, nilainya, dan alasannya. Sebelumnya keempat kolom
-                            pertama terulang identik di tiap baris, dan pembacanya harus
-                            membandingkan sendiri untuk tahu ketiganya satu peristiwa.
+                            dan pelakunya ditulis sekali dengan rowspan, dan yang berulang
+                            ke bawah hanya yang memang berbeda. Alasan ikut digabung
+                            selama seluruh kelompok beralasan sama persis.
 
                             Penggabungannya murni tampilan. Tiap perubahan tetap satu
                             baris audit tersendiri di database, dengan nilai lama dan
                             barunya masing-masing.
+
+                            Lima kolom, bukan tujuh. Modul, nomor record, dan nama kolom
+                            menjawab satu pertanyaan — apa yang dikoreksi — jadi ketiganya
+                            satu sel. Begitu juga pengaju dan approver: masing-masing satu
+                            nama, sering nama yang sama, dan justru kesamaan itu yang harus
+                            terbaca sekaligus. Tabel yang lebih sempit dari layar bisa
+                            disusuri ke bawah tanpa digeser mendatar, dan menyusuri satu
+                            kolom ke bawah itulah cara halaman ini dipakai.
                         --}}
-                        @php $kunciSebelumnya = null; @endphp
+                        @php
+                            $kunciSebelumnya = null;
+                            $nomorKelompok = 0;
+                        @endphp
 
                         @forelse ($auditList as $audit)
                             @php
@@ -79,9 +86,18 @@
                                 $tinggi = $tinggiKelompok[$kunci] ?? 1;
                                 $alasanBersama = $alasanSeragam[$kunci] ?? null;
                                 $kunciSebelumnya = $kunci;
+
+                                // Naik hanya di awal kelompok, jadi seluruh baris satu
+                                // kelompok berlatar sama. Warnanya yang membedakan
+                                // kelompok bersebelahan; garis tipis saja tidak cukup
+                                // begitu satu kelompok berisi tiga baris atau lebih.
+                                $nomorKelompok += $awalKelompok ? 1 : 0;
+                                $latar = $nomorKelompok % 2 === 0
+                                    ? 'bg-gray-50 dark:bg-gray-800/60'
+                                    : 'bg-white dark:bg-gray-800';
                             @endphp
 
-                            <tr class="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 {{ $awalKelompok ? 'border-t-2 border-gray-200 dark:border-gray-600' : 'border-t border-gray-100 dark:border-gray-700' }}">
+                            <tr class="{{ $latar }} hover:bg-indigo-50/40 dark:hover:bg-gray-600 {{ $awalKelompok ? 'border-t-2 border-gray-200 dark:border-gray-600' : '' }}">
                                 @if ($awalKelompok)
                                     <td rowspan="{{ $tinggi }}" class="px-6 py-4 align-top whitespace-nowrap">
                                         <div>{{ optional($audit->created_at)->format('d/m/Y H:i') ?? '-' }}</div>
@@ -101,15 +117,16 @@
                                 @endif
 
                                 <td class="px-6 py-4 align-top">
-                                    <div class="font-medium text-gray-800 dark:text-gray-200">{{ $audit->labelModul() }}</div>
-                                    <div class="text-xs text-gray-500">
-                                        {{ $audit->tabel_target }} #{{ $audit->baris_target_id ?? $audit->modul_id }}
+                                    <div class="font-medium text-gray-800 dark:text-gray-200">
+                                        {{ $audit->labelModul() }} #{{ $audit->baris_target_id ?? $audit->modul_id }}
                                     </div>
-                                </td>
-
-                                <td class="px-6 py-4 align-top">
-                                    <div>{{ $audit->labelField() }}</div>
-                                    <div class="text-xs text-gray-500">{{ $audit->field }}</div>
+                                    <div class="text-gray-700 dark:text-gray-300">{{ $audit->labelField() }}</div>
+                                    {{-- Nama teknisnya tetap ada: yang mengerjakan koreksinya
+                                         di database mencari tabel dan kolomnya, bukan
+                                         labelnya. --}}
+                                    <div class="mt-0.5 text-xs text-gray-500">
+                                        {{ $audit->tabel_target }} &middot; {{ $audit->field }}
+                                    </div>
                                 </td>
 
                                 {{--
@@ -136,22 +153,41 @@
                                 @endif
 
                                 @if ($awalKelompok)
-                                    <td rowspan="{{ $tinggi }}" class="px-6 py-4 align-top">{{ $audit->namaPengaju() ?? '-' }}</td>
                                     <td rowspan="{{ $tinggi }}" class="px-6 py-4 align-top">
-                                        {{ $audit->approver->name ?? '-' }}
+                                        {{--
+                                            Satu orang ditulis sekali. Menuliskan nama yang
+                                            sama dua kali dengan label berbeda membuat sel
+                                            ini jadi blok teks yang seragam di seluruh
+                                            halaman, dan justru menenggelamkan hal yang
+                                            paling perlu terlihat: bahwa pengaju dan
+                                            approvernya memang orang yang sama.
+
+                                            Penggabungan hanya dipicu `disetujui_sendiri`,
+                                            yang lahir dari perbandingan id. Nama yang
+                                            kebetulan sama tidak cukup — dua karyawan bisa
+                                            bernama sama, dan menyatakan mereka satu orang
+                                            adalah tuduhan yang tidak dibuat datanya.
+                                        --}}
                                         @if ($audit->disetujui_sendiri)
-                                            {{-- Pengaju dan approver orang yang sama. Tidak
-                                                 dilarang, tapi harus terlihat saat diperiksa. --}}
-                                            <span class="block mt-1 text-xs font-medium text-amber-700">
-                                                Diajukan &amp; disetujui orang yang sama
+                                            <div class="font-medium text-gray-800 dark:text-gray-200">
+                                                {{ $audit->namaPengaju() ?? $audit->approver->name ?? '-' }}
+                                            </div>
+                                            <span class="mt-1 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-200">
+                                                Mengajukan &amp; menyetujui sendiri
                                             </span>
+                                        @else
+                                            <div class="text-xs uppercase tracking-wide text-gray-400">Diajukan</div>
+                                            <div class="text-gray-800 dark:text-gray-200">{{ $audit->namaPengaju() ?? '-' }}</div>
+
+                                            <div class="mt-2 text-xs uppercase tracking-wide text-gray-400">Disetujui</div>
+                                            <div class="text-gray-800 dark:text-gray-200">{{ $audit->approver->name ?? '-' }}</div>
                                         @endif
                                     </td>
                                 @endif
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center px-6 py-4">Belum ada perubahan data yang tercatat.</td>
+                                <td colspan="5" class="text-center px-6 py-4">Belum ada perubahan data yang tercatat.</td>
                             </tr>
                         @endforelse
                     </tbody>

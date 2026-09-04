@@ -91,7 +91,39 @@ class AuditPerubahanDataTable extends Component
             'daftarJenis' => $this->jenisYangPernahAda($modulPerJenis),
             'kunciKelompok' => $this->kunciKelompok($audit->items()),
             'tinggiKelompok' => $this->tinggiKelompok($audit->items()),
+            'alasanSeragam' => $this->alasanSeragam($audit->items()),
         ]);
+    }
+
+    /**
+     * Alasan yang berlaku untuk seluruh kelompok: kunci => alasan, atau null.
+     *
+     * Satu tiket sering memuat beberapa baris dengan alasan yang sama persis —
+     * "perubahan spesifikasi sehingga harga satuannya juga berubah" ditulis
+     * sekali di form lalu menempel ke tiap baris. Diulang ke bawah, kalimat
+     * panjang itu jadi bagian paling ramai di tabel padahal isinya satu.
+     *
+     * Null kalau alasannya berbeda-beda. Di situ pengulangan bukan kebisingan
+     * melainkan isi: baris shipping cost dan baris harga satuan pada tiket yang
+     * sama bisa punya sebab yang tidak sama, dan menampilkan salah satunya
+     * sebagai alasan bersama akan mengarang.
+     *
+     * @param  array<int, AuditPerubahanData>  $baris
+     * @return array<string, string|null>
+     */
+    private function alasanSeragam(array $baris): array
+    {
+        $kunciPer = $this->kunciKelompok($baris);
+        $terkumpul = [];
+
+        foreach ($baris as $satu) {
+            $terkumpul[$kunciPer[$satu->id]][] = (string) $satu->alasan;
+        }
+
+        return array_map(
+            fn (array $alasan) => count(array_unique($alasan)) === 1 ? $alasan[0] : null,
+            $terkumpul
+        );
     }
 
     /**

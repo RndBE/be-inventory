@@ -81,4 +81,26 @@ class AuditPerubahanData extends Model
     {
         return config("perbaikan_data.modul.{$this->modul}.field.{$this->field}.label", $this->field);
     }
+
+    /**
+     * Nama yang meminta koreksi ini.
+     *
+     * `pengaju_id` didahulukan karena itu acuan yang tidak bisa kembar dan
+     * ikut menentukan penanda `disetujui_sendiri`. Tapi baris lama bisa punya
+     * id kosong: tiket yang dibuat sebelum kolom `user_id` ada di
+     * perbaikan_data hanya menyimpan nama pengajunya sebagai teks. Kolom
+     * Pengaju yang bergaris strip pada baris seperti itu membuat auditnya
+     * pincang — catatan yang tidak menyebut siapa yang meminta.
+     *
+     * Nama dari tiket dipakai apa adanya, tanpa dicocokkan ke tabel users.
+     * Pencocokan lewat nama bisa mengenai orang lain yang namanya sama, dan
+     * menempelkan identitas keliru ke baris audit lebih buruk daripada
+     * menampilkan nama tanpa tautan.
+     */
+    public function namaPengaju(): ?string
+    {
+        return $this->pengaju->name
+            ?? $this->perbaikanData->pengaju
+            ?? null;
+    }
 }

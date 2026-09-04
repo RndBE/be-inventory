@@ -77,6 +77,7 @@
                                 $kunci = $kunciKelompok[$audit->id] ?? 'baris-' . $audit->id;
                                 $awalKelompok = $kunci !== $kunciSebelumnya;
                                 $tinggi = $tinggiKelompok[$kunci] ?? 1;
+                                $alasanBersama = $alasanSeragam[$kunci] ?? null;
                                 $kunciSebelumnya = $kunci;
                             @endphp
 
@@ -117,16 +118,25 @@
                                     ulang justru membuat dua angka berbeda tampil sama.
                                 --}}
                                 <td class="px-6 py-4 align-top">
-                                    <div class="text-red-700 line-through break-all">{{ $audit->nilai_lama ?? '(kosong)' }}</div>
-                                    <div class="text-green-700 font-medium break-all">{{ $audit->nilai_baru ?? '(kosong)' }}</div>
+                                    <div class="flex flex-wrap items-baseline gap-1.5">
+                                        <span class="text-red-700 line-through break-all">{{ $audit->nilai_lama ?? '(kosong)' }}</span>
+                                        <span class="text-gray-400" aria-hidden="true">&rarr;</span>
+                                        <span class="text-green-700 font-medium break-all">{{ $audit->nilai_baru ?? '(kosong)' }}</span>
+                                    </div>
                                 </td>
 
-                                <td class="px-6 py-4 align-top max-w-xs">
-                                    <div class="whitespace-pre-line break-words">{{ $audit->alasan }}</div>
-                                </td>
+                                @if ($alasanBersama === null)
+                                    <td class="px-6 py-4 align-top max-w-xs">
+                                        <div class="whitespace-pre-line break-words">{{ $audit->alasan }}</div>
+                                    </td>
+                                @elseif ($awalKelompok)
+                                    <td rowspan="{{ $tinggi }}" class="px-6 py-4 align-top max-w-xs">
+                                        <div class="whitespace-pre-line break-words">{{ $alasanBersama }}</div>
+                                    </td>
+                                @endif
 
                                 @if ($awalKelompok)
-                                    <td rowspan="{{ $tinggi }}" class="px-6 py-4 align-top">{{ $audit->pengaju->name ?? '-' }}</td>
+                                    <td rowspan="{{ $tinggi }}" class="px-6 py-4 align-top">{{ $audit->namaPengaju() ?? '-' }}</td>
                                     <td rowspan="{{ $tinggi }}" class="px-6 py-4 align-top">
                                         {{ $audit->approver->name ?? '-' }}
                                         @if ($audit->disetujui_sendiri)

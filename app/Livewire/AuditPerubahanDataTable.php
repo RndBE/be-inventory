@@ -89,7 +89,65 @@ class AuditPerubahanDataTable extends Component
         return view('livewire.audit-perubahan-data-table', [
             'auditList' => $audit,
             'daftarJenis' => $this->jenisYangPernahAda($modulPerJenis),
+            'kunciKelompok' => $this->kunciKelompok($audit->items()),
+            'tinggiKelompok' => $this->tinggiKelompok($audit->items()),
         ]);
+    }
+
+    /**
+     * Kunci pengelompokan tiap baris: id audit => kunci kelompoknya.
+     *
+     * Satu tiket biasanya melahirkan beberapa baris audit sekaligus — harga
+     * satuan dua bahan dan shipping cost transaksinya, misalnya, tercatat pada
+     * detik yang sama oleh approver yang sama. Ditampilkan sebagai baris-baris
+     * berdiri sendiri, waktu, tiket, pengaju, dan approvernya terulang identik
+     * dan pembacanya harus membandingkan sendiri untuk tahu ketiganya berasal
+     * dari satu keputusan.
+     *
+     * Waktunya ikut jadi kunci, bukan nomor tiketnya saja. Baris yang gagal
+     * dicatat bisa dicoba lagi berhari-hari kemudian di bawah tiket yang sama;
+     * menggabungkannya dengan pencatatan pertama akan menempelkan satu waktu ke
+     * kejadian yang berbeda hari.
+     *
+     * Baris tanpa tiket selalu berdiri sendiri. Yang menyatukannya cuma
+     * kebetulan waktu, dan itu bukan alasan untuk menyatukannya di layar.
+     *
+     * @param  array<int, AuditPerubahanData>  $baris
+     * @return array<int, string>
+     */
+    private function kunciKelompok(array $baris): array
+    {
+        $kunci = [];
+
+        foreach ($baris as $satu) {
+            $kunci[$satu->id] = $satu->perbaikan_data_id
+                ? 'tiket-' . $satu->perbaikan_data_id . '-' . optional($satu->created_at)->format('YmdHi')
+                : 'baris-' . $satu->id;
+        }
+
+        return $kunci;
+    }
+
+    /**
+     * Banyaknya baris tiap kelompok, untuk rowspan sel yang digabung.
+     *
+     * Dihitung dari isi halaman ini saja, bukan dari seluruh hasil query. Satu
+     * kelompok yang kebetulan terpotong batas halaman akan tampil sebagai dua
+     * kelompok kecil — tidak ideal, tapi benar: rowspan yang menghitung baris
+     * di halaman berikutnya akan menembus tabelnya.
+     *
+     * @param  array<int, AuditPerubahanData>  $baris
+     * @return array<string, int>
+     */
+    private function tinggiKelompok(array $baris): array
+    {
+        $tinggi = [];
+
+        foreach ($this->kunciKelompok($baris) as $kunci) {
+            $tinggi[$kunci] = ($tinggi[$kunci] ?? 0) + 1;
+        }
+
+        return $tinggi;
     }
 
     /**

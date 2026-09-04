@@ -252,6 +252,37 @@
                                         @error("selectedBahanList.$index.unit_price")
                                             <p class="text-red-600 text-lg mt-1">{{ $message }}</p>
                                         @enderror
+                                        {{--
+                                            Harga acuan dari pengajuan pembelian yang sudah disetujui.
+                                            Kolom di atas sudah terisi dengan angka ini; barisnya berubah
+                                            jadi peringatan begitu petugas menggantinya, supaya selisih
+                                            harga jadi keputusan yang terlihat dan bukan salah ketik yang
+                                            baru ketahuan setelah barangnya terpakai produksi.
+                                        --}}
+                                        @php
+                                            // Kunci yang tidak ada dibedakan dari kunci bernilai null:
+                                            // baris yang tidak berasal dari pemetaan pengajuan tidak
+                                            // punya acuan sama sekali, dan menyebutnya "tidak punya
+                                            // harga rupiah" akan menyesatkan.
+                                            $adaAcuan = array_key_exists('harga_pengajuan', $bahan);
+                                            $hargaPengajuan = $bahan['harga_pengajuan'] ?? null;
+                                            $hargaDiisi = $bahan['unit_price'] ?? null;
+                                            $hargaBerubah = $hargaPengajuan !== null
+                                                && is_numeric($hargaDiisi)
+                                                && abs((float) $hargaDiisi - (float) $hargaPengajuan) > 0.001;
+                                        @endphp
+                                        @if ($hargaPengajuan !== null)
+                                            <p class="text-base mt-1 {{ $hargaBerubah ? 'text-amber-700 font-semibold' : 'text-gray-500' }}">
+                                                Harga disetujui: Rp {{ number_format((float) $hargaPengajuan, 2, ',', '.') }}
+                                                @if ($hargaBerubah)
+                                                    <br>Harga diubah dari pengajuan — tulis alasannya di Notes.
+                                                @endif
+                                            </p>
+                                        @elseif ($adaAcuan)
+                                            <p class="text-base mt-1 text-gray-500">
+                                                Pengajuan ini tidak punya harga rupiah yang bisa dipakai sebagai acuan.
+                                            </p>
+                                        @endif
                                     </div>
 
                                     <div class="col-span-1">

@@ -24,7 +24,13 @@ class PurchaseController extends Controller
         $this->middleware('permission:lihat-bahan-masuk', ['only' => ['index']]);
         $this->middleware('permission:detail-bahan-masuk', ['only' => ['show']]);
         $this->middleware('permission:tambah-bahan-masuk', ['only' => ['create','store']]);
-        $this->middleware('permission:edit-bahan-masuk', ['only' => ['update','edit']]);
+        // Tanpa baris untuk 'edit' dan 'update': kedua method itu tidak pernah
+        // ada di controller ini, sehingga route resource-nya mengarah ke method
+        // yang tidak ada dan siapa pun yang menekannya mendapat error. Koreksi
+        // bahan masuk sekarang lewat satu pintu di modul Perbaikan Data, dengan
+        // approval dan jejak audit — bukan lewat form edit langsung di sini.
+        // Permission 'edit-bahan-masuk' dibiarkan hidup di database supaya
+        // pemberiannya ke role tidak hilang kalau nanti dipakai lagi.
         $this->middleware('permission:hapus-bahan-masuk', ['only' => ['destroy']]);
     }
 
@@ -121,10 +127,33 @@ class PurchaseController extends Controller
     public function destroy(Request $request, $id)
     {
         try{
-            $data = Purchase::find($id);
+            $data = Purchase::with('purchaseDetails')->find($id);
             if (!$data) {
                 return redirect()->back()->with('gagal', 'Transaksi tidak ditemukan.');
             }
+
+            // Lot yang stoknya sudah terpakai tidak boleh dihapus. Baris
+            // `purchase_details` ikut terhapus lewat cascade, sedangkan kolom
+            // `details` di transaksi hilir masih menyimpan `kode_transaksi` lot
+            // ini — referensinya jadi menggantung dan nilai persediaan berubah
+            // tanpa jejak. Jalur hapus ini lebih berbahaya daripada jalur
+            // koreksi mana pun, dan tidak ada yang memeriksanya sebelum ini.
+            $lotTerpakai = $data->purchaseDetails
+                ->filter(fn ($lot) => (float) $lot->sisa < (float) $lot->qty);
+
+            if ($lotTerpakai->isNotEmpty()) {
+                LogHelper::error(
+                    "Penghapusan bahan masuk {$data->kode_transaksi} ditolak: "
+                    . $lotTerpakai->count() . ' lot stoknya sudah terpakai.'
+                );
+
+                return redirect()->back()->with(
+                    'error',
+                    'Transaksi bahan masuk ini tidak bisa dihapus karena stoknya sudah terpakai '
+                    . 'di transaksi lain. Ajukan koreksi lewat Perbaikan Data.'
+                );
+            }
+
             $data->delete();
             LogHelper::success('Berhasil Menghapus Transaksi Bahan Masuk!');
             return redirect()->route('purchases.index')->with('success', 'Berhasil Menghapus Transaksi Bahan Masuk!');

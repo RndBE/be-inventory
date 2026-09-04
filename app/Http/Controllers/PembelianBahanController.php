@@ -482,6 +482,11 @@ class PembelianBahanController extends Controller
             return redirect()->back()->with('error', 'Data pembelian bahan tidak valid.');
         }
 
+        // Harga per bahan sebelum diubah. Harus dibaca sekarang: begitu
+        // updateOrCreate di bawah berjalan, nilai lamanya tidak tersimpan di
+        // mana pun dan selisihnya tidak bisa direkonstruksi lagi.
+        $hargaSebelum = $this->hargaRevisiPerBahan($id);
+
         // Process each pembelianBahanDetail
         foreach ($pembelianBahanDetails as $item) {
             $bahanId = $item['id'] ?? null;
@@ -637,11 +642,92 @@ class PembelianBahanController extends Controller
             }
         }
         // Redirect back with success message
+        // Perubahan harga pengajuan yang sudah disetujui tidak boleh lewat tanpa
+        // jejak. Nilai persediaan mengikuti angka ini, dan sebelumnya method ini
+        // sama sekali tidak menulis log — harga bisa berubah tanpa ada catatan
+        // kapan, oleh siapa, dan dari berapa.
+        $this->catatPerubahanHarga($pembelianBahan, $hargaSebelum);
+
         // return redirect()->route('pengajuan-pembelian-bahan.index')->with('success', 'Status berhasil diubah.');
         $page = $request->input('page', 1);
         return redirect()->route('pengajuan-pembelian-bahan.index', ['page' => $page])->with('success', 'Status berhasil diubah.');
     }
 
+
+    /**
+     * Harga revisi per bahan pada satu pengajuan pembelian.
+     *
+     * Kuncinya `bahan_id`, atau `nama_bahan` untuk baris non-bahan (pengajuan
+     * aset), mengikuti cara updateHarga mencocokkan barisnya.
+     *
+     * Harga tersimpan di JSON `new_details` berisi satu objek `new_unit_price`,
+     * bentuk yang ditulis UpdateHargaPembelianBahanCart.
+     *
+     * @return array<int|string, float|null>
+     */
+    private function hargaRevisiPerBahan(int $pembelianBahanId): array
+    {
+        $harga = [];
+
+        foreach (PembelianBahanDetails::where('pembelian_bahan_id', $pembelianBahanId)->get() as $detail) {
+            $revisi = json_decode((string) $detail->new_details, true);
+            $kunci = $detail->bahan_id ?: $detail->nama_bahan;
+
+            $harga[$kunci] = is_array($revisi) && isset($revisi['new_unit_price'])
+                ? (float) $revisi['new_unit_price']
+                : null;
+        }
+
+        return $harga;
+    }
+
+    /**
+     * Catat selisih harga satu penyimpanan form Update Harga ke log activity.
+     *
+     * Ditulis sebagai satu baris berisi seluruh selisih, bukan satu baris per
+     * bahan, supaya satu penyimpanan form tetap terbaca sebagai satu kejadian.
+     *
+     * Kalau tidak ada harga yang berubah tidak ada yang dicatat: form yang sama
+     * juga dipakai untuk mengubah ongkir, PPN, dan keterangan saja.
+     *
+     * @param array<int|string, float|null> $hargaSebelum
+     */
+    private function catatPerubahanHarga(PembelianBahan $pembelianBahan, array $hargaSebelum): void
+    {
+        $perubahan = [];
+        $baris = PembelianBahanDetails::with('dataBahan')
+            ->where('pembelian_bahan_id', $pembelianBahan->id)
+            ->get();
+
+        foreach ($baris as $detail) {
+            $revisi = json_decode((string) $detail->new_details, true);
+            $kunci = $detail->bahan_id ?: $detail->nama_bahan;
+            $sebelum = (float) ($hargaSebelum[$kunci] ?? 0);
+            $sesudah = is_array($revisi) ? (float) ($revisi['new_unit_price'] ?? 0) : 0.0;
+
+            if (abs($sebelum - $sesudah) < 0.001) {
+                continue;
+            }
+
+            $perubahan[] = sprintf(
+                '%s: %s -> %s',
+                $detail->dataBahan->nama_bahan ?? $detail->nama_bahan ?? ('Bahan #' . $kunci),
+                number_format($sebelum, 2, ',', '.'),
+                number_format($sesudah, 2, ',', '.')
+            );
+        }
+
+        if (empty($perubahan)) {
+            return;
+        }
+
+        LogHelper::success(sprintf(
+            'Harga pengajuan pembelian %s diubah oleh %s. %s',
+            $pembelianBahan->kode_transaksi ?? ('#' . $pembelianBahan->id),
+            Auth::user()->name ?? 'Tidak diketahui',
+            implode('; ', $perubahan)
+        ));
+    }
 
     public function update(Request $request, string $id)
     {

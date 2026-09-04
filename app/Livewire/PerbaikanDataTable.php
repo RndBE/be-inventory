@@ -61,7 +61,10 @@ class PerbaikanDataTable extends Component
             || $user->hasRole('software')
             || $user->can('lihat-semua-perbaikan-data');
 
-        $perbaikanDatas = PerbaikanData::with('approvalKendalas')
+        // `penunjukan` ikut dimuat karena tiap baris memeriksa apakah suratnya
+        // sudah terbit untuk memilih tombol yang ditampilkan. Tanpa eager load,
+        // itu satu query per baris.
+        $perbaikanDatas = PerbaikanData::with(['approvalKendalas', 'penunjukan'])
             ->when(! $dapatLihatSemua, function ($query) use ($userName) {
                 $query->where('pengaju', $userName);
             })

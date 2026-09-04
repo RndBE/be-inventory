@@ -313,11 +313,28 @@
                         </li>
                     @endcan
                     @can('lihat-perbaikan-data')
-                        <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['perbaikan-data'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
+                        <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['perbaikan-data', 'penunjukan-perbaikan-data'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
                             <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['perbaikan-data.index'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('perbaikan-data.index') }}">
                                 <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="22"  height="22"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-database @if(in_array(Request::segment(1), ['perbaikan-data'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12.75m-4 0a4 1.75 0 1 0 8 0a4 1.75 0 1 0 -8 0" /><path d="M8 12.5v3.75c0 .966 1.79 1.75 4 1.75s4 -.784 4 -1.75v-3.75" /><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22"  height="22"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-database @if(in_array(Request::segment(1), ['perbaikan-data', 'penunjukan-perbaikan-data'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12.75m-4 0a4 1.75 0 1 0 8 0a4 1.75 0 1 0 -8 0" /><path d="M8 12.5v3.75c0 .966 1.79 1.75 4 1.75s4 -.784 4 -1.75v-3.75" /><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /></svg>
                                     <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Perbaikan Data</span>
+                                </div>
+                            </a>
+                        </li>
+                    @endcan
+                    {{--
+                        Sengaja di sini dan bukan di kelompok Log Activity: kelompok itu
+                        dibungkus @role('superadmin'), sedangkan yang perlu membaca jejak
+                        koreksi justru finance, accounting, dan direksi — mereka tidak
+                        akan pernah melihatnya dari sana walau permission-nya sudah
+                        diberikan.
+                    --}}
+                    @can('lihat-audit-perubahan-data')
+                        <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if(in_array(Request::segment(1), ['audit-perubahan-data'])){{ 'from-red-500/[0.12] dark:from-red-500/[0.24] to-red-500/[0.04]' }}@endif">
+                            <a class="block text-gray-800 dark:text-gray-100 truncate transition @if(!in_array(Request::segment(1), ['audit-perubahan-data'])){{ 'hover:text-gray-900 dark:hover:text-white' }}@endif" href="{{ route('audit-perubahan-data.index') }}">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 icon icon-tabler icons-tabler-outline icon-tabler-history @if(in_array(Request::segment(1), ['audit-perubahan-data'])){{ 'text-[#B40404]' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8l0 4l2 2" /><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" /></svg>
+                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Audit Perubahan Data</span>
                                 </div>
                             </a>
                         </li>

@@ -135,6 +135,14 @@ class QcWizard extends Component
                 // ledger cukup terjadi sekali, saat barangnya diproses ke gudang.
                 $panjangStandar = SatuanBahanHelper::panjangStandar($detail->dataBahan);
 
+                // Harga yang sudah disetujui di pengajuan pembelian, dipakai
+                // sebagai nilai awal kolom harga. Sebelumnya kolom ini selalu
+                // dikosongkan dan petugas mengetik ulang angka yang sebenarnya
+                // sudah ikut ter-load di baris ini. Dari situ harga di lot bisa
+                // berbeda dari harga yang diapprove tanpa ada yang menyadarinya,
+                // dan angka lot itulah yang jadi nilai persediaan.
+                $hargaDisetujui = $this->hargaPembelianDisetujui($detail);
+
                 return [
                     'bahan_id'          => $detail->dataBahan->id,
                     'nama_bahan'        => $detail->dataBahan->nama_bahan,
@@ -156,7 +164,13 @@ class QcWizard extends Component
                     'fisik_baik'        => '',
                     'fisik_rusak'       => '',
                     'fisik_retur'       => '',
-                    'unit_price'        => '',
+                    'unit_price'        => $hargaDisetujui ?? '',
+                    // Disimpan terpisah supaya form bisa menandai kalau petugas
+                    // mengubah angkanya. Harga invoice supplier memang kadang
+                    // beda dari yang diajukan, jadi kolomnya tetap boleh diisi
+                    // ulang — yang tidak boleh adalah selisih itu lewat tanpa
+                    // ada yang tahu.
+                    'harga_pengajuan'   => $hargaDisetujui,
                     'statusQc'          => '',
                     'notes'             => '',
                     'supplier_id'       => '',
@@ -392,6 +406,42 @@ class QcWizard extends Component
     //         session()->flash('error', 'Gagal menyimpan data: ' . $th->getMessage());
     //     }
     // }
+    /**
+     * Harga per unit yang sudah disetujui di pengajuan pembelian.
+     *
+     * Dua kolomnya sama-sama JSON berisi satu objek, bukan larik, mengikuti
+     * bentuk yang ditulis UpdateHargaPembelianBahanCart: `new_details` berisi
+     * `new_unit_price` dan `details` berisi `unit_price`. `new_details`
+     * didahulukan karena itu harga hasil revisi lewat form Update Harga — kalau
+     * pernah direvisi, itulah angka yang berlaku terakhir.
+     *
+     * Satuannya tidak perlu dikonversi: pengajuan pembelian dan QC sama-sama
+     * berbicara per batang untuk bahan batangan, dan konversi ke satuan ledger
+     * baru terjadi sekali di catatLot saat barangnya diproses ke gudang.
+     *
+     * Mengembalikan null kalau pengajuannya hanya berisi harga dolar. Kolom
+     * harga di QC bersatuan rupiah, dan mengisinya dengan nol akan terbaca
+     * sebagai harga yang sudah disetujui.
+     */
+    private function hargaPembelianDisetujui($detail): ?float
+    {
+        $revisi = json_decode((string) $detail->new_details, true);
+        $awal = json_decode((string) $detail->details, true);
+
+        $kandidat = [
+            is_array($revisi) ? ($revisi['new_unit_price'] ?? null) : null,
+            is_array($awal) ? ($awal['unit_price'] ?? null) : null,
+        ];
+
+        foreach ($kandidat as $harga) {
+            if (is_numeric($harga) && (float) $harga > 0) {
+                return (float) $harga;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Aturan validasi detail bahan
      */

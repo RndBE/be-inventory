@@ -48,10 +48,21 @@ class HrisPegawai
         }
 
         try {
-            $respons = Http::withHeaders(['X-API-KEY' => $key])
+            $permintaan = Http::withHeaders(['X-API-KEY' => $key])
                 ->acceptJson()
-                ->timeout((int) config('services.hris.timeout', 5))
-                ->get($url . '/api/pegawai/by-email', ['email' => $email]);
+                ->timeout((int) config('services.hris.timeout', 5));
+
+            // Berkas CA hanya dipakai kalau disetel DAN ada. Verifikasi
+            // sertifikat tidak pernah dimatikan: HRIS mengirim data
+            // kepegawaian, dan sambungan yang tidak diverifikasi berarti
+            // siapa pun di jaringan bisa menjadi HRIS.
+            $ca = (string) config('services.hris.ca');
+
+            if ($ca !== '' && is_file($ca)) {
+                $permintaan = $permintaan->withOptions(['verify' => $ca]);
+            }
+
+            $respons = $permintaan->get($url . '/api/pegawai/by-email', ['email' => $email]);
         } catch (Throwable $e) {
             // Umumnya HRIS mati atau jaringan putus. Dicatat supaya ketahuan
             // kalau dokumen mulai sering terisi dari cadangan.

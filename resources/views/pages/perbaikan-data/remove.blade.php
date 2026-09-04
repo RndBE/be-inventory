@@ -32,13 +32,21 @@
                 <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                 </svg>
-                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Apakah Anda yakin ingin menghapus pengajuan perbaikan data ini?</h3>
+                {{--
+                    Bunyinya "batalkan", bukan "hapus": controllernya sudah tidak
+                    menghapus apa pun. Tiket dan lampirannya tetap tersimpan
+                    sebagai arsip karena keduanya jadi dasar jejak audit.
+                --}}
+                <h3 class="mb-2 text-lg font-normal text-gray-500 dark:text-gray-400">Batalkan pengajuan perbaikan data ini?</h3>
+                <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
+                    Pengajuan ditandai dibatalkan. Berkas dan lampirannya tetap tersimpan sebagai arsip, tidak dihapus.
+                </p>
                 <div class="flex justify-center gap-4">
                     <form action="{{ route('perbaikan-data.destroy', (int)$id_perbaikan_data) }}" method="POST" class="inline-flex">
                         {{ csrf_field() }}
                         {{ method_field('DELETE') }}
                         <button type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
-                            Yakin
+                            Batalkan Pengajuan
                         </button>
                     </form>
                     <button wire:click="closeModal" type="button" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">

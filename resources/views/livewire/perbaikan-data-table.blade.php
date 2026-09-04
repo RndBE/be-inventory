@@ -142,6 +142,46 @@
                         </td>
 
                         <td class="px-6 py-3 flex space-x-2">
+                            {{-- Detail: satu-satunya jalan ke daftar perubahan dan
+                                 tombol eksekusinya. Dibuka untuk semua yang boleh
+                                 melihat perbaikan data, karena melihat isi pengajuan
+                                 tidak sama dengan boleh menerapkannya. --}}
+                            <a href="{{ route('perbaikan-data.show', $perbaikanData->id) }}"
+                                title="Detail &amp; eksekusi"
+                                class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-indigo-600 hover:border-indigo-600">
+                                <svg class="w-[16px] h-[16px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/>
+                                    <path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                                </svg>
+                            </a>
+
+                            {{-- Penunjukan. Kalau suratnya sudah terbit, yang
+                                 ditampilkan tautan ke suratnya — bukan tombol
+                                 terbitkan yang pasti ditolak controller karena
+                                 satu pengajuan hanya boleh punya satu surat. --}}
+                            @if ($perbaikanData->penunjukan)
+                                @can('lihat-penunjukan-perbaikan-data')
+                                <a href="{{ route('penunjukan-perbaikan-data.show', $perbaikanData->penunjukan->id) }}"
+                                    title="Surat penunjukan {{ $perbaikanData->penunjukan->nomorSuratCetak() }}"
+                                    class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-emerald-600 hover:border-emerald-600">
+                                    <svg class="w-[16px] h-[16px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3v4a1 1 0 0 0 1 1h4M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/>
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 14 2 2 4-4"/>
+                                    </svg>
+                                </a>
+                                @endcan
+                            @elseif (!$perbaikanData->dibatalkan_pada && !in_array($perbaikanData->status, ['Ditolak', 'Dibatalkan'], true))
+                                @can('tambah-penunjukan-perbaikan-data')
+                                    <a href="{{ route('penunjukan-perbaikan-data.create', ['perbaikan_data_id' => $perbaikanData->id]) }}"
+                                        title="Terbitkan penunjukan pelaksana"
+                                        class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-700 hover:border-slate-700">
+                                        <svg class="w-[16px] h-[16px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12h4m-2-2v4M9 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 13H3v-1a5 5 0 0 1 10 0v1h-1Z"/>
+                                        </svg>
+                                    </a>
+                                @endcan
+                            @endif
+
                             <!-- Tombol Edit -->
                             @can('edit-perbaikan-data')
                                 <a href="{{ route('perbaikan-data.edit', $perbaikanData->id) }}" class="rounded-md border border-slate-300 py-1 px-2 text-center text-xs transition-all shadow-sm hover:shadow-lg text-slate-600 hover:text-white hover:bg-yellow-600 hover:border-yellow-600 focus:text-white focus:bg-yellow-600 focus:border-yellow-600 active:border-yellow-600 active:text-white active:bg-yellow-600 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">

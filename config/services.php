@@ -52,6 +52,16 @@ return [
         'url' => env('HRIS_URL'),
         'key' => env('HRIS_API_KEY'),
         'timeout' => env('HRIS_TIMEOUT', 5),
+
+        // Berkas CA untuk memverifikasi sertifikat HRIS. Kosongkan di server
+        // yang trust store sistemnya sudah benar — itu keadaan normal, dan
+        // dibiarkan kosong berarti memakai trust store itu.
+        //
+        // Diperlukan di lingkungan yang PHP-nya tidak punya `curl.cainfo`,
+        // mis. PHP hasil unduh manual di Windows. Tanpa itu setiap panggilan
+        // gagal dengan cURL error 60 dan pemanggilnya cuma melihat null.
+        // Yang diisi PATH berkas .pem — verifikasi tidak pernah dimatikan.
+        'ca' => env('HRIS_CA_BUNDLE'),
     ],
 
     /*

@@ -63,6 +63,8 @@ use App\Http\Controllers\StokProduksiController;
 use App\Http\Controllers\GaransiProjekController;
 use App\Http\Controllers\LaporanProyekController;
 use App\Http\Controllers\PerbaikanDataController;
+use App\Http\Controllers\PenunjukanPerbaikanDataController;
+use App\Http\Controllers\AuditPerubahanDataController;
 use App\Http\Controllers\KalkulasiRestockProdukJadiController;
 use App\Http\Controllers\InventoryTokenController;
 use App\Http\Controllers\PembelianBahanController;
@@ -174,7 +176,10 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     Route::get('jenisbahan-expot', [JenisBahanController::class, 'export'])->name('jenisbahan-expot.export');
     Route::resource('unit', UnitController::class);
     Route::get('unit-export', [UnitController::class, 'export'])->name('unit.export');
-    Route::resource('purchases', PurchaseController::class);
+    // Tanpa 'edit' dan 'update': method-nya tidak ada di PurchaseController,
+    // jadi route-nya hanya menghasilkan error. Koreksi bahan masuk lewat modul
+    // Perbaikan Data supaya approval dan jejak auditnya ikut jalan.
+    Route::resource('purchases', PurchaseController::class)->except(['edit', 'update']);
     Route::get('purchases-export', [PurchaseController::class, 'export'])->name('purchases-export.export');
     Route::resource('kontrak', KontrakController::class);
 
@@ -308,8 +313,48 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
         return Excel::download(new LaporanGaransiProyekExport($garansi_proyek_id), 'LaporanGaransiProyek.xlsx');
     })->name('laporan-garansi-proyek.export');
 
+    // Didaftarkan sebelum resource: tanpa ini 'perbaikan-data/opsi-record'
+    // tertangkap lebih dulu oleh route show yang parameternya {perbaikan_data}.
+    Route::get('/perbaikan-data/opsi-record', [PerbaikanDataController::class, 'opsiRecord'])
+        ->name('perbaikan-data.opsi-record');
     Route::resource('perbaikan-data', PerbaikanDataController::class);
     Route::put('/perbaikan-data/updateApproval/{id}', [PerbaikanDataController::class, 'updateApproval'])->name('perbaikan-data.updateApproval');
+    Route::post('/perbaikan-data/{id}/eksekusi', [PerbaikanDataController::class, 'eksekusi'])
+        ->whereNumber('id')->name('perbaikan-data.eksekusi');
+
+    // Tab Penunjukan pada modul Perbaikan Data. Didaftarkan satu per satu, bukan
+    // sebagai resource, karena route non-parameter ('create', 'opsi-pengajuan')
+    // harus berada sebelum route berparameter — resource mendaftarkan show lebih
+    // dulu, dan 'penunjukan-perbaikan-data/create' akan tertangkap di sana.
+    Route::prefix('penunjukan-perbaikan-data')->name('penunjukan-perbaikan-data.')->group(function () {
+        Route::get('/opsi-pengajuan', [PenunjukanPerbaikanDataController::class, 'opsiPengajuan'])
+            ->name('opsi-pengajuan');
+        Route::get('/create', [PenunjukanPerbaikanDataController::class, 'create'])->name('create');
+        Route::post('/', [PenunjukanPerbaikanDataController::class, 'store'])->name('store');
+        Route::get('/{id}', [PenunjukanPerbaikanDataController::class, 'show'])
+            ->whereNumber('id')->name('show');
+        Route::get('/{id}/edit', [PenunjukanPerbaikanDataController::class, 'edit'])
+            ->whereNumber('id')->name('edit');
+        Route::put('/{id}', [PenunjukanPerbaikanDataController::class, 'update'])
+            ->whereNumber('id')->name('update');
+        Route::delete('/{id}', [PenunjukanPerbaikanDataController::class, 'destroy'])
+            ->whereNumber('id')->name('destroy');
+        Route::put('/{id}/pelaksanaan', [PenunjukanPerbaikanDataController::class, 'pelaksanaan'])
+            ->whereNumber('id')->name('pelaksanaan');
+        // Word, bukan PDF: suratnya masih disunting sebelum ditandatangani.
+        // Nama route tetap 'pdf' supaya tautan yang sudah tersebar — di
+        // pesan WhatsApp penunjukan, misalnya — tidak mati.
+        Route::get('/{id}/surat', [PenunjukanPerbaikanDataController::class, 'exportWord'])
+            ->whereNumber('id')->name('pdf');
+        // Lembar konfirmasi pelaksanaan saja, untuk dicetak setelah pelaksana
+        // menjawab. Halaman instruksinya sudah ditandatangani dan diarsipkan.
+        Route::get('/{id}/konfirmasi', [PenunjukanPerbaikanDataController::class, 'exportKonfirmasi'])
+            ->whereNumber('id')->name('konfirmasi');
+    });
+
+    // Baca saja. Tidak ada route tulis: barisnya ditulis PerbaikanDataService
+    // saat koreksi dieksekusi, dan AuditPerubahanData menolak update dan delete.
+    Route::get('audit-perubahan-data', [AuditPerubahanDataController::class, 'index'])->name('audit-perubahan-data.index');
 
     Route::resource('kalkulasi-restock-produk-jadi', KalkulasiRestockProdukJadiController::class);
 

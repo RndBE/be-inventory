@@ -200,7 +200,49 @@ class PerbaikanDataService
         $definisi = $this->definisiField($modul, $field);
         $record = $this->record($modul, $modulId);
 
-        return $this->normalkan($record->{$field}, $definisi['tipe']);
+        return $this->normalkan($this->nilaiMentah($record, $field, $definisi), $definisi['tipe']);
+    }
+
+    /**
+     * Isi satu kolom pada sebuah record, sebelum dinormalkan.
+     *
+     * Sebagian nilai yang tampil di layar sebagai kolom tersendiri sebenarnya
+     * tersimpan di dalam kolom JSON — harga satuan baris pembelian tinggal di
+     * `details`, bukan di kolom `unit_price`. Bagi pengaju bedanya tidak ada:
+     * dia melihat "Harga Satuan" di halaman dan itu yang salah ketik.
+     *
+     * Tanpa jalur ini kolomnya masih bisa dipasang di config, tapi nilai
+     * lamanya selalu terbaca kosong. Itu bukan sekadar tampilan yang jelek:
+     * pemeriksaan di terapkan() membandingkan nilai lama yang dicatat dengan
+     * isi database sekarang, dan dua-duanya null akan selalu cocok — harga
+     * yang keburu diubah orang lain sejak pengajuan dibuat tidak akan
+     * ketahuan, dan baris auditnya mencatat "dari (kosong)" untuk angka yang
+     * sebenarnya ada isinya.
+     *
+     * Yang didukung hanya JSON berisi satu objek datar. Bentuk daftar (satu
+     * baris per lot alokasi) sengaja dikembalikan null, bukan diambil elemen
+     * pertamanya: kalau nilainya lebih dari satu, tidak ada satu angka yang
+     * jujur bisa dicatat sebagai nilai lama.
+     */
+    private function nilaiMentah(Model $record, string $field, array $definisi)
+    {
+        $json = $definisi['json'] ?? null;
+
+        if (! is_array($json)) {
+            return $record->{$field};
+        }
+
+        $isi = $record->{$json['kolom']} ?? null;
+
+        if (is_string($isi)) {
+            $isi = json_decode($isi, true);
+        }
+
+        if (! is_array($isi) || array_is_list($isi)) {
+            return null;
+        }
+
+        return $isi[$json['key']] ?? null;
     }
 
     /**
@@ -330,7 +372,10 @@ class PerbaikanDataService
 
             foreach ($field as $nama) {
                 $definisi = $this->definisiField($modul, $nama);
-                $nilai[$nama] = $this->normalkan($record->{$nama}, $definisi['tipe']);
+                $nilai[$nama] = $this->normalkan(
+                    $this->nilaiMentah($record, $nama, $definisi),
+                    $definisi['tipe']
+                );
             }
 
             return [
@@ -475,7 +520,7 @@ class PerbaikanDataService
 
         $record = $this->record($modul, $modulId);
 
-        $nilaiSekarang = $this->normalkan($record->{$field}, $definisi['tipe']);
+        $nilaiSekarang = $this->normalkan($this->nilaiMentah($record, $field, $definisi), $definisi['tipe']);
         $nilaiLamaDicatat = $this->normalkan($koreksi['nilai_lama'], $definisi['tipe']);
 
         if ($nilaiSekarang !== $nilaiLamaDicatat) {

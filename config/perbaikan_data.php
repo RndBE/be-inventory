@@ -40,18 +40,19 @@ use App\Models\StockOpname;
 /**
  * Kurasi kolom untuk modul Perbaikan Data.
  *
- * PENTING: berkas ini BUKAN daftar putih. Modul Perbaikan Data mencatat
- * koreksi, tidak menjalankannya — perubahan datanya dikerjakan tim software
- * langsung di database. Karena itu daftar kolom yang muncul di form adalah
- * gabungan dua sumber:
+ * PENTING: berkas ini menentukan seluruh isi dropdown "Data yang ingin
+ * diubah". Yang tidak ditulis di sini tidak bisa dipilih, dan kolom yang tidak
+ * bisa dipilih berarti perubahannya terjadi tanpa jejak — persis keadaan yang
+ * modul ini ada untuk mencegahnya. Jadi kalau ada kolom yang tampil di layar
+ * tapi tidak muncul di form, itu bukan penyaringan yang disengaja, melainkan
+ * kolom yang belum sempat ditulis ke sini.
  *
- *   1. Yang ditulis di sini.
- *   2. Sisa kolom tabelnya, dibaca langsung dari skema oleh
- *      PerbaikanDataService::fieldModul().
+ * (Berkas ini pernah cuma jadi pelengkap label, dengan sisa kolom dibaca
+ * sendiri dari skema. Itu sudah tidak berlaku; PerbaikanDataService::fieldModul()
+ * sekarang membaca berkas ini saja.)
  *
- * Menghilangkan sebuah kolom dari berkas ini TIDAK membuatnya tidak bisa
- * dipilih. Kolom yang tidak bisa dipilih berarti perubahannya terjadi tanpa
- * jejak, dan itu persis keadaan yang modul ini ada untuk mencegahnya.
+ * Modul Perbaikan Data mencatat koreksi, tidak menjalankannya — perubahan
+ * datanya dikerjakan tim software langsung di database.
  *
  * Yang tidak pernah ikut, karena bukan data yang bisa salah ketik: primary key,
  * kolom relasi (`*_id`), dan `created_at` / `updated_at` / `deleted_at`.
@@ -71,6 +72,17 @@ use App\Models\StockOpname;
  *   Ini satu-satunya penjagaan yang masih benar-benar berlaku di sini.
  * - Urutan. Kolom yang ditulis di sini muncul lebih dulu di dropdown, jadi yang
  *   paling sering dikoreksi tidak perlu dicari di tengah puluhan kolom lain.
+ * - `json`. Untuk nilai yang tampil di layar sebagai kolom tersendiri padahal
+ *   disimpan di dalam kolom JSON, mis. harga satuan baris pembelian yang
+ *   tinggal di `details`. Isinya `['kolom' => 'details', 'key' => 'unit_price']`:
+ *   kolom pembungkusnya dan kunci di dalamnya. Nama kunci di berkas ini boleh
+ *   sama dengan nama kunci JSON-nya — yang penting nama itu unik di dalam satu
+ *   modul, karena dipakai sebagai identitas kolom di baris audit.
+ *
+ *   Hanya untuk JSON yang isinya satu objek datar. JSON yang isinya daftar
+ *   (`bahan_keluar_details.details` berisi satu baris per lot alokasi FIFO)
+ *   tidak bisa ditunjuk begini: nilainya bukan satu, jadi tidak ada satu angka
+ *   yang bisa dicatat sebagai nilai lama.
  *
  * Kunci di tingkat modul:
  *
@@ -260,6 +272,27 @@ return [
                 'nama_bahan' => ['label' => 'Nama Bahan', 'tipe' => 'string'],
                 'jml_bahan' => ['label' => 'Kebutuhan', 'tipe' => 'decimal'],
                 'sub_total' => ['label' => 'Sub Total', 'tipe' => 'decimal'],
+                // Harga satuan bukan kolom tabel: nilainya tinggal di dalam
+                // JSON `details` / `details_usd`. Lihat penjelasan kunci `json`
+                // di kepala berkas ini.
+                //
+                // Rupiah dan mata uang asing diisi terpisah oleh pengguna dan
+                // tidak ada kurs yang tersimpan di baris ini, jadi keduanya
+                // kolom yang berdiri sendiri. Koreksi harga USD tidak dengan
+                // sendirinya membetulkan harga rupiahnya — kalau dua-duanya
+                // salah, dua-duanya harus diajukan.
+                'unit_price' => [
+                    'label' => 'Harga Satuan (Rp)',
+                    'tipe' => 'decimal',
+                    'wajib_lampiran' => true,
+                    'json' => ['kolom' => 'details', 'key' => 'unit_price'],
+                ],
+                'unit_price_usd' => [
+                    'label' => 'Harga Satuan (Mata Uang Asing)',
+                    'tipe' => 'decimal',
+                    'wajib_lampiran' => true,
+                    'json' => ['kolom' => 'details_usd', 'key' => 'unit_price_usd'],
+                ],
             ],
         ],
 

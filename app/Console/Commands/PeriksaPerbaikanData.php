@@ -121,15 +121,26 @@ class PeriksaPerbaikanData extends Command
             return 0;
         }
 
-        $field = array_keys((array) ($konfigurasi['field'] ?? []));
+        $field = (array) ($konfigurasi['field'] ?? []);
 
         if ($field === []) {
             $this->catat($slug, 'tidak punya satu pun kolom di daftar field.');
         }
 
-        foreach ($field as $nama) {
-            if (! in_array($nama, $kolom, true)) {
-                $this->catat($slug, "kolom {$nama} tidak ada di tabel {$tabel}.");
+        foreach ($field as $nama => $definisi) {
+            // Kolom bertanda `json` tidak punya kolomnya sendiri di tabel:
+            // nilainya di dalam kolom pembungkus, dan itu yang harus ada.
+            // Isi JSON-nya sendiri tidak diperiksa di sini — kuncinya bisa
+            // saja belum ada di sebagian baris lama, dan itu bukan salah
+            // config melainkan keadaan datanya.
+            $dicari = is_array($definisi) && isset($definisi['json']['kolom'])
+                ? $definisi['json']['kolom']
+                : $nama;
+
+            if (! in_array($dicari, $kolom, true)) {
+                $this->catat($slug, $dicari === $nama
+                    ? "kolom {$nama} tidak ada di tabel {$tabel}."
+                    : "kolom {$nama} menunjuk kolom JSON {$dicari} yang tidak ada di tabel {$tabel}.");
             }
         }
 

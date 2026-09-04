@@ -58,6 +58,7 @@ class PerbaikanDataServiceTest extends TestCase
             $tabel->string('kode_transaksi')->nullable();
             $tabel->string('no_invoice')->nullable();
             $tabel->decimal('qty', 15, 2)->nullable();
+            $tabel->text('details')->nullable();
             $tabel->timestamps();
         });
 
@@ -87,6 +88,11 @@ class PerbaikanDataServiceTest extends TestCase
             'field' => [
                 'no_invoice' => ['label' => 'No Invoice', 'tipe' => 'string'],
                 'qty' => ['label' => 'Jumlah', 'tipe' => 'decimal'],
+                'unit_price' => [
+                    'label' => 'Harga Satuan',
+                    'tipe' => 'decimal',
+                    'json' => ['kolom' => 'details', 'key' => 'unit_price'],
+                ],
             ],
         ]);
     }
@@ -593,7 +599,124 @@ class PerbaikanDataServiceTest extends TestCase
         );
     }
 
+    /**
+     * Kolom yang isinya di dalam JSON tetap terbaca nilai lamanya.
+     *
+     * Harga satuan baris pembelian tidak punya kolom sendiri; nilainya di
+     * dalam `details`. Tanpa pembacaan ini kolomnya masih muncul di dropdown,
+     * tapi nilai lamanya selalu kosong — dan nilai lama kosong bukan cuma
+     * jelek dipandang, ia melumpuhkan pemeriksaan di test berikutnya.
+     */
+    #[Test]
+    public function nilai_lama_kolom_di_dalam_json_terbaca(): void
+    {
+        $this->siapkanTabelUji();
 
+        try {
+            $baris = ModelUjiKoreksi::create([
+                'kode_transaksi' => 'UJI-JSON',
+                'details' => json_encode(['qty' => 3, 'unit_price' => 185]),
+            ]);
+
+            $this->assertSame(
+                '185',
+                $this->service->nilaiSekarang('uji_koreksi', $baris->id, 'unit_price')
+            );
+        } finally {
+            $this->bereskanTabelUji();
+        }
+    }
+
+    /**
+     * Daftar pilihan record ikut membawa nilai kolom JSON-nya.
+     *
+     * Jalur yang berbeda dari nilaiSekarang() dan gampang tertinggal. Kotak
+     * "nilai sekarang" di form pengajuan tidak memanggil service per baris;
+     * ia membaca nilai yang sudah ikut terkirim bersama daftar pilihan record.
+     * Kalau hanya nilaiSekarang() yang bisa membaca JSON, kolomnya tampil di
+     * dropdown tapi kotak nilainya tetap kosong saat dipilih — dan pengaju
+     * mengira kolomnya rusak.
+     */
+    #[Test]
+    public function daftar_pilihan_record_membawa_nilai_kolom_json(): void
+    {
+        $this->siapkanTabelUji();
+
+        try {
+            ModelUjiKoreksi::create([
+                'kode_transaksi' => 'UJI-JSON',
+                'details' => json_encode(['qty' => 3, 'unit_price' => 185]),
+            ]);
+
+            $opsi = $this->service->opsiRecord('uji_koreksi');
+
+            $this->assertSame('185', $opsi[0]['nilai']['unit_price']);
+        } finally {
+            $this->bereskanTabelUji();
+        }
+    }
+
+    /**
+     * Harga yang keburu berubah sejak diajukan tetap ketahuan.
+     *
+     * Inti gunanya membaca isi JSON. Kalau nilai lamanya selalu null,
+     * pemeriksaan ini membandingkan null dengan null, selalu lolos, dan baris
+     * auditnya mencatat perpindahan nilai yang tidak pernah terjadi.
+     */
+    #[Test]
+    public function koreksi_harga_json_yang_nilainya_sudah_berubah_ditolak(): void
+    {
+        $this->siapkanTabelUji();
+
+        try {
+            $baris = ModelUjiKoreksi::create([
+                'kode_transaksi' => 'UJI-JSON',
+                'details' => json_encode(['qty' => 3, 'unit_price' => 200]),
+            ]);
+
+            $this->expectException(PerbaikanDataDitolak::class);
+
+            $this->service->terapkan([
+                'modul' => 'uji_koreksi',
+                'modul_id' => $baris->id,
+                'field' => 'unit_price',
+                'nilai_lama' => 185,
+                'nilai_baru' => 230,
+                'alasan' => 'harga satuan tertukar dengan baris lain',
+            ]);
+        } finally {
+            $this->bereskanTabelUji();
+        }
+    }
+
+    /**
+     * JSON yang isinya daftar tidak dipaksa jadi satu angka.
+     *
+     * Sebagian kolom `details` menyimpan satu baris per lot alokasi. Di sana
+     * "harga satuan" bukan satu nilai, dan mengambil elemen pertamanya akan
+     * mencatat nilai lama yang kelihatan benar padahal cuma sebagian.
+     */
+    #[Test]
+    public function json_berbentuk_daftar_tidak_dibaca_sebagai_satu_nilai(): void
+    {
+        $this->siapkanTabelUji();
+
+        try {
+            $baris = ModelUjiKoreksi::create([
+                'kode_transaksi' => 'UJI-JSON',
+                'details' => json_encode([
+                    ['qty' => 2, 'unit_price' => 185],
+                    ['qty' => 1, 'unit_price' => 230],
+                ]),
+            ]);
+
+            $this->assertNull(
+                $this->service->nilaiSekarang('uji_koreksi', $baris->id, 'unit_price')
+            );
+        } finally {
+            $this->bereskanTabelUji();
+        }
+    }
 }
 
 /**

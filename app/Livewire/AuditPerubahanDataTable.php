@@ -91,39 +91,65 @@ class AuditPerubahanDataTable extends Component
             'daftarJenis' => $this->jenisYangPernahAda($modulPerJenis),
             'kunciKelompok' => $this->kunciKelompok($audit->items()),
             'tinggiKelompok' => $this->tinggiKelompok($audit->items()),
-            'alasanSeragam' => $this->alasanSeragam($audit->items()),
+            'runAlasan' => $this->runAlasan($audit->items()),
         ]);
     }
 
     /**
-     * Alasan yang berlaku untuk seluruh kelompok: kunci => alasan, atau null.
+     * Deret baris beralasan sama yang berurutan: id => [awal, tinggi].
      *
-     * Satu tiket sering memuat beberapa baris dengan alasan yang sama persis —
-     * "perubahan spesifikasi sehingga harga satuannya juga berubah" ditulis
-     * sekali di form lalu menempel ke tiap baris. Diulang ke bawah, kalimat
-     * panjang itu jadi bagian paling ramai di tabel padahal isinya satu.
+     * Satu tiket sering memuat beberapa baris beralasan sama persis — kalimat
+     * yang ditulis sekali di form lalu menempel ke tiap baris. Diulang ke
+     * bawah, kalimat panjang itu jadi bagian paling ramai di tabel padahal
+     * isinya satu.
      *
-     * Null kalau alasannya berbeda-beda. Di situ pengulangan bukan kebisingan
-     * melainkan isi: baris shipping cost dan baris harga satuan pada tiket yang
-     * sama bisa punya sebab yang tidak sama, dan menampilkan salah satunya
-     * sebagai alasan bersama akan mengarang.
+     * Yang digabung deret berurutan, bukan seluruh kelompok. Pengecekan
+     * "semua baris di kelompok ini beralasan sama" gagal begitu satu baris
+     * saja berbeda — dan justru itu bentuk yang paling lazim: dua baris harga
+     * satuan beralasan sama, disusul baris shipping cost yang alasannya lain.
+     * Menyerah pada kasus itu berarti mengulang kalimat yang sama persis tepat
+     * di tempat pengulangannya paling terlihat.
      *
      * @param  array<int, AuditPerubahanData>  $baris
-     * @return array<string, string|null>
+     * @return array<int, array{awal: bool, tinggi: int}>
      */
-    private function alasanSeragam(array $baris): array
+    private function runAlasan(array $baris): array
     {
         $kunciPer = $this->kunciKelompok($baris);
-        $terkumpul = [];
+        $hasil = [];
+        $idAwal = null;
+        $sebelumnya = null;
 
         foreach ($baris as $satu) {
-            $terkumpul[$kunciPer[$satu->id]][] = (string) $satu->alasan;
+            $tanda = $kunciPer[$satu->id] . '|' . (string) $satu->alasan;
+
+            if ($tanda !== $sebelumnya) {
+                $idAwal = $satu->id;
+                $hasil[$satu->id] = ['awal' => true, 'tinggi' => 0];
+                $sebelumnya = $tanda;
+            } else {
+                $hasil[$satu->id] = ['awal' => false, 'tinggi' => 0];
+            }
+
+            $hasil[$idAwal]['tinggi']++;
         }
 
-        return array_map(
-            fn (array $alasan) => count(array_unique($alasan)) === 1 ? $alasan[0] : null,
-            $terkumpul
-        );
+        // Tinggi deretnya baru diketahui setelah deret itu habis, jadi baris
+        // penerusnya menyalin dari barisan awalnya di akhir, bukan saat lewat.
+        $tinggiPer = [];
+
+        foreach ($baris as $satu) {
+            if ($hasil[$satu->id]['awal']) {
+                $idAwal = $satu->id;
+            }
+
+            $tinggiPer[$satu->id] = [
+                'awal' => $hasil[$satu->id]['awal'],
+                'tinggi' => $hasil[$idAwal]['tinggi'],
+            ];
+        }
+
+        return $tinggiPer;
     }
 
     /**

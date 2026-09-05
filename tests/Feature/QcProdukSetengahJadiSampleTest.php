@@ -6,9 +6,12 @@ use App\Livewire\Quality\QcProdukSetengahJadiTable;
 use App\Models\BahanSetengahjadi;
 use App\Models\BahanSetengahjadiDetails;
 use App\Models\ProdukSample;
+use App\Models\Qc1ProdukSetengahJadi;
 use App\Models\QcProdukSetengahJadiList;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class QcProdukSetengahJadiSampleTest extends TestCase
@@ -50,6 +53,26 @@ class QcProdukSetengahJadiSampleTest extends TestCase
             $table->decimal('qty', 15, 2)->default(0);
             $table->decimal('unit_price', 15, 2)->default(0);
             $table->decimal('sub_total', 15, 2)->default(0);
+            $table->timestamps();
+        });
+
+        Schema::create('qc_1_produk_setengah_jadi', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_qc')->nullable();
+            $table->dateTime('tgl_qc')->nullable();
+            $table->string('petugas_qc')->nullable();
+            $table->unsignedBigInteger('id_produk_setengah_jadi_list');
+            $table->string('grade')->nullable();
+            $table->string('laporan_qc')->nullable();
+            $table->text('catatan')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('qc_dokumentasi_produk_setengah_jadi', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('qc1_id')->nullable();
+            $table->unsignedBigInteger('qc2_id')->nullable();
+            $table->string('file_path');
             $table->timestamps();
         });
 
@@ -137,5 +160,44 @@ class QcProdukSetengahJadiSampleTest extends TestCase
         $stock = BahanSetengahjadi::with('bahanSetengahjadiDetails')->first();
         $this->assertCount(1, $stock->bahanSetengahjadiDetails);
         $this->assertSame('SAMPLE-SN-001', BahanSetengahjadiDetails::first()->serial_number);
+    }
+
+    public function test_edit_qc_persists_uploaded_report_before_reporting_success(): void
+    {
+        Storage::fake('public');
+
+        $qcList = QcProdukSetengahJadiList::create([
+            'kode_list' => 'PRD-20260413135218-0002-9',
+            'qty' => 1,
+            'unit_price' => 389299.68,
+            'sub_total' => 389299.68,
+        ]);
+
+        $qc = Qc1ProdukSetengahJadi::create([
+            'kode_qc' => 'QC-20260708113435-PRD',
+            'id_produk_setengah_jadi_list' => $qcList->id,
+            'grade' => 'A',
+            'catatan' => 'ACC',
+        ]);
+
+        $component = new QcProdukSetengahJadiTable;
+        $component->grade = 'A';
+        $component->catatan = 'ACC';
+        $component->laporan_qc = UploadedFile::fake()->create(
+            'MSCAM_2607081617000023.pdf',
+            275,
+            'application/pdf'
+        );
+
+        $component->updateQc($qc->id, 1);
+
+        $qc->refresh();
+        $this->assertNotNull($qc->laporan_qc);
+        $this->assertStringEndsWith('MSCAM_2607081617000023.pdf', $qc->laporan_qc);
+        Storage::disk('public')->assertExists($qc->laporan_qc);
+        $this->assertDatabaseHas('log_activities', [
+            'status' => 'Success',
+            'message' => 'QC 1 [QC-20260708113435-PRD] berhasil diperbarui',
+        ]);
     }
 }

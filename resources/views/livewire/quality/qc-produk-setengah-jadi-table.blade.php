@@ -361,7 +361,7 @@
     </div>
 
     <!-- Modal Edit QC -->
-    <div x-data="{ open: false, qc: null, id: null }"
+    <div x-data="{ open: false, qc: null, id: null, uploading: false }"
         x-on:open-edit-qc-modal.window="
             open = true;
             qc = $event.detail.qc;
@@ -372,6 +372,11 @@
             } else {
                 $wire.set('grade', ''); // reset jika QC1
             }"
+        x-on:livewire-upload-start="uploading = true"
+        x-on:livewire-upload-finish="uploading = false"
+        x-on:livewire-upload-error="uploading = false"
+        x-on:livewire-upload-cancel="uploading = false"
+        x-on:qc-edit-saved.window="open = false; uploading = false"
         x-show="open" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50" style="display: none;">
         <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6" @click.outside="open = false; $wire.resetForm()">
             <h2 class="text-lg font-bold mb-4">Edit QC <span x-text="qc"></span></h2>
@@ -400,6 +405,9 @@
                 <input type="file" wire:model="laporan_qc" accept="application/pdf"
                     class="mt-1 block w-full text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm"/>
                 @error('laporan_qc') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                <p x-show="uploading" x-cloak class="mt-2 text-sm text-blue-600">
+                    Sedang mengunggah file, mohon tunggu...
+                </p>
             </div>
 
             <!-- Catatan -->
@@ -472,9 +480,14 @@
             <!-- Tombol -->
             <div class="flex justify-end space-x-2">
                 <button @click="open=false" class="px-4 py-2 bg-gray-300 rounded-lg">Batal</button>
-                <button wire:click="updateQc(id, qc)" @click="open=false"
-                    class="px-4 py-2 bg-theme-1 text-white rounded-lg">
-                    Update
+                <button type="button"
+                    wire:click="updateQc(id, qc)"
+                    :disabled="uploading"
+                    wire:loading.attr="disabled"
+                    wire:target="laporan_qc,dokumentasi,updateQc"
+                    class="px-4 py-2 bg-theme-1 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span wire:loading.remove wire:target="updateQc">Update</span>
+                    <span wire:loading wire:target="updateQc">Menyimpan...</span>
                 </button>
             </div>
         </div>

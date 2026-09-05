@@ -110,17 +110,21 @@ class QcProdukSetengahJadiTable extends Component
                 'dokumentasi.*' => 'file|mimes:jpg,jpeg,png,webp|max:4096',
             ]);
 
+            $oldLaporanPath = $model->laporan_qc;
+            $newLaporanPath = null;
+
             // Upload laporan QC baru (jika ada)
             if ($this->laporan_qc) {
-                // Hapus file lama kalau ada
-                if ($model->laporan_qc) {
-                    Storage::disk('public')->delete($model->laporan_qc);
-                }
-
                 $originalName = $this->laporan_qc->getClientOriginalName();
                 $fileName = $jenisQc . '-' . $kodeQc . '-' . $originalName;
                 $path = $this->laporan_qc->storeAs('laporan-qc', $fileName, 'public');
+
+                if (!$path || !Storage::disk('public')->exists($path)) {
+                    throw new \RuntimeException('File laporan QC gagal disimpan ke penyimpanan permanen.');
+                }
+
                 $model->laporan_qc = $path;
+                $newLaporanPath = $path;
             }
 
             $model->grade   = $this->grade;
@@ -135,7 +139,10 @@ class QcProdukSetengahJadiTable extends Component
                     $fileName = $jenisQc . '-' . $kodeQc . '-' . $originalName;
                     $path = $file->storeAs('dokumentasi-qc', $fileName, 'public');
 
-                    // $path = $file->store('dokumentasi-qc', 'public');
+                    if (!$path || !Storage::disk('public')->exists($path)) {
+                        throw new \RuntimeException('File dokumentasi QC gagal disimpan ke penyimpanan permanen.');
+                    }
+
                     QcDokumentasiProdukSetengahJadi::create([
                         $foreignKey => $model->id,
                         'file_path' => $path
@@ -154,10 +161,16 @@ class QcProdukSetengahJadiTable extends Component
                 }
             }
 
+            // File lama baru dihapus setelah path baru berhasil disimpan ke database.
+            if ($newLaporanPath && $oldLaporanPath && $oldLaporanPath !== $newLaporanPath) {
+                Storage::disk('public')->delete($oldLaporanPath);
+            }
+
             $this->resetForm();
             $this->hapus_dokumentasi = [];
 
             LogHelper::success("{$jenisQc} [{$kodeQc}] berhasil diperbarui");
+            $this->dispatch('qc-edit-saved');
             $this->dispatch('swal:success', [
                 'title' => 'Berhasil',
                 'text'  => "{$jenisQc} [{$kodeQc}] berhasil diperbarui"

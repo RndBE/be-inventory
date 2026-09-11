@@ -103,6 +103,16 @@ class PembelianBahan extends Model
         return $this->belongsTo(User::class, 'pengaju');
     }
 
+    /**
+     * General Affair yang memproses tahap GA, dibekukan saat tombol persetujuan
+     * ditekan. Null untuk baris lama dan untuk pengajuan yang belum sampai tahap
+     * GA — pemanggilnya jatuh ke resolver berbasis tanggal.
+     */
+    public function generalAffair()
+    {
+        return $this->belongsTo(User::class, 'ga_id');
+    }
+
     public function pembelianBahanDetails()
     {
         return $this->hasMany(PembelianBahanDetails::class, 'pembelian_bahan_id');

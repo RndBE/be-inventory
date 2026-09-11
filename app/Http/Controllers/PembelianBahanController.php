@@ -164,12 +164,10 @@ class PembelianBahanController extends Controller
                 return User::where('name', $pembelianBahan->pengisi_harga)->first();
             });
 
-            $generalUser = cache()->remember('general_user', 60, function () {
-                return User::whereHas('roles', function ($query) {
-                    $query->where('name', 'general_affair');
-                })
-                    ->first();
-            });
+            // Pejabat yang dibekukan di record menang; resolver tanggal hanya
+            // untuk baris lama dan pengajuan yang belum sampai tahap GA.
+            $generalUser = $pembelianBahan->generalAffair
+                ?? $this->resolveGeneralAffairUser($pembelianBahan->tgl_pengajuan ?? null);
 
 
 
@@ -323,12 +321,10 @@ class PembelianBahanController extends Controller
 
             $purchasingUser = $this->resolvePurchasingUser($pembelianBahan->tgl_pengajuan ?? null);
 
-            $generalUser = cache()->remember('general_user', 60, function () {
-                return User::whereHas('roles', function ($query) {
-                    $query->where('name', 'general_affair');
-                })
-                    ->first();
-            });
+            // Pejabat yang dibekukan di record menang; resolver tanggal hanya
+            // untuk baris lama dan pengajuan yang belum sampai tahap GA.
+            $generalUser = $pembelianBahan->generalAffair
+                ?? $this->resolveGeneralAffairUser($pembelianBahan->tgl_pengajuan ?? null);
 
             $tandaTanganPurchasing = $purchasingUser->tanda_tangan ?? null;
 
@@ -891,9 +887,15 @@ class PembelianBahanController extends Controller
                     // })->where('job_level', 3)->first();
                     // $targetRole = "General Affair";
 
+                    // Hanya pemegang role yang masih aktif: role approval tidak
+                    // selalu dicabut saat karyawan keluar, dan pemegang lama punya
+                    // id lebih kecil sehingga tanpa filter dia yang menang.
                     $targetUser = User::whereHas('roles', function ($query) {
                         $query->where('name', 'general_affair');
-                    })->first();
+                    })
+                        ->where('status', 'Aktif')
+                        ->orderBy('id')
+                        ->first();
 
                     $targetRole = "General Affair";
                 } else {
@@ -971,6 +973,9 @@ class PembelianBahanController extends Controller
 
             $data->status_general_manager = $validated['status_general_manager'];
             $data->tgl_approve_general_manager = $tgl_approve_general_manager;
+            // Bekukan pejabatnya di record. Tanpa ini, nama & tanda tangan GA di
+            // PDF ikut berubah setiap kali role general_affair pindah orang.
+            $data->ga_id = Auth::id();
             $kendalaMessage = $this->saveApprovalKendala($id, 'General Affair', $data->status_general_manager, $request);
 
             $pengajuan = null;
@@ -1835,6 +1840,39 @@ class PembelianBahanController extends Controller
         return cache()->remember('finance_user_legacy', 60, function () {
             // Format lama untuk data sebelum 2026-07-31 WIB.
             return User::where('name', 'LINA WIDIASTUTI')->first();
+        });
+    }
+
+    /**
+     * General Affair yang nama & tanda tangannya dicetak di PDF.
+     *
+     * Record pengajuan tidak menyimpan id approver, hanya status dan tanggal,
+     * jadi pejabatnya dicari ulang saat PDF dibuat. Tanpa penanda waktu, satu
+     * kali pergantian GA akan menulis ulang nama di semua dokumen lama — karena
+     * itu tanggal pengajuan yang menentukan, sama seperti Purchasing & Finance.
+     *
+     * Serah terima GA dari Widya ke Avissa berlaku 2026-07-31 WIB, bersamaan
+     * dengan pergantian Purchasing & Finance.
+     */
+    private function resolveGeneralAffairUser($tglPengajuan = null)
+    {
+        if ($tglPengajuan && strtotime((string) $tglPengajuan) >= strtotime('2026-07-31 00:00:00')) {
+            return cache()->remember('general_affair_user_aktif', 60, function () {
+                // Role approval tidak selalu dicabut saat karyawan keluar, jadi
+                // filter status: Widya masih memegang role 'general_affair' dan
+                // id-nya lebih kecil, sehingga tanpa filter justru dia yang menang.
+                return User::whereHas('roles', function ($query) {
+                    $query->where('name', 'general_affair');
+                })
+                    ->where('status', 'Aktif')
+                    ->orderBy('id')
+                    ->first();
+            });
+        }
+
+        return cache()->remember('general_affair_user_legacy', 60, function () {
+            // Format lama untuk data sebelum 2026-07-31 WIB.
+            return User::where('name', 'WIDYA ANNISA RAHMAWATI')->first();
         });
     }
 

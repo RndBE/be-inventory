@@ -701,9 +701,14 @@ class PeminjamanAsetController extends Controller
             $target = $pengaju->atasanLevel2;
             $label = 'Manager';
         } elseif ($peminjaman->status !== 'Disetujui') {
+            // Hanya pemegang role yang masih aktif; lihat catatan di
+            // SerahTerimaAsetController::pemegangRoleAktif().
             $target = User::whereHas('roles', function ($query) {
                 $query->where('name', 'general_affair');
-            })->first();
+            })
+                ->where('status', 'Aktif')
+                ->orderBy('id')
+                ->first();
             $label = 'General Affair';
         } elseif ($peminjaman->status_hrd !== 'Disetujui') {
             $target = User::whereHas('roles', function ($query) {

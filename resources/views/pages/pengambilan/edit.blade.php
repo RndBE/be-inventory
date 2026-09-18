@@ -145,6 +145,7 @@
                                                 <option value="OP" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'OP' ? 'selected' : '' }}>OP</option>
                                                 <option value="Administrasi" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Administrasi' ? 'selected' : '' }}>Administrasi</option>
                                                 <option value="Sekretaris" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'Sekretaris' ? 'selected' : '' }}>Sekretaris</option>
+                                                <option value="General Affair" {{ (old('divisi') ?? $pengambilanBahan->divisi) == 'General Affair' ? 'selected' : '' }}>General Affair</option>
                                             </select>
                                         </div>
 

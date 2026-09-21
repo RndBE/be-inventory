@@ -38,6 +38,16 @@ use Illuminate\Support\Facades\DB;
 class PerbaikanDataService
 {
     /**
+     * Batas atas pilihan yang dikirim begitu pengaju mengetik kata pencarian.
+     *
+     * Jauh lebih longgar daripada batas daftar tanpa pencarian, karena yang
+     * diminta sudah spesifik: satu produksi bisa punya ratusan baris bahan, dan
+     * semuanya sah untuk dipilih. Tetap ada batasnya supaya kata pencarian yang
+     * terlalu umum — satu huruf, misalnya — tidak menarik seluruh tabel.
+     */
+    public const BATAS_PENCARIAN = 200;
+
+    /**
      * Pilihan "Jenis Pengajuan" pada form.
      *
      * @return array<int, string>
@@ -278,6 +288,34 @@ class PerbaikanDataService
     }
 
     /**
+     * Ikutkan label record ke dalam pencarian, bukan cuma kode transaksinya.
+     *
+     * Dipanggil di dalam closure `where` supaya syarat ini menjadi OR terhadap
+     * syarat kode, bukan menggantikannya.
+     *
+     * Tanpa ini pencariannya cuma menyentuh kode induk, dan nama bahan yang
+     * jelas-jelas tertulis di tiap pilihan tidak bisa dipakai untuk mencarinya.
+     * Akibatnya fatal pada transaksi besar: satu produksi bisa punya seratus
+     * baris bahan sementara daftarnya dipotong belasan, jadi bahan yang barisnya
+     * paling tua tidak akan pernah muncul dan tidak ada cara mengetiknya.
+     *
+     * Dua sumber label dicoba dua-duanya, sama seperti saat labelnya dirakit.
+     */
+    private function cocokkanLabel($query, array $konfigurasi, string $cari): void
+    {
+        if (isset($konfigurasi['label_relasi'])) {
+            $query->orWhereHas(
+                $konfigurasi['label_relasi']['relasi'],
+                fn ($q) => $q->where($konfigurasi['label_relasi']['kolom'], 'like', '%' . $cari . '%')
+            );
+        }
+
+        if (isset($konfigurasi['label_kolom'])) {
+            $query->orWhere($konfigurasi['label_kolom'], 'like', '%' . $cari . '%');
+        }
+    }
+
+    /**
      * Daftar record yang bisa dipilih pada satu modul, untuk dropdown pencarian.
      *
      * Selalu dibatasi $batas baris. Modul seperti bahan masuk punya puluhan ribu
@@ -309,10 +347,14 @@ class PerbaikanDataService
             $query->with($relasiInduk);
 
             if ($cari !== '') {
-                $query->whereHas(
-                    $relasiInduk,
-                    fn ($q) => $q->where($kodeInduk, 'like', '%' . $cari . '%')
-                );
+                $query->where(function ($q) use ($relasiInduk, $kodeInduk, $cari, $konfigurasi) {
+                    $q->whereHas(
+                        $relasiInduk,
+                        fn ($induk) => $induk->where($kodeInduk, 'like', '%' . $cari . '%')
+                    );
+
+                    $this->cocokkanLabel($q, $konfigurasi, $cari);
+                });
             }
         } else {
             $kolomKode = $konfigurasi['kode'] ?? null;
@@ -324,7 +366,11 @@ class PerbaikanDataService
             }
 
             if ($cari !== '') {
-                $query->where($kolomKode, 'like', '%' . $cari . '%');
+                $query->where(function ($q) use ($kolomKode, $cari, $konfigurasi) {
+                    $q->where($kolomKode, 'like', '%' . $cari . '%');
+
+                    $this->cocokkanLabel($q, $konfigurasi, $cari);
+                });
             }
         }
 
@@ -409,8 +455,25 @@ class PerbaikanDataService
      * kodenya banyak cocok akan menghabiskan seluruh daftar, dan modul lain
      * pada jenis yang sama tidak pernah muncul sama sekali.
      *
+     * Record induk ditaruh di atas baris detailnya. Yang diingat pengaju adalah
+     * transaksinya, jadi transaksi itu sendiri harus jadi pilihan pertama yang
+     * terbaca; baris-baris bahannya menyusul di belakang. Sebelumnya urutannya
+     * mengikuti urutan penulisan di config, dan pada Produksi Produk Setengah
+     * Jadi itu berarti seratus baris bahan lebih dulu, dengan transaksinya
+     * sendiri terkubur di bawah.
+     *
+     * Jatahnya melebar begitu ada kata pencarian. Tanpa kata pencarian daftarnya
+     * cuma jendela ke record terbaru, dan sempit memang benar. Begitu pengaju
+     * mengetik kode transaksinya, yang diminta sudah spesifik — satu produksi
+     * bisa punya seratus baris bahan, dan memotongnya di belasan membuat
+     * sebagian besar barisnya mustahil dipilih.
+     *
+     * Kalau masih ada sisa yang tidak terkirim, itu ikut dilaporkan lewat
+     * `terpotong`. Pemotongan yang diam adalah cara paling pasti membuat orang
+     * menyimpulkan datanya tidak ada.
+     *
      * @param  array<int, string>  $jenis  label jenis pengajuan yang dicentang
-     * @return array<int, array<string, mixed>>
+     * @return array{opsi: array<int, array<string, mixed>>, terpotong: bool}
      */
     public function opsiRecordJenis(array $jenis, ?string $cari = null, int $batas = 30): array
     {
@@ -426,25 +489,42 @@ class PerbaikanDataService
         $slugTerpilih = array_keys($slugTerpilih);
 
         if ($slugTerpilih === []) {
-            return [];
+            return ['opsi' => [], 'terpotong' => false];
         }
+
+        // Induk dulu, baru barisnya. usort() stabil sejak PHP 8.0, jadi urutan
+        // config tetap terjaga di dalam masing-masing kelompok.
+        usort($slugTerpilih, fn ($a, $b) => $this->tingkatModul($a) <=> $this->tingkatModul($b));
+
+        $cari = trim((string) $cari);
 
         // Dibagi rata, minimal lima per modul. Membagi persis rata pada jenis
         // dengan banyak modul menyisakan satu baris per modul — terlalu sedikit
         // untuk bisa dikenali sebagai daftar.
-        $jatah = max(5, (int) ceil($batas / count($slugTerpilih)));
+        $jatah = $cari !== ''
+            ? self::BATAS_PENCARIAN
+            : max(5, (int) ceil($batas / count($slugTerpilih)));
+
         $hasil = [];
+        $terpotong = false;
 
         foreach ($slugTerpilih as $slug) {
             $label = config("perbaikan_data.modul.{$slug}.label", $slug);
 
             try {
-                $opsi = $this->opsiRecord($slug, $cari, $jatah);
+                // Satu lebih banyak dari jatahnya, semata untuk tahu apakah
+                // masih ada sisa. Lebih murah daripada query hitung terpisah.
+                $opsi = $this->opsiRecord($slug, $cari, $jatah + 1);
             } catch (PerbaikanDataDitolak $e) {
                 // Satu modul yang belum punya kolom kode tidak boleh membuat
                 // seluruh daftar gagal: modul lain pada jenis yang sama masih
                 // berguna, dan yang salah confignya, bukan pencarian ini.
                 continue;
+            }
+
+            if (count($opsi) > $jatah) {
+                $terpotong = true;
+                $opsi = array_slice($opsi, 0, $jatah);
             }
 
             $tabel = $this->tabelModul($slug);
@@ -467,7 +547,26 @@ class PerbaikanDataService
             }
         }
 
-        return array_slice(array_values($hasil), 0, max($batas, count($slugTerpilih) * 5));
+        $batasGabungan = $cari !== ''
+            ? self::BATAS_PENCARIAN
+            : max($batas, count($slugTerpilih) * 5);
+
+        $opsi = array_values($hasil);
+
+        if (count($opsi) > $batasGabungan) {
+            $terpotong = true;
+            $opsi = array_slice($opsi, 0, $batasGabungan);
+        }
+
+        return ['opsi' => $opsi, 'terpotong' => $terpotong];
+    }
+
+    /**
+     * 0 untuk record induk, 1 untuk baris detailnya. Dipakai mengurutkan modul.
+     */
+    private function tingkatModul(string $slug): int
+    {
+        return config("perbaikan_data.modul.{$slug}.induk") === null ? 0 : 1;
     }
 
     /**

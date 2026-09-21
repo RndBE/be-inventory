@@ -86,7 +86,15 @@ use App\Models\StockOpname;
  *
  * Kunci di tingkat modul:
  *
- * - `label`       nama modul, jadi awalan label kolom: "<modul> — <kolom>".
+ * - `label`       nama modul, jadi awalan label kolom: "<modul> — <kolom>",
+ *   sekaligus keterangan di belakang tiap pilihan kode transaksi.
+ *   Modul detail yang barisnya satu bahan semuanya diberi label "Bahan",
+ *   bukan nama panjang seperti "Baris Produksi Produk Setengah Jadi".
+ *   Kode induknya sudah disebut di depan pada pilihan yang sama, jadi nama
+ *   panjang itu mengulang yang sudah terbaca dan mendorong nama bahannya
+ *   terpotong. Boleh sama antar modul selama tidak ada dua modul detail
+ *   dalam satu jenis pengajuan — kalau nanti ada, keduanya wajib dibedakan
+ *   lagi, karena label itulah satu-satunya pembeda yang terlihat pengaju.
  * - `model`       kelas Eloquent-nya. Menentukan tabel dan primary key.
  * - `kode`        kolom kode yang dicari di dropdown pemilih record.
  * - `jenis`       label "Jenis Pengajuan" yang memunculkan modul ini di form.
@@ -248,7 +256,7 @@ return [
         ],
 
         'pembelian_bahan_details' => [
-            'label' => 'Baris Pengajuan Pembelian',
+            'label' => 'Bahan',
             'model' => PembelianBahanDetails::class,
             'jenis' => ['Transaksi - Pembelian Bahan'],
             'induk' => [
@@ -297,7 +305,7 @@ return [
         ],
 
         'bahan_keluar_details' => [
-            'label' => 'Baris Bahan Keluar',
+            'label' => 'Bahan',
             'model' => BahanKeluarDetails::class,
             'jenis' => ['Transaksi - Bahan Keluar'],
             'induk' => [
@@ -317,7 +325,7 @@ return [
         ],
 
         'produksi_details' => [
-            'label' => 'Baris Produksi Produk Setengah Jadi',
+            'label' => 'Bahan',
             'model' => ProduksiDetails::class,
             'jenis' => ['Produksi Produk Setengah Jadi'],
             'induk' => [
@@ -336,7 +344,7 @@ return [
         ],
 
         'projek_details' => [
-            'label' => 'Baris Bahan Proyek',
+            'label' => 'Bahan',
             'model' => ProjekDetails::class,
             'jenis' => ['Proyek'],
             'induk' => [
@@ -355,7 +363,7 @@ return [
         ],
 
         'projek_rnd_details' => [
-            'label' => 'Baris Bahan Proyek RnD',
+            'label' => 'Bahan',
             'model' => ProjekRndDetails::class,
             'jenis' => ['Proyek RnD'],
             'induk' => [
@@ -375,7 +383,7 @@ return [
         ],
 
         'garansi_projek_details' => [
-            'label' => 'Baris Bahan Garansi Proyek',
+            'label' => 'Bahan',
             'model' => GaransiProjekDetails::class,
             'jenis' => ['Garansi Proyek'],
             'induk' => [
@@ -394,7 +402,7 @@ return [
         ],
 
         'produk_sample_details' => [
-            'label' => 'Baris Bahan Produk Sample',
+            'label' => 'Bahan',
             'model' => ProdukSampleDetails::class,
             'jenis' => ['Produk Sample'],
             'induk' => [
@@ -413,7 +421,7 @@ return [
         ],
 
         'pengambilan_bahan_details' => [
-            'label' => 'Baris Pengambilan Bahan',
+            'label' => 'Bahan',
             'model' => PengambilanBahanDetails::class,
             'jenis' => ['Pengambilan Bahan Non Proyek/Produksi'],
             'induk' => [
@@ -432,7 +440,7 @@ return [
         ],
 
         'produksi_produk_jadi_details' => [
-            'label' => 'Baris Produksi Produk Jadi',
+            'label' => 'Bahan',
             'model' => ProduksiProdukJadiDetails::class,
             'jenis' => ['Produksi Produk Jadi'],
             'induk' => [
@@ -451,7 +459,7 @@ return [
         ],
 
         'bahan_retur_details' => [
-            'label' => 'Baris Bahan Retur',
+            'label' => 'Bahan',
             'model' => BahanReturDetails::class,
             'jenis' => ['Bahan Retur'],
             'induk' => [
@@ -471,7 +479,7 @@ return [
         ],
 
         'qc_bahan_masuk_details' => [
-            'label' => 'Baris QC Bahan Masuk',
+            'label' => 'Bahan',
             'model' => QcBahanMasukDetails::class,
             'jenis' => ['QC Bahan Masuk'],
             'induk' => [

@@ -522,7 +522,7 @@
                 label.classList.toggle('text-gray-900', !! teks);
             }
 
-            function gambarOpsi(baris, opsi, pesanKosong) {
+            function gambarOpsi(baris, opsi, pesanKosong, terpotong) {
                 const daftar = baris.querySelector('[data-opsi]');
                 daftar.innerHTML = '';
 
@@ -549,6 +549,16 @@
                         li.textContent = item.label;
                         daftar.appendChild(li);
                     });
+                }
+
+                // Daftar yang dipotong harus mengatakannya. Tanpa baris ini
+                // barisnya yang tidak terkirim tidak bisa dibedakan dari barisnya
+                // yang memang tidak ada, dan pengaju berhenti mencari.
+                if (terpotong) {
+                    const sisa = document.createElement('li');
+                    sisa.className = 'relative cursor-default select-none border-t py-2 pl-3 pr-9 text-xs text-gray-500';
+                    sisa.textContent = 'Masih ada yang belum ditampilkan. Persempit pencarian, mis. ketik nama bahannya.';
+                    daftar.appendChild(sisa);
                 }
             }
 
@@ -586,7 +596,8 @@
                     gambarOpsi(
                         baris,
                         data.opsi || [],
-                        kata ? 'Tidak ada kode yang cocok dengan "' + kata + '".' : 'Belum ada data pada jenis ini.'
+                        kata ? 'Tidak ada kode yang cocok dengan "' + kata + '".' : 'Belum ada data pada jenis ini.',
+                        !! data.terpotong
                     );
                 } catch (e) {
                     gambarOpsi(baris, [], 'Gagal menghubungi server.');
@@ -676,7 +687,7 @@
                                 '</button>' +
                                 '<div data-panel class="hidden absolute z-50 mt-1 top-full w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">' +
                                     '<div class="p-2 border-b border-gray-200">' +
-                                        '<input type="text" data-kode autocomplete="off" placeholder="Cari kode transaksi..." class="block w-full rounded-md border-0 py-1.5 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600">' +
+                                        '<input type="text" data-kode autocomplete="off" placeholder="Cari kode transaksi atau nama bahan..." class="block w-full rounded-md border-0 py-1.5 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600">' +
                                     '</div>' +
                                     '<ul data-opsi class="py-1 text-sm" style="max-height: 15rem; overflow-y: auto;"></ul>' +
                                 '</div>' +

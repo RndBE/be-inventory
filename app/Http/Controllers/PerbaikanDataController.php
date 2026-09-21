@@ -58,11 +58,13 @@ class PerbaikanDataController extends Controller
         ]);
 
         try {
-            $opsi = isset($validated['modul'])
-                ? $perbaikan->opsiRecord($validated['modul'], $validated['q'] ?? null)
+            // Pemanggil yang menyebut modulnya sendiri tidak mengenal konsep
+            // "terpotong": dia minta satu tabel, dan dapat sebanyak batasnya.
+            $hasil = isset($validated['modul'])
+                ? ['opsi' => $perbaikan->opsiRecord($validated['modul'], $validated['q'] ?? null), 'terpotong' => false]
                 : $perbaikan->opsiRecordJenis($validated['jenis'], $validated['q'] ?? null);
 
-            return response()->json(['opsi' => $opsi]);
+            return response()->json($hasil);
         } catch (PerbaikanDataDitolak $e) {
             return response()->json(['pesan' => $e->getMessage()], 422);
         }

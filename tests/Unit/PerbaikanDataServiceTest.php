@@ -301,8 +301,8 @@ class PerbaikanDataServiceTest extends TestCase
     #[Test]
     public function tanpa_jenis_tidak_ada_record_yang_dicari(): void
     {
-        $this->assertSame([], $this->service->opsiRecordJenis([]));
-        $this->assertSame([], $this->service->opsiRecordJenis(['Jenis Yang Tidak Ada']));
+        $this->assertSame(['opsi' => [], 'terpotong' => false], $this->service->opsiRecordJenis([]));
+        $this->assertSame(['opsi' => [], 'terpotong' => false], $this->service->opsiRecordJenis(['Jenis Yang Tidak Ada']));
     }
 
     /**

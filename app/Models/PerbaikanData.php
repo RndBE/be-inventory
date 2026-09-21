@@ -16,6 +16,30 @@ class PerbaikanData extends Model
         'tgl_pengajuan' => 'datetime',
     ];
 
+    /**
+     * Pengaju tiket ini.
+     *
+     * Inilah rujukan yang benar untuk "siapa yang mengajukan". Kolom `pengaju`
+     * hanya menyimpan namanya sebagai teks, dan nama bisa berubah — atau, pada
+     * data lama, sempat tertimpa nama penyunting terakhir. Yang dipakai untuk
+     * menampilkan dan mengirim notifikasi harus relasi ini, bukan teksnya.
+     *
+     * Bisa null pada tiket lama yang dibuat sebelum kolom `user_id` ada; di
+     * situ kolom `pengaju` tetap jadi satu-satunya petunjuk yang tersisa.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Nama pengaju untuk ditampilkan.
+     */
+    public function namaPengaju(): string
+    {
+        return $this->user->name ?? ($this->pengaju ?: '-');
+    }
+
     public function lampiran()
     {
         return $this->hasMany(LampiranPerbaikanData::class, 'perbaikan_data_id');

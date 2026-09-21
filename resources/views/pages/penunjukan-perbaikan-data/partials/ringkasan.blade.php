@@ -11,7 +11,7 @@
 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
     <div class="flex"><dt class="w-28 text-gray-500">Kode</dt><dd class="font-medium text-gray-800">{{ $pengajuan->kode_pengajuan }}</dd></div>
     <div class="flex"><dt class="w-28 text-gray-500">Status</dt><dd class="text-gray-800">{{ $pengajuan->status }}</dd></div>
-    <div class="flex"><dt class="w-28 text-gray-500">Pengaju</dt><dd class="text-gray-800">{{ $pengajuan->pengaju ?: '-' }}</dd></div>
+    <div class="flex"><dt class="w-28 text-gray-500">Pengaju</dt><dd class="text-gray-800">{{ $pengajuan->namaPengaju() }}</dd></div>
     <div class="flex"><dt class="w-28 text-gray-500">Tgl Pengajuan</dt><dd class="text-gray-800">{{ optional($pengajuan->tgl_pengajuan)->format('d/m/Y H:i') ?? '-' }}</dd></div>
     <div class="flex sm:col-span-2"><dt class="w-28 text-gray-500">Jenis</dt><dd class="text-gray-800">{{ $pengajuan->jenis ?: '-' }}</dd></div>
 </dl>

@@ -94,7 +94,7 @@ class PenunjukanPerbaikanDataController extends Controller
 
         $kata = trim((string) ($validated['q'] ?? ''));
 
-        $pengajuan = PerbaikanData::with('target')
+        $pengajuan = PerbaikanData::with(['target', 'user'])
             ->whereNull('dibatalkan_pada')
             ->whereNotIn('status', self::STATUS_TERTUTUP)
             // Pengajuan yang sudah punya surat tidak muncul lagi: satu
@@ -110,9 +110,9 @@ class PenunjukanPerbaikanDataController extends Controller
             'opsi' => $pengajuan->map(fn (PerbaikanData $data) => [
                 'id' => $data->id,
                 'kode' => $data->kode_pengajuan,
-                'label' => $data->kode_pengajuan . ' — ' . ($data->pengaju ?: 'tanpa pengaju'),
+                'label' => $data->kode_pengajuan . ' — ' . $data->namaPengaju(),
                 'jenis' => $data->jenis ?: '-',
-                'pengaju' => $data->pengaju ?: '-',
+                'pengaju' => $data->namaPengaju(),
                 'status' => $data->status,
                 'tgl_pengajuan' => optional($data->tgl_pengajuan)->format('d/m/Y H:i') ?? '-',
                 'perubahan' => $data->target->map(fn ($target) => [

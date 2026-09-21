@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use Carbon\Carbon;
 use App\Models\BahanKeluar;
+use App\Services\AsalBahanMasukService;
 use App\Services\ProductFlowService;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Maatwebsite\Excel\Concerns\FromArray;
@@ -18,12 +19,14 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
     protected $startDate;
     protected $endDate;
     protected ProductFlowService $flowService;
+    protected AsalBahanMasukService $asalService;
 
     public function __construct($startDate, $endDate)
     {
         $this->startDate = $startDate;
         $this->endDate   = $endDate;
         $this->flowService = new ProductFlowService();
+        $this->asalService = new AsalBahanMasukService();
     }
 
     public function array(): array
@@ -37,7 +40,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
         $data[] = ['Rekap Bahan Keluar (Disetujui)'];
         $data[] = ["Periode: {$startFmt} s/d {$endFmt}"];
 
-        // ── Kolom header tabel (10 kolom: A–J) ──────────────────────
+        // ── Kolom header tabel (22 kolom: A–V) ──────────────────────
         //  A    B                C               D              E           F                G            H            I              J
         $data[] = [
             'No',
@@ -57,6 +60,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
             'Tujuan Flow',
             'Kode Tujuan',
             'Status Flow',
+            ...$this->asalService->headings(),
         ];
 
         // ── Query data ───────────────────────────────────────────────
@@ -101,6 +105,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                 '— ' . ($transaction->keterangan ?? '-') . ' —',
                 '', '', '',
                 '', '', '', '', '', '', '',
+                '', '', '', '', '',
             ];
 
             $transactionTotal = 0;
@@ -124,27 +129,41 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
                 $transactionTotal += $subTotal;
                 $transactionQty   += $detail->qty ?? 0;
 
-                // ── Baris detail item ─────────────────────────────────
-                $data[] = [
-                    $counter++,
-                    $tglPengajuan,
-                    $jamPengajuan,
-                    $tglKeluar,
-                    $jamKeluar,
-                    $transaction->kode_transaksi,
-                    $namaBahan,
-                    $detail->qty ?? 0,    // H: Kuantitas
-                    $subTotal,             // I: Jumlah Harga
-                    $transaction->keterangan ?? '-',
-                    ...$this->flowService->values($this->flowService->forBahanKeluarDetail($detail)),
-                ];
+                $flowValues = $this->flowService->values($this->flowService->forBahanKeluarDetail($detail));
+
+                // ── Baris detail item, satu baris per lot bahan masuk ─
+                // Satu pengeluaran bisa memakan beberapa lot pembelian. Kuantitas
+                // dan Jumlah Harga hanya ditulis di baris lot pertama; kalau
+                // diulang di baris lanjutannya, angka detailnya akan terhitung
+                // berkali-kali begitu kolomnya dijumlahkan atau di-pivot.
+                $asalRows = $this->asalService->untukDetailBahanKeluar($detail);
+                $nomor    = $counter++;
+
+                foreach ($asalRows as $index => $asal) {
+                    $barisPertama = $index === 0;
+
+                    $data[] = [
+                        $barisPertama ? $nomor : '',
+                        $tglPengajuan,
+                        $jamPengajuan,
+                        $tglKeluar,
+                        $jamKeluar,
+                        $transaction->kode_transaksi,
+                        $namaBahan,
+                        $barisPertama ? ($detail->qty ?? 0) : '',   // H: Kuantitas
+                        $barisPertama ? $subTotal : '',              // I: Jumlah Harga
+                        $transaction->keterangan ?? '-',
+                        ...$flowValues,
+                        ...$this->asalService->values($asal),
+                    ];
+                }
             }
 
             // ── Baris "Total Item" (di bawah kolom Kuantitas / H) ────
-            $data[] = ['', '', '', '', '', '', 'Total Item', $transactionQty, '', '', '', '', '', '', '', '', ''];
+            $data[] = ['', '', '', '', '', '', 'Total Item', $transactionQty, '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
 
             // ── Baris "Subtotal" (di bawah kolom Jumlah Harga / I) ───
-            $data[] = ['', '', '', '', '', '', 'Subtotal', '', $transactionTotal, '', '', '', '', '', '', '', ''];
+            $data[] = ['', '', '', '', '', '', 'Subtotal', '', $transactionTotal, '', '', '', '', '', '', '', '', '', '', '', '', ''];
         }
 
         return $data;
@@ -157,7 +176,7 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
 
     public function styles(Worksheet $sheet)
     {
-        $lastCol = 'Q'; // 17 kolom A-Q
+        $lastCol = 'V'; // 22 kolom A-V
 
         // ── Judul & Periode ──────────────────────────────────────────
         $sheet->mergeCells("A1:{$lastCol}1");
@@ -197,8 +216,10 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
             ],
         ]);
 
-        // ── Format kolom Tanggal & Jam sebagai teks (cegah auto-konversi Excel) ─
-        foreach (['B', 'C', 'D', 'E'] as $col) {
+        // ── Format kolom Tanggal, Jam, kode & invoice sebagai teks ──
+        // Tanpa ini Excel membaca "12/03/2025" sebagai tanggal lokalnya sendiri
+        // dan nomor invoice yang kebetulan semua angka kehilangan nol depannya.
+        foreach (['B', 'C', 'D', 'E', 'R', 'S', 'T'] as $col) {
             $sheet->getStyle("{$col}4:{$col}{$highestRow}")
                 ->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT);
         }
@@ -206,6 +227,10 @@ class BahanKeluarExport implements FromArray, WithHeadings, WithStyles
         // ── Format angka ─────────────────────────────────────────────
         // H: Kuantitas → right-align
         $sheet->getStyle("H4:H{$highestRow}")
+            ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        // U: Qty dari Lot → right-align
+        $sheet->getStyle("U4:U{$highestRow}")
             ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
         // I: Jumlah Harga → format Rupiah 2 desimal + right-align

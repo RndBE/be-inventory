@@ -64,7 +64,7 @@ class PerbaikanDataTable extends Component
         // `penunjukan` ikut dimuat karena tiap baris memeriksa apakah suratnya
         // sudah terbit untuk memilih tombol yang ditampilkan. Tanpa eager load,
         // itu satu query per baris.
-        $perbaikanDatas = PerbaikanData::with(['approvalKendalas', 'penunjukan'])
+        $perbaikanDatas = PerbaikanData::with(['approvalKendalas', 'penunjukan', 'user'])
             ->when(! $dapatLihatSemua, function ($query) use ($userName) {
                 $query->where('pengaju', $userName);
             })

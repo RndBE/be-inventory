@@ -26,7 +26,7 @@
             <h6 class="text-xl font-bold text-gray-800 mb-4">{{ $perbaikanData->kode_pengajuan }}</h6>
             <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                 <div class="flex"><dt class="w-40 text-gray-500">Jenis</dt><dd class="text-gray-800">{{ $perbaikanData->jenis ?: '-' }}</dd></div>
-                <div class="flex"><dt class="w-40 text-gray-500">Pengaju</dt><dd class="text-gray-800">{{ $perbaikanData->pengaju ?: '-' }}</dd></div>
+                <div class="flex"><dt class="w-40 text-gray-500">Pengaju</dt><dd class="text-gray-800">{{ $perbaikanData->namaPengaju() }}</dd></div>
                 <div class="flex"><dt class="w-40 text-gray-500">Tgl Pengajuan</dt><dd class="text-gray-800">{{ optional($perbaikanData->tgl_pengajuan)->format('d/m/Y H:i') ?? '-' }}</dd></div>
                 <div class="flex"><dt class="w-40 text-gray-500">Status</dt><dd class="text-gray-800 font-medium">{{ $perbaikanData->status }}</dd></div>
                 <div class="flex sm:col-span-2"><dt class="w-40 text-gray-500">Catatan</dt><dd class="text-gray-800">{{ $perbaikanData->catatan ?: '-' }}</dd></div>

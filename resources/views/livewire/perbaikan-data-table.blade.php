@@ -88,7 +88,7 @@
                             <strong>{{ $perbaikanData->kode_pengajuan }}</strong>
                         </td>
                         <td class="px-6 py-3">{{ $perbaikanData->jenis }}</td>
-                        <td class="px-6 py-3">{{ $perbaikanData->pengaju }}</td>
+                        <td class="px-6 py-3">{{ $perbaikanData->namaPengaju() }}</td>
                         <td class="px-6 py-3">{{ $perbaikanData->tgl_pengajuan }}</td>
                         <td class="px-6 py-3">{{ $perbaikanData->tgl_diubah }}</td>
                         <td class="px-6 py-3">

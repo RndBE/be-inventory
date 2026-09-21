@@ -524,8 +524,14 @@ class PerbaikanDataController extends Controller
             }
 
             // === Update field dasar ===
+            //
+            // `pengaju` dan `user_id` sengaja tidak disentuh. Keduanya milik
+            // orang yang membuat tiket, dan tiket ini bisa disunting orang lain
+            // — menambah baris perubahan saja sudah lewat sini. Dulu kolom
+            // `pengaju` ditimpa nama penyunting di setiap update, sehingga
+            // penyunting terakhir tampil seolah dialah yang mengajukan, dan
+            // notifikasi hasil approval-nya pun ikut salah alamat.
             $perbaikan->jenis = implode(', ', $request->jenis);
-            $perbaikan->pengaju = Auth::user()->name ?? $perbaikan->pengaju;
             $perbaikan->tgl_pengajuan = $perbaikan->tgl_pengajuan ?? now();
             $perbaikan->status = $perbaikan->status ?? 'Menunggu';
 
@@ -661,8 +667,16 @@ class PerbaikanDataController extends Controller
 
             $data->save();
 
-            // Cari user berdasarkan nama pengaju
-            $user = User::where('name', $data->pengaju)->first();
+            // Penerima notifikasi: pengaju tiket, dicari lewat `user_id`.
+            //
+            // Sebelumnya dicari dari kolom nama. Itu rapuh karena dua sebab:
+            // nama bisa kembar atau berubah, dan pada data lama kolomnya sempat
+            // tertimpa nama penyunting terakhir — akibatnya kabar approval
+            // sampai ke orang yang cuma ikut menyunting, bukan ke pengajunya.
+            //
+            // Pencarian lewat nama dipertahankan sebagai cadangan untuk tiket
+            // lama yang `user_id`-nya memang belum pernah terisi.
+            $user = $data->user ?: User::where('name', $data->pengaju)->first();
 
             if ($user && !empty($user->telephone)) {
                 $targetPhone = $user->telephone;

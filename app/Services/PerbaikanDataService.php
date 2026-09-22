@@ -233,9 +233,24 @@ class PerbaikanDataService
      * baris per lot alokasi) sengaja dikembalikan null, bukan diambil elemen
      * pertamanya: kalau nilainya lebih dari satu, tidak ada satu angka yang
      * jujur bisa dicatat sebagai nilai lama.
+     *
+     * Jalur `relasi` mengurus kolom penunjuk. Yang dicatat untuk `bahan_id`
+     * bukan angkanya melainkan nama bahannya, karena angka id tidak pernah
+     * tampil di halaman mana pun: baris audit "1769 → 189" praktis tidak bisa
+     * diperiksa tanpa membuka database, sedangkan "9.5*5 09 side passive
+     * buzzer → Buzzer 5V" langsung terbaca. Kolom yang tercatat di audit tetap
+     * `bahan_id` apa adanya, jadi barisnya masih menunjuk kolom yang benar.
      */
     private function nilaiMentah(Model $record, string $field, array $definisi)
     {
+        $relasi = $definisi['relasi'] ?? null;
+
+        if (is_array($relasi)) {
+            $tujuan = $record->{$relasi['nama']};
+
+            return $tujuan ? $tujuan->{$relasi['kolom']} : null;
+        }
+
         $json = $definisi['json'] ?? null;
 
         if (! is_array($json)) {
@@ -376,6 +391,17 @@ class PerbaikanDataService
 
         if (isset($konfigurasi['label_relasi'])) {
             $query->with($konfigurasi['label_relasi']['relasi']);
+        }
+
+        // Relasi yang dipakai membaca nilai kolom penunjuk ikut dimuat di muka.
+        // Daftar ini berisi sampai 200 baris dan nilai SETIAP kolom dibaca untuk
+        // tiap baris, jadi tanpa ini satu kali buka dropdown berarti 200 query
+        // tambahan. Kebetulan sering sama dengan `label_relasi`; with() yang
+        // ganda tidak merugikan.
+        foreach ($this->fieldModul($modul) as $definisi) {
+            if (isset($definisi['relasi']['nama'])) {
+                $query->with($definisi['relasi']['nama']);
+            }
         }
 
         $field = array_keys($this->fieldModul($modul));

@@ -340,6 +340,20 @@ return [
                 'qty' => ['label' => 'Jumlah', 'tipe' => 'decimal', 'wajib_lampiran' => true],
                 'jml_bahan' => ['label' => 'Kebutuhan', 'tipe' => 'decimal'],
                 'sub_total' => ['label' => 'Sub Total', 'tipe' => 'decimal'],
+                // Bahan yang salah ditunjuk. Dicatat sebagai nama, bukan angka
+                // id — lihat nilaiMentah(). Yang perlu dipahami pemeriksa: ini
+                // koreksi CATATAN, bukan perpindahan stok. Menukar penunjuk
+                // bahan tidak mengembalikan stok bahan yang salah dan tidak
+                // mengurangi stok bahan yang benar; kedua penyesuaian itu tetap
+                // lewat retur dan pengambilan bahan biasa.
+                'bahan_id' => [
+                    // Label modulnya sendiri sudah "Bahan", jadi label kolomnya
+                    // dibedakan — kalau tidak, dropdown berbunyi "Bahan — Bahan".
+                    'label' => 'Bahan yang Dipakai',
+                    'tipe' => 'string',
+                    'relasi' => ['nama' => 'dataBahan', 'kolom' => 'nama_bahan'],
+                    'wajib_lampiran' => true,
+                ],
             ],
         ],
 

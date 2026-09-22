@@ -297,7 +297,7 @@
                     </div>
 
                     @if ($target->alasan)
-                        <p class="mt-1 text-xs text-gray-600">Alasan: {{ $target->alasan }}</p>
+                        <p class="mt-1 text-xs text-gray-600 whitespace-pre-line">Alasan: {{ $target->alasan }}</p>
                     @endif
 
                     @if ($target->catatan)

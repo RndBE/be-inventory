@@ -206,7 +206,7 @@
                                                         <div class="text-red-700 line-through break-all">{{ $target->nilai_lama ?? '(kosong)' }}</div>
                                                         <div class="text-green-700 font-medium break-all">{{ $target->nilai_baru ?? '(kosong)' }}</div>
                                                         @if($target->alasan)
-                                                            <div class="text-xs text-gray-600 mt-1">Alasan: {{ $target->alasan }}</div>
+                                                            <div class="text-xs text-gray-600 mt-1 whitespace-pre-line">Alasan: {{ $target->alasan }}</div>
                                                         @endif
                                                     </div>
                                                 @empty
@@ -916,9 +916,15 @@
                         // Alasan per baris, bukan per tiket: satu pengajuan bisa
                         // mengoreksi beberapa kolom dengan sebab yang berbeda, dan
                         // inilah yang tersimpan di kolom alasan halaman audit.
+                        // Textarea, bukan input satu baris. Alasan yang berguna
+                        // sering butuh beberapa kalimat — apa yang salah, kenapa
+                        // salah, dan apa yang sudah dikerjakan di luar koreksi
+                        // ini. Sel alasan di halaman audit sudah
+                        // `whitespace-pre-line`, jadi barisnya tetap terbaca
+                        // seperti yang ditulis.
                         '<div class="sm:col-span-2">' +
                             '<label class="block text-xs text-gray-600">Alasan <span class="text-red-600">*</span></label>' +
-                            '<input type="text" data-alasan placeholder="mis. salah ketik nominal, seharusnya sesuai invoice" class="block w-full rounded-md border-gray-300 py-1.5 text-sm ring-1 ring-inset ring-gray-300">' +
+                            '<textarea data-alasan rows="3" placeholder="mis. salah ketik nominal, seharusnya sesuai invoice" class="block w-full rounded-md border-gray-300 py-1.5 text-sm ring-1 ring-inset ring-gray-300"></textarea>' +
                         '</div>' +
                     '</div>' +
                     '<div class="flex items-center justify-between mt-2">' +

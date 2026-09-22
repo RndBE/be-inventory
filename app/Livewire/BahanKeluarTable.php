@@ -123,11 +123,20 @@ class BahanKeluarTable extends Component
         } elseif ($user->hasRole(['software manager'])) {
             $bahan_keluars->whereIn('divisi', ['Software']);
         } elseif ($user->hasRole(['hrd level 3'])) {
-            $bahan_keluars->where('divisi', ['HSE', 'Helper', 'HRD', 'General Affair']);
+            // whereIn, bukan where. where() dengan dua argumen memperlakukan
+            // arraynya sebagai nilai, lalu flattenValue() mengambil elemen
+            // pertama saja — tanpa error. Filternya jadi `divisi = 'HSE'`, dan
+            // pengajuan divisi lain hilang dari tabel meski badge sidebarnya
+            // tetap menghitungnya (CountSidebar memakai jalur DivisiHelper).
+            $bahan_keluars->whereIn('divisi', ['HSE', 'Helper', 'HRD', 'General Affair']);
         } elseif ($user->hasRole(['sekretaris'])) {
-            $bahan_keluars->where('divisi', 'Sekretaris', 'Secretary');
+            // Sebelumnya tiga argumen: 'Sekretaris' terbaca sebagai operator dan
+            // 'Secretary' sebagai nilai. Operator itu tidak dikenal, jadi Laravel
+            // menukar keduanya menjadi `divisi = 'Sekretaris'` — ejaan
+            // 'Secretary' tidak pernah ikut tersaring.
+            $bahan_keluars->whereIn('divisi', ['Sekretaris', 'Secretary']);
         } elseif ($user->hasRole('administrasi')) {
-            $bahan_keluars->where('divisi', ['HSE', 'Sekretaris', 'Administrasi', 'Tax Officer', 'Accounting', 'Secretary']);
+            $bahan_keluars->whereIn('divisi', ['Sekretaris', 'Administrasi', 'Tax Officer', 'Accounting', 'Secretary']);
         } elseif ($user->hasRole(['BD_manager'])) {
             $bahan_keluars->whereIn('divisi', ['Marketing', 'Admin Project', 'Staff BD', 'BD Manager', 'Publikasi']);
         }

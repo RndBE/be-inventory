@@ -164,11 +164,18 @@
                                         </label>
                                         <div class="w-3/4">
                                             @if($targetBisaDiubah)
-                                                <div id="barisPerubahan" class="space-y-3"></div>
-                                                <button type="button" id="tambahBaris"
-                                                    class="mt-3 rounded-md border border-indigo-600 px-3 py-1.5 text-sm font-semibold text-indigo-600 hover:bg-indigo-50">
-                                                    + Tambah baris perubahan
-                                                </button>
+                                                <div id="barisPerubahan" class="space-y-2"></div>
+                                                <div class="mt-3 flex items-center gap-3">
+                                                    <button type="button" id="tambahBaris"
+                                                        class="rounded-md border border-indigo-600 px-3 py-1.5 text-sm font-semibold text-indigo-600 hover:bg-indigo-50">
+                                                        + Tambah baris perubahan
+                                                    </button>
+                                                    {{-- Jumlahnya disebut di luar daftar karena barisnya bisa
+                                                         terlipat: tanpa angka ini, daftar berisi lima ringkasan
+                                                         dan satu baris setengah terisi tidak bisa dibedakan dari
+                                                         daftar berisi enam baris siap kirim. --}}
+                                                    <span id="jumlahBaris" class="text-xs text-gray-500"></span>
+                                                </div>
                                                 <input type="hidden" name="perubahan" id="perubahanJson">
                                                 <p id="pesanJenis" class="text-xs text-amber-700 mt-2"></p>
                                                 <p class="text-xs text-gray-500 mt-2">
@@ -311,6 +318,7 @@
             const tersembunyi = document.getElementById('perubahanJson');
             const tombolTambah = document.getElementById('tambahBaris');
             const pesanJenis = document.getElementById('pesanJenis');
+            const jumlahBaris = document.getElementById('jumlahBaris');
 
             function jenisTercentang() {
                 return Array.prototype.slice
@@ -454,6 +462,107 @@
                 });
 
                 tersembunyi.value = hasil.length ? JSON.stringify(hasil) : '';
+
+                wadah.querySelectorAll('[data-baris]').forEach(perbaruiRingkas);
+                jumlahBaris.textContent = ringkasanJumlah(hasil.length);
+            }
+
+            // Kalimat di sebelah tombol tambah. Baris yang belum lengkap disebut
+            // terpisah karena hanya baris lengkap yang ikut terkirim, dan tanpa
+            // penyebutan itu barisnya yang tertinggal setengah isi tidak terlihat
+            // sebagai masalah sampai pengajuannya ditolak server.
+            function ringkasanJumlah(siap) {
+                const semua = wadah.querySelectorAll('[data-baris]').length;
+
+                if (!semua) {
+                    return '';
+                }
+
+                const kurang = semua - siap;
+
+                return kurang
+                    ? siap + ' baris siap, ' + kurang + ' baris belum lengkap'
+                    : siap + ' baris perubahan';
+            }
+
+            // Lengkap = cukup untuk dikirim DAN cukup untuk diringkas dalam satu
+            // baris. Alasan ikut disyaratkan karena servernya mewajibkannya;
+            // melipat baris tanpa alasan akan menyembunyikan kotak yang justru
+            // membuat pengajuannya ditolak.
+            function lengkap(baris) {
+                return !! kolomBaris(baris)
+                    && !! baris.querySelector('[data-modul-id]').value
+                    && baris.querySelector('[data-nilai-baru]').value.trim() !== ''
+                    && baris.querySelector('[data-alasan]').value.trim() !== '';
+            }
+
+            function nomorUlang() {
+                let i = 0;
+
+                wadah.querySelectorAll('[data-baris]').forEach(function (baris) {
+                    i++;
+
+                    baris.querySelectorAll('[data-nomor]').forEach(function (kotak) {
+                        kotak.textContent = 'Perubahan ' + i;
+                    });
+                });
+            }
+
+            function ringkasanTeks(baris) {
+                const kolom = kolomBaris(baris);
+                const lama = baris.querySelector('[data-nilai-lama]').value;
+                const baru = baris.querySelector('[data-nilai-baru]').value;
+
+                return baris.querySelector('[data-terpilih]').textContent.trim()
+                    + '  ·  ' + (kolom ? kolom.label : '')
+                    + '  ·  ' + (lama === '' ? '(kosong)' : lama)
+                    + '  →  ' + (baru === '' ? '(kosong)' : baru);
+            }
+
+            function perbaruiRingkas(baris) {
+                const bisa = lengkap(baris);
+
+                baris.querySelector('[data-lipat]').classList.toggle('hidden', ! bisa);
+
+                if (bisa) {
+                    baris.querySelectorAll('[data-bentang]')[0].textContent = ringkasanTeks(baris);
+                } else if (baris.dataset.lipat === '1') {
+                    // Baris terlipat yang isinya jadi tidak lengkap lagi — mis.
+                    // centang jenisnya dilepas sehingga kolomnya tidak lagi
+                    // terbaca — dibentangkan kembali, bukan dibiarkan terlipat
+                    // menampilkan ringkasan yang sudah tidak berlaku.
+                    bentang(baris);
+                }
+            }
+
+            function lipat(baris) {
+                if (! lengkap(baris)) return;
+
+                tutupPanel(baris);
+                baris.dataset.lipat = '1';
+                baris.querySelector('[data-ringkas]').classList.remove('hidden');
+                baris.querySelector('[data-isi]').classList.add('hidden');
+                baris.classList.add('hover:bg-gray-100');
+            }
+
+            function bentang(baris) {
+                // Satu baris terbuka sekaligus. Dua baris terbuka berarti
+                // panjangnya kembali seperti sebelum dilipat, dan pengaju
+                // kehilangan gambaran daftarnya secara keseluruhan.
+                wadah.querySelectorAll('[data-baris]').forEach(function (lain) {
+                    if (lain !== baris) {
+                        lipat(lain);
+                    }
+                });
+
+                baris.dataset.lipat = '';
+                baris.querySelector('[data-ringkas]').classList.add('hidden');
+                baris.querySelector('[data-isi]').classList.remove('hidden');
+                baris.classList.remove('hover:bg-gray-100');
+            }
+
+            function lipatSemuaLengkap() {
+                wadah.querySelectorAll('[data-baris]').forEach(lipat);
             }
 
             function tampilkanPesan(baris, teks, jenis) {
@@ -666,6 +775,26 @@
                 baris.dataset.nilai = '{}';
 
                 baris.innerHTML =
+                    // Ringkasan satu baris, dipakai saat barisnya terlipat.
+                    // Isinya sama dengan yang akan tersimpan — kode, kolom, dan
+                    // pergeseran nilainya — supaya melipat tidak berarti
+                    // kehilangan cara memeriksa apa yang diajukan.
+                    '<div data-ringkas class="hidden">' +
+                        '<div class="flex items-center gap-2">' +
+                            '<span class="shrink-0 text-xs font-semibold text-gray-500" data-nomor></span>' +
+                            '<button type="button" data-bentang class="min-w-0 flex-1 truncate text-left text-sm text-gray-800 hover:text-indigo-700"></button>' +
+                            '<button type="button" data-bentang class="shrink-0 text-xs text-indigo-600 hover:underline">Ubah</button>' +
+                            '<button type="button" data-hapus class="shrink-0 text-xs text-red-600 hover:underline">Hapus</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div data-isi>' +
+                    '<div class="mb-2 flex items-center justify-between">' +
+                        '<span class="text-xs font-semibold text-gray-600" data-nomor></span>' +
+                        // Hanya muncul kalau barisnya sudah lengkap: melipat baris
+                        // yang masih bolong akan menyembunyikan justru kotak yang
+                        // belum diisi.
+                        '<button type="button" data-lipat class="hidden text-xs text-indigo-600 hover:underline">Tutup baris</button>' +
+                    '</div>' +
                     '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">' +
                         '<div>' +
                             '<label class="block text-xs text-gray-600">Kode transaksi <span class="text-red-600">*</span></label>' +
@@ -702,11 +831,14 @@
                             // akal ditawarkan.
                             '<select data-kolom disabled class="block w-full rounded-md border-gray-300 py-1.5 text-sm ring-1 ring-inset ring-gray-300 disabled:bg-gray-100 disabled:text-gray-500"></select>' +
                         '</div>' +
-                        '<div class="sm:col-span-2">' +
+                        // Disandingkan, bukan ditumpuk: keduanya dibaca sebagai
+                        // satu pasangan "dari — ke", dan menumpuknya membuat tiap
+                        // baris dua kali lebih tinggi tanpa menambah informasi.
+                        '<div>' +
                             '<label class="block text-xs text-gray-600">Nilai lama (dari database)</label>' +
                             '<input type="text" data-nilai-lama readonly class="block w-full rounded-md border-gray-300 bg-gray-100 py-1.5 text-sm ring-1 ring-inset ring-gray-300">' +
                         '</div>' +
-                        '<div class="sm:col-span-2">' +
+                        '<div>' +
                             '<label class="block text-xs text-gray-600">Nilai baru</label>' +
                             '<input type="text" data-nilai-baru class="block w-full rounded-md border-gray-300 py-1.5 text-sm ring-1 ring-inset ring-gray-300">' +
                         '</div>' +
@@ -721,15 +853,21 @@
                     '<div class="flex items-center justify-between mt-2">' +
                         '<span data-pesan class="text-xs mt-1 text-gray-500"></span>' +
                         '<button type="button" data-hapus class="text-xs text-red-600 hover:underline">Hapus baris</button>' +
+                    '</div>' +
                     '</div>';
 
                 wadah.appendChild(baris);
                 isiPilihanKolom(baris);
+                nomorUlang();
                 return baris;
             }
 
             tombolTambah.addEventListener('click', function () {
-                buatBaris();
+                // Baris yang sudah lengkap dilipat dulu: kalau tidak, baris baru
+                // muncul di bawah tumpukan baris terbuka dan pengaju harus
+                // menggulir mencarinya.
+                lipatSemuaLengkap();
+                bentang(buatBaris());
             });
 
             document.querySelectorAll('[data-jenis]').forEach(function (kotak) {
@@ -764,10 +902,38 @@
                     return;
                 }
 
-                if (e.target.matches('[data-hapus]')) {
+                if (e.target.closest('[data-hapus]')) {
                     baris.remove();
+                    nomorUlang();
                     sinkron();
+                    return;
                 }
+
+                if (e.target.closest('[data-bentang]')) {
+                    bentang(baris);
+                    return;
+                }
+
+                if (e.target.closest('[data-lipat]')) {
+                    lipat(baris);
+                }
+            });
+
+            // Baris dilipat begitu fokusnya benar-benar keluar dari baris itu.
+            // Diperiksa setelah fokusnya pindah, bukan pada saat blur: saat blur
+            // berjalan, tujuan fokusnya belum tentu sudah ditetapkan, dan baris
+            // yang fokusnya cuma bergeser antar kotaknya sendiri akan ikut
+            // terlipat di tengah pengisian.
+            wadah.addEventListener('focusout', function (e) {
+                const baris = e.target.closest('[data-baris]');
+                if (!baris) return;
+
+                setTimeout(function () {
+                    if (! baris.isConnected) return;
+                    if (baris.contains(document.activeElement)) return;
+
+                    lipat(baris);
+                }, 0);
             });
 
             // Klik di luar comboboxnya menutup panelnya. Dipasang di document
@@ -847,6 +1013,11 @@
             });
 
             segarkanJenis();
+            nomorUlang();
+            // Form edit dibuka dalam keadaan terlipat semua. Barisnya sudah pernah
+            // diisi, jadi yang dibutuhkan pertama adalah melihat daftarnya utuh —
+            // bukan kotak isian baris pertama.
+            lipatSemuaLengkap();
         })();
     </script>
     @endif

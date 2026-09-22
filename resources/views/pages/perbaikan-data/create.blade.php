@@ -164,7 +164,18 @@
                                         </label>
                                         <div class="w-3/4">
                                             @if($targetBisaDiubah)
-                                                <div id="barisPerubahan" class="space-y-2"></div>
+                                                {{--
+                                                    Daftarnya menggulir sendiri, bukan ikut halaman: dua puluh
+                                                    baris perubahan membuat tombol Simpan dan checkbox jenis di
+                                                    atasnya terdorong jauh dari pandangan, padahal keduanya
+                                                    dipakai bergantian dengan daftar ini.
+
+                                                    Konsekuensinya panel dropdown kodenya tidak bisa lagi
+                                                    `absolute` — di dalam kotak ber-overflow panelnya akan
+                                                    terpotong. Panelnya dipindah ke `fixed` dan koordinatnya
+                                                    dihitung di posisikanPanel().
+                                                --}}
+                                                <div id="barisPerubahan" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
                                                 <div class="mt-3 flex items-center gap-3">
                                                     <button type="button" id="tambahBaris"
                                                         class="rounded-md border border-indigo-600 px-3 py-1.5 text-sm font-semibold text-indigo-600 hover:bg-indigo-50">
@@ -559,6 +570,11 @@
                 baris.querySelector('[data-ringkas]').classList.add('hidden');
                 baris.querySelector('[data-isi]').classList.remove('hidden');
                 baris.classList.remove('hover:bg-gray-100');
+
+                // 'nearest': yang digulir cukup kotak daftarnya, seminimal
+                // mungkin. 'center' akan menggeser halaman juga, sehingga
+                // membuka satu baris memindahkan seluruh form di layar.
+                baris.scrollIntoView({ block: 'nearest' });
             }
 
             function lipatSemuaLengkap() {
@@ -618,8 +634,39 @@
                 });
 
                 baris.querySelector('[data-panel]').classList.remove('hidden');
+                posisikanPanel(baris);
                 baris.querySelector('[data-kode]').focus();
             }
+
+            // Panelnya melayang relatif viewport, jadi koordinatnya harus
+            // dihitung sendiri — tidak ada lagi `top-full` yang mengurusnya.
+            // Dibuka ke atas kalau ruang di bawah comboboxnya tidak cukup:
+            // baris terakhir di daftar yang menggulir hampir selalu berada di
+            // tepi bawah kotaknya.
+            function posisikanPanel(baris) {
+                const panel = baris.querySelector('[data-panel]');
+
+                if (panel.classList.contains('hidden')) return;
+
+                const kotak = baris.querySelector('[data-combo]').getBoundingClientRect();
+                const tinggi = panel.offsetHeight;
+                const ruangBawah = window.innerHeight - kotak.bottom;
+                const keAtas = ruangBawah < tinggi + 8 && kotak.top > tinggi + 8;
+
+                panel.style.width = kotak.width + 'px';
+                panel.style.left = kotak.left + 'px';
+                panel.style.top = (keAtas ? kotak.top - tinggi - 4 : kotak.bottom + 4) + 'px';
+            }
+
+            function posisikanPanelTerbuka() {
+                wadah.querySelectorAll('[data-baris]').forEach(posisikanPanel);
+            }
+
+            // Capture, dan di window: event scroll tidak menggelembung, jadi
+            // gulir di dalam #barisPerubahan maupun gulir halaman hanya
+            // tertangkap semuanya lewat fase capture di window.
+            window.addEventListener('scroll', posisikanPanelTerbuka, true);
+            window.addEventListener('resize', posisikanPanelTerbuka);
 
             // Label tombol pemicu. Abu-abu selama belum ada yang dipilih, hitam
             // begitu terpilih — mengikuti bentuk pemilih Supplier di form Bahan.
@@ -669,6 +716,10 @@
                     sisa.textContent = 'Masih ada yang belum ditampilkan. Persempit pencarian, mis. ketik nama bahannya.';
                     daftar.appendChild(sisa);
                 }
+
+                // Tinggi panelnya baru diketahui setelah daftarnya terisi, dan
+                // keputusan buka-ke-atas bergantung pada tinggi itu.
+                posisikanPanel(baris);
             }
 
             async function muatOpsi(baris) {
@@ -814,7 +865,7 @@
                                         '</svg>' +
                                     '</span>' +
                                 '</button>' +
-                                '<div data-panel class="hidden absolute z-50 mt-1 top-full w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">' +
+                                '<div data-panel class="hidden fixed z-50 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">' +
                                     '<div class="p-2 border-b border-gray-200">' +
                                         '<input type="text" data-kode autocomplete="off" placeholder="Cari kode transaksi atau nama bahan..." class="block w-full rounded-md border-0 py-1.5 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600">' +
                                     '</div>' +

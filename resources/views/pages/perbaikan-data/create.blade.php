@@ -542,7 +542,7 @@
                     // centang jenisnya dilepas sehingga kolomnya tidak lagi
                     // terbaca — dibentangkan kembali, bukan dibiarkan terlipat
                     // menampilkan ringkasan yang sudah tidak berlaku.
-                    bentang(baris);
+                    bentang(baris, false);
                 }
             }
 
@@ -556,7 +556,11 @@
                 baris.classList.add('hover:bg-gray-100');
             }
 
-            function bentang(baris) {
+            // `fokus` false dipakai pembuka yang bukan perbuatan langsung pengaju
+            // — baris baru yang belum ada apa-apanya, dan baris yang terpaksa
+            // dibentangkan karena centang jenisnya bergeser. Keduanya tidak boleh
+            // merampas fokus dari tempat pengaju sedang bekerja.
+            function bentang(baris, fokus) {
                 // Satu baris terbuka sekaligus. Dua baris terbuka berarti
                 // panjangnya kembali seperti sebelum dilipat, dan pengaju
                 // kehilangan gambaran daftarnya secara keseluruhan.
@@ -567,14 +571,30 @@
                 });
 
                 baris.dataset.lipat = '';
-                baris.querySelector('[data-ringkas]').classList.add('hidden');
                 baris.querySelector('[data-isi]').classList.remove('hidden');
+                baris.querySelector('[data-ringkas]').classList.add('hidden');
                 baris.classList.remove('hover:bg-gray-100');
 
                 // 'nearest': yang digulir cukup kotak daftarnya, seminimal
                 // mungkin. 'center' akan menggeser halaman juga, sehingga
                 // membuka satu baris memindahkan seluruh form di layar.
                 baris.scrollIntoView({ block: 'nearest' });
+
+                if (fokus === false) return;
+
+                // Tombol "Ubah" ikut tersembunyi bersama ringkasannya, jadi
+                // fokusnya lepas ke <body> dan handler focusout di bawah
+                // menyimpulkan pengaju sudah meninggalkan barisnya — lalu
+                // melipatnya kembali seketika. Dari layar, tombolnya tampak
+                // tidak berfungsi. Fokus dipindahkan ke dalam baris supaya
+                // pemeriksaan itu lolos, sekaligus menaruh kursor di kotak yang
+                // paling sering jadi alasan baris ini dibuka lagi.
+                const sasaran = baris.querySelector('[data-nilai-baru]');
+
+                if (sasaran) {
+                    sasaran.focus();
+                    sasaran.select();
+                }
             }
 
             function lipatSemuaLengkap() {
@@ -918,7 +938,9 @@
                 // muncul di bawah tumpukan baris terbuka dan pengaju harus
                 // menggulir mencarinya.
                 lipatSemuaLengkap();
-                bentang(buatBaris());
+                // Tanpa fokus: baris baru masih kosong, dan langkah pertamanya
+                // memilih kode transaksi — bukan mengisi nilai baru.
+                bentang(buatBaris(), false);
             });
 
             document.querySelectorAll('[data-jenis]').forEach(function (kotak) {

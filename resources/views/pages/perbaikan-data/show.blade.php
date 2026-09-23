@@ -285,7 +285,13 @@
                  Itu info yang harus langsung kelihatan tanpa membuka satu per
                  satu. Yang disembunyikan di baliknya cuma Alasan — teks bebas
                  yang biasanya panjang, dan justru itu yang paling menambah
-                 tinggi kartu lama. --}}
+                 tinggi kartu lama.
+
+                 Daftarnya sendiri dibatasi tingginya dan digulir di dalam,
+                 bukan meloloskan halaman jadi panjang. Tiket dengan puluhan
+                 baris tetap muat dilihat tanpa menggeser kartu-kartu lain
+                 (Penunjukan Pelaksana, Berkas) menjauh ke bawah layar. --}}
+            <div class="max-h-[28rem] overflow-y-auto pr-1">
             @forelse ($perbaikanData->target as $target)
                 <div x-data="{ buka: false }" class="border-b last:border-b-0">
                     <button type="button" @click="buka = !buka"
@@ -350,6 +356,7 @@
                     jadi tidak ada baris yang bisa dicatat per kolom.
                 </p>
             @endforelse
+            </div>
         </div>
 
         <div class="bg-white border rounded-lg p-6 shadow">

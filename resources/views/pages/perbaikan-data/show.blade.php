@@ -295,11 +295,26 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                         </svg>
 
-                        <span class="shrink-0 text-xs text-gray-500">#{{ $target->modul_id }}</span>
+                        {{-- Nomor urutnya, bukan id database. "Perubahan ke berapa"
+                             adalah pertanyaan tentang urutan tampil, dan id modul
+                             tidak pernah menjawab itu — dua baris bersebelahan bisa
+                             saja id-nya jauh berbeda. --}}
+                        <span class="shrink-0 text-xs text-gray-500">Perubahan {{ $loop->iteration }}</span>
 
                         <span class="min-w-0 flex-1 truncate text-sm">
-                            <span class="font-medium text-gray-800">{{ $target->labelModul() }}</span>
-                            <span class="text-gray-500">&middot; {{ $target->labelField() }} &middot;</span>
+                            {{-- Kode transaksi record aslinya, bukan "#123". Id
+                                 modul cuma berarti bagi database; kode transaksi
+                                 itu yang dipegang pengaju di tangannya. Fallback ke
+                                 id tetap ada untuk baris yang recordnya sudah
+                                 terhapus atau modulnya belum punya kolom kode. --}}
+                            @if ($kode = $kodeTarget[$target->id] ?? null)
+                                <span class="font-medium text-gray-800">{{ $kode }}</span>
+                                <span class="text-gray-500">&middot; {{ $target->labelModul() }} &middot; {{ $target->labelField() }} &middot;</span>
+                            @else
+                                <span class="font-medium text-gray-800">{{ $target->labelModul() }}</span>
+                                <span class="text-xs text-gray-400">#{{ $target->modul_id }}</span>
+                                <span class="text-gray-500">&middot; {{ $target->labelField() }} &middot;</span>
+                            @endif
                             <span class="text-red-700 line-through">{{ $target->nilai_lama ?? '(kosong)' }}</span>
                             <span class="text-gray-400">&rarr;</span>
                             <span class="font-medium text-green-700">{{ $target->nilai_baru ?? '(kosong)' }}</span>

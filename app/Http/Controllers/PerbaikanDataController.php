@@ -356,7 +356,7 @@ class PerbaikanDataController extends Controller
     /**
      * Halaman detail satu pengajuan: daftar perubahan dan tombol eksekusinya.
      */
-    public function show($id)
+    public function show($id, PerbaikanDataService $perbaikan)
     {
         $perbaikanData = PerbaikanData::with([
             'lampiran',
@@ -367,6 +367,20 @@ class PerbaikanDataController extends Controller
 
         return view('pages.perbaikan-data.show', [
             'perbaikanData' => $perbaikanData,
+            // Kode transaksi per baris perubahan, dipakai halaman detail
+            // menggantikan "#123" yang tidak berarti apa-apa bagi pengaju.
+            // rescue() dipakai karena recordnya bisa saja sudah tidak ada —
+            // satu baris yang gagal ditelusuri tidak boleh menggagalkan
+            // seluruh halaman, cukup baris itu jatuh ke tampilan id mentah.
+            'kodeTarget' => $perbaikanData->target->mapWithKeys(
+                fn (PerbaikanDataTarget $baris) => [
+                    $baris->id => rescue(
+                        fn () => $perbaikan->kodeRecord($baris->modul, (int) $baris->modul_id),
+                        null,
+                        false
+                    ),
+                ]
+            ),
         ]);
     }
 

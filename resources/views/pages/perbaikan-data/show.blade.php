@@ -273,36 +273,61 @@
                 @endcan
             </div>
 
+            {{-- Satu baris = satu baris ringkas, terlipat secara default. Tiket
+                 dengan banyak baris (koreksi harga puluhan lot, mis.) dulu
+                 membuat halaman ini scroll panjang sekali karena tiap baris
+                 berdiri sendiri sebagai kartu tinggi. Bentuknya mengikuti
+                 baris "ringkas" di form pengajuan/edit — kode, kolom, dan
+                 pergeseran nilainya dalam satu baris — supaya melipat tidak
+                 berarti kehilangan cara memeriksa apa yang diajukan.
+
+                 Yang tetap tampil walau terlipat: Gagal beserta sebabnya.
+                 Itu info yang harus langsung kelihatan tanpa membuka satu per
+                 satu. Yang disembunyikan di baliknya cuma Alasan — teks bebas
+                 yang biasanya panjang, dan justru itu yang paling menambah
+                 tinggi kartu lama. --}}
             @forelse ($perbaikanData->target as $target)
-                <div class="border-b last:border-b-0 py-3">
-                    <div class="flex flex-wrap items-baseline gap-x-3">
-                        <span class="font-medium text-gray-800">{{ $target->labelModul() }}</span>
-                        <span class="text-xs text-gray-500">#{{ $target->modul_id }}</span>
-                        <span class="text-sm text-gray-700">&middot; {{ $target->labelField() }}</span>
+                <div x-data="{ buka: false }" class="border-b last:border-b-0">
+                    <button type="button" @click="buka = !buka"
+                        class="flex w-full items-center gap-2 rounded-md px-2 py-2.5 text-left hover:bg-gray-50">
+                        <svg class="h-4 w-4 flex-none text-gray-400 transition-transform" :class="buka ? 'rotate-90' : ''"
+                            fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                        </svg>
+
+                        <span class="shrink-0 text-xs text-gray-500">#{{ $target->modul_id }}</span>
+
+                        <span class="min-w-0 flex-1 truncate text-sm">
+                            <span class="font-medium text-gray-800">{{ $target->labelModul() }}</span>
+                            <span class="text-gray-500">&middot; {{ $target->labelField() }} &middot;</span>
+                            <span class="text-red-700 line-through">{{ $target->nilai_lama ?? '(kosong)' }}</span>
+                            <span class="text-gray-400">&rarr;</span>
+                            <span class="font-medium text-green-700">{{ $target->nilai_baru ?? '(kosong)' }}</span>
+                        </span>
+
                         @if ($target->status === 'dicatat')
-                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded">Sudah dicatat</span>
+                            <span class="shrink-0 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Sudah dicatat</span>
                         @elseif ($target->status === 'gagal')
-                            <span class="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded">Gagal</span>
+                            <span class="shrink-0 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">Gagal</span>
                         @else
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded">Menunggu</span>
+                            <span class="shrink-0 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">Menunggu</span>
                         @endif
-                    </div>
-
-                    {{-- Nilai ditampilkan mentah: memformat ulang angka bisa membuat
-                         dua nilai yang berbeda tampil sama, dan justru salah ketik
-                         titik atau nol yang paling sering dikoreksi di sini. --}}
-                    <div class="mt-2 text-sm">
-                        <div class="text-red-700 line-through break-all">{{ $target->nilai_lama ?? '(kosong)' }}</div>
-                        <div class="text-green-700 font-medium break-all">{{ $target->nilai_baru ?? '(kosong)' }}</div>
-                    </div>
-
-                    @if ($target->alasan)
-                        <p class="mt-1 text-xs text-gray-600 whitespace-pre-line">Alasan: {{ $target->alasan }}</p>
-                    @endif
+                    </button>
 
                     @if ($target->catatan)
-                        <p class="mt-1 text-xs text-red-700">{{ $target->catatan }}</p>
+                        <p class="px-2 pb-2 pl-9 text-xs text-red-700">{{ $target->catatan }}</p>
                     @endif
+
+                    <div x-show="buka" x-cloak class="px-2 pb-3 pl-9 text-sm">
+                        {{-- Nilai diulang lengkap di sini (tidak truncate): baris
+                             ringkas di atas bisa memotong nilai yang panjang. --}}
+                        <div class="text-red-700 line-through break-all">{{ $target->nilai_lama ?? '(kosong)' }}</div>
+                        <div class="break-all font-medium text-green-700">{{ $target->nilai_baru ?? '(kosong)' }}</div>
+
+                        @if ($target->alasan)
+                            <p class="mt-1.5 whitespace-pre-line text-xs text-gray-600">Alasan: {{ $target->alasan }}</p>
+                        @endif
+                    </div>
                 </div>
             @empty
                 <p class="text-sm text-gray-500">

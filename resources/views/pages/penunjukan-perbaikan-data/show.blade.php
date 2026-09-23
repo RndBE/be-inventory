@@ -109,16 +109,6 @@
                 @include('pages.penunjukan-perbaikan-data.partials.ringkasan', [
                     'pengajuan' => $penunjukan->perbaikanData,
                 ])
-
-                {{-- Perubahan datanya tetap diterapkan lewat tombol Eksekusi di
-                     halaman pengajuan, bukan dari sini. Satu-satunya jalan tulis
-                     adalah PerbaikanDataService, jadi jejaknya selalu masuk Audit
-                     Perubahan Data — surat ini yang menjelaskan siapa yang diberi
-                     wewenang menekan tombolnya. --}}
-                <p class="mt-3 text-xs text-gray-500">
-                    Perubahan datanya diterapkan lewat tombol <strong>Eksekusi Perubahan</strong> di halaman
-                    pengajuan, dan setiap penerapan tercatat di Audit Perubahan Data.
-                </p>
             @else
                 <p class="text-sm text-gray-500">Pengajuannya tidak ditemukan.</p>
             @endif

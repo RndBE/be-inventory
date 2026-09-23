@@ -189,7 +189,7 @@ class PenunjukanPerbaikanDataController extends Controller
         }
     }
 
-    public function show(int $id)
+    public function show(int $id, PerbaikanDataService $perbaikan)
     {
         $penunjukan = PenunjukanPerbaikanData::with([
             'perbaikanData.target',
@@ -201,6 +201,9 @@ class PenunjukanPerbaikanDataController extends Controller
 
         return view('pages.penunjukan-perbaikan-data.show', [
             'penunjukan' => $penunjukan,
+            'kodeTarget' => $penunjukan->perbaikanData
+                ? $perbaikan->kodePerTarget($penunjukan->perbaikanData->target)
+                : collect(),
         ]);
     }
 

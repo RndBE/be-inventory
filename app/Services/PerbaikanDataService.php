@@ -6,6 +6,7 @@ use App\Exceptions\PerbaikanDataDitolak;
 use App\Models\AuditPerubahanData;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -282,6 +283,26 @@ class PerbaikanDataService
             $this->record($modul, $modulId),
             $this->konfigurasiModul($modul)
         );
+    }
+
+    /**
+     * Kode transaksi per baris perubahan, dikunci id barisnya.
+     *
+     * Dipakai halaman detail pengajuan dan detail penunjukan menggantikan
+     * "#123" yang tidak berarti apa-apa bagi pengaju. rescue() dipakai karena
+     * recordnya bisa saja sudah tidak ada — satu baris yang gagal ditelusuri
+     * tidak boleh menggagalkan seluruh halaman, cukup baris itu jatuh ke
+     * tampilan id mentah.
+     */
+    public function kodePerTarget(Collection $target): Collection
+    {
+        return $target->mapWithKeys(fn ($baris) => [
+            $baris->id => rescue(
+                fn () => $this->kodeRecord($baris->modul, (int) $baris->modul_id),
+                null,
+                false
+            ),
+        ]);
     }
 
     /**

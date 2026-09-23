@@ -108,6 +108,7 @@
             @if($penunjukan->perbaikanData)
                 @include('pages.penunjukan-perbaikan-data.partials.ringkasan', [
                     'pengajuan' => $penunjukan->perbaikanData,
+                    'kodeTarget' => $kodeTarget,
                 ])
             @else
                 <p class="text-sm text-gray-500">Pengajuannya tidak ditemukan.</p>

@@ -29,7 +29,7 @@ class PerbaikanDataController extends Controller
         // transaksi sekarang dipakai form edit juga, dan pemegang
         // `edit-perbaikan-data` yang tidak memegang `tambah-` akan melihat
         // dropdown yang selalu menjawab 403 tanpa keterangan apa pun.
-        $this->middleware('permission:tambah-perbaikan-data|edit-perbaikan-data', ['only' => ['opsiRecord']]);
+        $this->middleware('permission:tambah-perbaikan-data|edit-perbaikan-data', ['only' => ['opsiRecord', 'opsiBahan']]);
         $this->middleware('permission:eksekusi-perbaikan-data', ['only' => ['eksekusi']]);
     }
 
@@ -69,6 +69,19 @@ class PerbaikanDataController extends Controller
             return response()->json(['pesan' => $e->getMessage()], 422);
         }
     }
+
+    /**
+     * Daftar bahan dari master, untuk pemilih bahan pada baris "Tambah Bahan".
+     */
+    public function opsiBahan(Request $request, PerbaikanDataService $perbaikan)
+    {
+        $validated = $request->validate([
+            'q' => 'nullable|string|max:100',
+        ]);
+
+        return response()->json(['opsi' => $perbaikan->opsiBahan($validated['q'] ?? null)]);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -328,9 +341,21 @@ class PerbaikanDataController extends Controller
                 );
             }
 
+            $nilaiBaru = $item['nilai_baru'] ?? null;
+
+            // Tambah bahan diperiksa sekarang juga — bahannya ada di master dan
+            // belum ada di transaksi itu — lalu disimpan dalam bentuk bakunya.
+            $tambahBahan = ($definisi['tipe'] ?? null) === 'tambah_bahan';
+
+            if ($tambahBahan) {
+                $nilaiBaru = $layanan->periksaTambahBahan($modul, $modulId, $field, $nilaiBaru);
+            }
+
             // Dua baris atas kolom yang sama akan saling menimpa saat dicatat,
             // dan yang kedua pasti gagal karena nilai lamanya sudah berubah.
-            $kunci = $modul . '#' . $modulId . '#' . $field;
+            // Tambah bahan boleh berkali-kali pada satu record, asal bahannya beda.
+            $kunci = $modul . '#' . $modulId . '#' . $field
+                . ($tambahBahan ? '#' . $layanan->kodeBahanTambahan($nilaiBaru) : '');
 
             if (isset($dilihat[$kunci])) {
                 throw new PerbaikanDataDitolak(
@@ -345,7 +370,7 @@ class PerbaikanDataController extends Controller
                 'modul' => $modul,
                 'modul_id' => $modulId,
                 'field' => $field,
-                'nilai_baru' => $item['nilai_baru'] ?? null,
+                'nilai_baru' => $nilaiBaru,
                 'alasan' => $alasan,
             ];
         }

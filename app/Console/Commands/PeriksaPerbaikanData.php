@@ -128,6 +128,14 @@ class PeriksaPerbaikanData extends Command
         }
 
         foreach ($field as $nama => $definisi) {
+            // Tambah bahan bukan kolom tabel. Yang harus ada relasi `detail`-nya,
+            // dan tabel detail itu harus punya `bahan_id`.
+            if (is_array($definisi) && ($definisi['tipe'] ?? null) === 'tambah_bahan') {
+                $this->periksaDetailTambahBahan($slug, $model, $nama, $definisi);
+
+                continue;
+            }
+
             // Kolom bertanda `json` tidak punya kolomnya sendiri di tabel:
             // nilainya di dalam kolom pembungkus, dan itu yang harus ada.
             // Isi JSON-nya sendiri tidak diperiksa di sini — kuncinya bisa
@@ -164,6 +172,23 @@ class PeriksaPerbaikanData extends Command
         $this->line(sprintf('  %-34s %-30s %3d kolom', $slug, $tabel, count($field)));
 
         return count($field);
+    }
+
+    private function periksaDetailTambahBahan(string $slug, Model $model, string $nama, array $definisi): void
+    {
+        $relasi = $definisi['detail'] ?? null;
+
+        if (! is_string($relasi) || ! method_exists($model, $relasi)) {
+            $this->catat($slug, "{$nama}: relasi detail " . var_export($relasi, true) . ' tidak ada di ' . $model::class . '.');
+
+            return;
+        }
+
+        $tabelDetail = $model->{$relasi}()->getRelated()->getTable();
+
+        if (! in_array('bahan_id', $this->kolomTabel($tabelDetail), true)) {
+            $this->catat($slug, "{$nama}: tabel detail {$tabelDetail} tidak punya kolom bahan_id.");
+        }
     }
 
     private function periksaRelasi(string $slug, Model $model, array $konfigurasi): void

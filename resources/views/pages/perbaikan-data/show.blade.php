@@ -348,6 +348,18 @@
                         @if ($target->alasan)
                             <p class="mt-1.5 whitespace-pre-line text-xs text-gray-600">Alasan: {{ $target->alasan }}</p>
                         @endif
+
+                        @if ($target->field === 'tambah_bahan')
+                            {{-- Baris bahannya belum ada; yang dicatat hanya permintaannya. --}}
+                            <div class="mt-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">
+                                <p class="font-semibold">Dikerjakan tim software di database:</p>
+                                <ul class="list-disc list-inside">
+                                    <li>Insert baris bahan ini ke transaksi {{ $kodeTarget[$target->id] ?? ('#' . $target->modul_id) }}.</li>
+                                    <li>Kalau bahannya sudah diambil dari gudang, potong stok FIFO-nya (<code>sisa</code> lot pembelian) dan isi alokasi <code>details</code>-nya.</li>
+                                    <li>Samakan baris pasangannya (produksi &harr; bahan keluar) kalau tiket ini mencatat keduanya.</li>
+                                </ul>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @empty

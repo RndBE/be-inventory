@@ -317,6 +317,8 @@ Route::middleware(['auth:sanctum', 'verified', 'isAdmin'])->group(function () {
     // tertangkap lebih dulu oleh route show yang parameternya {perbaikan_data}.
     Route::get('/perbaikan-data/opsi-record', [PerbaikanDataController::class, 'opsiRecord'])
         ->name('perbaikan-data.opsi-record');
+    Route::get('/perbaikan-data/opsi-bahan', [PerbaikanDataController::class, 'opsiBahan'])
+        ->name('perbaikan-data.opsi-bahan');
     Route::resource('perbaikan-data', PerbaikanDataController::class);
     Route::put('/perbaikan-data/updateApproval/{id}', [PerbaikanDataController::class, 'updateApproval'])->name('perbaikan-data.updateApproval');
     Route::post('/perbaikan-data/{id}/eksekusi', [PerbaikanDataController::class, 'eksekusi'])

@@ -277,7 +277,7 @@ class PerbaikanDataServiceTest extends TestCase
     #[Test]
     public function setiap_kolom_punya_label_dan_tipe(): void
     {
-        $tipeSah = ['string', 'text', 'decimal', 'datetime'];
+        $tipeSah = ['string', 'text', 'decimal', 'datetime', 'tambah_bahan'];
 
         foreach (config('perbaikan_data.modul') as $slug => $modul) {
             foreach ((array) ($modul['field'] ?? []) as $field => $definisi) {

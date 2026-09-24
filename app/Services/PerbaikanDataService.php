@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\PerbaikanDataDitolak;
 use App\Models\AuditPerubahanData;
+use App\Models\Bahan;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -47,6 +48,16 @@ class PerbaikanDataService
      * terlalu umum — satu huruf, misalnya — tidak menarik seluruh tabel.
      */
     public const BATAS_PENCARIAN = 200;
+
+    /**
+     * Bentuk baku nilai "Tambah Bahan": "<nama> [<kode bahan>] × <qty> <satuan>".
+     *
+     * Disimpan sebagai teks terbaca, bukan JSON, karena nilai ini tampil apa
+     * adanya di halaman detail, halaman audit, surat penunjukan, dan ikut
+     * dicari di pencarian audit. Kode bahan di kurung siku terakhir yang
+     * membuatnya tetap bisa dibaca ulang mesin.
+     */
+    private const POLA_TAMBAH_BAHAN = '/\[([^\[\]]+)\] × (\d+(?:\.\d+)?)(?: [^\[\]]*)?$/u';
 
     /**
      * Pilihan "Jenis Pengajuan" pada form.
@@ -167,6 +178,9 @@ class PerbaikanDataService
                     'tabel' => $this->tabelModul($slug),
                     'field' => $field,
                     'label' => ($modul['label'] ?? $slug) . ' — ' . ($definisi['label'] ?? $field),
+                    // Form mengganti kotak "Nilai baru" dengan pemilih bahan
+                    // untuk tipe tambah_bahan.
+                    'tipe' => $definisi['tipe'] ?? 'string',
                 ];
             }
         }
@@ -244,6 +258,11 @@ class PerbaikanDataService
      */
     private function nilaiMentah(Model $record, string $field, array $definisi)
     {
+        // Bahan yang ditambahkan belum punya baris, jadi nilai lamanya selalu kosong.
+        if ($this->tambahBahan($definisi)) {
+            return null;
+        }
+
         $relasi = $definisi['relasi'] ?? null;
 
         if (is_array($relasi)) {
@@ -679,7 +698,14 @@ class PerbaikanDataService
             ));
         }
 
-        $nilaiBaru = $this->normalkan($koreksi['nilai_baru'] ?? null, $definisi['tipe']);
+        $tambahBahan = $this->tambahBahan($definisi);
+
+        // Diperiksa ulang saat dicatat, bukan hanya saat diajukan: bahannya bisa
+        // saja sudah dimasukkan orang lain di antara keduanya, dan mencatat
+        // "ditambahkan" untuk baris yang sudah ada akan menyesatkan.
+        $nilaiBaru = $tambahBahan
+            ? $this->periksaTambahBahan($modul, $modulId, $field, $koreksi['nilai_baru'] ?? null)
+            : $this->normalkan($koreksi['nilai_baru'] ?? null, $definisi['tipe']);
 
         if ($nilaiBaru === $nilaiSekarang) {
             throw new PerbaikanDataDitolak('Nilai barunya sama dengan yang tersimpan, tidak ada yang perlu dicatat.');
@@ -692,8 +718,12 @@ class PerbaikanDataService
             'perbaikan_data_id' => $koreksi['perbaikan_data_id'] ?? null,
             'modul' => $modul,
             'modul_id' => $modulId,
-            'tabel_target' => $record->getTable(),
-            'baris_target_id' => $record->getKey(),
+            // Tambah bahan menunjuk tabel detailnya. Barisnya baru dibuat tim
+            // software sesudah pencatatan ini, jadi id-nya belum ada.
+            'tabel_target' => $tambahBahan
+                ? $record->{$definisi['detail']}()->getRelated()->getTable()
+                : $record->getTable(),
+            'baris_target_id' => $tambahBahan ? null : $record->getKey(),
             'field' => $field,
             'nilai_lama' => $nilaiSekarang,
             'nilai_baru' => $nilaiBaru,
@@ -714,6 +744,122 @@ class PerbaikanDataService
             'ip_address' => $koreksi['ip_address'] ?? null,
             'created_at' => Carbon::now('Asia/Jakarta'),
         ]);
+    }
+
+    /**
+     * Periksa satu permintaan "Tambah Bahan" dan kembalikan bentuk bakunya.
+     *
+     * Menerima kiriman form (JSON berisi `bahan_id` atau `kode_bahan`, dan
+     * `qty`) maupun bentuk baku yang sudah tersimpan, supaya pemeriksaan saat
+     * diajukan dan saat dicatat memakai jalan yang sama.
+     *
+     * @throws PerbaikanDataDitolak
+     */
+    public function periksaTambahBahan(string $modul, int $modulId, string $field, $nilai): string
+    {
+        $definisi = $this->definisiField($modul, $field);
+
+        if (! $this->tambahBahan($definisi)) {
+            throw new PerbaikanDataDitolak("Kolom {$field} pada {$modul} bukan kolom Tambah Bahan.");
+        }
+
+        ['bahan' => $bahan, 'qty' => $qty] = $this->bacaTambahBahan($nilai);
+
+        $record = $this->record($modul, $modulId);
+
+        if ($record->{$definisi['detail']}()->where('bahan_id', $bahan->getKey())->exists()) {
+            throw new PerbaikanDataDitolak(sprintf(
+                '%s sudah ada di %s. Kalau jumlahnya yang salah, ajukan koreksi "Bahan — Jumlah" pada baris bahan itu.',
+                trim((string) $bahan->nama_bahan),
+                $this->kodeDari($record, $this->konfigurasiModul($modul)) ?: '#' . $modulId
+            ));
+        }
+
+        $satuan = optional($bahan->dataUnit)->nama;
+
+        return sprintf(
+            '%s [%s] × %s%s',
+            trim((string) $bahan->nama_bahan),
+            $bahan->kode_bahan,
+            $qty,
+            filled($satuan) ? ' ' . $satuan : ''
+        );
+    }
+
+    /**
+     * Kode bahan dari bentuk baku "Tambah Bahan", untuk mengenali bahan yang
+     * sama diajukan dua kali pada satu record.
+     */
+    public function kodeBahanTambahan(string $baku): ?string
+    {
+        return preg_match(self::POLA_TAMBAH_BAHAN, trim($baku), $cocok) ? $cocok[1] : null;
+    }
+
+    /**
+     * Pilihan bahan untuk kotak "Tambah Bahan" di form, dicari lewat nama atau kode.
+     *
+     * @return array<int, array{id: int, label: string, satuan: ?string}>
+     */
+    public function opsiBahan(?string $cari = null, int $batas = 30): array
+    {
+        $cari = trim((string) $cari);
+
+        $query = Bahan::query()->with('dataUnit')->orderBy('nama_bahan');
+
+        if ($cari !== '') {
+            $query->where(function ($q) use ($cari) {
+                $q->where('nama_bahan', 'like', '%' . $cari . '%')
+                    ->orWhere('kode_bahan', 'like', '%' . $cari . '%');
+            });
+        }
+
+        return $query->limit($batas)->get()->map(fn (Bahan $bahan) => [
+            'id' => (int) $bahan->getKey(),
+            'label' => trim((string) $bahan->nama_bahan) . ' [' . $bahan->kode_bahan . ']',
+            'satuan' => optional($bahan->dataUnit)->nama,
+        ])->all();
+    }
+
+    private function tambahBahan(array $definisi): bool
+    {
+        return ($definisi['tipe'] ?? null) === 'tambah_bahan';
+    }
+
+    /**
+     * @return array{bahan: Bahan, qty: string}
+     *
+     * @throws PerbaikanDataDitolak
+     */
+    private function bacaTambahBahan($nilai): array
+    {
+        $isi = is_string($nilai) ? json_decode($nilai, true) : $nilai;
+        $bahan = null;
+        $qty = null;
+
+        if (is_array($isi)) {
+            $qty = $isi['qty'] ?? null;
+
+            if (filled($isi['bahan_id'] ?? null)) {
+                $bahan = Bahan::find((int) $isi['bahan_id']);
+            } elseif (filled($isi['kode_bahan'] ?? null)) {
+                $bahan = Bahan::where('kode_bahan', $isi['kode_bahan'])->first();
+            }
+        } elseif (is_string($nilai) && preg_match(self::POLA_TAMBAH_BAHAN, trim($nilai), $cocok)) {
+            $bahan = Bahan::where('kode_bahan', $cocok[1])->first();
+            $qty = $cocok[2];
+        }
+
+        if (! $bahan instanceof Bahan) {
+            throw new PerbaikanDataDitolak('Bahan yang ditambahkan tidak ditemukan di master bahan. Pilih bahannya dari daftar.');
+        }
+
+        $qty = str_replace(',', '.', trim((string) $qty));
+
+        if (! is_numeric($qty) || (float) $qty <= 0) {
+            throw new PerbaikanDataDitolak('Jumlah bahan yang ditambahkan harus angka lebih dari 0.');
+        }
+
+        return ['bahan' => $bahan, 'qty' => $this->normalkan($qty, 'decimal')];
     }
 
     private function konfigurasiModul(string $modul): array

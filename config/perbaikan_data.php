@@ -532,6 +532,13 @@ return [
                 'kode_transaksi' => ['label' => 'Kode Transaksi', 'tipe' => 'string'],
                 'divisi' => ['label' => 'Divisi', 'tipe' => 'string'],
                 'pengaju' => ['label' => 'Pengaju', 'tipe' => 'decimal'],
+                // Lihat catatan `tambah_bahan` di modul `produksis`.
+                'tambah_bahan' => [
+                    'label' => 'Tambah Bahan',
+                    'tipe' => 'tambah_bahan',
+                    'detail' => 'bahanKeluarDetails',
+                    'wajib_lampiran' => true,
+                ],
             ],
         ],
 
@@ -676,6 +683,18 @@ return [
                 'kode_produksi' => ['label' => 'Kode Produksi', 'tipe' => 'string'],
                 'pengaju' => ['label' => 'Pengaju', 'tipe' => 'string'],
                 'jml_produksi' => ['label' => 'Jumlah Produksi', 'tipe' => 'decimal'],
+                // Bukan kolom tabel: bahan yang lupa diajukan belum punya baris
+                // detail, jadi tidak ada nilai lama yang bisa dikoreksi. Dicatat
+                // pada record induknya dengan nilai lama kosong; `detail` adalah
+                // relasi ke tabel baris bahannya, dipakai memastikan bahannya
+                // memang belum ada di sana. Baris detailnya tetap di-insert tim
+                // software, sama seperti koreksi lain.
+                'tambah_bahan' => [
+                    'label' => 'Tambah Bahan',
+                    'tipe' => 'tambah_bahan',
+                    'detail' => 'produksiDetails',
+                    'wajib_lampiran' => true,
+                ],
             ],
         ],
 

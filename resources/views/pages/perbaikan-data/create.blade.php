@@ -325,6 +325,10 @@
             // repeaternya. Kosong saat menambah pengajuan baru.
             const barisAwal = @json($barisAwal);
             const urlOpsi = "{{ route('perbaikan-data.opsi-record') }}";
+            const urlBahan = "{{ route('perbaikan-data.opsi-bahan') }}";
+            // Bentuk baku nilai Tambah Bahan dari server: "<nama> [<kode>] × <qty> <satuan>".
+            const polaTambah = /^(.*) \[([^\[\]]+)\] × (\d+(?:\.\d+)?)(?: (.*))?$/;
+            let nomorDaftarBahan = 0;
             const wadah = document.getElementById('barisPerubahan');
             const tersembunyi = document.getElementById('perubahanJson');
             const tombolTambah = document.getElementById('tambahBaris');
@@ -373,6 +377,98 @@
 
             function kolomBaris(baris) {
                 return cariKolom(baris.querySelector('[data-kolom]').value);
+            }
+
+            // Baris "Tambah Bahan": bahan yang lupa diajukan belum punya baris,
+            // jadi kotak nilai baru diganti pemilih bahan + jumlah. Kotak
+            // [data-nilai-baru] tetap dipakai, tersembunyi, berisi JSON kiriman.
+            function modeTambah(baris) {
+                const kolom = kolomBaris(baris);
+                return !! kolom && kolom.tipe === 'tambah_bahan';
+            }
+
+            function aturMode(baris) {
+                const mode = modeTambah(baris) ? 'tambah' : 'biasa';
+
+                if (baris.dataset.mode === mode) return;
+
+                // Berganti mode membuang isian mode sebelumnya: JSON bahan tidak
+                // boleh terkirim sebagai nilai kolom biasa, dan sebaliknya.
+                if (baris.dataset.mode) {
+                    baris.querySelector('[data-nilai-baru]').value = '';
+                    baris.querySelector('[data-bahan-cari]').value = '';
+                    baris.querySelector('[data-bahan-qty]').value = '';
+                    baris.dataset.tampilBaru = '';
+                    tampilkanPesan(baris, '');
+                }
+
+                baris.dataset.mode = mode;
+                baris.querySelector('[data-wadah-baru]').classList.toggle('hidden', mode === 'tambah');
+                baris.querySelector('[data-tambah]').classList.toggle('hidden', mode !== 'tambah');
+                baris.querySelector('[data-nilai-lama]').placeholder = mode === 'tambah' ? '— (belum ada, bahan baru)' : '';
+            }
+
+            function susunTambah(baris) {
+                const teks = baris.querySelector('[data-bahan-cari]').value.trim();
+                const qty = baris.querySelector('[data-bahan-qty]').value.trim().replace(',', '.');
+                const bahan = (baris._bahan || {})[teks];
+                const qtyBenar = qty !== '' && ! isNaN(qty) && parseFloat(qty) > 0;
+                const kotak = baris.querySelector('[data-nilai-baru]');
+
+                if (bahan && qtyBenar) {
+                    kotak.value = JSON.stringify(bahan.id ? { bahan_id: bahan.id, qty: qty } : { kode_bahan: bahan.kode, qty: qty });
+                    baris.dataset.tampilBaru = teks + ' × ' + qty + (bahan.satuan ? ' ' + bahan.satuan : '');
+                    tampilkanPesan(baris, '');
+                    return;
+                }
+
+                kotak.value = '';
+                baris.dataset.tampilBaru = '';
+                tampilkanPesan(baris, teks && ! bahan ? 'Pilih salah satu bahan dari daftar yang muncul.' : '');
+            }
+
+            async function muatBahan(baris) {
+                const teks = baris.querySelector('[data-bahan-cari]').value.trim();
+
+                // Teks yang sudah persis salah satu pilihan tidak perlu dicari lagi.
+                if ((baris._bahan || {})[teks]) return;
+
+                try {
+                    const jawab = await fetch(urlBahan + '?q=' + encodeURIComponent(teks), {
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (! jawab.ok) return;
+
+                    const data = await jawab.json();
+                    const daftar = baris.querySelector('[data-bahan-daftar]');
+                    daftar.innerHTML = '';
+                    // Hasil lama tidak dibuang: begitu satu pilihan diklik, isi
+                    // kotaknya berubah jadi label itu dan pencarian berikutnya
+                    // tidak lagi mengembalikannya.
+                    baris._bahan = baris._bahan || {};
+
+                    (data.opsi || []).forEach(function (item) {
+                        baris._bahan[item.label] = { id: item.id, satuan: item.satuan };
+                        const opsi = document.createElement('option');
+                        opsi.value = item.label;
+                        daftar.appendChild(opsi);
+                    });
+
+                    susunTambah(baris);
+                    sinkron();
+                } catch (e) {
+                    tampilkanPesan(baris, 'Daftar bahan tidak bisa dimuat.', 'error');
+                }
+            }
+
+            const tundaBahan = new WeakMap();
+
+            function cariBahanTertunda(baris) {
+                clearTimeout(tundaBahan.get(baris));
+                tundaBahan.set(baris, setTimeout(function () {
+                    muatBahan(baris);
+                }, 300));
             }
 
             // Kolom di luar daftar izin tetap diberi opsi, dengan penanda.
@@ -453,6 +549,8 @@
                 const hasil = [];
 
                 wadah.querySelectorAll('[data-baris]').forEach(function (baris) {
+                    aturMode(baris);
+
                     const kolom = kolomBaris(baris);
                     const modulId = baris.querySelector('[data-modul-id]').value;
                     const nilaiBaru = baris.querySelector('[data-nilai-baru]').value;
@@ -521,8 +619,9 @@
 
             function ringkasanTeks(baris) {
                 const kolom = kolomBaris(baris);
-                const lama = baris.querySelector('[data-nilai-lama]').value;
-                const baru = baris.querySelector('[data-nilai-baru]').value;
+                const tambah = modeTambah(baris);
+                const lama = tambah ? '' : baris.querySelector('[data-nilai-lama]').value;
+                const baru = tambah ? (baris.dataset.tampilBaru || '') : baris.querySelector('[data-nilai-baru]').value;
 
                 return baris.querySelector('[data-terpilih]').textContent.trim()
                     + '  ·  ' + (kolom ? kolom.label : '')
@@ -589,7 +688,7 @@
                 // tidak berfungsi. Fokus dipindahkan ke dalam baris supaya
                 // pemeriksaan itu lolos, sekaligus menaruh kursor di kotak yang
                 // paling sering jadi alasan baris ini dibuka lagi.
-                const sasaran = baris.querySelector('[data-nilai-baru]');
+                const sasaran = baris.querySelector(modeTambah(baris) ? '[data-bahan-cari]' : '[data-nilai-baru]');
 
                 if (sasaran) {
                     sasaran.focus();
@@ -844,6 +943,8 @@
                 baris.className = 'border border-gray-200 rounded-md p-3 bg-gray-50';
                 baris.setAttribute('data-baris', '');
                 baris.dataset.nilai = '{}';
+                // id datalist harus unik per baris.
+                const nomorBahan = ++nomorDaftarBahan;
 
                 baris.innerHTML =
                     // Ringkasan satu baris, dipakai saat barisnya terlipat.
@@ -909,9 +1010,21 @@
                             '<label class="block text-xs text-gray-600">Nilai lama (dari database)</label>' +
                             '<input type="text" data-nilai-lama readonly class="block w-full rounded-md border-gray-300 bg-gray-100 py-1.5 text-sm ring-1 ring-inset ring-gray-300">' +
                         '</div>' +
-                        '<div>' +
+                        '<div data-wadah-baru>' +
                             '<label class="block text-xs text-gray-600">Nilai baru</label>' +
                             '<input type="text" data-nilai-baru class="block w-full rounded-md border-gray-300 py-1.5 text-sm ring-1 ring-inset ring-gray-300">' +
+                        '</div>' +
+                        // Pengganti "Nilai baru" untuk kolom Tambah Bahan.
+                        '<div data-tambah class="hidden grid grid-cols-3 gap-2">' +
+                            '<div class="col-span-2">' +
+                                '<label class="block text-xs text-gray-600">Bahan yang ditambahkan <span class="text-red-600">*</span></label>' +
+                                '<input type="text" data-bahan-cari list="daftarBahan' + nomorBahan + '" autocomplete="off" placeholder="Ketik nama atau kode bahan..." class="block w-full rounded-md border-gray-300 py-1.5 text-sm ring-1 ring-inset ring-gray-300">' +
+                                '<datalist id="daftarBahan' + nomorBahan + '" data-bahan-daftar></datalist>' +
+                            '</div>' +
+                            '<div>' +
+                                '<label class="block text-xs text-gray-600">Jumlah <span class="text-red-600">*</span></label>' +
+                                '<input type="text" inputmode="decimal" data-bahan-qty placeholder="mis. 5" class="block w-full rounded-md border-gray-300 py-1.5 text-sm ring-1 ring-inset ring-gray-300">' +
+                            '</div>' +
                         '</div>' +
                         // Alasan per baris, bukan per tiket: satu pengajuan bisa
                         // mengoreksi beberapa kolom dengan sebab yang berbeda, dan
@@ -1054,6 +1167,14 @@
                     cariTertunda(baris);
                 }
 
+                if (baris && e.target.matches('[data-bahan-cari]')) {
+                    cariBahanTertunda(baris);
+                }
+
+                if (baris && e.target.matches('[data-bahan-cari], [data-bahan-qty]')) {
+                    susunTambah(baris);
+                }
+
                 sinkron();
             });
 
@@ -1089,6 +1210,20 @@
                 const nilai = {};
                 nilai[awal.field] = awal.nilai_lama;
                 baris.dataset.nilai = JSON.stringify(nilai);
+
+                // Baris Tambah Bahan tersimpan dalam bentuk baku; pecah lagi ke
+                // kotak bahan dan jumlah. Server menerima bentuk baku itu apa
+                // adanya kalau barisnya tidak disentuh.
+                const cocok = modeTambah(baris) && awal.nilai_baru ? polaTambah.exec(awal.nilai_baru) : null;
+
+                if (cocok) {
+                    const label = cocok[1] + ' [' + cocok[2] + ']';
+                    baris._bahan = {};
+                    baris._bahan[label] = { id: null, kode: cocok[2], satuan: cocok[4] || null };
+                    baris.querySelector('[data-bahan-cari]').value = label;
+                    baris.querySelector('[data-bahan-qty]').value = cocok[3];
+                    baris.dataset.tampilBaru = awal.nilai_baru;
+                }
             });
 
             segarkanJenis();

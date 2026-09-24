@@ -3,9 +3,9 @@
 namespace App\Exports;
 
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use App\Models\Bahan;
-use App\Models\PurchaseDetail;
-use App\Models\BahanKeluarDetails;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -20,53 +20,46 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
     protected $endDate;
     protected $companyName;
 
-    protected $startDay;
-    protected $endDay;
-    protected $startMonth;
-    protected $endMonth;
-    protected $monthYear;
+    /** @var Carbon[] Setiap tanggal di rentang export, boleh lintas bulan. */
+    protected $dates = [];
 
     public function __construct($startDate, $endDate, $companyName)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->companyName = $companyName;
+
+        $period = CarbonPeriod::create(
+            Carbon::parse($startDate)->startOfDay(),
+            Carbon::parse($endDate)->startOfDay()
+        );
+        foreach ($period as $date) {
+            $this->dates[] = $date->copy();
+        }
     }
 
     public function array(): array
     {
         $data = [];
 
-        $this->startDay = Carbon::parse($this->startDate)->format('j');
-        $this->endDay = Carbon::parse($this->endDate)->format('j');
-        $this->startMonth = Carbon::parse($this->startDate)->format('n');
-        $this->endMonth = Carbon::parse($this->startDate)->format('n');
-        $this->monthYear = Carbon::parse($this->endDate)->translatedFormat('F Y');
-
-        $formattedPeriod = "Periode $this->startDay-$this->endDay $this->monthYear";
-
         $data[] = ["LAPORAN STOK BARANG " . $this->companyName];
-        $data[] = ["Periode: " . $formattedPeriod];
+        $data[] = ["Periode: " . $this->formattedPeriod()];
 
         $tglBlnHeaders = ['No', 'Kode Barang', 'Nama Barang', 'Seri Barang', 'Satuan', 'Stok Awal'];
-
-        for ($day = $this->startDay; $day <= $this->endDay; $day++) {
-            $tglBlnHeaders[] = "$day/$this->startMonth";
+        foreach ($this->dates as $date) {
+            $tglBlnHeaders[] = $date->format('j/n');
         }
-
         $tglBlnHeaders[] = 'Stok Akhir';
         $tglBlnHeaders[] = 'Harga Terakhir';
-
         $data[] = $tglBlnHeaders;
 
         $dateNames = [];
-        for ($day = $this->startDay; $day <= $this->endDay; $day++) {
+        foreach ($this->dates as $date) {
             $dateNames[] = "Stok Masuk";
             $dateNames[] = "Harga Beli";
             $dateNames[] = "Stok Keluar";
         }
-
-        $data[] = array_merge([], [], [], [], [], [], $dateNames, []);
+        $data[] = $dateNames;
 
         $bahan = Bahan::with(['dataUnit', 'jenisBahan'])
             ->whereHas('jenisBahan', function ($query) {
@@ -74,61 +67,37 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
             })->orderBy('nama_bahan')
             ->get();
 
+        // Semua angka diambil sekaligus untuk seluruh bahan, lalu dicocokkan di
+        // PHP. Dulu setiap bahan menembak 3 query per hari ditambah 3 query lagi,
+        // sehingga export sebulan untuk ribuan bahan menjadi puluhan ribu query.
+        [$masuk, $hargaBeli] = $this->getMasukHarian();
+        $keluar = $this->getKeluarHarian();
+        $stok = $this->getStokAwalDanSisa();
+        $hargaTerakhir = $this->getHargaTerakhir();
+
         foreach ($bahan as $index => $item) {
-            $stokAwal = $this->getPreviousDayStokAkhir($item->id, $this->startDate);
             $row = [
                 $index + 1,
                 $item->kode_bahan,
                 $item->nama_bahan,
                 $item->seri_bahan,
-                $item->dataUnit->nama ?? Null,
-                $stokAwal
+                $item->dataUnit->nama ?? null,
+                $stok[$item->id]['stok_awal'] ?? 0,
             ];
 
-            $stokAkhir = $stokAwal;
+            foreach ($this->dates as $date) {
+                $key = $date->toDateString();
+                $harga = $hargaBeli[$item->id][$key] ?? null;
 
-            for ($day = $this->startDay; $day <= $this->endDay; $day++) {
-                $stokMasuk = PurchaseDetail::whereHas('purchase', function ($query) use ($day) {
-                    $query->whereDate('tgl_masuk', Carbon::parse($this->startMonth . '/' . $day . '/' . $this->startDate)->toDateString());
-                })
-                ->where('bahan_id', $item->id)
-                ->sum('qty');
-
-                $hargaBeli = PurchaseDetail::whereHas('purchase', function ($query) use ($day) {
-                    $query->whereDate('tgl_masuk', Carbon::parse($this->startMonth . '/' . $day . '/' . $this->startDate)->toDateString());
-                })
-                ->where('bahan_id', $item->id)
-                ->value('unit_price') ?? '';
-                $hargaBeli = $hargaBeli ? number_format($hargaBeli, 2, ',', '.') : '';
-
-                $stokKeluar = BahanKeluarDetails::whereHas('bahanKeluar', function ($query) use ($day) {
-                    $query->whereDate('tgl_keluar', Carbon::parse($this->startMonth . '/' . $day . '/' . $this->startDate)->toDateString())
-                        ->where('status', 'Disetujui');
-                })
-                ->where('bahan_id', $item->id)
-                ->sum('qty');
-
-                // $stokAkhir += $stokMasuk - $stokKeluar;
-
-                $row[] = $stokMasuk;
-                $row[] = $hargaBeli;
-                $row[] = $stokKeluar;
+                $row[] = $masuk[$item->id][$key] ?? 0;
+                $row[] = $harga ? number_format($harga, 2, ',', '.') : '';
+                $row[] = $keluar[$item->id][$key] ?? 0;
             }
 
-            // $row[] = $stokAkhir;
-            $row[] = $this->getSisaStokAkhir($item->id, $this->endDate);
+            $row[] = $stok[$item->id]['sisa'] ?? 0;
 
-            // Tambah harga terakhir
-            $hargaTerakhir = PurchaseDetail::join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
-                ->where('purchase_details.bahan_id', $item->id)
-                ->whereDate('purchases.tgl_masuk', '<=', Carbon::parse($this->endDate)->toDateString()) // Menggunakan $this->endDate
-                ->orderBy('purchases.tgl_masuk', 'desc')
-                ->value('purchase_details.unit_price');
-
-            // Format harga terakhir jika ditemukan
-            $hargaFormatted = $hargaTerakhir ? number_format($hargaTerakhir, 2, ',', '.') : '';
-            $row[] = $hargaFormatted;
-
+            $harga = $hargaTerakhir[$item->id] ?? null;
+            $row[] = $harga ? number_format($harga, 2, ',', '.') : '';
 
             $data[] = $row;
         }
@@ -136,38 +105,124 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
         return $data;
     }
 
-    private function getSisaStokAkhir($bahanId, $endDate)
+    private function formattedPeriod(): string
     {
-        $totalSisa = PurchaseDetail::whereHas('purchase', function ($query) use ($endDate) {
-            $query->whereDate('tgl_masuk', '<=', $endDate);
-        })
-        ->where('bahan_id', $bahanId)
-        ->sum('sisa');
+        $start = Carbon::parse($this->startDate);
+        $end = Carbon::parse($this->endDate);
 
-        $sisa = $totalSisa;
-        return $sisa > 0 ? $sisa : 0;
+        if ($start->format('Y-m') === $end->format('Y-m')) {
+            return $start->format('j') . '-' . $end->format('j') . ' ' . $end->translatedFormat('F Y');
+        }
+
+        return $start->translatedFormat('j F Y') . ' - ' . $end->translatedFormat('j F Y');
     }
 
-
-    private function getPreviousDayStokAkhir($bahanId, $startDate)
+    /**
+     * Qty masuk dan harga beli per bahan per tanggal di rentang export.
+     * Kalau satu bahan dibeli lebih dari sekali di hari yang sama, harga beli
+     * yang tampil adalah pembelian terakhir hari itu.
+     */
+    private function getMasukHarian(): array
     {
-        // Ambil total pembelian s.d. sebelum startDate
-        $totalMasuk = PurchaseDetail::whereHas('purchase', function ($query) use ($startDate) {
-            $query->whereDate('tgl_masuk', '<', $startDate);
-        })
-        ->where('bahan_id', $bahanId)
-        ->orderBy('purchase_id')
-        ->get(['qty', 'sisa']);
+        $rows = DB::table('purchase_details')
+            ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+            ->whereBetween('purchases.tgl_masuk', [$this->startDate, $this->endDate])
+            ->orderBy('purchases.tgl_masuk')
+            ->orderBy('purchase_details.id')
+            ->get([
+                'purchase_details.bahan_id',
+                DB::raw('DATE(purchases.tgl_masuk) as tgl'),
+                'purchase_details.qty',
+                'purchase_details.unit_price',
+            ]);
 
-        $totalMasukQty = $totalMasuk->sum('qty');
+        $masuk = [];
+        $harga = [];
+        foreach ($rows as $row) {
+            $masuk[$row->bahan_id][$row->tgl] = ($masuk[$row->bahan_id][$row->tgl] ?? 0) + $row->qty;
+            $harga[$row->bahan_id][$row->tgl] = $row->unit_price;
+        }
 
-        // Simulasi FIFO: stok awal adalah stok masuk sebelum startDate, dikurangi pemakaian setelah startDate
-        $stokAwal = $totalMasukQty;
-
-        return $stokAwal > 0 ? $stokAwal : 0;
+        return [$masuk, $harga];
     }
 
+    /** Qty keluar yang sudah disetujui, per bahan per tanggal. */
+    private function getKeluarHarian(): array
+    {
+        $rows = DB::table('bahan_keluar_details')
+            ->join('bahan_keluars', 'bahan_keluar_details.bahan_keluar_id', '=', 'bahan_keluars.id')
+            ->where('bahan_keluars.status', 'Disetujui')
+            ->whereBetween('bahan_keluars.tgl_keluar', [$this->startDate, $this->endDate])
+            ->whereNotNull('bahan_keluar_details.bahan_id')
+            ->groupBy('bahan_keluar_details.bahan_id', DB::raw('DATE(bahan_keluars.tgl_keluar)'))
+            ->get([
+                'bahan_keluar_details.bahan_id',
+                DB::raw('DATE(bahan_keluars.tgl_keluar) as tgl'),
+                DB::raw('SUM(bahan_keluar_details.qty) as total'),
+            ]);
 
+        $keluar = [];
+        foreach ($rows as $row) {
+            $keluar[$row->bahan_id][$row->tgl] = $row->total + 0;
+        }
+
+        return $keluar;
+    }
+
+    /**
+     * Stok awal = total qty masuk sebelum tanggal awal.
+     * Sisa (kolom Stok Akhir) = total sisa dari pembelian s.d. tanggal akhir.
+     */
+    private function getStokAwalDanSisa(): array
+    {
+        $rows = DB::table('purchase_details')
+            ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+            ->where('purchases.tgl_masuk', '<=', $this->endDate)
+            ->groupBy('purchase_details.bahan_id')
+            ->selectRaw(
+                'purchase_details.bahan_id,
+                SUM(CASE WHEN purchases.tgl_masuk < ? THEN purchase_details.qty ELSE 0 END) as stok_awal,
+                SUM(purchase_details.sisa) as sisa',
+                [$this->startDate]
+            )
+            ->get();
+
+        $stok = [];
+        foreach ($rows as $row) {
+            $stok[$row->bahan_id] = [
+                'stok_awal' => max(0, $row->stok_awal + 0),
+                'sisa' => max(0, $row->sisa + 0),
+            ];
+        }
+
+        return $stok;
+    }
+
+    /** Harga beli dari pembelian terakhir s.d. tanggal akhir, per bahan. */
+    private function getHargaTerakhir(): array
+    {
+        $tglTerakhir = DB::table('purchase_details')
+            ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+            ->where('purchases.tgl_masuk', '<=', $this->endDate)
+            ->groupBy('purchase_details.bahan_id')
+            ->select('purchase_details.bahan_id', DB::raw('MAX(purchases.tgl_masuk) as tgl_terakhir'));
+
+        $rows = DB::table('purchase_details')
+            ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+            ->joinSub($tglTerakhir, 'terakhir', function ($join) {
+                $join->on('terakhir.bahan_id', '=', 'purchase_details.bahan_id')
+                    ->on('terakhir.tgl_terakhir', '=', 'purchases.tgl_masuk');
+            })
+            ->orderBy('purchase_details.id')
+            ->get(['purchase_details.bahan_id', 'purchase_details.unit_price']);
+
+        $harga = [];
+        foreach ($rows as $row) {
+            $harga[$row->bahan_id] = $row->unit_price;
+        }
+
+        return $harga;
+    }
 
     public function headings(): array
     {
@@ -180,38 +235,24 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
         $sheet->getStyle('A1:A2')->getFont()->setSize(12);
         $sheet->getStyle('A1:A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->mergeCells('A3:A4');
-        $sheet->mergeCells('B3:B4');
-        $sheet->mergeCells('C3:C4');
-        $sheet->mergeCells('D3:D4');
-        $sheet->mergeCells('E3:E4');
-        $sheet->mergeCells('F3:F4');
-        $sheet->getStyle('A3:A4')->getFont()->setBold(true);
-        $sheet->getStyle('B3:B4')->getFont()->setBold(true);
-        $sheet->getStyle('C3:C4')->getFont()->setBold(true);
-        $sheet->getStyle('D3:D4')->getFont()->setBold(true);
-        $sheet->getStyle('E3:E4')->getFont()->setBold(true);
-        $sheet->getStyle('F3:F4')->getFont()->setBold(true);
-        $sheet->getStyle('A3:A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('B3:B4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('C3:C4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('D3:D4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('E3:E4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('F3:F4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
+        foreach (['A', 'B', 'C', 'D', 'E', 'F'] as $col) {
+            $sheet->mergeCells("{$col}3:{$col}4");
+            $sheet->getStyle("{$col}3:{$col}4")->getFont()->setBold(true);
+            $sheet->getStyle("{$col}3:{$col}4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
 
         $colIndex = 6;
         $dateHeaders = [];
 
-        for ($day = $this->startDay; $day <= $this->endDay; $day++) {
-            $columnIndex = 7 + ($day - $this->startDay) * 3 + 1; // Calculate column index for each "Harga Beli"
-            $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($columnIndex);
-            $sheet->getStyle($columnLetter)->getAlignment()->setHorizontal('right');
+        foreach ($this->dates as $i => $date) {
+            $hargaBeliColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(8 + $i * 3);
+            $sheet->getStyle($hargaBeliColumn)->getAlignment()->setHorizontal('right');
+
             $columnLetter = $this->getColumnLetter($colIndex);
             $endColumnLetter = $this->getColumnLetter($colIndex + 2);
 
             $sheet->mergeCells("{$columnLetter}3:{$endColumnLetter}3");
-            $sheet->setCellValue("{$columnLetter}3", "$day/" . $this->startMonth);
+            $sheet->setCellValue("{$columnLetter}3", $date->format('j/n'));
 
             $sheet->getStyle("{$columnLetter}3:{$endColumnLetter}3")->getFont()->setBold(true);
             $sheet->getStyle("{$columnLetter}3:{$endColumnLetter}3")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -224,8 +265,7 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
             $dateHeaders[] = $columnLetter;
         }
 
-        $lastColumnIndex = $colIndex;
-        $lastColumnLetter = $this->getColumnLetter($lastColumnIndex);
+        $lastColumnLetter = $this->getColumnLetter($colIndex);
 
         $sheet->mergeCells("A1:{$lastColumnLetter}1");
         $sheet->mergeCells("A2:{$lastColumnLetter}2");
@@ -245,8 +285,6 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
         $sheet->getStyle("{$hargaColumnLetter}5:{$hargaColumnLetter}{$sheet->getHighestRow()}")
         ->getAlignment()
         ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-        $colIndex++;
-
 
         $headerFillStyle = [
             'fill' => [
@@ -258,15 +296,12 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
         $sheet->getStyle('A1:F1')->applyFromArray($headerFillStyle);
         $sheet->getStyle('A2:F2')->applyFromArray($headerFillStyle);
 
-        $colIndex = 6;
         $stokHeaders = ["Stok Masuk", "Harga Beli", "Stok Keluar"];
-
-        for ($i = 0; $i < count($dateHeaders); $i++) {
-            $columnLetter = $dateHeaders[$i];
-
+        $headerIndex = 6;
+        foreach ($dateHeaders as $ignored) {
             foreach ($stokHeaders as $stokHeader) {
-                $sheet->setCellValue("{$columnLetter}4", $stokHeader);
-                $columnLetter = $this->getColumnLetter(++$colIndex);
+                $sheet->setCellValue($this->getColumnLetter($headerIndex) . '4', $stokHeader);
+                $headerIndex++;
             }
         }
 
@@ -284,11 +319,17 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
 
         $sheet->getStyle("A3:{$highestColumn}{$highestRow}")->applyFromArray($borderStyle);
 
-        $totalColumns = $colIndex + 2;
-        for ($i = 0; $i <= $totalColumns; $i++) {
-            $columnLetter = $this->getColumnLetter($i);
-            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+        // Lebar kolom tetap. setAutoSize() memaksa PhpSpreadsheet mengukur
+        // setiap sel, dan itu lambat sekali untuk ribuan baris x puluhan kolom.
+        $fixedWidths = ['A' => 6, 'B' => 16, 'C' => 40, 'D' => 20, 'E' => 10, 'F' => 11];
+        foreach ($fixedWidths as $col => $width) {
+            $sheet->getColumnDimension($col)->setWidth($width);
         }
+        // Kolom harian (Stok Masuk/Harga Beli/Stok Keluar) dan Stok Akhir.
+        for ($i = 6; $i < $colIndex; $i++) {
+            $sheet->getColumnDimension($this->getColumnLetter($i))->setWidth(12);
+        }
+        $sheet->getColumnDimension($hargaColumnLetter)->setWidth(16);
     }
 
     private function getColumnLetter($index)
@@ -300,8 +341,4 @@ class PurchasesExport implements FromArray, WithHeadings, WithStyles
         }
         return $letters;
     }
-
-
-
-
 }

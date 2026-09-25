@@ -427,7 +427,13 @@
             function susunTambah(baris) {
                 const teks = baris.querySelector('[data-bahan-cari]').value.trim();
                 const qty = baris.querySelector('[data-bahan-qty]').value.trim().replace(',', '.');
-                const bahan = (baris._bahan || {})[teks];
+                // Teks berbentuk label "<nama> [<kode>]" tetap bisa dipakai
+                // walau daftarnya belum termuat di baris ini — mis. baris yang
+                // diisi ulang setelah ditolak, atau daftarnya gagal dimuat.
+                // Kodenya diperiksa ulang di server terhadap master bahan.
+                const kodeDiTeks = /\[([^\[\]]+)\]\s*$/.exec(teks);
+                const bahan = (baris._bahan || {})[teks]
+                    || (kodeDiTeks ? { id: null, kode: kodeDiTeks[1].trim(), satuan: null } : null);
                 const qtyBenar = qty !== '' && ! isNaN(qty) && parseFloat(qty) > 0;
                 const kotak = baris.querySelector('[data-nilai-baru]');
 

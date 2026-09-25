@@ -806,7 +806,12 @@ class PerbaikanDataService
 
         $query = Bahan::query()->with('dataUnit')->orderBy('nama_bahan');
 
-        if ($cari !== '') {
+        // Teks yang sudah berbentuk label pilihan, "<nama> [<kode>]", dicari
+        // lewat kodenya: nama maupun kode saja tidak mengandung label utuh itu,
+        // jadi pencarian LIKE biasa selalu kosong untuknya.
+        if (preg_match('/\[([^\[\]]+)\]\s*$/u', $cari, $cocok)) {
+            $query->where('kode_bahan', trim($cocok[1]));
+        } elseif ($cari !== '') {
             $query->where(function ($q) use ($cari) {
                 $q->where('nama_bahan', 'like', '%' . $cari . '%')
                     ->orWhere('kode_bahan', 'like', '%' . $cari . '%');

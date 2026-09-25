@@ -636,7 +636,7 @@
 
                 if (bisa) {
                     baris.querySelectorAll('[data-bentang]')[0].textContent = ringkasanTeks(baris);
-                } else if (baris.dataset.lipat === '1') {
+                } else if (baris.dataset.terlipat === '1') {
                     // Baris terlipat yang isinya jadi tidak lengkap lagi — mis.
                     // centang jenisnya dilepas sehingga kolomnya tidak lagi
                     // terbaca — dibentangkan kembali, bukan dibiarkan terlipat
@@ -649,7 +649,12 @@
                 if (! lengkap(baris)) return;
 
                 tutupPanel(baris);
-                baris.dataset.lipat = '1';
+                // Bukan `dataset.lipat`: itu menulis atribut data-lipat ke
+                // barisnya sendiri, sehingga closest('[data-lipat]') di handler
+                // klik cocok untuk klik di mana pun dalam baris — dan baris
+                // yang dibuka lewat "Ubah" langsung terlipat lagi begitu salah
+                // satu kotaknya diklik.
+                baris.dataset.terlipat = '1';
                 baris.querySelector('[data-ringkas]').classList.remove('hidden');
                 baris.querySelector('[data-isi]').classList.add('hidden');
                 baris.classList.add('hover:bg-gray-100');
@@ -669,7 +674,7 @@
                     }
                 });
 
-                baris.dataset.lipat = '';
+                baris.dataset.terlipat = '';
                 baris.querySelector('[data-isi]').classList.remove('hidden');
                 baris.querySelector('[data-ringkas]').classList.add('hidden');
                 baris.classList.remove('hover:bg-gray-100');

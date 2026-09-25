@@ -58,6 +58,22 @@
 
         @endif
 
+        {{-- Penolakan dari controller dikirim lewat session('error'), bukan
+             $errors. Tanpa blok ini halamannya cuma memuat ulang dan pengaju
+             tidak tahu kenapa Simpan/Update-nya tidak jalan. --}}
+        @if (session('error'))
+            <div id="sessionErrorAlert" class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
+                <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                </svg>
+                <span class="sr-only">Info</span>
+                <div>
+                    <strong class="font-bold">Error!</strong>
+                    <span class="font-medium">{{ session('error') }}</span>
+                </div>
+            </div>
+        @endif
+
         @if ($errors->any())
             <div id="errorAlert" class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
                 <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -433,14 +449,31 @@
                 // Teks yang sudah persis salah satu pilihan tidak perlu dicari lagi.
                 if ((baris._bahan || {})[teks]) return;
 
+                // Tiga kegagalan dibedakan di pesannya. Satu pesan umum untuk
+                // semuanya membuat pengaju — dan yang dimintai tolong — tidak
+                // bisa tahu apakah servernya mati, menolak, atau sesinya habis.
+                let jawab;
+
                 try {
-                    const jawab = await fetch(urlBahan + '?q=' + encodeURIComponent(teks), {
+                    jawab = await fetch(urlBahan + '?q=' + encodeURIComponent(teks), {
                         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
                     });
+                } catch (e) {
+                    tampilkanPesan(baris, 'Daftar bahan tidak bisa dimuat: server tidak terjangkau.', 'error');
+                    return;
+                }
 
-                    if (! jawab.ok) return;
+                if (! jawab.ok) {
+                    tampilkanPesan(baris, 'Daftar bahan tidak bisa dimuat (HTTP ' + jawab.status + ').', 'error');
+                    return;
+                }
 
-                    const data = await jawab.json();
+                try {
+                    // Jawaban 200 yang bukan JSON hampir selalu halaman login:
+                    // sesinya habis dan request-nya dialihkan diam-diam.
+                    const data = await jawab.json().catch(function () {
+                        throw new Error('bukan-json');
+                    });
                     const daftar = baris.querySelector('[data-bahan-daftar]');
                     daftar.innerHTML = '';
                     // Hasil lama tidak dibuang: begitu satu pilihan diklik, isi
@@ -458,7 +491,13 @@
                     susunTambah(baris);
                     sinkron();
                 } catch (e) {
-                    tampilkanPesan(baris, 'Daftar bahan tidak bisa dimuat.', 'error');
+                    tampilkanPesan(baris, e && e.message === 'bukan-json'
+                        ? 'Daftar bahan tidak bisa dimuat: sesi login mungkin habis, muat ulang halaman.'
+                        : 'Daftar bahan tidak bisa dimuat.', 'error');
+
+                    // Selain sesi habis, yang tersisa adalah galat di kode
+                    // halaman ini sendiri — dicatat supaya terlihat di Console.
+                    if (! e || e.message !== 'bukan-json') console.error(e);
                 }
             }
 
@@ -635,7 +674,7 @@
                 baris.querySelector('[data-lipat]').classList.toggle('hidden', ! bisa);
 
                 if (bisa) {
-                    baris.querySelectorAll('[data-bentang]')[0].textContent = ringkasanTeks(baris);
+                    baris.querySelector('[data-ringkasan]').textContent = ringkasanTeks(baris);
                 } else if (baris.dataset.terlipat === '1') {
                     // Baris terlipat yang isinya jadi tidak lengkap lagi — mis.
                     // centang jenisnya dilepas sehingga kolomnya tidak lagi
@@ -657,7 +696,6 @@
                 baris.dataset.terlipat = '1';
                 baris.querySelector('[data-ringkas]').classList.remove('hidden');
                 baris.querySelector('[data-isi]').classList.add('hidden');
-                baris.classList.add('hover:bg-gray-100');
             }
 
             // `fokus` false dipakai pembuka yang bukan perbuatan langsung pengaju
@@ -665,19 +703,11 @@
             // dibentangkan karena centang jenisnya bergeser. Keduanya tidak boleh
             // merampas fokus dari tempat pengaju sedang bekerja.
             function bentang(baris, fokus) {
-                // Satu baris terbuka sekaligus. Dua baris terbuka berarti
-                // panjangnya kembali seperti sebelum dilipat, dan pengaju
-                // kehilangan gambaran daftarnya secara keseluruhan.
-                wadah.querySelectorAll('[data-baris]').forEach(function (lain) {
-                    if (lain !== baris) {
-                        lipat(lain);
-                    }
-                });
-
+                // Baris lain tidak ikut dilipat: baris hanya tertutup lewat
+                // tombol "Tutup baris"-nya sendiri.
                 baris.dataset.terlipat = '';
                 baris.querySelector('[data-isi]').classList.remove('hidden');
                 baris.querySelector('[data-ringkas]').classList.add('hidden');
-                baris.classList.remove('hover:bg-gray-100');
 
                 // 'nearest': yang digulir cukup kotak daftarnya, seminimal
                 // mungkin. 'center' akan menggeser halaman juga, sehingga
@@ -687,12 +717,8 @@
                 if (fokus === false) return;
 
                 // Tombol "Ubah" ikut tersembunyi bersama ringkasannya, jadi
-                // fokusnya lepas ke <body> dan handler focusout di bawah
-                // menyimpulkan pengaju sudah meninggalkan barisnya — lalu
-                // melipatnya kembali seketika. Dari layar, tombolnya tampak
-                // tidak berfungsi. Fokus dipindahkan ke dalam baris supaya
-                // pemeriksaan itu lolos, sekaligus menaruh kursor di kotak yang
-                // paling sering jadi alasan baris ini dibuka lagi.
+                // fokusnya dipindahkan ke kotak yang paling sering jadi alasan
+                // baris ini dibuka lagi, bukan dibiarkan lepas ke <body>.
                 const sasaran = baris.querySelector(modeTambah(baris) ? '[data-bahan-cari]' : '[data-nilai-baru]');
 
                 if (sasaran) {
@@ -959,7 +985,10 @@
                     '<div data-ringkas class="hidden">' +
                         '<div class="flex items-center gap-2">' +
                             '<span class="shrink-0 text-xs font-semibold text-gray-500" data-nomor></span>' +
-                            '<button type="button" data-bentang class="min-w-0 flex-1 truncate text-left text-sm text-gray-800 hover:text-indigo-700"></button>' +
+                            // Teks ringkasannya bukan tombol: baris hanya dibuka
+                            // lewat tombol "Ubah", supaya klik sembarang di
+                            // daftar tidak membentangkan baris.
+                            '<span data-ringkasan class="min-w-0 flex-1 truncate text-left text-sm text-gray-800"></span>' +
                             '<button type="button" data-bentang class="shrink-0 text-xs text-indigo-600 hover:underline">Ubah</button>' +
                             '<button type="button" data-hapus class="shrink-0 text-xs text-red-600 hover:underline">Hapus</button>' +
                         '</div>' +
@@ -1058,11 +1087,9 @@
             }
 
             tombolTambah.addEventListener('click', function () {
-                // Baris yang sudah lengkap dilipat dulu: kalau tidak, baris baru
-                // muncul di bawah tumpukan baris terbuka dan pengaju harus
-                // menggulir mencarinya.
-                lipatSemuaLengkap();
-                // Tanpa fokus: baris baru masih kosong, dan langkah pertamanya
+                // Baris lain dibiarkan apa adanya — baris hanya tertutup lewat
+                // tombol "Tutup baris". bentang() menggulir baris barunya ke
+                // pandangan. Tanpa fokus: baris baru masih kosong, dan langkah pertamanya
                 // memilih kode transaksi — bukan mengisi nilai baru.
                 bentang(buatBaris(), false);
             });
@@ -1114,23 +1141,6 @@
                 if (e.target.closest('[data-lipat]')) {
                     lipat(baris);
                 }
-            });
-
-            // Baris dilipat begitu fokusnya benar-benar keluar dari baris itu.
-            // Diperiksa setelah fokusnya pindah, bukan pada saat blur: saat blur
-            // berjalan, tujuan fokusnya belum tentu sudah ditetapkan, dan baris
-            // yang fokusnya cuma bergeser antar kotaknya sendiri akan ikut
-            // terlipat di tengah pengisian.
-            wadah.addEventListener('focusout', function (e) {
-                const baris = e.target.closest('[data-baris]');
-                if (!baris) return;
-
-                setTimeout(function () {
-                    if (! baris.isConnected) return;
-                    if (baris.contains(document.activeElement)) return;
-
-                    lipat(baris);
-                }, 0);
             });
 
             // Klik di luar comboboxnya menutup panelnya. Dipasang di document

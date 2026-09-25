@@ -99,7 +99,7 @@ class PerbaikanDataController extends Controller
             'perbaikanData' => null,
             'isEdit' => false,
             'targetBisaDiubah' => true,
-            'barisAwal' => [],
+            'barisAwal' => $this->barisDariInputLama($perbaikan) ?? [],
         ]);
     }
 
@@ -162,6 +162,57 @@ class PerbaikanDataController extends Controller
                 'label' => $kode ?: ('#' . $baris->modul_id),
             ];
         })->values()->all();
+    }
+
+    /**
+     * Baris perubahan dari kiriman yang baru saja ditolak, untuk mengisi ulang
+     * repeater setelah redirect()->back()->withInput().
+     *
+     * Tanpa ini form edit diisi ulang dari database, sehingga baris yang baru
+     * ditambahkan — justru yang membuat kirimannya ditolak — hilang begitu
+     * halamannya kembali. Pengaju yang lalu menekan Update lagi menyimpan
+     * daftar lama tanpa sadar barisnya tertinggal.
+     *
+     * @return array<int, array<string, mixed>>|null null kalau tidak ada input lama.
+     */
+    private function barisDariInputLama(PerbaikanDataService $perbaikan): ?array
+    {
+        $baris = json_decode((string) old('perubahan', ''), true);
+
+        if (! is_array($baris)) {
+            return null;
+        }
+
+        return collect($baris)->filter(fn ($item) => is_array($item) && filled($item['modul'] ?? null))
+            ->map(function (array $item) use ($perbaikan) {
+                $modul = (string) $item['modul'];
+                $modulId = (int) ($item['modul_id'] ?? 0);
+                $field = (string) ($item['field'] ?? '');
+                $nilaiBaru = $item['nilai_baru'] ?? null;
+
+                // Tambah Bahan dikirim sebagai JSON {bahan_id, qty}; form hanya
+                // bisa memecah bentuk bakunya kembali ke kotak bahan dan jumlah.
+                // Kalau bentuk baku tidak bisa disusun — justru itu alasan
+                // ditolaknya — nilainya dibiarkan apa adanya.
+                if ($field === 'tambah_bahan' && filled($nilaiBaru)) {
+                    $nilaiBaru = rescue(
+                        fn () => $perbaikan->periksaTambahBahan($modul, $modulId, $field, $nilaiBaru),
+                        $nilaiBaru,
+                        false
+                    );
+                }
+
+                return [
+                    'modul' => $modul,
+                    'tabel' => rescue(fn () => $perbaikan->tabelModul($modul), '', false),
+                    'modul_id' => (string) $modulId,
+                    'field' => $field,
+                    'nilai_lama' => rescue(fn () => $perbaikan->nilaiSekarang($modul, $modulId, $field), null, false),
+                    'nilai_baru' => $nilaiBaru,
+                    'alasan' => $item['alasan'] ?? null,
+                    'label' => rescue(fn () => $perbaikan->kodeRecord($modul, $modulId), null, false) ?: ('#' . $modulId),
+                ];
+            })->values()->all();
     }
 
     /**
@@ -507,7 +558,10 @@ class PerbaikanDataController extends Controller
             // Barisnya selalu ditampilkan; yang dibatasi hanya boleh-tidaknya
             // diubah, lihat PerbaikanData::targetMasihBisaDiubah().
             'targetBisaDiubah' => $perbaikanData->targetMasihBisaDiubah(),
-            'barisAwal' => $this->barisAwal($perbaikanData, $perbaikan),
+            // Input lama hanya dipakai selama barisnya masih boleh disunting:
+            // sesudah itu yang tampil harus daftar yang disetujui approver.
+            'barisAwal' => ($perbaikanData->targetMasihBisaDiubah() ? $this->barisDariInputLama($perbaikan) : null)
+                ?? $this->barisAwal($perbaikanData, $perbaikan),
         ]);
     }
 

@@ -4,11 +4,20 @@ namespace App\Livewire;
 
 use App\Models\AuditPerubahanData;
 use App\Services\PerbaikanDataService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
  * Tabel jejak perubahan data.
+ *
+ * Satu baris tabel = satu pencatatan koreksi: waktu, tiket, pengaju, dan
+ * approvernya. Perubahan per kolomnya — nilai lama, nilai baru, alasan — ada
+ * di popup detail, karena satu tiket bisa melahirkan banyak baris audit dan
+ * menjejerkan semuanya di tabel utama membuat pembacanya harus memilah sendiri
+ * mana yang satu keputusan.
  *
  * Nilai lama dan barunya ditampilkan apa adanya, tanpa diformat ulang. Kalau
  * salah ketiknya justru soal titik, koma, atau nol berlebih, memformat ulang
@@ -28,6 +37,9 @@ class AuditPerubahanDataTable extends Component
     public $dariTanggal = '';
 
     public $sampaiTanggal = '';
+
+    /** Kunci kelompok yang detailnya sedang dibuka di popup. */
+    public ?string $kunciDetail = null;
 
     protected $paginationTheme = 'tailwind';
 
@@ -51,11 +63,73 @@ class AuditPerubahanDataTable extends Component
         $this->resetPage();
     }
 
+    public function bukaDetail(string $kunci): void
+    {
+        $this->kunciDetail = $kunci;
+    }
+
+    public function tutupDetail(): void
+    {
+        $this->kunciDetail = null;
+    }
+
     public function render(PerbaikanDataService $perbaikan)
     {
         $modulPerJenis = $perbaikan->modulPerJenis();
 
-        $audit = AuditPerubahanData::with(['pengaju', 'approver', 'perbaikanData'])
+        // Dipaginasi per kelompok, bukan per baris audit. Paginasi per baris
+        // bisa memotong satu tiket di batas halaman, dan di tabel yang satu
+        // barisnya satu tiket, potongan itu tampil sebagai dua pencatatan
+        // terpisah yang masing-masing detailnya tidak lengkap.
+        //
+        // Kolom pelakunya diambil lewat max(): dalam satu kelompok isinya
+        // sama, karena kelompoknya memang satu tiket.
+        $kelompok = AuditPerubahanData::query()
+            ->fromSub($this->barisBerkunci(), 'audit_perubahan_data')
+            ->selectRaw(
+                'kunci, max(id) as id, min(created_at) as created_at,'
+                . ' max(perbaikan_data_id) as perbaikan_data_id,'
+                . ' max(pengaju_id) as pengaju_id, max(approver_id) as approver_id,'
+                . ' max(disetujui_sendiri) as disetujui_sendiri, count(*) as jumlah'
+            )
+            ->when($this->adaFilter(), fn ($query) => $query->whereIn('kunci', $this->kunciYangCocok($modulPerJenis)))
+            ->groupBy('kunci')
+            ->orderByRaw('max(id) desc')
+            ->with(['pengaju', 'approver', 'perbaikanData'])
+            ->paginate($this->perPage);
+
+        $detail = $this->barisDetail();
+
+        return view('livewire.audit-perubahan-data-table', [
+            'kelompokList' => $kelompok,
+            'daftarJenis' => $this->jenisYangPernahAda($modulPerJenis),
+            'detail' => $detail,
+            'runAlasan' => $this->runAlasan($detail),
+        ]);
+    }
+
+    private function adaFilter(): bool
+    {
+        return $this->search !== ''
+            || $this->filterJenis !== ''
+            || $this->dariTanggal !== ''
+            || $this->sampaiTanggal !== '';
+    }
+
+    /**
+     * Kunci kelompok yang punya setidaknya satu baris cocok dengan filter.
+     *
+     * Filternya memilih kelompok, bukan memangkas isinya. Kalau pencarian
+     * "harga" memangkas baris, tiket berisi tiga perubahan akan tampil sebagai
+     * "1 perubahan" di tabel lalu memperlihatkan tiga di popup — dua angka
+     * yang saling membantah di layar yang sama.
+     *
+     * @param  array<string, array<int, string>>  $modulPerJenis
+     */
+    private function kunciYangCocok(array $modulPerJenis): Builder
+    {
+        return AuditPerubahanData::query()
+            ->selectRaw($this->ekspresiKunci())
             ->when($this->filterJenis !== '', fn ($query) => $query->whereIn(
                 'modul',
                 // Sengaja tidak menyaring lewat jenis pada tiket pengajuannya.
@@ -80,87 +154,35 @@ class AuditPerubahanDataTable extends Component
                         ->orWhere('nilai_baru', 'like', $cari)
                         ->orWhere('alasan', 'like', $cari)
                         ->orWhere('modul_id', 'like', $cari)
-                        ->orWhereHas('pengaju', fn ($user) => $user->where('name', 'like', $cari));
+                        ->orWhereHas('pengaju', fn ($user) => $user->where('name', 'like', $cari))
+                        ->orWhereHas('approver', fn ($user) => $user->where('name', 'like', $cari))
+                        ->orWhereHas('perbaikanData', fn ($tiket) => $tiket->where('kode_pengajuan', 'like', $cari));
                 });
-            })
-            ->orderByDesc('id')
-            ->paginate($this->perPage);
-
-        return view('livewire.audit-perubahan-data-table', [
-            'auditList' => $audit,
-            'daftarJenis' => $this->jenisYangPernahAda($modulPerJenis),
-            'kunciKelompok' => $this->kunciKelompok($audit->items()),
-            'tinggiKelompok' => $this->tinggiKelompok($audit->items()),
-            'runAlasan' => $this->runAlasan($audit->items()),
-        ]);
+            });
     }
 
     /**
-     * Deret baris beralasan sama yang berurutan: id => [awal, tinggi].
+     * Seluruh baris audit, masing-masing dengan kolom `kunci` kelompoknya.
      *
-     * Satu tiket sering memuat beberapa baris beralasan sama persis — kalimat
-     * yang ditulis sekali di form lalu menempel ke tiap baris. Diulang ke
-     * bawah, kalimat panjang itu jadi bagian paling ramai di tabel padahal
-     * isinya satu.
-     *
-     * Yang digabung deret berurutan, bukan seluruh kelompok. Pengecekan
-     * "semua baris di kelompok ini beralasan sama" gagal begitu satu baris
-     * saja berbeda — dan justru itu bentuk yang paling lazim: dua baris harga
-     * satuan beralasan sama, disusul baris shipping cost yang alasannya lain.
-     * Menyerah pada kasus itu berarti mengulang kalimat yang sama persis tepat
-     * di tempat pengulangannya paling terlihat.
-     *
-     * @param  array<int, AuditPerubahanData>  $baris
-     * @return array<int, array{awal: bool, tinggi: int}>
+     * Dibungkus sebagai subquery supaya query luarnya bisa GROUP BY kolom
+     * biasa. Mengelompokkan langsung lewat ekspresinya ditolak ONLY_FULL_GROUP_BY
+     * di MySQL lama, yang menganggap `id` dan `created_at` di dalam ekspresi
+     * itu kolom tak teragregasi.
      */
-    private function runAlasan(array $baris): array
+    private function barisBerkunci(): Builder
     {
-        $kunciPer = $this->kunciKelompok($baris);
-        $hasil = [];
-        $idAwal = null;
-        $sebelumnya = null;
-
-        foreach ($baris as $satu) {
-            $tanda = $kunciPer[$satu->id] . '|' . (string) $satu->alasan;
-
-            if ($tanda !== $sebelumnya) {
-                $idAwal = $satu->id;
-                $hasil[$satu->id] = ['awal' => true, 'tinggi' => 0];
-                $sebelumnya = $tanda;
-            } else {
-                $hasil[$satu->id] = ['awal' => false, 'tinggi' => 0];
-            }
-
-            $hasil[$idAwal]['tinggi']++;
-        }
-
-        // Tinggi deretnya baru diketahui setelah deret itu habis, jadi baris
-        // penerusnya menyalin dari barisan awalnya di akhir, bukan saat lewat.
-        $tinggiPer = [];
-
-        foreach ($baris as $satu) {
-            if ($hasil[$satu->id]['awal']) {
-                $idAwal = $satu->id;
-            }
-
-            $tinggiPer[$satu->id] = [
-                'awal' => $hasil[$satu->id]['awal'],
-                'tinggi' => $hasil[$idAwal]['tinggi'],
-            ];
-        }
-
-        return $tinggiPer;
+        return AuditPerubahanData::query()
+            ->select('audit_perubahan_data.*')
+            ->selectRaw($this->ekspresiKunci() . ' as kunci');
     }
 
     /**
-     * Kunci pengelompokan tiap baris: id audit => kunci kelompoknya.
+     * Ekspresi SQL kunci pengelompokan satu baris audit.
      *
      * Satu tiket biasanya melahirkan beberapa baris audit sekaligus — harga
      * satuan dua bahan dan shipping cost transaksinya, misalnya, tercatat pada
-     * detik yang sama oleh approver yang sama. Ditampilkan sebagai baris-baris
-     * berdiri sendiri, waktu, tiket, pengaju, dan approvernya terulang identik
-     * dan pembacanya harus membandingkan sendiri untuk tahu ketiganya berasal
-     * dari satu keputusan.
+     * detik yang sama oleh approver yang sama. Semuanya satu keputusan, jadi
+     * semuanya satu baris di tabel.
      *
      * Waktunya ikut jadi kunci, bukan nomor tiketnya saja. Baris yang gagal
      * dicatat bisa dicoba lagi berhari-hari kemudian di bawah tiket yang sama;
@@ -170,42 +192,79 @@ class AuditPerubahanDataTable extends Component
      * Baris tanpa tiket selalu berdiri sendiri. Yang menyatukannya cuma
      * kebetulan waktu, dan itu bukan alasan untuk menyatukannya di layar.
      *
-     * @param  array<int, AuditPerubahanData>  $baris
-     * @return array<int, string>
+     * Dua dialek karena test berjalan di SQLite, sedangkan server memakai MySQL.
      */
-    private function kunciKelompok(array $baris): array
+    private function ekspresiKunci(): string
     {
-        $kunci = [];
-
-        foreach ($baris as $satu) {
-            $kunci[$satu->id] = $satu->perbaikan_data_id
-                ? 'tiket-' . $satu->perbaikan_data_id . '-' . optional($satu->created_at)->format('YmdHi')
-                : 'baris-' . $satu->id;
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return "case when perbaikan_data_id is null then 'baris-' || id"
+                . " else 'tiket-' || perbaikan_data_id || '-' || coalesce(strftime('%Y%m%d%H%M', created_at), '') end";
         }
 
-        return $kunci;
+        return "case when perbaikan_data_id is null then concat('baris-', id)"
+            . " else concat('tiket-', perbaikan_data_id, '-', coalesce(date_format(created_at, '%Y%m%d%H%i'), '')) end";
     }
 
     /**
-     * Banyaknya baris tiap kelompok, untuk rowspan sel yang digabung.
+     * Isi popup detail: semua baris audit di kelompok yang dibuka.
      *
-     * Dihitung dari isi halaman ini saja, bukan dari seluruh hasil query. Satu
-     * kelompok yang kebetulan terpotong batas halaman akan tampil sebagai dua
-     * kelompok kecil — tidak ideal, tapi benar: rowspan yang menghitung baris
-     * di halaman berikutnya akan menembus tabelnya.
+     * Filter tabel tidak ikut diterapkan. Popupnya menjawab "apa saja yang
+     * diubah pada pencatatan ini", dan jawaban yang dipangkas pencarian
+     * adalah jawaban yang tidak lengkap.
      *
-     * @param  array<int, AuditPerubahanData>  $baris
-     * @return array<string, int>
+     * @return Collection<int, AuditPerubahanData>
      */
-    private function tinggiKelompok(array $baris): array
+    private function barisDetail(): Collection
     {
-        $tinggi = [];
-
-        foreach ($this->kunciKelompok($baris) as $kunci) {
-            $tinggi[$kunci] = ($tinggi[$kunci] ?? 0) + 1;
+        if ($this->kunciDetail === null) {
+            return collect();
         }
 
-        return $tinggi;
+        return AuditPerubahanData::query()
+            ->fromSub($this->barisBerkunci(), 'audit_perubahan_data')
+            ->where('kunci', $this->kunciDetail)
+            ->with(['pengaju', 'approver', 'perbaikanData'])
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * Deret baris beralasan sama yang berurutan: id => [awal, tinggi].
+     *
+     * Satu tiket sering memuat beberapa baris beralasan sama persis — kalimat
+     * yang ditulis sekali di form lalu menempel ke tiap baris. Diulang ke
+     * bawah, kalimat panjang itu jadi bagian paling ramai di popup padahal
+     * isinya satu.
+     *
+     * Yang digabung deret berurutan, bukan seluruh kelompok. Pengecekan
+     * "semua baris beralasan sama" gagal begitu satu baris saja berbeda — dan
+     * justru itu bentuk yang paling lazim: dua baris harga satuan beralasan
+     * sama, disusul baris shipping cost yang alasannya lain.
+     *
+     * @param  Collection<int, AuditPerubahanData>  $baris
+     * @return array<int, array{awal: bool, tinggi: int}>
+     */
+    private function runAlasan(Collection $baris): array
+    {
+        $hasil = [];
+        $idAwal = null;
+        $sebelumnya = null;
+
+        foreach ($baris as $satu) {
+            $alasan = (string) $satu->alasan;
+
+            if ($idAwal === null || $alasan !== $sebelumnya) {
+                $idAwal = $satu->id;
+                $sebelumnya = $alasan;
+                $hasil[$idAwal] = ['awal' => true, 'tinggi' => 0];
+            } else {
+                $hasil[$satu->id] = ['awal' => false, 'tinggi' => 0];
+            }
+
+            $hasil[$idAwal]['tinggi']++;
+        }
+
+        return $hasil;
     }
 
     /**

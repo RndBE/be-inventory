@@ -154,13 +154,13 @@
                 x-transition:leave-start="opacity-100 translate-y-0"
                 x-transition:leave-end="opacity-0 translate-y-4"
                 @click.self="close()"
-                class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:p-8"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
                 style="display: none">
 
                 <div role="dialog" aria-modal="true" aria-labelledby="judul-detail-audit"
-                    class="w-full max-w-5xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
+                    class="flex max-h-full w-full max-w-5xl flex-col rounded-lg bg-white shadow-xl dark:bg-gray-800">
 
-                    <div class="flex items-start justify-between gap-4 border-b p-4 md:p-5 dark:border-gray-600">
+                    <div class="flex shrink-0 items-start justify-between gap-4 border-b p-4 md:p-5 dark:border-gray-600">
                         <div>
                             <h3 id="judul-detail-audit" class="text-lg font-semibold text-gray-900 dark:text-white">
                                 Detail Perubahan
@@ -180,8 +180,10 @@
                         </button>
                     </div>
 
-                    <div class="p-4 md:p-5 space-y-5">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    {{-- Kepala, keterangan, dan tombol tutup tetap di tempat; hanya daftar
+                         perubahannya yang menggulir kalau isinya melebihi layar. --}}
+                    <div class="flex min-h-0 flex-1 flex-col gap-5 p-4 md:p-5">
+                        <div class="grid shrink-0 grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                                 <div class="text-xs uppercase text-gray-400">Tanggal</div>
                                 <div class="font-medium text-gray-900 dark:text-white">
@@ -215,9 +217,9 @@
                             </div>
                         </div>
 
-                        <div class="overflow-x-auto rounded-lg ring-1 ring-gray-200 dark:ring-gray-600">
+                        <div class="min-h-0 overflow-auto rounded-lg ring-1 ring-gray-200 dark:ring-gray-600">
                             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                <thead class="sticky top-0 z-10 text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
                                         <th scope="col" class="px-4 py-3">Perubahan</th>
                                         <th scope="col" class="px-4 py-3">Lama &rarr; Baru</th>
@@ -273,7 +275,7 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-end border-t p-4 dark:border-gray-600">
+                    <div class="flex shrink-0 justify-end border-t p-4 dark:border-gray-600">
                         <button @click="close()" type="button"
                             class="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600">
                             Tutup

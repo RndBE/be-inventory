@@ -101,6 +101,11 @@ use App\Models\StockOpname;
  * - `induk`       untuk tabel detail: relasi dan kolom kode milik induknya.
  * - `label_relasi` / `label_kolom`  tambahan label pada pilihan kode, supaya
  *   baris detail yang kode induknya sama tetap bisa dibedakan.
+ * - `label_unit`  untuk baris detail yang bisa berisi satu unit produk (produk
+ *   setengah jadi atau jadi), bukan bahan. Barisnya tidak punya `bahan_id`
+ *   sehingga `label_relasi` kosong, dan semua unit dalam satu transaksi jadi
+ *   tampak kembar. Kalau diisi true, kode unitnya dicari lewat `jalur_unit`
+ *   di bawah dan dipakai sebagai tambahan label. Nama bahan tetap didahulukan.
  * - `lengkapi`    setel false kalau modulnya sengaja menunjuk tabel yang sama
  *   dengan modul lain hanya untuk mengelompokkan kolom (mis. biaya impor
  *   diajukan lawan dibayarkan). Tanpa itu tiap kolom tabel tersebut muncul
@@ -116,6 +121,22 @@ use App\Models\StockOpname;
  */
 
 return [
+
+    /*
+     * Jalur relasi dari baris detail ke kode unit yang tersimpan di dalamnya,
+     * dipakai modul yang bertanda `label_unit`. Dicoba berurutan, yang pertama
+     * terisi menang; kalau tidak ada yang terisi, serial number barisnya
+     * dipakai. Jalur yang relasi pertamanya tidak dimiliki modelnya dilewati,
+     * jadi satu daftar ini berlaku untuk semua modul.
+     *
+     * Lewat relasi, bukan lewat serial number: pada data produksi, serial
+     * number baru ketemu di daftar QC untuk sekitar tiga perempat baris unit,
+     * sedangkan `produk_jadis_id` dan `produk_id` terisi pada hampir semuanya.
+     */
+    'jalur_unit' => [
+        ['relasi' => 'dataProdukJadi.ProdukJadis', 'kolom' => 'kode_transaksi'],
+        ['relasi' => 'dataProduk.bahanSetengahjadi', 'kolom' => 'kode_transaksi'],
+    ],
 
     'modul' => [
 
@@ -316,6 +337,7 @@ return [
                 'relasi' => 'dataBahan',
                 'kolom' => 'nama_bahan',
             ],
+            'label_unit' => true,
             'field' => [
                 'qty' => ['label' => 'Jumlah', 'tipe' => 'decimal', 'wajib_lampiran' => true],
                 'jml_bahan' => ['label' => 'Kebutuhan', 'tipe' => 'decimal'],
@@ -369,6 +391,7 @@ return [
                 'relasi' => 'dataBahan',
                 'kolom' => 'nama_bahan',
             ],
+            'label_unit' => true,
             'field' => [
                 'qty' => ['label' => 'Jumlah', 'tipe' => 'decimal', 'wajib_lampiran' => true],
                 'sub_total' => ['label' => 'Sub Total', 'tipe' => 'decimal'],
@@ -388,6 +411,7 @@ return [
                 'relasi' => 'dataBahan',
                 'kolom' => 'nama_bahan',
             ],
+            'label_unit' => true,
             'field' => [
                 'qty' => ['label' => 'Jumlah', 'tipe' => 'decimal', 'wajib_lampiran' => true],
                 'keterangan_penanggungjawab' => ['label' => 'Keterangan Penanggung Jawab', 'tipe' => 'text'],
@@ -408,6 +432,7 @@ return [
                 'relasi' => 'dataBahan',
                 'kolom' => 'nama_bahan',
             ],
+            'label_unit' => true,
             'field' => [
                 'qty' => ['label' => 'Jumlah', 'tipe' => 'decimal', 'wajib_lampiran' => true],
                 'sub_total' => ['label' => 'Sub Total', 'tipe' => 'decimal'],
@@ -427,6 +452,7 @@ return [
                 'relasi' => 'dataBahan',
                 'kolom' => 'nama_bahan',
             ],
+            'label_unit' => true,
             'field' => [
                 'qty' => ['label' => 'Jumlah', 'tipe' => 'decimal', 'wajib_lampiran' => true],
                 'sub_total' => ['label' => 'Sub Total', 'tipe' => 'decimal'],
@@ -465,6 +491,7 @@ return [
                 'relasi' => 'dataBahan',
                 'kolom' => 'nama_bahan',
             ],
+            'label_unit' => true,
             'field' => [
                 'qty' => ['label' => 'Jumlah', 'tipe' => 'decimal', 'wajib_lampiran' => true],
                 'serial_number' => ['label' => 'Serial Number', 'tipe' => 'string'],

@@ -368,6 +368,76 @@ class PerbaikanDataService
         if (isset($konfigurasi['label_kolom'])) {
             $query->orWhere($konfigurasi['label_kolom'], 'like', '%' . $cari . '%');
         }
+
+        // Kode unit dan serial number ikut dicari, karena keduanya yang tertulis
+        // di label baris unit. Tanpa ini kode unit yang tercetak di dokumen
+        // tidak menemukan apa-apa.
+        $jalurUnit = $this->jalurUnit($konfigurasi);
+
+        if ($jalurUnit !== []) {
+            foreach ($jalurUnit as $jalur) {
+                $query->orWhereHas(
+                    $jalur['relasi'],
+                    fn ($q) => $q->where($jalur['kolom'], 'like', '%' . $cari . '%')
+                );
+            }
+
+            $query->orWhere('serial_number', 'like', '%' . $cari . '%');
+        }
+    }
+
+    /**
+     * Jalur relasi menuju kode unit untuk modul yang bertanda `label_unit`.
+     *
+     * Daftar jalurnya satu untuk semua modul (`jalur_unit` di config), tapi
+     * tidak semua model punya semua relasinya: baris proyek RnD dan garansi
+     * tidak punya relasi produk jadi. Jalur yang relasi pertamanya tidak ada
+     * dilewati di sini, supaya pemanggilnya tidak perlu tahu modelnya.
+     *
+     * @return array<int, array{relasi: string, kolom: string}>
+     */
+    private function jalurUnit(array $konfigurasi): array
+    {
+        if (empty($konfigurasi['label_unit'])) {
+            return [];
+        }
+
+        $contoh = new $konfigurasi['model'];
+
+        return array_values(array_filter(
+            config('perbaikan_data.jalur_unit', []),
+            fn ($jalur) => method_exists($contoh, explode('.', $jalur['relasi'])[0])
+        ));
+    }
+
+    /**
+     * Penanda unit untuk baris detail yang bukan bahan.
+     *
+     * Kode unitnya dicari lewat relasi lebih dulu. Serial number hanya jadi
+     * cadangan: dicocokkan ke daftar QC, ia cuma menemukan sebagian baris,
+     * sedangkan kunci relasinya terisi pada hampir semua.
+     *
+     * @param  array<int, array{relasi: string, kolom: string}>  $jalurUnit
+     */
+    private function penandaUnit(Model $record, array $jalurUnit): ?string
+    {
+        foreach ($jalurUnit as $jalur) {
+            $simpul = $record;
+
+            foreach (explode('.', $jalur['relasi']) as $relasi) {
+                $simpul = $simpul?->{$relasi};
+            }
+
+            $kode = $simpul?->{$jalur['kolom']};
+
+            if (filled($kode)) {
+                return (string) $kode;
+            }
+        }
+
+        $serial = $record->serial_number ?? null;
+
+        return filled($serial) ? (string) $serial : null;
     }
 
     /**
@@ -433,6 +503,14 @@ class PerbaikanDataService
             $query->with($konfigurasi['label_relasi']['relasi']);
         }
 
+        // Jalur unit dimuat di muka juga: tanpa ini tiap baris unit memicu dua
+        // sampai tiga query lagi, dan daftarnya bisa memuat ratusan baris.
+        $jalurUnit = $this->jalurUnit($konfigurasi);
+
+        foreach ($jalurUnit as $jalur) {
+            $query->with($jalur['relasi']);
+        }
+
         // Relasi yang dipakai membaca nilai kolom penunjuk ikut dimuat di muka.
         // Daftar ini berisi sampai 200 baris dan nilai SETIAP kolom dibaca untuk
         // tiap baris, jadi tanpa ini satu kali buka dropdown berarti 200 query
@@ -446,7 +524,7 @@ class PerbaikanDataService
 
         $field = array_keys($this->fieldModul($modul));
 
-        return $query->limit($batas)->get()->map(function ($record) use ($modul, $konfigurasi, $field) {
+        return $query->limit($batas)->get()->map(function ($record) use ($modul, $konfigurasi, $field, $jalurUnit) {
             $kode = (string) ($this->kodeDari($record, $konfigurasi) ?? '');
             $label = $kode !== '' ? $kode : '#' . $record->getKey();
 
@@ -469,6 +547,13 @@ class PerbaikanDataService
 
             if (blank($tambahan) && isset($konfigurasi['label_kolom'])) {
                 $tambahan = $record->{$konfigurasi['label_kolom']};
+            }
+
+            // Baris yang isinya unit produk tidak punya nama bahan. Kode
+            // unitnya yang membedakan: satu proyek bisa mengambil belasan unit
+            // dengan kode induk yang sama.
+            if (blank($tambahan) && $jalurUnit !== []) {
+                $tambahan = $this->penandaUnit($record, $jalurUnit);
             }
 
             if (filled($tambahan)) {

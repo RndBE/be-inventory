@@ -195,6 +195,7 @@
                                                 <option value="014">014 - Wiring EWS</option>
                                                 <option value="015">015 - Wiring Radio</option>
                                                 <option value="016">016 - Wiring Camera</option>
+                                                <option value="017">017 - Wiring Custom</option>
                                             </select>
 
                                             @error("selectedProdukList.$index.kode_wiring_unit")
